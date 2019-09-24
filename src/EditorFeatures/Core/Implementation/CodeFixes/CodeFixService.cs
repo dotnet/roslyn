@@ -139,7 +139,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public async Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeConfigurationFixes, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan range, bool includeConfigurationFixes, CancellationToken cancellationToken)
+        {
+            return ((ICodeFixService)this).GetFixesAsync(document, range, includeConfigurationFixes, isBlocking: false, cancellationToken);
+        }
+
+        async Task<ImmutableArray<CodeFixCollection>> ICodeFixService.GetFixesAsync(Document document, TextSpan range, bool includeConfigurationFixes, bool isBlocking, CancellationToken cancellationToken)
         {
             // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic service to give back
             // current diagnostics for the given span, and it will use that to get fixes. internally diagnostic service will either return cached information
@@ -174,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var spanAndDiagnostic in aggregatedDiagnostics)
             {
                 await AppendFixesAsync(
-                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false,
+                    document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false, isBlocking,
                     result, cancellationToken).ConfigureAwait(false);
             }
 
@@ -211,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
-            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, result, cancellationToken).ConfigureAwait(false);
+            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, isBlocking: false, result, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
@@ -243,6 +248,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan span,
             IEnumerable<DiagnosticData> diagnostics,
             bool fixAllForInSpan,
+            bool isBlocking,
             ArrayBuilder<CodeFixCollection> result,
             CancellationToken cancellationToken)
         {
@@ -300,12 +306,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         if (fixAllForInSpan)
                         {
                             var primaryDiagnostic = dxs.First();
-                            return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, ImmutableArray.Create(primaryDiagnostic), cancellationToken);
+                            return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking, ImmutableArray.Create(primaryDiagnostic), cancellationToken);
 
                         }
                         else
                         {
-                            return GetCodeFixesAsync(document, span, fixer, dxs, cancellationToken);
+                            return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs, cancellationToken);
                         }
                     },
                     cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -316,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
-            Document document, TextSpan span, CodeFixProvider fixer,
+            Document document, TextSpan span, CodeFixProvider fixer, bool isBlocking,
             ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             using var fixesDisposer = ArrayBuilder<CodeFix>.GetInstance(out var fixes);
@@ -331,6 +337,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 },
                 verifyArguments: false,
+                isBlocking,
                 cancellationToken: cancellationToken);
 
             var task = fixer.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;

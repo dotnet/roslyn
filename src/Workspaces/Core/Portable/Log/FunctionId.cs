@@ -464,5 +464,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Liveshare_LexicalClassifications,
         Liveshare_SyntacticClassifications,
         Liveshare_SyntacticTagger,
+
+        CommandHandler_GoToBase,
     }
 }
