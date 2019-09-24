@@ -1476,7 +1476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If name.IsKind(SyntaxKind.GenericName) Then
                 If (name.IsParentKind(SyntaxKind.CrefReference)) OrElse ' cref="Nullable(Of T)"
                    (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.IsParentKind(SyntaxKind.CrefReference)) OrElse ' cref="System.Nullable(Of T)"
-                   (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.Parent?.IsParentKind(SyntaxKind.CrefReference)) Then  ' cref="System.Nullable(Of T).Value"
+                   (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso (name.Parent?.IsParentKind(SyntaxKind.QualifiedName)).GetValueOrDefault() AndAlso name.Parent.Parent?.IsParentKind(SyntaxKind.CrefReference)) Then  ' cref="System.Nullable(Of T).Value"
                     ' Unfortunately, unlike in corresponding C# case, we need syntax based checking to detect these cases because of bugs in the VB SemanticModel.
                     ' See https://github.com/dotnet/roslyn/issues/2196, https://github.com/dotnet/roslyn/issues/2197
                     Return False
