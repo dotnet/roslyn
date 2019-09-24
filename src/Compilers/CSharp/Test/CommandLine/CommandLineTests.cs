@@ -10968,7 +10968,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
         public void TestSuppression_CompilerParserWarningAsError()
         {
             string source = @"
@@ -11017,7 +11017,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
         public void TestSuppression_CompilerSyntaxWarning()
         {
             // warning CS1522: Empty switch block
@@ -11077,7 +11077,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
         public void TestSuppression_CompilerSemanticWarning()
         {
             string source = @"
@@ -11180,7 +11180,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
         public void TestSuppression_AnalyzerWarning()
         {
             string source = @"

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -141,8 +142,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             callBackService.NotificationCallback = (t, m, s) => called = true;
 
             var handler = new ExtractMethodCommandHandler(
-                workspace.ExportProvider.GetExportedValue<ITextBufferUndoManagerProvider>(),
-                workspace.ExportProvider.GetExportedValue<IInlineRenameService>());
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ITextBufferUndoManagerProvider>(),
+                workspace.GetService<IInlineRenameService>());
 
             handler.ExecuteCommand(new ExtractMethodCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create());
 

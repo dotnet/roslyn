@@ -182,7 +182,16 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            // First see how the two items compare in a case insensitive fashion.  Matches that 
+            // Always prefer non-expanded item regardless of the pattern matching result.
+            // This currently means unimported types will be treated as "2nd tier" results,
+            // which forces users to be more explicit about selecting them.
+            var expandedDiff = CompareExpandedItem(item1, item2);
+            if (expandedDiff != 0)
+            {
+                return expandedDiff;
+            }
+
+            // Then see how the two items compare in a case insensitive fashion.  Matches that 
             // are strictly better (ignoring case) should prioritize the item.  i.e. if we have
             // a prefix match, that should always be better than a substring match.
             //
@@ -226,6 +235,35 @@ namespace Microsoft.CodeAnalysis.Completion
         // If they both seemed just as good, but they differ on preselection, then
         // item1 is better if it is preselected, otherwise it is worse.
         private int ComparePreselection(CompletionItem item1, CompletionItem item2)
-            => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
+        {
+            // If they both seemed just as good, but they differ on preselection, then
+            // item1 is better if it is preselected, otherwise it is worse.
+            if (item1.Rules.MatchPriority == MatchPriority.Preselect &&
+                item2.Rules.MatchPriority != MatchPriority.Preselect)
+            {
+                return -1;
+            }
+            else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
+                     item2.Rules.MatchPriority == MatchPriority.Preselect)
+            {
+                return 1;
+            }
+
+            return 0;
+        }
+
+        private int CompareExpandedItem(CompletionItem item1, CompletionItem item2)
+        {
+            var isItem1Expanded = item1.Flags.IsExpanded();
+            var isItem2Expanded = item2.Flags.IsExpanded();
+
+            if (isItem1Expanded == isItem2Expanded)
+            {
+                return 0;
+            }
+
+            // Non-expanded item is better than expanded item
+            return isItem1Expanded ? 1 : -1;
+        }
     }
 }

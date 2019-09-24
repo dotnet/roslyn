@@ -27,7 +27,9 @@ namespace Roslyn.Hosting.Diagnostics.RemoteHost
             _workspace = workspace;
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void OnSolutionSave(object sender, RoutedEventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             using (Disable(SolutionSaveButton))
             {
@@ -66,7 +68,9 @@ namespace Roslyn.Hosting.Diagnostics.RemoteHost
             }
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void OnSolutionOpen(object sender, RoutedEventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             using (Disable(SolutionOpenButton))
             {

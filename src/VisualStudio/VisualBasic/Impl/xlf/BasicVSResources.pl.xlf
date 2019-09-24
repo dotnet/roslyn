@@ -277,6 +277,11 @@
         <target state="translated">Konwencje kodowania w języku VB</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Basic_language_server_client">
+        <source>Visual Basic Language Server Client</source>
+        <target state="translated">Klient serwera języka Visual Basic</target>
+        <note />
+      </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
         <target state="translated">'Sprawdzanie „nothing”:</target>
