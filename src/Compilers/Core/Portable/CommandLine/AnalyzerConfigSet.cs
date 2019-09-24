@@ -39,14 +39,41 @@ namespace Microsoft.CodeAnalysis
             new ConcurrentDictionary<ReadOnlyMemory<char>, string>(CharMemoryEqualityComparer.Instance);
 
         // PERF: Most files will probably have the same options, so share the dictionary instances
-        private readonly ConcurrentCache<ImmutableArray<Section>, AnalyzerConfigOptionsResult> _optionsCache =
-            new ConcurrentCache<ImmutableArray<Section>, AnalyzerConfigOptionsResult>(50, SequenceEqualComparer<Section>.Instance); // arbitrary size
+        private readonly ConcurrentCache<List<Section>, AnalyzerConfigOptionsResult> _optionsCache =
+            new ConcurrentCache<List<Section>, AnalyzerConfigOptionsResult>(50, SequenceEqualComparer.Instance); // arbitrary size
 
         private readonly ObjectPool<TreeOptions.Builder> _treeOptionsPool =
-            new ObjectPool<TreeOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(CaseInsensitiveComparison.Comparer));
+            new ObjectPool<TreeOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(Section.PropertiesKeyComparer));
 
         private readonly ObjectPool<AnalyzerOptions.Builder> _analyzerOptionsPool =
-            new ObjectPool<AnalyzerOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, string>(CaseInsensitiveComparison.Comparer));
+            new ObjectPool<AnalyzerOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, string>(Section.PropertiesKeyComparer));
+
+        private readonly ObjectPool<List<Section>> _sectionKeyPool = new ObjectPool<List<Section>>(() => new List<Section>());
+
+        private sealed class SequenceEqualComparer : IEqualityComparer<List<Section>>
+        {
+            public static SequenceEqualComparer Instance { get; } = new SequenceEqualComparer();
+
+            public bool Equals(List<Section> x, List<Section> y)
+            {
+                if (x.Count != y.Count)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < x.Count; i++)
+                {
+                    if (!ReferenceEquals(x[i], y[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(List<Section> obj) => Hash.CombineValues(obj);
+        }
 
         private readonly static DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
             = new DiagnosticDescriptor(
@@ -109,7 +136,7 @@ namespace Microsoft.CodeAnalysis
             var treeOptionsBuilder = _treeOptionsPool.Allocate();
             var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
             var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
-            var sectionBuilder = ArrayBuilder<Section>.GetInstance();
+            var sectionKey = _sectionKeyPool.Allocate();
 
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
 
@@ -153,7 +180,7 @@ namespace Microsoft.CodeAnalysis
                                 diagnosticBuilder,
                                 config.PathToFile,
                                 _diagnosticIdCache);
-                            sectionBuilder.Add(section);
+                            sectionKey.Add(section);
                         }
                     }
                 }
@@ -161,7 +188,6 @@ namespace Microsoft.CodeAnalysis
 
             // Try to avoid creating extra dictionaries if we've already seen an options result with the
             // exact same options
-            var sectionKey = sectionBuilder.ToImmutableAndFree();
             if (!_optionsCache.TryGetValue(sectionKey, out var result))
             {
                 result = new AnalyzerConfigOptionsResult(
@@ -171,8 +197,10 @@ namespace Microsoft.CodeAnalysis
                 _optionsCache.TryAdd(sectionKey, result);
             }
 
+            sectionKey.Clear();
             treeOptionsBuilder.Clear();
             analyzerOptionsBuilder.Clear();
+            _sectionKeyPool.Free(sectionKey);
             _treeOptionsPool.Free(treeOptionsBuilder);
             _analyzerOptionsPool.Free(analyzerOptionsBuilder);
 

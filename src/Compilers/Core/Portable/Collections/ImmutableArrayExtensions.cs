@@ -595,30 +595,5 @@ namespace Microsoft.CodeAnalysis
         {
             return items.IsEmpty ? Location.None : items[0];
         }
-
-        internal sealed class SequenceEqualComparer<T> : IEqualityComparer<ImmutableArray<T>>
-        {
-            public static SequenceEqualComparer<T> Instance { get; } = new SequenceEqualComparer<T>();
-
-            public bool Equals(ImmutableArray<T> x, ImmutableArray<T> y)
-            {
-                if (x.Length != y.Length)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < x.Length; i++)
-                {
-                    if (!x[i].Equals(y[i]))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            public int GetHashCode(ImmutableArray<T> obj) => Hash.CombineValues(obj);
-        }
     }
 }
