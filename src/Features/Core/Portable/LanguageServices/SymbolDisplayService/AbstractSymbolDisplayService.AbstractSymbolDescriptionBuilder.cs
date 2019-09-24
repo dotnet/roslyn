@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    Description(FeaturesResources.parameter),
+                    Description(symbol.IsDiscard ? FeaturesResources.discard : FeaturesResources.parameter),
                     ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants));
             }
 
