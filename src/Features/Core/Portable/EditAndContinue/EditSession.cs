@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var changedDocumentAnalyses = GetChangedDocumentsAnalyses(baseProject, project);
                     var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
 
-                    if (projectSummary == ProjectAnalysisSummary.ValidChanges && 
+                    if (projectSummary == ProjectAnalysisSummary.ValidChanges &&
                         !GetModuleDiagnostics(mvid, project.Name).IsEmpty)
                     {
                         EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: module blocking EnC", project.Id.DebugName, project.Id);
