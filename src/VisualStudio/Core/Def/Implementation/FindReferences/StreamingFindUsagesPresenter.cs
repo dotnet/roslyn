@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
+using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Text.Classification;
@@ -58,9 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                    typeMap,
                    formatMapService,
                    classificationFormatMapService,
-                   columns.Where(c =>
-                        c.Value is AbstractCustomColumnDefinition)
-                        .Select(c => c.Value))
+                   GetCustomColumns(columns))
         {
         }
 
@@ -74,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                   exportProvider.GetExportedValue<ClassificationTypeMap>(),
                   exportProvider.GetExportedValue<IEditorFormatMapService>(),
                   exportProvider.GetExportedValue<IClassificationFormatMapService>(),
-                  exportProvider.GetExportedValues<ITableColumnDefinition>())
+                  exportProvider.GetExportedValues<ITableColumnDefinition>().OfType<AbstractCustomColumnDefinition>())
         {
         }
 
@@ -85,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
-            IEnumerable<ITableColumnDefinition> columns)
+            IEnumerable<AbstractCustomColumnDefinition> columns)
             : base(threadingContext)
         {
             _workspace = workspace;
@@ -95,7 +93,29 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
 
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
-            _customColumns = columns.OfType<AbstractCustomColumnDefinition>().ToImmutableArray();
+            _customColumns = columns.ToImmutableArray();
+        }
+
+        private static IEnumerable<AbstractCustomColumnDefinition> GetCustomColumns(IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
+        {
+            foreach (var column in columns)
+            {
+                // PERF: Filter the columns by metadata name before selecting our custom columns.
+                //       This is done to ensure that we do not load every single table control column
+                //       that implements ITableColumnDefinition, which will cause unwanted assembly loads.
+                switch (column.Metadata.Name)
+                {
+                    case FindUsagesValueUsageInfoColumnDefinition.ColumnName:
+                    case ContainingTypeColumnDefinition.ColumnName:
+                    case ContainingMemberColumnDefinition.ColumnName:
+                        if (column.Value is AbstractCustomColumnDefinition customColumn)
+                        {
+                            yield return customColumn;
+                        }
+
+                        break;
+                }
+            }
         }
 
         public void ClearAll()
