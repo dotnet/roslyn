@@ -19,7 +19,7 @@ efforts behind them.
 | [Parameter null-checking](https://github.com/dotnet/csharplang/issues/2145) | [param-nullchecking](https://github.com/dotnet/roslyn/tree/features/param-nullchecking) | [In Progress](https://github.com/dotnet/roslyn/issues/36024) | [fayrose](https://github.com/fayrose) | [agocke](https://github.com/agocked)  | [jaredpar](https://github.com/jaredpar) |
 | [Skip locals init](https://github.com/dotnet/csharplang/issues/1738) | [localsinit](https://github.com/dotnet/roslyn/tree/features/localsinit) | [In Progress](https://github.com/dotnet/roslyn/issues/25780) | [t-camaia](https://github.com/t-camaia), [agocke](https://github.com/agocke) | TBD | [agocke](https://github.com/agocke) |
 | [Lambda discard parameters](https://github.com/dotnet/csharplang/issues/111) | master | [In Progress](https://github.com/dotnet/roslyn/issues/38820) | [jcouv](https://github.com/jcouv) | TBD | [jcouv](https://github.com/jcouv) |
-| [Native ints](https://github.com/dotnet/csharplang/issues/435) | TBD | In Progress | [cston](https://github.com/cston) | TBD | [jaredpar](https://github.com/jaredpar) |
+| [Native ints](https://github.com/dotnet/csharplang/issues/435) | TBD | [In Progress](https://github.com/dotnet/roslyn/issues/38821) | [cston](https://github.com/cston) | TBD | [jaredpar](https://github.com/jaredpar) |
 
 
 # C# 8.0
