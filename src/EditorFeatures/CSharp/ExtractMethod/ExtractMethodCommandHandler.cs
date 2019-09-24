@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod
         public ExtractMethodCommandHandler(
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
-            IInlineRenameService renameService) 
+            IInlineRenameService renameService)
             : base(threadingContext, undoManager, renameService)
         {
         }
