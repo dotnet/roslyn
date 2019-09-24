@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string RoslynInlineRenameFile = "Roslyn.FileRename";
 
         // Syntactic LSP experiment treatments.
-        public const string SyntacticExp_Remote = "RoslynLsp";
-        public const string SyntacticExp_Local = "RoslynLocal";
         public const string SyntacticExp_LiveShareTagger_Remote = "RoslynLsp_Tagger";
         public const string SyntacticExp_LiveShareTagger_TextMate = "RoslynTextMate_Tagger";
     }

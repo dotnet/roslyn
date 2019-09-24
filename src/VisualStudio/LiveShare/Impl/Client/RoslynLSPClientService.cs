@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.LiveShare;
 using Newtonsoft.Json.Linq;
 using Task = System.Threading.Tasks.Task;
 using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
@@ -50,6 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 {
                     ActiveLanguageServerClient = languageServerGuestService.CreateLanguageServerClient(anyLspServerProviderName);
                 }
+
+                InitializeServerCapabilities(cancellationToken);
             };
 
             // Register Roslyn supported capabilities
@@ -131,23 +134,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         /// <summary>
-        /// Ensures the client has been fully initialized by making an initialize request
-        /// and retrieving the server capabilities.
-        /// TODO - This should be called in <see cref="CreateServiceAsync(CollaborationSession, CancellationToken)"/>
-        /// and made private once LiveShare fixes the race in client creation.
-        /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/964288
+        /// Retrieve the server's capabilities before additional requests are made to the remote host.
         /// </summary>
-        public async Task EnsureInitializedAsync(CancellationToken cancellationToken)
+        /// <param name="cancellationToken"></param>
+        public void InitializeServerCapabilities(CancellationToken cancellationToken)
         {
-            if (ActiveLanguageServerClient == null)
+            if (ActiveLanguageServerClient == null || ServerCapabilities != null)
             {
                 return;
             }
 
-            // Only request the server capabilities if we don't already have them.
-            if (ServerCapabilities == null)
+            var initializeRequest = new LS.LspRequest<InitializeParams, InitializeResult>(Methods.InitializeName);
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                var initializeRequest = new LS.LspRequest<InitializeParams, InitializeResult>(Methods.InitializeName);
                 var intializeResult = await ActiveLanguageServerClient.RequestAsync(initializeRequest, new InitializeParams(), cancellationToken).ConfigureAwait(false);
 
                 var serverCapabilities = intializeResult?.Capabilities;
@@ -157,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 }
 
                 ServerCapabilities = serverCapabilities;
-            }
+            });
         }
     }
 
