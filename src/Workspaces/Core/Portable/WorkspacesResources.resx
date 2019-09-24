@@ -951,7 +951,7 @@ If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</value>
     <value>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</value>
   </data>
   <data name="Regex_hexadecimal_escape_short" xml:space="preserve">
-    <value>hexidecimal escape</value>
+    <value>hexadecimal escape</value>
   </data>
   <data name="Regex_letter_uppercase" xml:space="preserve">
     <value>letter, uppercase</value>

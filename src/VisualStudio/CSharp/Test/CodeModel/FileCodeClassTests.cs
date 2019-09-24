@@ -58,14 +58,14 @@ public class Bar
 
             var bases = cc.Bases;
 
-            Assert.Equal(bases.Count, 1);
-            Assert.Equal(bases.Cast<CodeElement>().Count(), 1);
+            Assert.Equal(1, bases.Count);
+            Assert.Equal(1, bases.Cast<CodeElement>().Count());
 
             Assert.NotNull(bases.Parent);
 
             var parentClass = bases.Parent as CodeClass;
             Assert.NotNull(parentClass);
-            Assert.Equal(parentClass.FullName, "Goo");
+            Assert.Equal("Goo", parentClass.FullName);
 
             Assert.True(bases.Item("object") is CodeClass);
         }
@@ -78,14 +78,14 @@ public class Bar
 
             var interfaces = cc.ImplementedInterfaces;
 
-            Assert.Equal(interfaces.Count, 2);
-            Assert.Equal(interfaces.Cast<CodeElement>().Count(), 2);
+            Assert.Equal(2, interfaces.Count);
+            Assert.Equal(2, interfaces.Cast<CodeElement>().Count());
 
             Assert.NotNull(interfaces.Parent);
 
             var parentClass = interfaces.Parent as CodeClass;
             Assert.NotNull(parentClass);
-            Assert.Equal(parentClass.FullName, "Goo");
+            Assert.Equal("Goo", parentClass.FullName);
 
             Assert.True(interfaces.Item("System.IDisposable") is CodeInterface);
             Assert.True(interfaces.Item("ICloneable") is CodeInterface);

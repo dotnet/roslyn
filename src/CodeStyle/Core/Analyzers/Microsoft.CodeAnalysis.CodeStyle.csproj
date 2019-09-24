@@ -71,7 +71,6 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractAggregatedFormattingResult.cs" Link="Formatting\Engine\AbstractAggregatedFormattingResult.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.cs" Link="Formatting\Engine\AbstractFormatEngine.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.OperationApplier.cs" Link="Formatting\Engine\AbstractFormatEngine.OperationApplier.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.Partitioner.cs" Link="Formatting\Engine\AbstractFormatEngine.Partitioner.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormattingResult.cs" Link="Formatting\Engine\AbstractFormattingResult.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.AbstractComplexTrivia.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.AbstractComplexTrivia.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.cs" />

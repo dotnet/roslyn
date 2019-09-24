@@ -824,6 +824,11 @@ namespace Microsoft.CodeAnalysis
         internal abstract ISymbol CommonGetWellKnownTypeMember(WellKnownMember member);
 
         /// <summary>
+        /// Lookup well-known type used by this Compilation.
+        /// </summary>
+        internal abstract ITypeSymbol CommonGetWellKnownType(WellKnownType wellknownType);
+
+        /// <summary>
         /// Returns true if the specified type is equal to or derives from System.Attribute well-known type.
         /// </summary>
         internal abstract bool IsAttributeType(ITypeSymbol type);
@@ -2489,6 +2494,8 @@ namespace Microsoft.CodeAnalysis
 
                     if (!options.EmitMetadataOnly)
                     {
+                        // NOTE: We generate documentation even in presence of compile errors.
+                        // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
                         if (!GenerateResourcesAndDocumentationComments(
                             moduleBeingBuilt,
                             xmlDocumentationStream,
@@ -2515,6 +2522,11 @@ namespace Microsoft.CodeAnalysis
                 if (Options.StrongNameProvider != null && SignUsingBuilder && !Options.PublicSign)
                 {
                     privateKeyOpt = StrongNameKeys.PrivateKey;
+                }
+
+                if (!options.EmitMetadataOnly && CommonCompiler.HasUnsuppressedErrors(diagnostics))
+                {
+                    success = false;
                 }
 
                 if (success)
@@ -2654,7 +2666,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (CommonCompiler.HasUnsuppressedErrors(diagnostics))
+            if (CommonCompiler.HasUnsuppressableErrors(diagnostics))
             {
                 return null;
             }

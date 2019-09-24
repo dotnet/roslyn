@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -692,9 +691,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
+
         [WorkItem(544029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544029")]
         [Fact]
-
         public void ArrayCreation()
         {
             var source =
@@ -717,9 +716,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
+
         [WorkItem(544030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544030")]
         [Fact]
-
         public void ArrayInitialization()
         {
             var source =
@@ -739,9 +738,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
+
         [WorkItem(544112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544112")]
         [Fact]
-
         public void CS0838ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer()
         {
             var source =
@@ -760,9 +759,9 @@ class Program
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer, "new[,] {{ i }}")
                 );
         }
+
         [WorkItem(544031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544031")]
         [Fact]
-
         public void ArrayLength()
         {
             var source =
@@ -785,9 +784,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
+
         [WorkItem(544032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544032")]
         [Fact]
-
         public void AsOperator()
         {
             var source =
@@ -807,9 +806,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544034")]
         [Fact]
-
         public void BaseReference()
         {
             var source =
@@ -915,9 +914,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544036")]
         [Fact]
-
         public void Subtract()
         {
             var source =
@@ -970,9 +969,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544037")]
         [Fact]
-
         public void Divide()
         {
             var source =
@@ -1022,9 +1021,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544038")]
         [Fact]
-
         public void Remainder()
         {
             var source =
@@ -1074,9 +1073,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544041")]
         [Fact]
-
         public void And()
         {
             var source =
@@ -1126,9 +1125,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544042")]
         [Fact]
-
         public void ExclusiveOr()
         {
             var source =
@@ -1178,9 +1177,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544043")]
         [Fact]
-
         public void BitwiseOr()
         {
             var source =
@@ -1230,9 +1229,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544039"), WorkItem(544040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544040")]
         [Fact]
-
         public void MoreBinaryOperators()
         {
             var source =
@@ -1276,9 +1275,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544059")]
         [Fact]
-
         public void UnaryOperators()
         {
             var source =
@@ -1325,8 +1324,8 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
-        [Fact]
 
+        [Fact]
         public void GrabBag01()
         {
             var source =
@@ -1387,9 +1386,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "123k");
         }
+
         [WorkItem(546147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546147")]
         [Fact]
-
         public void DelegateInvoke()
         {
             var source =
@@ -1411,8 +1410,8 @@ class P
 @"Invoke(MemberAccess(Constant(P+<>c__DisplayClass0_0 Type:P+<>c__DisplayClass0_0).f Type:System.Func`2[System.Int32,System.Int32])(Constant(12 Type:System.Int32)) Type:System.Int32)
 () => Invoke(value(P+<>c__DisplayClass0_0).f, 12)");
         }
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
 
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
         public void GrabBag02()
         {
             var source =
@@ -1510,8 +1509,8 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
-        [Fact]
 
+        [Fact]
         public void UnsafeExprTree()
         {
             var source =
@@ -1539,9 +1538,9 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "sizeof(S)")
             );
         }
+
         [WorkItem(544044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544044")]
         [Fact]
-
         public void CollectionInitialization()
         {
             var source =
@@ -1561,9 +1560,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544390")]
         [Fact]
-
         public void ObjectInitialization()
         {
             var source =
@@ -1629,8 +1628,8 @@ MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssign
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: expectedOutput);
         }
-        [Fact]
 
+        [Fact]
         public void Lambda()
         {
             var source =
@@ -1658,9 +1657,9 @@ partial class Program
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544218")]
         [Fact]
-
         public void Linq()
         {
             var source =
@@ -1683,8 +1682,8 @@ class A
                 new[] { source },
                 expectedOutput: "s => s.SelectMany(x => s, (x, y) => new <>f__AnonymousType0`2(x = x, y = y)).OrderByDescending(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x).Select(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x)");
         }
-        [Fact]
 
+        [Fact]
         public void Enum()
         {
             var source =
@@ -3379,7 +3378,6 @@ Lambda:
                  expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-
         [WorkItem(544442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544442")]
         [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
         [Fact]
@@ -5072,7 +5070,7 @@ namespace ConsoleApplication1
     }
 
 }";
-            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Convert(Constant(null Type:System.Object) Lifted LiftedToNull Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Constant(null Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
             CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: expectedOutput,
@@ -6195,7 +6193,7 @@ class C : TestBase
 
         #region helpers
 
-        public string TrimExpectedOutput(string expectedOutput)
+        private static string TrimExpectedOutput(string expectedOutput)
         {
             char[] delimit = { '\n' };
             string trimmedOutput = null;

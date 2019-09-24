@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -94,9 +95,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 options, showMetadataSymbolsWithoutReferences: false);
 
-            var sourceLocations = ArrayBuilder<DocumentSpan>.GetInstance();
+            using var sourceLocationsDisposer = ArrayBuilder<DocumentSpan>.GetInstance(out var sourceLocations);
 
             var properties = GetProperties(definition);
+
+            var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
@@ -144,8 +147,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
 
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutableAndFree(),
-                nameDisplayParts, properties, displayIfNoReferences);
+                tags, displayParts, sourceLocations.ToImmutable(),
+                nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
         }
 
         private static ImmutableDictionary<string, string> GetProperties(ISymbol definition)
@@ -193,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
-            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo);
+            return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.FindUsagesProperties);
         }
 
         private static SymbolDisplayFormat GetFormat(ISymbol definition)

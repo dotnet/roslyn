@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol baseType = fieldAccess.FieldSymbol.ContainingType;
                 while ((object)baseType != null)
                 {
-                    if (TypeSymbol.Equals(baseType, marshalByRefType, TypeCompareKind.ConsiderEverything2))
+                    if (TypeSymbol.Equals(baseType, marshalByRefType, TypeCompareKind.ConsiderEverything))
                     {
                         return true;
                     }
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckNullableNullBinOp(BoundBinaryOperator node)
         {
-            if ((node.OperatorKind & BinaryOperatorKind.NullableNull) == 0)
+            if (node.OperatorKind.OperandTypes() != BinaryOperatorKind.NullableNull)
             {
                 return;
             }

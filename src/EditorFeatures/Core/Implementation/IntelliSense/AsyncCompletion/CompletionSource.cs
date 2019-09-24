@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string InsertionText = nameof(InsertionText);
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
         internal const string Description = nameof(Description);
-        internal const string InitialTriggerKind = nameof(InitialTriggerKind);
         internal const string PotentialCommitCharacters = nameof(PotentialCommitCharacters);
         internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
@@ -64,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly bool _isDebuggerTextView;
         private readonly ImmutableHashSet<string> _roles;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private bool _snippetCompletionTriggeredIndirectly;
 
         internal CompletionSource(ITextView textView, Lazy<IStreamingFindUsagesPresenter> streamingPresenter, IThreadingContext threadingContext)
             : base(threadingContext)
@@ -110,6 +110,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
             _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
+
+            // Reset a flag which means a snippet triggerred by ? + Tab.
+            // Set it later if met the condition.
+            _snippetCompletionTriggeredIndirectly = false;
 
             CheckForExperimentStatus(_textView, document);
 
@@ -177,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return false;
         }
 
-        private static bool TryInvokeSnippetCompletion(
+        private bool TryInvokeSnippetCompletion(
             CompletionService completionService, Document document, SourceText text, int caretPoint)
         {
             var rules = completionService.GetRules();
@@ -203,6 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var textChange = new TextChange(TextSpan.FromBounds(caretPoint - 2, caretPoint), string.Empty);
             document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChange, CancellationToken.None);
 
+            _snippetCompletionTriggeredIndirectly = true;
             return true;
         }
 
@@ -222,6 +227,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var completionService = document.GetLanguageService<CompletionService>();
 
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
+            if (_snippetCompletionTriggeredIndirectly)
+            {
+                roslynTrigger = new CompletionTrigger(CompletionTriggerKind.Snippets);
+            }
 
             var workspace = document.Project.Solution.Workspace;
 
@@ -269,7 +278,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
             session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
 
-            session.Properties.AddProperty(InitialTriggerKind, roslynTrigger.Kind);
             var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
             if (excludedCommitCharacters.Length > 0)
             {
@@ -399,6 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 insertText: itemData.InsertionText,
                 sortText: roslynItem.SortText,
                 filterText: roslynItem.FilterText,
+                automationText: roslynItem.AutomationText ?? roslynItem.DisplayText,
                 attributeIcons: itemData.AttributeIcons);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
@@ -427,27 +436,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private ImmutableArray<AsyncCompletionData.CompletionFilter> GetFilters(RoslynCompletionItem item)
-        {
-            var listBuilder = new ArrayBuilder<AsyncCompletionData.CompletionFilter>();
-            foreach (var filter in CompletionItemFilter.AllFilters)
-            {
-                if (filter.Matches(item))
-                {
-                    if (!s_filterCache.TryGetValue(filter.DisplayText, out var itemFilter))
-                    {
-                        var imageId = filter.Tags.GetFirstGlyph().GetImageId();
-                        itemFilter = new AsyncCompletionData.CompletionFilter(
-                            filter.DisplayText,
-                            filter.AccessKey.ToString(),
-                            new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
-                        s_filterCache[filter.DisplayText] = itemFilter;
-                    }
+            => CompletionItemFilter.AllFilters.WhereAsArray(f => f.Matches(item)).SelectAsArray(f => GetOrCreateFilter(f));
 
-                    listBuilder.Add(itemFilter);
-                }
+        internal static AsyncCompletionData.CompletionFilter GetOrCreateFilter(CompletionItemFilter filter)
+        {
+            if (!s_filterCache.TryGetValue(filter.DisplayText, out var itemFilter))
+            {
+                var imageId = filter.Tags.GetFirstGlyph().GetImageId();
+                itemFilter = new AsyncCompletionData.CompletionFilter(
+                    filter.DisplayText,
+                    filter.AccessKey.ToString(),
+                    new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
+                s_filterCache[filter.DisplayText] = itemFilter;
             }
 
-            return listBuilder.ToImmutableAndFree();
+            return itemFilter;
         }
 
         internal static bool QuestionMarkIsPrecededByIdentifierAndWhitespace(

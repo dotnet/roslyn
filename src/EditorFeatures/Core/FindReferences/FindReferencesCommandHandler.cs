@@ -101,8 +101,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
                 // Let the presented know we're starting a search.  It will give us back
                 // the context object that the FAR service will push results into.
-                var context = presenter.StartSearch(
-                    EditorFeaturesResources.Find_References, supportsReferences: true);
+                var context = presenter.StartSearchWithCustomColumns(
+                    EditorFeaturesResources.Find_References,
+                    supportsReferences: true,
+                    includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
+                    includeKindColumn: document.Project.Language != LanguageNames.FSharp);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

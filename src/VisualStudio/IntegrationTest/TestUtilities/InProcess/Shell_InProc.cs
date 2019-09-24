@@ -43,5 +43,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 return (bool)isProvisionalObject;
             });
+
+        public bool IsUIContextActive(Guid context)
+        {
+            return UIContext.FromUIContextGuid(context).IsActive;
+        }
     }
 }

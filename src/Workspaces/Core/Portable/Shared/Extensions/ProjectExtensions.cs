@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -44,20 +46,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return version.GetNewerVersion(latestVersion);
         }
 
-        public static string TryGetAnalyzerConfigPathForProjectConfiguration(this Project project)
-            => TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnosticOpt: null);
+        public static string? TryGetAnalyzerConfigPathForProjectConfiguration(this Project project)
+            => TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnostic: null);
 
-        public static string TryGetAnalyzerConfigPathForDiagnosticConfiguration(this Project project, Diagnostic diagnostic)
+        public static string? TryGetAnalyzerConfigPathForDiagnosticConfiguration(this Project project, Diagnostic diagnostic)
         {
             Debug.Assert(diagnostic != null);
             return TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnostic);
         }
 
-        private static string TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(Project project, Diagnostic diagnosticOpt)
+        private static string? TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(Project project, Diagnostic? diagnostic)
         {
             if (project.AnalyzerConfigDocuments.Any())
             {
-                var diagnosticFilePath = PathUtilities.GetDirectoryName(diagnosticOpt?.Location.SourceTree?.FilePath ?? project.FilePath);
+                var diagnosticFilePath = PathUtilities.GetDirectoryName(diagnostic?.Location.SourceTree?.FilePath ?? project.FilePath);
                 if (!PathUtilities.IsAbsolute(diagnosticFilePath))
                 {
                     return null;
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return PathUtilities.CombineAbsoluteAndRelativePaths(projectFilePath, ".editorconfig");
         }
 
-        public static AnalyzerConfigDocument TryGetExistingAnalyzerConfigDocumentAtPath(this Project project, string analyzerConfigPath)
+        public static AnalyzerConfigDocument? TryGetExistingAnalyzerConfigDocumentAtPath(this Project project, string analyzerConfigPath)
         {
             Debug.Assert(analyzerConfigPath != null);
             Debug.Assert(PathUtilities.IsAbsolute(analyzerConfigPath));

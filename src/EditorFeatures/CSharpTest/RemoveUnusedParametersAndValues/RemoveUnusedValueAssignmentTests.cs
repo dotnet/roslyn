@@ -7042,5 +7042,112 @@ class C : IDisposable
 }", options: PreferDiscard,
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
+        public async Task RefParameter_WrittenBeforeThrow()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    public void DoSomething(ref bool p)
+    {
+        if (p)
+        {
+            [|p|] = false;
+            throw new ArgumentException(string.Empty);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
+        public async Task OutParameter_WrittenBeforeThrow()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    public void DoSomething(out bool p, bool x)
+    {
+        if (x)
+        {
+            [|p|] = false;
+            throw new ArgumentException(string.Empty);
+        }
+        else
+        {
+            p = true;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
+        public async Task RefParameter_RefAssignmentFollowedByAssignment()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    delegate ref int UnsafeAdd(ref int source, int elementOffset);
+    static UnsafeAdd MyUnsafeAdd;
+    
+    static void T1(ref int param)
+    {
+        [|param|] = ref MyUnsafeAdd(ref param, 1);
+        param = default;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
+        public async Task RefParameter_RefConditionalAssignment()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    delegate ref int UnsafeAdd(ref int source, int elementOffset);
+    static UnsafeAdd MyUnsafeAdd;
+
+    static void T1(ref int param, bool flag)
+    {
+        [|param|] = flag ? ref MyUnsafeAdd(ref param, 1) : ref MyUnsafeAdd(ref param, 2);
+        param = default;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task LocalFunction_OutParameter_UsedInCaller()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+public class C
+{
+    public void M()
+    {
+        if (GetVal(out var [|value|]))
+        {
+            var x = value;
+        }
+
+        bool GetVal(out string val)
+        {
+            val = string.Empty;
+            return true;
+        }
+    }
+}");
+        }
     }
 }

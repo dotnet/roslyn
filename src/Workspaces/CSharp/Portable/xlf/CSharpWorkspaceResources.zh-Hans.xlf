@@ -52,6 +52,16 @@
         <target state="translated">模式匹配首选项</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_and_Sort_Usings">
+        <source>R&amp;emove and Sort Usings</source>
+        <target state="translated">删除 Using 和对其排序(&amp;E)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Usings">
+        <source>&amp;Sort Usings</source>
+        <target state="translated">对 using 排序(&amp;S)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Space_preferences">
         <source>Space preferences</source>
         <target state="translated">空格键首选项</target>
@@ -84,7 +94,7 @@
       </trans-unit>
       <trans-unit id="using_directive_preferences">
         <source>'using' directive preferences</source>
-        <target state="new">'using' directive preferences</target>
+        <target state="translated">"using" 指令首选项</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="var_preferences">

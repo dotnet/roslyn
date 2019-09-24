@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override AttributeUsageInfo GetAttributeUsageInfo()
         {
             return new AttributeUsageInfo(
-                AttributeTargets.Module | AttributeTargets.Class | AttributeTargets.Delegate | AttributeTargets.Interface | AttributeTargets.Method | AttributeTargets.Struct,
+                AttributeTargets.Class | AttributeTargets.Delegate | AttributeTargets.Interface | AttributeTargets.Method | AttributeTargets.Struct,
                 allowMultiple: false,
                 inherited: false);
         }

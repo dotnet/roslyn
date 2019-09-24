@@ -116,8 +116,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool CheckParent<T>(this SyntaxNode node, Func<T, bool> valueChecker) where T : SyntaxNode
         {
-            var parentNode = node?.Parent as T;
-            if (parentNode == null)
+            if (!(node?.Parent is T parentNode))
             {
                 return false;
             }

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.CodeAnalysis.UnitTests;
 using Nerdbank;
 using Roslyn.Test.Utilities.Remote;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
@@ -131,7 +132,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) },
                     CancellationToken.None);
 
-                Assert.Equal(comments.Count, 1);
+                Assert.Equal(1, comments.Count);
             }
         }
 
@@ -153,7 +154,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     solution.Projects.First().DocumentIds.First(),
                     CancellationToken.None);
 
-                Assert.Equal(result.DesignerAttributeArgument, "Form");
+                Assert.Equal("Form", result.DesignerAttributeArgument);
             }
         }
 

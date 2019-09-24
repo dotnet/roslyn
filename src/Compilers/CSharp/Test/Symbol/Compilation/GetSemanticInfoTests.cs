@@ -530,7 +530,7 @@ enum E { zero, one }
 
             // sbyte? nullable = null;
             var v1 = (mainStats[0] as LocalDeclarationStatementSyntax).Declaration.Variables;
-            ConversionTestHelper(model, v1[0].Initializer.Value, ConversionKind.DefaultOrNullLiteral, ConversionKind.NoConversion);
+            ConversionTestHelper(model, v1[0].Initializer.Value, ConversionKind.NullLiteral, ConversionKind.NoConversion);
             // uint? nullable01 = 100;
             var v2 = (mainStats[1] as LocalDeclarationStatementSyntax).Declaration.Variables;
             ConversionTestHelper(model, v2[0].Initializer.Value, ConversionKind.ImplicitNullable, ConversionKind.ExplicitNullable);
@@ -593,7 +593,7 @@ class MyClass
             var expr2 = exprs.Last();
 
             var info = model.GetTypeInfo(expr1);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.NotNull(info.ConvertedType);
             // It was ImplicitUserDef -> Design Meeting resolution: not expose op_True|False as conversion through API
             var impconv = model.GetConversion(expr1);
@@ -624,7 +624,7 @@ class C {
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
             var expr1 = exprs.First();
             var info = model.GetTypeInfo(expr1);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.NotNull(info.ConvertedType);
             var impconv = model.GetConversion(expr1);
             Assert.True(impconv.IsImplicit);
@@ -691,7 +691,7 @@ class C {
                     Assert.False(conv.IsExplicit);
                     Assert.True(conv.IsNullable);
                     break;
-                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.NullLiteral:
                     Assert.True(conv.Exists);
                     Assert.True(conv.IsImplicit);
                     Assert.False(conv.IsExplicit);
@@ -837,7 +837,7 @@ class C {
         private void ConversionTestHelper(SemanticModel semanticModel, ExpressionSyntax expr, ConversionKind ept1, ConversionKind ept2)
         {
             var info = semanticModel.GetTypeInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.NotNull(info.ConvertedType);
             var conv = semanticModel.GetConversion(expr);
 
@@ -864,7 +864,7 @@ class C {
         private void ConversionTestHelper(SemanticModel semanticModel, ExpressionSyntax expr, ITypeSymbol expsym, ConversionKind expkind)
         {
             var info = semanticModel.GetTypeInfo(expr);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.NotNull(info.ConvertedType);
 
             // NOT expect NoConversion
@@ -1062,7 +1062,7 @@ class C
 }
 ";
             var bindInfo = BindFirstConstructorInitializer(text);
-            Assert.NotNull(bindInfo);
+            Assert.NotEqual(default, bindInfo);
 
             var baseConstructor = bindInfo.Symbol;
             Assert.Equal(SymbolKind.Method, baseConstructor.Kind);
@@ -1081,7 +1081,7 @@ class C
 }
 ";
             var bindInfo = BindFirstConstructorInitializer(text);
-            Assert.NotNull(bindInfo);
+            Assert.NotEqual(default, bindInfo);
 
             var baseConstructor = bindInfo.Symbol;
             Assert.Equal(SymbolKind.Method, baseConstructor.Kind);
@@ -1106,7 +1106,7 @@ class MyClass
 }
 ";
             var bindInfo = BindFirstConstructorInitializer(text);
-            Assert.NotNull(bindInfo);
+            Assert.NotEqual(default, bindInfo);
             var invokedConstructor = (MethodSymbol)bindInfo.Symbol;
             Assert.Equal(MethodKind.Constructor, invokedConstructor.MethodKind);
             Assert.Equal("MyClass..ctor()", invokedConstructor.ToTestDisplayString());

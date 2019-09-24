@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="new">A language name cannot be specified for this option.</target>
+        <target state="translated">이 옵션에 대한 언어 이름을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="new">A language name must be specified for this option.</target>
+        <target state="translated">이 옵션에 대한 언어 이름을 지정해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
@@ -90,8 +90,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
-        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
-        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</target>
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">
@@ -456,12 +456,12 @@
       </trans-unit>
       <trans-unit id="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream">
         <source>Including private members should not be used when emitting to the secondary assembly output.</source>
-        <target state="translated">보조 어셈블리 출력으로 내보낼 때 개인 멤버를 포함해서는 안 됩니다.</target>
+        <target state="translated">보조 어셈블리 출력으로 내보낼 때 프라이빗 멤버를 포함해서는 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
         <source>Must include private members unless emitting a ref assembly.</source>
-        <target state="translated">참조 어셈블리를 내보내지 않는 경우 개인 멤버를 포함해야 합니다.</target>
+        <target state="translated">참조 어셈블리를 내보내지 않는 경우 프라이빗 멤버를 포함해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
@@ -521,12 +521,12 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
         <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
-        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <target state="translated">'{2}'의 분석기 구성 파일에 있는 진단 '{0}'에 잘못된 심각도 '{1}'이(가) 지정되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
         <source>Invalid severity in analyzer config file.</source>
-        <target state="new">Invalid severity in analyzer config file.</target>
+        <target state="translated">분석기 구성 파일의 심각도가 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">

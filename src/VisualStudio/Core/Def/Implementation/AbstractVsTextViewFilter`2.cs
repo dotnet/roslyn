@@ -133,8 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return VSConstants.S_OK;
             }
 
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace == null)
+            if (!(workspace is VisualStudioWorkspaceImpl vsWorkspace))
             {
                 return VSConstants.S_OK;
             }

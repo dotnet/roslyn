@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
-        <target state="new">Adding analyzer config documents is not supported.</target>
+        <target state="translated">L'ajout de documents de configuration de l'analyseur n'est pas pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
-        <target state="new">Changing analyzer config documents is not supported.</target>
+        <target state="translated">L'apport de changements aux documents de configuration de l'analyseur n'est pas pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">Règles de nommage</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_styles">
         <source>Naming styles</source>
-        <target state="new">Naming styles</target>
+        <target state="translated">Styles de nommage</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
@@ -104,102 +104,102 @@
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
         <source>All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</source>
-        <target state="new">All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</target>
+        <target state="translated">Tous les caractères de contrôle. Cela inclut les catégories Cc, Cf, Cs, Co et Cn.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_short">
         <source>all control characters</source>
-        <target state="new">all control characters</target>
+        <target state="translated">tous les caractères de contrôle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_diacritic_marks_long">
         <source>All diacritic marks. This includes the Mn, Mc, and Me categories.</source>
-        <target state="new">All diacritic marks. This includes the Mn, Mc, and Me categories.</target>
+        <target state="translated">Toutes les marques diacritiques. Cela inclut les catégories Mn, Mc et Me.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_diacritic_marks_short">
         <source>all diacritic marks</source>
-        <target state="new">all diacritic marks</target>
+        <target state="translated">toutes les marques diacritiques</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_letter_characters_long">
         <source>All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</source>
-        <target state="new">All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</target>
+        <target state="translated">Tous les caractères correspondant à des lettres. Cela inclut les caractères Lu, Ll, Lt, Lm et Lo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_letter_characters_short">
         <source>all letter characters</source>
-        <target state="new">all letter characters</target>
+        <target state="translated">tous les caractères correspondant à des lettres</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_numbers_long">
         <source>All numbers. This includes the Nd, Nl, and No categories.</source>
-        <target state="new">All numbers. This includes the Nd, Nl, and No categories.</target>
+        <target state="translated">Tous les nombres. Cela inclut les catégories Nd, Nl et No.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_numbers_short">
         <source>all numbers</source>
-        <target state="new">all numbers</target>
+        <target state="translated">tous les nombres</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_punctuation_characters_long">
         <source>All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</source>
-        <target state="new">All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</target>
+        <target state="translated">Tous les caractères de ponctuation. Cela inclut les catégories Pc, Pd, Ps, Pe, Pi, Pf et Po.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_punctuation_characters_short">
         <source>all punctuation characters</source>
-        <target state="new">all punctuation characters</target>
+        <target state="translated">tous les caractères de ponctuation</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_separator_characters_long">
         <source>All separator characters. This includes the Zs, Zl, and Zp categories.</source>
-        <target state="new">All separator characters. This includes the Zs, Zl, and Zp categories.</target>
+        <target state="translated">Tous les caractères de séparation. Cela inclut les catégories Zs, Zl et Zp.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_separator_characters_short">
         <source>all separator characters</source>
-        <target state="new">all separator characters</target>
+        <target state="translated">tous les caractères de séparation</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_symbols_long">
         <source>All symbols. This includes the Sm, Sc, Sk, and So categories.</source>
-        <target state="new">All symbols. This includes the Sm, Sc, Sk, and So categories.</target>
+        <target state="translated">Tous les symboles. Cela inclut les catégories Sm, Sc, Sk et So.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_symbols_short">
         <source>all symbols</source>
-        <target state="new">all symbols</target>
+        <target state="translated">tous les symboles</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_alternation_long">
         <source>You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.</source>
-        <target state="new">You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.</target>
+        <target state="translated">Vous pouvez utiliser la barre verticale (|) pour faire correspondre une série de modèles, où le caractère | sépare chaque modèle.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_alternation_short">
         <source>alternation</source>
-        <target state="new">alternation</target>
+        <target state="translated">alternance</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_long">
         <source>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</source>
-        <target state="new">The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</target>
+        <target state="translated">Le point (.) correspond à n'importe quel caractère sauf \n (le caractère de nouvelle ligne, \u000A). Si un modèle d'expression régulière est modifié par l'option RegexOptions.Singleline, ou si la partie du modèle qui contient la classe de caractères . est modifiée par l'option 's', le . correspond à n'importe quel caractère.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_short">
         <source>any character</source>
-        <target state="new">any character</target>
+        <target state="translated">tout caractère</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_long">
         <source>Matches a backspace character, \u0008</source>
-        <target state="new">Matches a backspace character, \u0008</target>
+        <target state="translated">Correspond au caractère de retour arrière, \u0008</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_short">
         <source>backspace character</source>
-        <target state="new">backspace character</target>
+        <target state="translated">caractère de retour arrière</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
@@ -208,205 +208,205 @@
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+        <target state="translated">Une définition de groupe d'équilibrage supprime la définition d'un groupe défini et stocke, dans le groupe actuel, l'intervalle entre le groupe défini et le groupe actuel.
     
-'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+'nom1' est le groupe actuel facultatif, 'nom2' est un groupe défini et 'sous-expression' est un modèle d'expression régulière valide. La définition du groupe d'équilibrage supprime la définition de name2 et stocke l'intervalle entre name2 et name1 dans name1. Si aucun groupe name2 n'est défini, la correspondance fait l'objet d'une rétroaction. Dans la mesure où la suppression de la dernière définition de name2 révèle la définition précédente de name2, cette construction vous permet d'utiliser la pile de captures du groupe name2 en tant que compteur permettant d'effectuer le suivi des constructions imbriquées telles que les parenthèses ou les crochets d'ouverture et de fermeture.
 
-The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
+La définition du groupe d'équilibrage utilise 'nom2' en tant que pile. Le caractère de début de chaque construction imbriquée est placé dans le groupe et dans sa collection Group.Captures. Quand le caractère de fermeture correspond, le caractère d'ouverture correspondant est supprimé du groupe, et la collection Captures est réduite d'un élément. Une fois que les caractères d'ouverture et de fermeture de toutes les constructions imbriquées ont été mis en correspondance, 'nom1' est vide.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
         <source>balancing group</source>
-        <target state="new">balancing group</target>
+        <target state="translated">groupe d'équilibrage</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_base_group">
         <source>base-group</source>
-        <target state="new">base-group</target>
+        <target state="translated">groupe de base</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_bell_character_long">
         <source>Matches a bell (alarm) character, \u0007</source>
-        <target state="new">Matches a bell (alarm) character, \u0007</target>
+        <target state="translated">Correspond au caractère de cloche (alarme), \u0007</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_bell_character_short">
         <source>bell character</source>
-        <target state="new">bell character</target>
+        <target state="translated">caractère de cloche</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_long">
         <source>Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</source>
-        <target state="new">Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</target>
+        <target state="translated">Correspond au caractère de retour chariot, \u000D. Notez que \r n'est pas équivalent au caractère de nouvelle ligne, \n.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_short">
         <source>carriage-return character</source>
-        <target state="new">carriage-return character</target>
+        <target state="translated">caractère de retour chariot</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_class_subtraction_long">
         <source>Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
 
 'base_group' is a positive or negative character group or range. The 'excluded_group' component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</source>
-        <target state="new">Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+        <target state="translated">La soustraction d'une classe de caractères génère un jeu de caractères qui résulte de l'exclusion des caractères d'une classe de caractères à partir d'une autre classe de caractères.
 
-'base_group' is a positive or negative character group or range. The 'excluded_group' component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</target>
+'groupe_base' est une plage ou un groupe de caractères positif ou négatif. Le composant 'groupe_exclu' est un autre groupe de caractères positif ou négatif, ou une autre expression de soustraction de classe de caractères (en d'autres termes, vous pouvez imbriquer des expressions de soustraction de classe de caractères).</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_class_subtraction_short">
         <source>character class subtraction</source>
-        <target state="new">character class subtraction</target>
+        <target state="translated">soustraction de classe de caractères</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_group">
         <source>character-group</source>
-        <target state="new">character-group</target>
+        <target state="translated">groupe de caractères</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_comment">
         <source>comment</source>
-        <target state="new">comment</target>
+        <target state="translated">commentaire</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_expression_match_long">
         <source>This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
 
 'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</source>
-        <target state="new">This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
+        <target state="translated">Cet élément de langage tente d'établir une correspondance avec l'un des deux modèles, selon qu'il peut correspondre ou non à un modèle initial.
 
-'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</target>
+'expression' est le modèle initial à rechercher, 'oui' est le modèle à rechercher si 'expression' retourne une correspondance, et 'non' est le modèle facultatif à rechercher si 'expression' ne retourne aucune correspondance.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_expression_match_short">
         <source>conditional expression match</source>
-        <target state="new">conditional expression match</target>
+        <target state="translated">correspondance d'expression conditionnelle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_group_match_long">
         <source>This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
 
 'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</source>
-        <target state="new">This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
+        <target state="translated">Cet élément de langage tente d'établir une correspondance avec l'un des deux modèles, selon qu'il correspond ou non à un groupe de capture spécifié.
 
-'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</target>
+'nom' est le nom (ou le numéro) d'un groupe de capture, 'oui' est l'expression à rechercher si 'nom' (ou 'numéro') a une correspondance, et 'non' est l'expression facultative à rechercher dans le cas contraire.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_group_match_short">
         <source>conditional group match</source>
-        <target state="new">conditional group match</target>
+        <target state="translated">correspondance de groupe conditionnelle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_contiguous_matches_long">
         <source>The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</source>
-        <target state="new">The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</target>
+        <target state="translated">L'ancre \G spécifie qu'une correspondance doit exister à l'emplacement où la correspondance précédente a pris fin. Quand vous utilisez cette ancre avec la méthode Regex.Matches ou Match.NextMatch, elle vérifie que toutes les correspondances sont contiguës.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_contiguous_matches_short">
         <source>contiguous matches</source>
-        <target state="new">contiguous matches</target>
+        <target state="translated">correspondances contiguës</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_control_character_long">
         <source>Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</source>
-        <target state="new">Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</target>
+        <target state="translated">Correspond au caractère de contrôle ASCII, où X est la lettre du caractère de contrôle. Exemple : \cC est CTRL-C.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_control_character_short">
         <source>control character</source>
-        <target state="new">control character</target>
+        <target state="translated">caractère de contrôle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_decimal_digit_character_long">
         <source>\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
 
 If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</source>
-        <target state="new">\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+        <target state="translated">\d correspond à n'importe quel chiffre décimal. Il est équivalent au modèle d'expression régulière \p{Nd}, qui inclut les chiffres décimaux standard allant de 0 à 9 ainsi que les chiffres décimaux d'un certain nombre d'autres jeux de caractères.
 
-If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</target>
+Si vous spécifiez un comportement conforme à ECMAScript, \d équivaut à [0-9]</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_decimal_digit_character_short">
         <source>decimal-digit character</source>
-        <target state="new">decimal-digit character</target>
+        <target state="translated">caractère de chiffre décimal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_line_comment_long">
         <source>A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</source>
-        <target state="new">A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</target>
+        <target state="translated">Le signe dièse (#) marque un commentaire en mode x, qui commence au caractère # sans séquence d'échappement, à la fin du modèle d'expression régulière, et se poursuit jusqu'à la fin de la ligne. Pour utiliser cette construction, vous devez activer l'option x (via les options incluses) ou indiquer la valeur de RegexOptions.IgnorePatternWhitespace au paramètre d'option durant l'instanciation de l'objet Regex ou l'appel d'une méthode Regex statique.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_line_comment_short">
         <source>end-of-line comment</source>
-        <target state="new">end-of-line comment</target>
+        <target state="translated">commentaire de fin de ligne</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_only_long">
         <source>The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</source>
-        <target state="new">The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</target>
+        <target state="translated">L'ancre \z spécifie qu'une correspondance doit exister à la fin de la chaîne d'entrée. Comme l'élément de langage $, \z ignore l'option RegexOptions.Multiline. Contrairement à l'élément de langage \Z, \z ne permet pas de rechercher une correspondance avec un \n caractère situé à la fin d'une chaîne. Il peut donc correspondre uniquement à la dernière ligne de la chaîne d'entrée.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_only_short">
         <source>end of string only</source>
-        <target state="new">end of string only</target>
+        <target state="translated">fin de chaîne uniquement</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_before_ending_newline_long">
         <source>The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
 
 The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</source>
-        <target state="new">The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+        <target state="translated">L'ancre \Z spécifie qu'une correspondance doit exister à la fin de la chaîne d'entrée ou avant \n à la fin de la chaîne d'entrée. Elle est identique à l'ancre $, à ceci près que \Z ignore l'option RegexOptions.Multiline. Ainsi, dans une chaîne multiligne, elle peut correspondre uniquement à la fin de la dernière ligne, ou à la dernière ligne située avant \n.
 
-The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</target>
+L'ancre \Z correspond à \n mais ne correspond pas à \r\n (combinaison de caractères CR/LF). Pour rechercher une correspondance avec CR/LF, ajoutez \r?\Z au modèle d'expression régulière.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_before_ending_newline_short">
         <source>end of string or before ending newline</source>
-        <target state="new">end of string or before ending newline</target>
+        <target state="translated">fin de chaîne ou avant la fin d'une nouvelle ligne</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_long">
         <source>The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
 
 The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</source>
-        <target state="new">The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
+        <target state="translated">L'ancre $ spécifie que le modèle précédent doit exister à la fin de la chaîne d'entrée ou avant \n à la fin de la chaîne d'entrée. Si vous utilisez $ avec l'option RegexOptions.Multiline, la correspondance peut également exister à la fin d'une ligne.
 
-The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</target>
+L'ancre $ correspond à \n mais ne correspond pas à \r\n (combinaison de caractères de retour chariot et de nouvelle ligne, c'est-à-dire CR/LF). Pour rechercher une correspondance avec la combinaison de caractères CR/LF, ajoutez \r?$ au modèle d'expression régulière.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_short">
         <source>end of string or line</source>
-        <target state="new">end of string or line</target>
+        <target state="translated">fin de chaîne ou de ligne</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_escape_character_long">
         <source>Matches an escape character, \u001B</source>
-        <target state="new">Matches an escape character, \u001B</target>
+        <target state="translated">Correspond au caractère d'échappement, \u001B</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_escape_character_short">
         <source>escape character</source>
-        <target state="new">escape character</target>
+        <target state="translated">caractère d'échappement</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_excluded_group">
         <source>excluded-group</source>
-        <target state="new">excluded-group</target>
+        <target state="translated">groupe exclu</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
         <source>Matches a form-feed character, \u000C</source>
-        <target state="new">Matches a form-feed character, \u000C</target>
+        <target state="translated">Correspond au caractère de saut de page, \u000C</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_short">
         <source>form-feed character</source>
-        <target state="new">form-feed character</target>
+        <target state="translated">caractère de saut de page</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_group_options_long">
@@ -421,42 +421,42 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 	named or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="new">This grouping construct applies or disables the specified options within a subexpression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+        <target state="translated">Cette construction de regroupement applique ou désactive les options spécifiées dans une sous-expression. Les options à activer sont spécifiées après le point d'interrogation, et les options à désactiver après le signe moins. Les options autorisées sont les suivantes :
 
-    i	Use case-insensitive matching.
-    m	Use multiline mode, where ^ and $ match the beginning and end of each line
-	(instead of the beginning and end of the input string).
-    s	Use single-line mode, where the period (.) matches every character
-	(instead of every character except \n).
-    n	Do not capture unnamed groups. The only valid captures are explicitly
-	named or numbered groups of the form (?&lt;name&gt; subexpression).
-    x	Exclude unescaped white space from the pattern, and enable comments
-	after a number sign (#).</target>
+    i	Utilise la correspondance sans respect de la casse.
+    m	Utilise le mode multiligne, où ^ et $ correspondent au début et à la fin de chaque ligne
+	(au lieu du début et de la fin de la chaîne d'entrée).
+    s	Utilise le mode monoligne, où le point (.) correspond à chaque caractère
+	(au lieu de chaque caractère sauf \n).
+    n	Ne capture pas les groupes sans nom. Les seules captures valides sont des groupes explicitement
+	nommés ou numérotés ayant la forme (?&lt;nom&gt; sous-expression).
+    x	Exclut les espaces blancs sans séquence d'échappement du modèle, et active les commentaires
+	après un signe dièse (#).</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_group_options_short">
         <source>group options</source>
-        <target state="new">group options</target>
+        <target state="translated">options de groupe</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_long">
         <source>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</source>
-        <target state="new">Matches an ASCII character, where ## is a two-digit hexadecimal character code.</target>
+        <target state="translated">Correspond à un caractère ASCII, où ## est un code de caractère hexadécimal à deux chiffres.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="new">hexidecimal escape</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">échappement hexadécimal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
         <source>The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</source>
-        <target state="new">The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</target>
+        <target state="translated">La construction (?# commentaire) vous permet d'inclure un commentaire dans une expression régulière. Le moteur d'expressions régulières n'utilise aucune partie du commentaire dans les critères spéciaux, bien que le commentaire soit inclus dans la chaîne retournée par la méthode Regex.ToString. Le commentaire finit à la première parenthèse fermante.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_short">
         <source>inline comment</source>
-        <target state="new">inline comment</target>
+        <target state="translated">commentaire inclus</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_options_long">
@@ -471,226 +471,226 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 	or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="new">Enables or disables specific pattern matching options for the remainder of a regular expression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+        <target state="translated">Active ou désactive des options de critères spéciaux spécifiques pour le reste d'une expression régulière. Les options à activer sont spécifiées après le point d'interrogation, et les options à désactiver après le signe moins. Les options autorisées sont les suivantes :
 
-    i	Use case-insensitive matching.
-    m	Use multiline mode, where ^ and $ match the beginning and end of each line
-	(instead of the beginning and end of the input string).
-    s	Use single-line mode, where the period (.) matches every character
-	(instead of every character except \n).
-    n	Do not capture unnamed groups. The only valid captures are explicitly named
-	or numbered groups of the form (?&lt;name&gt; subexpression).
-    x	Exclude unescaped white space from the pattern, and enable comments
-	after a number sign (#).</target>
+    i	Utilise la correspondance sans respect de la casse.
+    m	Utilise le mode multiligne, où ^ et $ correspondent au début et à la fin de chaque ligne
+	(au lieu du début et de la fin de la chaîne d'entrée).
+    s	Utilise le mode monoligne, où le point (.) correspond à chaque caractère
+	(au lieu de chaque caractère sauf \n).
+    n	Ne capture pas les groupes sans nom. Les seules captures valides sont des groupes explicitement nommés
+	ou numérotés ayant la forme (?&lt;nom&gt; sous-expression).
+    x	Exclut les espaces blancs sans séquence d'échappement du modèle, et active les commentaires
+	après un signe dièse (#).</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_options_short">
         <source>inline options</source>
-        <target state="new">inline options</target>
+        <target state="translated">options incluses</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_lowercase">
         <source>letter, lowercase</source>
-        <target state="new">letter, lowercase</target>
+        <target state="translated">lettre, minuscule</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_modifier">
         <source>letter, modifier</source>
-        <target state="new">letter, modifier</target>
+        <target state="translated">lettre, modificateur</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_other">
         <source>letter, other</source>
-        <target state="new">letter, other</target>
+        <target state="translated">lettre, autre</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_titlecase">
         <source>letter, titlecase</source>
-        <target state="new">letter, titlecase</target>
+        <target state="translated">lettre, première lettre des mots en majuscule</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_uppercase">
         <source>letter, uppercase</source>
-        <target state="new">letter, uppercase</target>
+        <target state="translated">lettre, majuscule</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_enclosing">
         <source>mark, enclosing</source>
-        <target state="new">mark, enclosing</target>
+        <target state="translated">marque, englobante</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_nonspacing">
         <source>mark, nonspacing</source>
-        <target state="new">mark, nonspacing</target>
+        <target state="translated">marque, sans espacement</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_spacing_combining">
         <source>mark, spacing combining</source>
-        <target state="new">mark, spacing combining</target>
+        <target state="translated">marque, espacement combiné</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_long">
         <source>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</source>
-        <target state="new">The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</target>
+        <target state="translated">Le quantificateur {n,}? recherche une correspondance avec l'élément précédent au moins n fois, où n est un entier, mais de manière aussi limitée possible. Il s'agit de l'équivalent paresseux du quantificateur gourmand {n,}</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_short">
         <source>match at least 'n' times (lazy)</source>
-        <target state="new">match at least 'n' times (lazy)</target>
+        <target state="translated">rechercher une correspondance au moins 'n' fois (paresseux)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_long">
         <source>The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</source>
-        <target state="new">The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</target>
+        <target state="translated">Le quantificateur {n,} recherche une correspondance avec l'élément précédent au moins n fois, où n est un entier. {n,} est un quantificateur gourmand dont l'équivalent paresseux est {n,}?</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_short">
         <source>match at least 'n' times</source>
-        <target state="new">match at least 'n' times</target>
+        <target state="translated">rechercher une correspondance au moins 'n' fois</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_long">
         <source>The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</source>
-        <target state="new">The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</target>
+        <target state="translated">Le quantificateur {n,m}? recherche une correspondance avec l'élément précédent entre n et m fois, où n et m sont des entiers, mais de manière aussi limitée possible. Il s'agit de l'équivalent paresseux du quantificateur gourmand {n,m}</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_short">
         <source>match at least 'n' times (lazy)</source>
-        <target state="new">match at least 'n' times (lazy)</target>
+        <target state="translated">rechercher une correspondance au moins 'n' fois (paresseux)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_long">
         <source>The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</source>
-        <target state="new">The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</target>
+        <target state="translated">Le quantificateur {n,m} correspond à l'élément précédent au moins n fois, mais pas plus de m fois, où n et m sont des entiers. {n,m} est un quantificateur gourmand dont l'équivalent paresseux est {n,m}?</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_short">
         <source>match between 'm' and 'n' times</source>
-        <target state="new">match between 'm' and 'n' times</target>
+        <target state="translated">rechercher une correspondance entre 'm' et 'n' fois</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_long">
         <source>The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</source>
-        <target state="new">The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</target>
+        <target state="translated">Le quantificateur {n}? recherche une correspondance avec l'élément précédent exactement n fois, où n est un entier. Il s'agit de l'équivalent paresseux du quantificateur gourmand {n}+</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_short">
         <source>match exactly 'n' times (lazy)</source>
-        <target state="new">match exactly 'n' times (lazy)</target>
+        <target state="translated">rechercher une correspondance exactement 'n' fois (paresseux)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_long">
         <source>The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</source>
-        <target state="new">The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</target>
+        <target state="translated">Le quantificateur {n} recherche une correspondance avec l'élément précédent exactement n fois, où n est un entier. {n} est un quantificateur gourmand dont l'équivalent paresseux est {n}?</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_short">
         <source>match exactly 'n' times</source>
-        <target state="new">match exactly 'n' times</target>
+        <target state="translated">rechercher une correspondance exactement 'n' fois</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_long">
         <source>The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</source>
-        <target state="new">The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</target>
+        <target state="translated">Le quantificateur recherche une correspondance avec l'élément précédent, une ou plusieurs fois, mais de manière aussi limitée possible. Il s'agit de l'équivalent paresseux du quantificateur gourmand +</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_short">
         <source>match one or more times (lazy)</source>
-        <target state="new">match one or more times (lazy)</target>
+        <target state="translated">rechercher une correspondance une ou plusieurs fois (paresseux)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_long">
         <source>The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</source>
-        <target state="new">The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</target>
+        <target state="translated">Le quantificateur + recherche une correspondance avec l'élément précédent, une ou plusieurs fois. Il est équivalent au quantificateur {1,}. + est un quantificateur gourmand dont l'équivalent paresseux est +?.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_short">
         <source>match one or more times</source>
-        <target state="new">match one or more times</target>
+        <target state="translated">rechercher une correspondance une ou plusieurs fois</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_long">
         <source>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</source>
-        <target state="new">The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</target>
+        <target state="translated">Le quantificateur *? recherche une correspondance avec l'élément précédent, zéro ou plusieurs fois, mais de manière aussi limitée possible. Il s'agit de l'équivalent paresseux du quantificateur gourmand *</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_short">
         <source>match zero or more times (lazy)</source>
-        <target state="new">match zero or more times (lazy)</target>
+        <target state="translated">rechercher une correspondance zéro ou plusieurs fois (paresseux)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_long">
         <source>The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</source>
-        <target state="new">The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</target>
+        <target state="translated">Le quantificateur * recherche une correspondance avec l'élément précédent, zéro ou plusieurs fois. Il est équivalent au quantificateur {0,}. * est un quantificateur gourmand dont l'équivalent paresseux est *?.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_short">
         <source>match zero or more times</source>
-        <target state="new">match zero or more times</target>
+        <target state="translated">rechercher une correspondance zéro ou plusieurs fois</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_long">
         <source>The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</source>
-        <target state="new">The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</target>
+        <target state="translated">Le quantificateur ?? recherche une correspondance avec l'élément précédent, zéro ou une fois, mais de manière aussi limitée possible. Il s'agit de l'équivalent paresseux du quantificateur gourmand ?</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_short">
         <source>match zero or one time (lazy)</source>
-        <target state="new">match zero or one time (lazy)</target>
+        <target state="translated">rechercher une correspondance zéro ou une fois (paresseux)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_long">
         <source>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</source>
-        <target state="new">The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</target>
+        <target state="translated">Le quantificateur ? recherche une correspondance avec l'élément précédent, zéro ou une fois. Il est équivalent au quantificateur {0,1}. ? est un quantificateur gourmand dont l'équivalent paresseux est ??.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_short">
         <source>match zero or one time</source>
-        <target state="new">match zero or one time</target>
+        <target state="translated">rechercher une correspondance zéro ou une fois</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_long">
         <source>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</source>
-        <target state="new">This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</target>
+        <target state="translated">Cette construction de regroupement capture une 'sous-expression' correspondante, où 'sous-expression' représente un modèle d'expression régulière valide. Les captures qui utilisent des parenthèses sont numérotées automatiquement de gauche à droite en fonction de l'ordre des parenthèses ouvrantes dans l'expression régulière, à partir de l'une d'entre elles. La capture numérotée zéro représente le texte correspondant à l'intégralité du modèle d'expression régulière.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_short">
         <source>matched subexpression</source>
-        <target state="new">matched subexpression</target>
+        <target state="translated">sous-expression correspondante</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">nom</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
         <source>name1</source>
-        <target state="new">name1</target>
+        <target state="translated">nom1</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name2">
         <source>name2</source>
-        <target state="new">name2</target>
+        <target state="translated">nom2</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name_or_number">
         <source>name-or-number</source>
-        <target state="new">name-or-number</target>
+        <target state="translated">nom-ou-numéro</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_backreference_long">
         <source>A named or numbered backreference.
 
 'name' is the name of a capturing group defined in the regular expression pattern.</source>
-        <target state="new">A named or numbered backreference.
+        <target state="translated">Référence arrière nommée ou numérotée.
 
-'name' is the name of a capturing group defined in the regular expression pattern.</target>
+'nom' est le nom d'un groupe de capture défini dans le modèle d'expression régulière.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_backreference_short">
         <source>named backreference</source>
-        <target state="new">named backreference</target>
+        <target state="translated">référence arrière nommée</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_matched_subexpression_long">
@@ -699,107 +699,107 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 'name' is a valid group name, and 'subexpression' is any valid regular expression pattern. 'name' must not contain any punctuation characters and cannot begin with a number.
 
 If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.</source>
-        <target state="new">Captures a matched subexpression and lets you access it by name or by number.
+        <target state="translated">Capture une sous-expression correspondante et vous permet d'y accéder par le nom ou le numéro.
 
-'name' is a valid group name, and 'subexpression' is any valid regular expression pattern. 'name' must not contain any punctuation characters and cannot begin with a number.
+'nom' est un nom de groupe valide, et 'sous-expression' est un modèle d'expression régulière valide. 'nom' ne doit contenir aucun caractère de ponctuation et ne peut pas commencer par un chiffre.
 
-If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.</target>
+Si le paramètre RegexOptions d'une méthode de critères spéciaux d'expression régulière inclut l'indicateur RegexOptions.ExplicitCapture, ou si l'option n est appliquée à cette sous-expression, le seul moyen de capturer une sous-expression est de nommer explicitement les groupes de capture.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_matched_subexpression_short">
         <source>named matched subexpression</source>
-        <target state="new">named matched subexpression</target>
+        <target state="translated">sous-expression correspondante nommée</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_group_long">
         <source>A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
 
 Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</source>
-        <target state="new">A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
+        <target state="translated">Un groupe de caractères négatif spécifie une liste de caractères qui doivent être absents d'une chaîne d'entrée pour produire une correspondance. La liste des caractères est spécifiée individuellement.
 
-Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</target>
+Vous pouvez concaténer au moins deux plages de caractères. Par exemple, pour spécifier la plage de chiffres décimaux allant de "0" à "9", la plage de lettres minuscules allant de "a" à "f" et la plage de lettres majuscules allant de "A" à "F", utilisez [0-9a-fA-F].</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_group_short">
         <source>negative character group</source>
-        <target state="new">negative character group</target>
+        <target state="translated">groupe de caractères négatif</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_range_long">
         <source>A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
 
 Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</source>
-        <target state="new">A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
+        <target state="translated">Une plage de caractères négative spécifie une liste de caractères qui doivent être absents d'une chaîne d'entrée pour produire une correspondance. 'firstCharacter' est le caractère de début de plage, et 'lastCharacter' est le caractère de fin de plage.
 
-Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</target>
+Vous pouvez concaténer au moins deux plages de caractères. Par exemple, pour spécifier la plage de chiffres décimaux allant de "0" à "9", la plage de lettres minuscules allant de "a" à "f" et la plage de lettres majuscules allant de "A" à "F", utilisez [0-9a-fA-F].</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_range_short">
         <source>negative character range</source>
-        <target state="new">negative character range</target>
+        <target state="translated">plage de caractères négative</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="new">The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</target>
+        <target state="translated">La construction d'expression régulière \P{ nom } correspond aux caractères qui n'appartiennent pas à une catégorie générale Unicode ou à un bloc nommé, nom étant l'abréviation de la catégorie ou le nom du bloc nommé.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_short">
         <source>negative unicode category</source>
-        <target state="new">negative unicode category</target>
+        <target state="translated">catégorie Unicode négative</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_new_line_character_long">
         <source>Matches a new-line character, \u000A</source>
-        <target state="new">Matches a new-line character, \u000A</target>
+        <target state="translated">Correspond au caractère de nouvelle ligne, \u000A</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_new_line_character_short">
         <source>new-line character</source>
-        <target state="new">new-line character</target>
+        <target state="translated">caractère de nouvelle ligne</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">non</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
         <source>\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
 
 If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</source>
-        <target state="new">\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+        <target state="translated">\D correspond à n'importe quel caractère non numérique. Il est équivalent au modèle d'expression régulière \P{Nd}.
 
-If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</target>
+Si vous spécifiez un comportement conforme à ECMAScript, \D équivaut à [^0-9]</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_short">
         <source>non-digit character</source>
-        <target state="new">non-digit character</target>
+        <target state="translated">caractère non numérique</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_white_space_character_long">
         <source>\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
 
 If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</source>
-        <target state="new">\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+        <target state="translated">\S correspond à tout caractère autre qu'un espace blanc. Il est équivalent au modèle d'expression régulière [^\f\n\r\t\v\x85\p{Z}], ou à l'inverse du modèle d'expression régulière équivalent à \s, qui correspond aux espaces blancs.
 
-If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</target>
+Si vous spécifiez un comportement conforme à ECMAScript, \S équivaut à [^ \f\n\r\t\v]</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_white_space_character_short">
         <source>non-white-space character</source>
-        <target state="new">non-white-space character</target>
+        <target state="translated">caractère autre qu'un espace blanc</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_boundary_long">
         <source>The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</source>
-        <target state="new">The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</target>
+        <target state="translated">L'ancre \B spécifie que la correspondance ne doit pas être effectuée sur une limite de mot. Il s'agit du contraire de l'ancre \b.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_boundary_short">
         <source>non-word boundary</source>
-        <target state="new">non-word boundary</target>
+        <target state="translated">limite de non-mot</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_character_long">
@@ -815,37 +815,37 @@ If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</source>
-        <target state="new">\W matches any non-word character. It matches any character except for those in the following Unicode categories:
+        <target state="translated">\W correspond à un caractère de non-mot. Il correspond à n'importe quel caractère à l'exception de ceux des catégories Unicode suivantes :
 
-    Ll	Letter, Lowercase
-    Lu	Letter, Uppercase
-    Lt	Letter, Titlecase
-    Lo	Letter, Other
-    Lm	Letter, Modifier
-    Mn	Mark, Nonspacing
-    Nd	Number, Decimal Digit
-    Pc	Punctuation, Connector
+    Ll	Lettre, Minuscule
+    Lu	Lettre, Majuscule
+    Lt	Lettre, Première lettre des mots en majuscule
+    Lo	Lettre, Autre
+    Lm	Lettre, Modificateur
+    Mn	Marque, Sans espacement
+    Nd	Nombre, Chiffre décimal
+    Pc	Ponctuation, Connecteur
 
-If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</target>
+Si vous spécifiez un comportement conforme à ECMAScript, \W équivaut à [^a-zA-Z_0-9]</target>
         <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized. </note>
       </trans-unit>
       <trans-unit id="Regex_non_word_character_short">
         <source>non-word character</source>
-        <target state="new">non-word character</target>
+        <target state="translated">caractère de non-mot</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_long">
         <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="new">This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+        <target state="translated">Cette construction désactive la rétroaction. Le moteur d'expressions régulières recherche une correspondance avec autant de caractères que possible dans la chaîne d'entrée. Quand aucune correspondance supplémentaire n'est possible, il n'effectue pas de rétroaction pour tenter de trouver d'autres correspondances de modèles. (En d'autres termes, la sous-expression correspond uniquement aux chaînes qui correspondent à la sous-expression seule ; aucune mise en correspondance n'est tentée pour trouver une chaîne basée sur la sous-expression et les sous-expressions qui la suivent.)
 
-This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</target>
+Cette option est recommandée si vous savez que la rétroaction va être un échec. Empêcher le moteur d'expressions régulières d'effectuer des recherches inutiles améliore les performances.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_short">
         <source>nonbacktracking subexpression</source>
-        <target state="new">nonbacktracking subexpression</target>
+        <target state="translated">sous-expression sans rétroaction</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_long">
@@ -854,230 +854,230 @@ This option is recommended if you know that backtracking will not succeed. Preve
 The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
 
 If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</source>
-        <target state="new">This construct does not capture the substring that is matched by a subexpression:
+        <target state="translated">Cette construction ne capture pas la sous-chaîne correspondant à une sous-expression :
 
-The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
+La construction de groupe sans capture est généralement utilisée quand un quantificateur est appliqué à un groupe, mais que les sous-chaînes capturées par le groupe ne présentent pas d'intérêt.
 
-If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</target>
+Si une expression régulière inclut des constructions de regroupement imbriqué, une construction de groupe sans capture externe ne s'applique pas aux constructions de groupes imbriqués internes.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_short">
         <source>noncapturing group</source>
-        <target state="new">noncapturing group</target>
+        <target state="translated">groupe sans capture</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_decimal_digit">
         <source>number, decimal digit</source>
-        <target state="new">number, decimal digit</target>
+        <target state="translated">nombre, chiffre décimal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_letter">
         <source>number, letter</source>
-        <target state="new">number, letter</target>
+        <target state="translated">nombre, lettre</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_other">
         <source>number, other</source>
-        <target state="new">number, other</target>
+        <target state="translated">nombre, autre</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_numbered_backreference_long">
         <source>A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
 
 There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</source>
-        <target state="new">A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
+        <target state="translated">Référence arrière numérotée, où 'nombre' représente la position ordinale du groupe de capture dans l'expression régulière. Par exemple, \4 correspond au contenu du quatrième groupe de capture.
 
-There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</target>
+Il existe une ambiguïté entre les codes d'échappement octaux (par exemple \16) et les références arrière \nnumérotées qui utilisent la même notation. Si l'ambiguïté pose un problème, vous pouvez utiliser la notation \k&lt;nom&gt;, qui est plus claire et qui ne peut pas être confondue avec les codes de caractère octaux. De même, les codes hexadécimaux tels que \xdd ne sont pas ambigus et ne peuvent pas être confondus avec les références arrière.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_numbered_backreference_short">
         <source>numbered backreference</source>
-        <target state="new">numbered backreference</target>
+        <target state="translated">référence arrière numérotée</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_control">
         <source>other, control</source>
-        <target state="new">other, control</target>
+        <target state="translated">autre, contrôle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_format">
         <source>other, format</source>
-        <target state="new">other, format</target>
+        <target state="translated">autre, format</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_not_assigned">
         <source>other, not assigned</source>
-        <target state="new">other, not assigned</target>
+        <target state="translated">autre, non affecté</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_private_use">
         <source>other, private use</source>
-        <target state="new">other, private use</target>
+        <target state="translated">autre, usage privé</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_surrogate">
         <source>other, surrogate</source>
-        <target state="new">other, surrogate</target>
+        <target state="translated">autre, substitution</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_group_long">
         <source>A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur.</source>
-        <target state="new">A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur.</target>
+        <target state="translated">Un groupe de caractères positif spécifie une liste de caractères, dont l'un d'entre eux peut apparaître dans une chaîne d'entrée pour produire une correspondance.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_group_short">
         <source>positive character group</source>
-        <target state="new">positive character group</target>
+        <target state="translated">groupe de caractères positif</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_range_long">
         <source>A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </source>
-        <target state="new">A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </target>
+        <target state="translated">Une plage de caractères positive spécifie une plage de caractères, dont l'un d'entre eux peut apparaître dans une chaîne d'entrée pour produire une correspondance. 'firstCharacter' est le caractère de début de plage, et 'lastCharacter' est le caractère de fin de plage. </target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_range_short">
         <source>positive character range</source>
-        <target state="new">positive character range</target>
+        <target state="translated">plage de caractères positive</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_close">
         <source>punctuation, close</source>
-        <target state="new">punctuation, close</target>
+        <target state="translated">ponctuation, fermeture</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_connector">
         <source>punctuation, connector</source>
-        <target state="new">punctuation, connector</target>
+        <target state="translated">ponctuation, connecteur</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_dash">
         <source>punctuation, dash</source>
-        <target state="new">punctuation, dash</target>
+        <target state="translated">ponctuation, tiret</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_final_quote">
         <source>punctuation, final quote</source>
-        <target state="new">punctuation, final quote</target>
+        <target state="translated">ponctuation, guillemet final</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_initial_quote">
         <source>punctuation, initial quote</source>
-        <target state="new">punctuation, initial quote</target>
+        <target state="translated">ponctuation, guillemet initial</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_open">
         <source>punctuation, open</source>
-        <target state="new">punctuation, open</target>
+        <target state="translated">ponctuation, ouverture</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_other">
         <source>punctuation, other</source>
-        <target state="new">punctuation, other</target>
+        <target state="translated">ponctuation, autre</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_line">
         <source>separator, line</source>
-        <target state="new">separator, line</target>
+        <target state="translated">séparateur, ligne</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_paragraph">
         <source>separator, paragraph</source>
-        <target state="new">separator, paragraph</target>
+        <target state="translated">séparateur, paragraphe</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_space">
         <source>separator, space</source>
-        <target state="new">separator, space</target>
+        <target state="translated">séparateur, espace</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_only_long">
         <source>The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</source>
-        <target state="new">The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</target>
+        <target state="translated">L'ancre \A spécifie qu'une correspondance doit exister au début de la chaîne d'entrée. Elle est identique à l'ancre ^, à ceci près que \A ignore l'option RegexOptions.Multiline. Ainsi, elle correspond uniquement au début de la première ligne d'une chaîne d'entrée multiligne.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_only_short">
         <source>start of string only</source>
-        <target state="new">start of string only</target>
+        <target state="translated">début de chaîne uniquement</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_or_line_long">
         <source>The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</source>
-        <target state="new">The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</target>
+        <target state="translated">L'ancre ^ spécifie que le modèle suivant doit commencer à la position du premier caractère de la chaîne. Si vous utilisez ^ avec l'option RegexOptions.Multiline, la correspondance doit exister au début de chaque ligne.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_or_line_short">
         <source>start of string or line</source>
-        <target state="new">start of string or line</target>
+        <target state="translated">début de chaîne ou de ligne</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_subexpression">
         <source>subexpression</source>
-        <target state="new">subexpression</target>
+        <target state="translated">sous-expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_currency">
         <source>symbol, currency</source>
-        <target state="new">symbol, currency</target>
+        <target state="translated">symbole, devise</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_math">
         <source>symbol, math</source>
-        <target state="new">symbol, math</target>
+        <target state="translated">symbole, math</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_modifier">
         <source>symbol, modifier</source>
-        <target state="new">symbol, modifier</target>
+        <target state="translated">symbole, modificateur</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_other">
         <source>symbol, other</source>
-        <target state="new">symbol, other</target>
+        <target state="translated">symbole, autre</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_tab_character_long">
         <source>Matches a tab character, \u0009</source>
-        <target state="new">Matches a tab character, \u0009</target>
+        <target state="translated">Correspond au caractère de tabulation, \u0009</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_tab_character_short">
         <source>tab character</source>
-        <target state="new">tab character</target>
+        <target state="translated">caractère de tabulation</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_long">
         <source>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="new">The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</target>
+        <target state="translated">La construction d'expression régulière \p{ nom } correspond aux caractères qui appartiennent à une catégorie générale Unicode ou à un bloc nommé, nom étant l'abréviation de la catégorie ou le nom du bloc nommé.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_short">
         <source>unicode category</source>
-        <target state="new">unicode category</target>
+        <target state="translated">catégorie Unicode</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_escape_long">
         <source>Matches a UTF-16 code unit whose value is #### hexadecimal.</source>
-        <target state="new">Matches a UTF-16 code unit whose value is #### hexadecimal.</target>
+        <target state="translated">Correspond à une unité de code UTF-16 dont la valeur est au format hexadécimal ####.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_escape_short">
         <source>unicode escape</source>
-        <target state="new">unicode escape</target>
+        <target state="translated">échappement Unicode</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_general_category_0">
         <source>Unicode General Category: {0}</source>
-        <target state="new">Unicode General Category: {0}</target>
+        <target state="translated">Catégorie générale Unicode : {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_vertical_tab_character_long">
         <source>Matches a vertical-tab character, \u000B</source>
-        <target state="new">Matches a vertical-tab character, \u000B</target>
+        <target state="translated">Correspond au caractère de tabulation verticale, \u000B</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_vertical_tab_character_short">
         <source>vertical-tab character</source>
-        <target state="new">vertical-tab character</target>
+        <target state="translated">caractère de tabulation verticale</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_white_space_character_long">
@@ -1092,36 +1092,36 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
     \p{Z}	Matches any separator character
 
 If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</source>
-        <target state="new">\s matches any white-space character. It is equivalent to the following escape sequences and Unicode categories:
+        <target state="translated">\s correspond à un caractère représentant un espace blanc. Il équivaut aux séquences d'échappement et aux catégories Unicode suivantes :
 
-    \f	The form feed character, \u000C
-    \n	The newline character, \u000A
-    \r	The carriage return character, \u000D
-    \t	The tab character, \u0009
-    \v	The vertical tab character, \u000B
-    \x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
-    \p{Z}	Matches any separator character
+    \f	Caractère de saut de page, \u000C
+    \n	Caractère de nouvelle ligne, \u000A
+    \r	Caractère de retour chariot, \u000D
+    \t	Caractère de tabulation, \u0009
+    \v	Caractère de tabulation verticale, \u000B
+    \x85	Caractère des points de suspension ou NEL (NEXT LINE) (…), \u0085
+    \p{Z}	Correspond à un caractère de séparation
 
-If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</target>
+Si vous spécifiez un comportement conforme à ECMAScript, \s équivaut à [ \f\n\r\t\v]</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_white_space_character_short">
         <source>white-space character</source>
-        <target state="new">white-space character</target>
+        <target state="translated">caractère d'espace blanc</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_boundary_long">
         <source>The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
 
 The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</source>
-        <target state="new">The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+        <target state="translated">L'ancre \b spécifie que la correspondance doit se trouver à la limite située entre un caractère de mot (élément de langage \w) et un caractère de non-mot (élément de langage \W). Les caractères de mots sont constitués de caractères alphanumériques et de traits de soulignement. Un caractère de non-mot est un caractère qui n'est pas alphanumérique ou qui n'est pas un trait de soulignement. La correspondance peut également se produire à une limite de mot, au début ou à la fin de la chaîne.
 
-The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</target>
+L'ancre \b est fréquemment utilisée pour vérifier qu'une sous-expression correspond à un mot entier, et non simplement au début ou à la fin d'un mot.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_boundary_short">
         <source>word boundary</source>
-        <target state="new">word boundary</target>
+        <target state="translated">limite de mot</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_character_long">
@@ -1137,84 +1137,84 @@ The \b anchor is frequently used to ensure that a subexpression matches an entir
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</source>
-        <target state="new">\w matches any word character. A word character is a member of any of the following Unicode categories:
+        <target state="translated">\w correspond à n'importe quel caractère de mot. Un caractère de mot appartient à l'une des catégories Unicode suivantes :
 
-    Ll	Letter, Lowercase
-    Lu	Letter, Uppercase
-    Lt	Letter, Titlecase
-    Lo	Letter, Other
-    Lm	Letter, Modifier
-    Mn	Mark, Nonspacing
-    Nd	Number, Decimal Digit
-    Pc	Punctuation, Connector
+    Ll	Lettre, Minuscule
+    Lu	Lettre, Majuscule
+    Lt	Lettre, Première lettre des mots en majuscule
+    Lo	Lettre, Autre
+    Lm	Lettre, Modificateur
+    Mn	Marque, Sans espacement
+    Nd	Nombre, Chiffre décimal
+    Pc	Ponctuation, Connecteur
 
-If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</target>
+Si vous spécifiez un comportement conforme à ECMAScript, \w équivaut à [a-zA-Z_0-9]</target>
         <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized.</note>
       </trans-unit>
       <trans-unit id="Regex_word_character_short">
         <source>word character</source>
-        <target state="new">word character</target>
+        <target state="translated">caractère de mot</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">oui</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
         <source>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
 
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
-        <target state="new">A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+        <target state="translated">Assertion de préanalyse négative de largeur nulle, où, pour que la correspondance soit réussie, la chaîne d'entrée ne doit pas correspondre au modèle d'expression régulière de la sous-expression. La chaîne correspondante n'est pas incluse dans le résultat de la correspondance.
 
-A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</target>
+Une assertion de préanalyse négative de largeur nulle est généralement utilisée au début ou à la fin d'une expression régulière. Au début d'une expression régulière, elle peut définir un modèle spécifique à ne pas mettre en correspondance quand le début de l'expression régulière définit un modèle similaire, mais plus général, à mettre en correspondance. Dans ce cas, elle est souvent utilisée pour limiter la rétroaction. À la fin d'une expression régulière, elle peut définir une sous-expression qui ne peut pas se produire à la fin d'une correspondance.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
         <source>zero-width negative lookahead assertion</source>
-        <target state="new">zero-width negative lookahead assertion</target>
+        <target state="translated">assertion de préanalyse négative de largeur nulle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_long">
         <source>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
 
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</source>
-        <target state="new">A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
+        <target state="translated">Assertion de postanalyse négative de largeur nulle, où, pour qu'une correspondance soit réussie, la 'sous-expression' ne doit pas apparaître dans la chaîne d'entrée à gauche de la position actuelle. Les sous-chaînes qui ne correspondent pas à la 'sous-expression' ne sont pas incluses dans le résultat de la correspondance.
 
-Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</target>
+Les assertions de postanalyse négatives de largeur nulle sont généralement utilisées au début des expressions régulières. Le modèle qu'elles définissent empêche toute correspondance dans la chaîne qui suit. Elles sont également utilisées pour limiter la rétroaction quand le ou les derniers caractères d'un groupe capturé ne doivent pas représenter un ou plusieurs des caractères qui correspondent au modèle d'expression régulière de ce groupe.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_short">
         <source>zero-width negative lookbehind assertion</source>
-        <target state="new">zero-width negative lookbehind assertion</target>
+        <target state="translated">assertion de postanalyse négative de largeur nulle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_long">
         <source>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</source>
-        <target state="new">A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+        <target state="translated">Assertion de préanalyse positive de largeur nulle, où, pour qu'une correspondance soit réussie, la chaîne d'entrée doit correspondre au modèle d'expression régulière de la 'sous-expression'. La sous-chaîne correspondante n'est pas incluse dans le résultat de la correspondance. Une assertion de préanalyse positive de largeur nulle n'effectue pas de rétroaction.
 
-Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</target>
+En règle générale, une assertion de préanalyse positive de largeur nulle se trouve à la fin d'un modèle d'expression régulière. Elle définit une sous-chaîne qui doit se trouver à la fin d'une chaîne pour qu'une correspondance se produise mais qui ne doit pas être incluse dans la correspondance. Elle permet également d'empêcher une rétroaction excessive. Vous pouvez utiliser une assertion de préanalyse positive de largeur nulle pour vérifier qu'un groupe capturé particulier commence par un texte correspondant à un sous-ensemble du modèle défini pour ce groupe capturé.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_short">
         <source>zero-width positive lookahead assertion</source>
-        <target state="new">zero-width positive lookahead assertion</target>
+        <target state="translated">assertion de préanalyse positive de largeur nulle</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_long">
         <source>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
 
 Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</source>
-        <target state="new">A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
+        <target state="translated">Assertion de postanalyse positive de largeur nulle, où, pour qu'une correspondance soit réussie, la 'sous-expression' doit apparaître dans la chaîne d'entrée à gauche de la position actuelle. La 'sous-expression' n'est pas incluse dans le résultat de la correspondance. Une assertion de postanalyse positive de largeur nulle n'effectue pas de rétroaction.
 
-Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</target>
+Les assertions de postanalyse positives de largeur nulle sont généralement utilisées au début des expressions régulières. Le modèle qu'elles définissent est une condition préalable à une correspondance, bien qu'il ne fasse pas partie du résultat de la correspondance.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
         <source>zero-width positive lookbehind assertion</source>
-        <target state="new">zero-width positive lookbehind assertion</target>
+        <target state="translated">assertion de postanalyse positive de largeur nulle</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
@@ -1224,7 +1224,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
-        <target state="new">Removing analyzer config documents is not supported.</target>
+        <target state="translated">La suppression de documents de configuration de l'analyseur n'est pas prise en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -1304,47 +1304,47 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>
-        <target state="new">Symbol specifications</target>
+        <target state="translated">Spécifications de symboles</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
         <source>Base Type</source>
-        <target state="new">Base Type</target>
+        <target state="translated">Type de base</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Construct">
         <source>Construct</source>
-        <target state="new">Construct</target>
+        <target state="translated">Construction</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Declare">
         <source>Declare</source>
-        <target state="new">Declare</target>
+        <target state="translated">declare</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Import">
         <source>Import</source>
-        <target state="new">Import</target>
+        <target state="translated">Importer</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
         <source>Qualify</source>
-        <target state="new">Qualify</target>
+        <target state="translated">Qualifier</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
         <source>Type Argument</source>
-        <target state="new">Type Argument</target>
+        <target state="translated">Argument de type</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
         <source>Type Constraint</source>
-        <target state="new">Type Constraint</target>
+        <target state="translated">Contrainte de type</target>
         <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Name">
         <source>Name</source>
-        <target state="new">Name</target>
+        <target state="translated">Nom</target>
         <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -2244,17 +2244,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Read">
         <source>Read</source>
-        <target state="needs-review-translation">Lire</target>
+        <target state="translated">Lire</target>
         <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Reference">
         <source>Reference</source>
-        <target state="needs-review-translation">Référencer</target>
+        <target state="translated">Référence</target>
         <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="ValueUsageInfo_Write">
         <source>Write</source>
-        <target state="needs-review-translation">Écrire</target>
+        <target state="translated">Écrire</target>
         <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Parameter_preferences">

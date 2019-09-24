@@ -300,9 +300,6 @@
   <data name="new_variable" xml:space="preserve">
     <value>&lt;new variable&gt;</value>
   </data>
-  <data name="Remove_and_Sort_Imports" xml:space="preserve">
-    <value>R&amp;emove and Sort Imports</value>
-  </data>
   <data name="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName" xml:space="preserve">
     <value>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</value>
@@ -1277,8 +1274,5 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Make_0_inheritable" xml:space="preserve">
     <value>Make '{0}' inheritable</value>
-  </data>
-  <data name="Sort_Imports" xml:space="preserve">
-    <value>&amp;Sort Imports</value>
   </data>
 </root>

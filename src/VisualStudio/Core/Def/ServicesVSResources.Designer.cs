@@ -706,6 +706,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Containing Member.
+        /// </summary>
+        internal static string Containing_member {
+            get {
+                return ResourceManager.GetString("Containing_member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Containing Type.
+        /// </summary>
+        internal static string Containing_type {
+            get {
+                return ResourceManager.GetString("Containing_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy to Clipboard.
         /// </summary>
         internal static string Copy_to_Clipboard {
@@ -1012,6 +1030,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string ErrorReadingRuleset {
             get {
                 return ResourceManager.GetString("ErrorReadingRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Evaluating ({0} tasks in queue).
+        /// </summary>
+        internal static string Evaluating_0_tasks_in_queue {
+            get {
+                return ResourceManager.GetString("Evaluating_0_tasks_in_queue", resourceCulture);
             }
         }
         
@@ -1471,15 +1498,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Live analysis.
-        /// </summary>
-        internal static string Live_analysis {
-            get {
-                return ResourceManager.GetString("Live_analysis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Live analysis (VSIX extension).
         /// </summary>
         internal static string Live_analysis_VSIX_extension {
@@ -1710,6 +1728,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Naming_Rule {
             get {
                 return ResourceManager.GetString("Naming_Rule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming rules.
+        /// </summary>
+        internal static string Naming_rules {
+            get {
+                return ResourceManager.GetString("Naming_rules", resourceCulture);
             }
         }
         
@@ -2251,6 +2278,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Path_cannot_have_empty_filename {
             get {
                 return ResourceManager.GetString("Path_cannot_have_empty_filename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paused ({0} tasks in queue).
+        /// </summary>
+        internal static string Paused_0_tasks_in_queue {
+            get {
+                return ResourceManager.GetString("Paused_0_tasks_in_queue", resourceCulture);
             }
         }
         
@@ -2815,6 +2851,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Review_Changes {
             get {
                 return ResourceManager.GetString("Review_Changes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running low priority background processes.
+        /// </summary>
+        internal static string Running_low_priority_background_processes {
+            get {
+                return ResourceManager.GetString("Running_low_priority_background_processes", resourceCulture);
             }
         }
         
@@ -3387,6 +3432,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Updating_severity {
             get {
                 return ResourceManager.GetString("Updating_severity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use .editorconfig compatibility mode (requires restart).
+        /// </summary>
+        internal static string Use_editorconfig_compatibility_mode {
+            get {
+                return ResourceManager.GetString("Use_editorconfig_compatibility_mode", resourceCulture);
             }
         }
         

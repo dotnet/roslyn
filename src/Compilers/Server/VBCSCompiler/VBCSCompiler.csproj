@@ -3,12 +3,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.CompilerServer</RootNamespace>
     <LargeAddressAware>true</LargeAddressAware>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
-    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
@@ -21,7 +18,6 @@
   <ItemGroup>
     <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netcoreapp2.1'" />
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
@@ -30,7 +26,6 @@
     <Compile Include="..\..\Shared\BuildServerConnection.cs" />
     <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\Shared\DesktopBuildClient.cs" />
     <Compile Include="..\..\Shared\ExitingTraceListener.cs" />
     <Compile Include="..\..\Shared\ShadowCopyAnalyzerAssemblyLoader.cs" />
   </ItemGroup>
@@ -43,4 +38,5 @@
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
+  <Import Project="$(RepositoryEngineeringDir)targets\DiaSymReaderNative.targets" />
 </Project>

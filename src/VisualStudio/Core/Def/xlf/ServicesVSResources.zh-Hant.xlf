@@ -77,6 +77,16 @@
         <target state="translated">為規則運算式添加色彩</target>
         <note />
       </trans-unit>
+      <trans-unit id="Containing_member">
+        <source>Containing Member</source>
+        <target state="new">Containing Member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_type">
+        <source>Containing Type</source>
+        <target state="new">Containing Type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">元素無效。</target>
@@ -85,6 +95,11 @@
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
         <target state="new">Enable nullable reference analysis IDE features</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluating_0_tasks_in_queue">
+        <source>Evaluating ({0} tasks in queue)</source>
+        <target state="new">Evaluating ({0} tasks in queue)</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -125,11 +140,6 @@
       <trans-unit id="Kind">
         <source>Kind</source>
         <target state="translated">種類</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Live_analysis">
-        <source>Live analysis</source>
-        <target state="new">Live analysis</target>
         <note />
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
@@ -312,6 +322,11 @@
         <target state="new">Type Parameter</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
       </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="new">Naming rules</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">不需要時一律不要</target>
@@ -330,6 +345,11 @@
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="translated">括號喜好設定:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paused_0_tasks_in_queue">
+        <source>Paused ({0} tasks in queue)</source>
+        <target state="new">Paused ({0} tasks in queue)</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -390,6 +410,11 @@
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">檢閱變更</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_low_priority_background_processes">
+        <source>Running low priority background processes</source>
+        <target state="new">Running low priority background processes</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
@@ -460,6 +485,11 @@
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="new">Updating severity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_editorconfig_compatibility_mode">
+        <source>Use .editorconfig compatibility mode (requires restart)</source>
+        <target state="new">Use .editorconfig compatibility mode (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">

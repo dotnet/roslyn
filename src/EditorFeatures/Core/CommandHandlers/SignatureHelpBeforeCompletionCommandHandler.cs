@@ -30,14 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// consider completion to have higher priority for those commands. In order to accomplish that,
     /// we introduced <see cref="SignatureHelpAfterCompletionCommandHandler"/>
     /// This command handler then delegates escape, up and down to those command handlers. 
-    /// It is called after <see cref="PredefinedCommandHandlerNames.Completion"/> or <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>
-    /// depending on the completion implemenetation.
+    /// It is called before <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>.
     /// </summary>
     [Export]
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.SignatureHelpBeforeCompletion)]
-    [Order(Before = PredefinedCommandHandlerNames.Completion)]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class SignatureHelpBeforeCompletionCommandHandler :
         AbstractSignatureHelpCommandHandler,

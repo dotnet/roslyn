@@ -475,7 +475,7 @@ namespace N1 {
             {
                 var type = global.GetTypeMember("C1");
                 var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
-                return method.ReduceExtensionMethod(type);
+                return method.ReduceExtensionMethod(type, null!);
             };
 
             var format = new SymbolDisplayFormat(
@@ -540,7 +540,7 @@ namespace N1 {
             {
                 var type = global.GetTypeMember("C1");
                 var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
-                return method.ReduceExtensionMethod(type);
+                return method.ReduceExtensionMethod(type, null!);
             };
 
             var format = new SymbolDisplayFormat(
@@ -596,7 +596,7 @@ namespace N1 {
             {
                 var type = global.GetTypeMember("C1");
                 var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
-                return method.ReduceExtensionMethod(type);
+                return method.ReduceExtensionMethod(type, null!);
             };
 
             var format = new SymbolDisplayFormat(
@@ -4262,13 +4262,13 @@ End Class
             var @delegate = outer.GetMembers("D").Single();
             var error = outer.GetMembers("Error").Single();
 
-            Assert.IsNotType<Symbol>(type);
-            Assert.IsNotType<Symbol>(method);
-            Assert.IsNotType<Symbol>(property);
-            Assert.IsNotType<Symbol>(field);
-            Assert.IsNotType<Symbol>(@event);
-            Assert.IsNotType<Symbol>(@delegate);
-            Assert.IsNotType<Symbol>(error);
+            Assert.False(type is Symbol);
+            Assert.False(method is Symbol);
+            Assert.False(property is Symbol);
+            Assert.False(field is Symbol);
+            Assert.False(@event is Symbol);
+            Assert.False(@delegate is Symbol);
+            Assert.False(error is Symbol);
 
             // 1) Looks like C#.
             // 2) Doesn't blow up.
@@ -4300,7 +4300,7 @@ End Class
             Assert.Equal("1.5", SymbolDisplay.FormatPrimitive((decimal)1.5, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("null", SymbolDisplay.FormatPrimitive(null, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("abc", SymbolDisplay.FormatPrimitive("abc", quoteStrings: false, useHexadecimalNumbers: false));
-            Assert.Equal(null, SymbolDisplay.FormatPrimitive(SymbolDisplayFormat.TestFormat, quoteStrings: false, useHexadecimalNumbers: false));
+            Assert.Null(SymbolDisplay.FormatPrimitive(SymbolDisplayFormat.TestFormat, quoteStrings: false, useHexadecimalNumbers: false));
         }
 
         [WorkItem(879984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879984")]

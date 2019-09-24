@@ -256,5 +256,10 @@ namespace Microsoft.CodeAnalysis
         /// anonymous delegate associated with it.
         /// </summary>
         INamedTypeSymbol AssociatedAnonymousDelegate { get; }
+
+        /// <summary>
+        /// Returns a flag indicating whether this symbol has at least one applied/inherited conditional attribute.
+        /// </summary>
+        bool IsConditional { get; }
     }
 }

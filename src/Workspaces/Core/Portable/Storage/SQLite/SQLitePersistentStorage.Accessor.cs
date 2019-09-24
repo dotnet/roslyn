@@ -93,13 +93,11 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                         try
                         {
-                            using (var pooledConnection = Storage.GetPooledConnection())
-                            {
-                                // Lookup the row from the DocumentData table corresponding to our dataId.
-                                return ReadBlob(
-                                    pooledConnection.Connection, dataId, columnName,
-                                    checksumOpt, cancellationToken);
-                            }
+                            using var pooledConnection = Storage.GetPooledConnection();
+                            // Lookup the row from the DocumentData table corresponding to our dataId.
+                            return ReadBlob(
+                                pooledConnection.Connection, dataId, columnName,
+                                checksumOpt, cancellationToken);
                         }
                         catch (Exception ex)
                         {
@@ -203,11 +201,9 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, long rowId, Checksum checksum, CancellationToken cancellationToken)
             {
-                using (var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId))
-                using (var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken))
-                {
-                    return reader != null && Checksum.ReadFrom(reader) == checksum;
-                }
+                using var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId);
+                using var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken);
+                return reader != null && Checksum.ReadFrom(reader) == checksum;
             }
 
             protected bool GetAndVerifyRowId(SqlConnection connection, long dataId, out long rowId)
@@ -273,17 +269,15 @@ namespace Microsoft.CodeAnalysis.SQLite
                 byte[] checksumBytes, int checksumLength,
                 byte[] dataBytes, int dataLength)
             {
-                using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_0_1_2_3_value))
-                {
-                    var statement = resettableStatement.Statement;
+                using var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_0_1_2_3_value);
+                var statement = resettableStatement.Statement;
 
-                    // Binding indices are 1 based.
-                    BindFirstParameter(statement, dataId);
-                    statement.BindBlobParameter(parameterIndex: 2, value: checksumBytes, length: checksumLength);
-                    statement.BindBlobParameter(parameterIndex: 3, value: dataBytes, length: dataLength);
+                // Binding indices are 1 based.
+                BindFirstParameter(statement, dataId);
+                statement.BindBlobParameter(parameterIndex: 2, value: checksumBytes, length: checksumLength);
+                statement.BindBlobParameter(parameterIndex: 3, value: dataBytes, length: dataLength);
 
-                    statement.Step();
-                }
+                statement.Step();
             }
 
             public void AddAndClearAllPendingWrites(ArrayBuilder<Action<SqlConnection>> result)

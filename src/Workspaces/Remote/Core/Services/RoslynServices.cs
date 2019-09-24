@@ -2,12 +2,12 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.CodingConventions;
+using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class RoslynServices
     {
+        private static TelemetrySession s_sessionOpt;
+
         private static readonly object s_hostServicesGuard = new object();
 
         /// <summary>
@@ -73,6 +75,24 @@ namespace Microsoft.CodeAnalysis.Remote
         public AssetService AssetService { get; }
         public SolutionService SolutionService { get; }
         public CompilationService CompilationService { get; }
+
+        /// <summary>
+        /// Set default telemetry session
+        /// </summary>
+        public static void SetTelemetrySession(TelemetrySession session)
+        {
+            s_sessionOpt = session;
+        }
+
+        /// <summary>
+        /// Default telemetry session
+        /// </summary>
+        public static TelemetrySession SessionOpt => s_sessionOpt;
+
+        /// <summary>
+        /// Check whether current user is microsoft internal or not
+        /// </summary>
+        public static bool IsUserMicrosoftInternal => SessionOpt?.IsUserMicrosoftInternal ?? false;
 
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);

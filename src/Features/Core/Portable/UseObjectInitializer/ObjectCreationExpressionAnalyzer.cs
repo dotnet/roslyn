@@ -78,8 +78,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
-                var statement = child.AsNode() as TAssignmentStatementSyntax;
-                if (statement == null)
+                if (!(child.AsNode() is TAssignmentStatementSyntax statement))
                 {
                     break;
                 }
