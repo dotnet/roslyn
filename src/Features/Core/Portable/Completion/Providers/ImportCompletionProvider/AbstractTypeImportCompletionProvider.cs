@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken);
 
         internal override bool IsExpandItemProvider => true;
-        
+
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var cancellationToken = completionContext.CancellationToken;
