@@ -660,7 +660,7 @@ namespace System.Xml.Linq
         }
 
         [Fact]
-        public void HostValueIsNotFound_int()
+        public void HostValueNotFound_int()
         {
             var clrValue = new DkmClrValue(
                 value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(int)),
@@ -670,7 +670,7 @@ namespace System.Xml.Linq
         }
 
         [Fact]
-        public void HostValueIsNotFound_char()
+        public void HostValueNotFound_char()
         {
             var clrValue = new DkmClrValue(
                 value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(char)),
@@ -680,7 +680,27 @@ namespace System.Xml.Linq
         }
 
         [Fact]
-        public void HostValueIsNotFound_enum()
+        public void HostValueNotFound_IntPtr()
+        {
+            var clrValue = new DkmClrValue(
+                value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(IntPtr)),
+                alias: null, evalFlags: DkmEvaluationResultFlags.None, valueFlags: DkmClrValueFlags.None);
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue));
+        }
+
+        [Fact]
+        public void HostValueNotFound_UIntPtr()
+        {
+            var clrValue = new DkmClrValue(
+                value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(UIntPtr)),
+                alias: null, evalFlags: DkmEvaluationResultFlags.None, valueFlags: DkmClrValueFlags.None);
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue));
+        }
+
+        [Fact]
+        public void HostValueNotFound_enum()
         {
             var clrValue = new DkmClrValue(
                 value: null, hostObjectValue: null, new DkmClrType((TypeImpl)typeof(TestEnum)),

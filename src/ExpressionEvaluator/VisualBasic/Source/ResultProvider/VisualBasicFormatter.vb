@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Shared ReadOnly Instance As VisualBasicFormatter = New VisualBasicFormatter()
 
         Public Sub New()
-            MyBase.New(defaultFormat:="{{{0}}}", nullString:="Nothing", thisString:="Me", hostValueNotFoundString:=Resources.HostValueNotFound)
+            MyBase.New(defaultFormat:="{{{0}}}", nullString:="Nothing", thisString:="Me")
         End Sub
 
         Friend Overrides Function IsValidIdentifier(name As String) As Boolean

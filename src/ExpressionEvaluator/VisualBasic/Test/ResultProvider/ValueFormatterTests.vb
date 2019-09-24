@@ -578,7 +578,7 @@ End Namespace
         End Sub
 
         <Fact>
-        Public Sub HostValueIsNotFound_Integer()
+        Public Sub HostValueNotFound_Integer()
             Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(Integer), TypeImpl)),
                 alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
 
@@ -586,15 +586,31 @@ End Namespace
         End Sub
 
         <Fact>
-        Public Sub HostValueIsNotFound_char()
-            Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(char), TypeImpl)),
+        Public Sub HostValueNotFound_char()
+            Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(Char), TypeImpl)),
                                            alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
 
             Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue))
         End Sub
 
         <Fact>
-        Public Sub HostValueIsNotFound_Enum()
+        Public Sub HostValueNotFound_IntPtr()
+            Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(IntPtr), TypeImpl)),
+                                           alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue))
+        End Sub
+
+        <Fact>
+        Public Sub HostValueNotFound_UIntPtr()
+            Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(UIntPtr), TypeImpl)),
+                                           alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue))
+        End Sub
+
+        <Fact>
+        Public Sub HostValueNotFound_Enum()
             Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(TestEnum), TypeImpl)),
                                            alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
 
@@ -603,7 +619,7 @@ End Namespace
 
         ' DateTime is a primitive type in VB but not in C#.
         <Fact>
-        Public Sub HostValueIsNotFound_DateTime()
+        Public Sub HostValueNotFound_DateTime()
             Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(DateTime), TypeImpl)),
                                            alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
 

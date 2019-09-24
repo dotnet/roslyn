@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             object underlyingValue = value.HostObjectValue;
             // check if HostObjectValue is null, since any of these types might actually be a synthetic value as well.
-            if (value.HostObjectValue == null)
+            if (underlyingValue == null)
             {
                 return _hostValueNotFoundString;
             }
