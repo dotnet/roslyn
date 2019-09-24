@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         protected Task<T> UnitTesting_RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
             => base.RunServiceAsync<T>(callAsync, cancellationToken);
 
-        protected Task UnitTesting_RunServiceAsync<T>(Func<Task> callAsync, CancellationToken cancellationToken)
+        protected Task UnitTesting_RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
             => base.RunServiceAsync(callAsync, cancellationToken);
 
         protected void UnitTesing_LogException(Exception e)

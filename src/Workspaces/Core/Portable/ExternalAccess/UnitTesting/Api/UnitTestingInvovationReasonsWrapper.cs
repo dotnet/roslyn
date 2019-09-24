@@ -6,12 +6,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal struct UnitTestingInvovationReasonsWrapper
     {
-        internal UnitTestingInvovationReasonsWrapper(InvocationReasons underLyingObject)
-            => UnderlyingObject = underLyingObject;
+        public static readonly UnitTestingInvovationReasonsWrapper SemanticChanged = new UnitTestingInvovationReasonsWrapper(InvocationReasons.SemanticChanged);
+        public static readonly UnitTestingInvovationReasonsWrapper Reanalyze = new UnitTestingInvovationReasonsWrapper(InvocationReasons.Reanalyze);
+        public static readonly UnitTestingInvovationReasonsWrapper ProjectConfigurationChanged = new UnitTestingInvovationReasonsWrapper(InvocationReasons.ProjectConfigurationChanged);
+        public static readonly UnitTestingInvovationReasonsWrapper SyntaxChanged = new UnitTestingInvovationReasonsWrapper(InvocationReasons.SyntaxChanged);
 
         internal InvocationReasons UnderlyingObject { get; }
 
+        internal UnitTestingInvovationReasonsWrapper(InvocationReasons underlyingObject)
+            => UnderlyingObject = underlyingObject;
+
+        public UnitTestingInvovationReasonsWrapper(string reason) : this(new InvocationReasons(reason)) { }
+
         public bool Contains(string reason)
             => UnderlyingObject.Contains(reason);
+
+        public UnitTestingInvovationReasonsWrapper With(string reason)
+            => new UnitTestingInvovationReasonsWrapper(UnderlyingObject.With(reason));
     }
 }

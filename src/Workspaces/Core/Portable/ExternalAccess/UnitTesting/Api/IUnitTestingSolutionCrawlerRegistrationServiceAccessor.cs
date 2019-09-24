@@ -6,8 +6,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal interface IUnitTestingSolutionCrawlerRegistrationServiceAccessor : IWorkspaceService
     {
-        void Register(Workspace workspace);
-
         void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, UnitTestingIncrementalAnalyzerProviderMetadataWrapper metadata);
     }
 }

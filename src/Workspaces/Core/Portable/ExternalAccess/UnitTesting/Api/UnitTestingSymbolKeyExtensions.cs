@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.Remote;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal static class UnitTestingRemoteHostOptionsWrapper
+    internal static class UnitTestingSymbolKeyExtensions
     {
-        public static Option<bool> OOP64Bit = RemoteHostOptions.OOP64Bit;
+        public static string UnitTesting_ToString(this SymbolKey symbolKey)
+            => symbolKey.ToString();
     }
 }
