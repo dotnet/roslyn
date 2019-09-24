@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // In future, we might change this algorithm, or allow end users to customize it based on options.
 
                 var bestPath = string.Empty;
-                AnalyzerConfigDocument bestAnalyzerConfigDocument = null;
+                AnalyzerConfigDocument? bestAnalyzerConfigDocument = null;
                 foreach (var analyzerConfigDocument in project.AnalyzerConfigDocuments)
                 {
                     var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigDocument.FilePath);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return project.AnalyzerConfigDocuments.FirstOrDefault(d => d.FilePath == analyzerConfigPath);
         }
 
-        public static AnalyzerConfigDocument GetOrCreateAnalyzerConfigDocument(this Project project, string analyzerConfigPath)
+        public static AnalyzerConfigDocument? GetOrCreateAnalyzerConfigDocument(this Project project, string analyzerConfigPath)
         {
             var existingAnalyzerConfigDocument = project.TryGetExistingAnalyzerConfigDocumentAtPath(analyzerConfigPath);
             if (existingAnalyzerConfigDocument != null)
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var id = DocumentId.CreateNewId(project.Id);
             var documentInfo = DocumentInfo.Create(id, ".editorconfig", filePath: analyzerConfigPath);
             var newSolution = project.Solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
-            return newSolution.GetProject(project.Id).GetAnalyzerConfigDocument(id);
+            return newSolution.GetProject(project.Id)?.GetAnalyzerConfigDocument(id);
         }
     }
 }
