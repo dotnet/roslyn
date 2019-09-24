@@ -2809,6 +2809,8 @@ public class Example
 return;
 	}
 }";
+            // Ensure the test code doesn't get switched to spaces
+            Assert.Contains("\t\tif (session == null)", code);
             AssertSmartIndent(
                 code,
                 indentationLine: 6,

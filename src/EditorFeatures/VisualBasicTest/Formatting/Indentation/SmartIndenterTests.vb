@@ -2980,6 +2980,8 @@ public class Example
 return
 	end sub
 end class"
+            ' Ensure the test code doesn't get switched to spaces
+            Assert.Contains(vbTab & vbTab & "if (session is nothing)", code)
             AssertSmartIndent(
                 code,
                 indentationLine:=4,
