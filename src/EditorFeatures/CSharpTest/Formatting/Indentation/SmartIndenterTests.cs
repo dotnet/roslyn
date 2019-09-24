@@ -2814,7 +2814,7 @@ return;
                 indentationLine: 6,
                 expectedIndentation: 12,
                 updateWorkspace:
-                w => w.Options = w.Options.WithChangedOption(UseTabs, LanguageNames.CSharp, true));
+                    w => w.Options = w.Options.WithChangedOption(UseTabs, LanguageNames.CSharp, true));
         }
 
         private void AssertSmartIndentInProjection(

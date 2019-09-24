@@ -2969,6 +2969,25 @@ End Class
                 expectedIndentation:=12)
         End Sub
 
+        <WorkItem(38819, "https://github.com/dotnet/roslyn/issues/38819")>
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub IndentationOfReturnInFileWithTabs1()
+            dim code = "
+public class Example
+	public sub Test(session as object)
+		if (session is nothing)
+return
+	end sub
+end class"
+            AssertSmartIndent(
+                code,
+                indentationLine:=4,
+                expectedIndentation:=12,
+                updateWorkspace:=
+                    Sub(w) w.Options = w.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, True))
+        End sub
+
         Private Sub AssertSmartIndentIndentationInProjection(
                 markup As String,
                 expectedIndentation As Integer)
@@ -2995,11 +3014,12 @@ End Class
         Private Sub AssertSmartIndent(
                 code As String, indentationLine As Integer,
                 expectedIndentation As Integer?,
-                Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
+                Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart,
+                Optional updateWorkspace As Action(Of TestWorkspace) = Nothing)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
 
-                TestIndentation(workspace, indentationLine, expectedIndentation, updateWorkspace:=Nothing)
+                TestIndentation(workspace, indentationLine, expectedIndentation, updateWorkspace)
             End Using
         End Sub
     End Class
