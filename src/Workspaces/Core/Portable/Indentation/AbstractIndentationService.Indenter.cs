@@ -142,9 +142,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                             // at the contents of the line, but this time evaluates how \t characters 
                             // should translate to column chars.
                             var offset = updatedLine.GetColumnFromLineOffset(nonWhitespaceOffset.Value, _tabSize);
-                            indentationResult = new IndentationResult(
-                                basePosition: LineToBeIndented.Start,
-                                offset: offset);
+                            indentationResult = new IndentationResult(basePosition: LineToBeIndented.Start, offset: offset);
                             return true;
                         }
                     }
