@@ -715,6 +715,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).Wait(CancellationToken.None);
         }
 
+        public void RenameDynamicSourceFile(string dynamicFilePath, string newFilePath)
+        {
+            _sourceFiles.RenameFile(_dynamicFilePathMaps[dynamicFilePath], newFilePath);
+            _dynamicFilePathMaps[dynamicFilePath] = newFilePath;
+        }
+
         private void OnDynamicFileInfoUpdated(object sender, string dynamicFilePath)
         {
             if (!_dynamicFilePathMaps.TryGetValue(dynamicFilePath, out var fileInfoPath))

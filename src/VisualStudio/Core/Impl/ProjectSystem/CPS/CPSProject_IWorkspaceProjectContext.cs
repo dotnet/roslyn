@@ -241,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         {
             _visualStudioProject.RemoveAdditionalFile(filePath);
         }
-        
+
         public void RenameAdditionalFile(string originalFilePath, string newFilePath)
         {
             _visualStudioProject.RenameAdditionalFile(originalFilePath, newFilePath);
@@ -255,6 +255,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void RemoveDynamicFile(string filePath)
         {
             _visualStudioProject.RemoveDynamicSourceFile(filePath);
+        }
+
+        public void RenameDynamicFile(string filePath, string newFilePath)
+        {
+            _visualStudioProject.RenameDynamicSourceFile(filePath, newFilePath);
         }
 
         public void SetRuleSetFile(string filePath)

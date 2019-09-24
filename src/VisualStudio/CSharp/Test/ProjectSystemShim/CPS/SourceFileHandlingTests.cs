@@ -154,7 +154,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             var newFileFullPath2 = @"c:\newsource2.cs";
             var newFileFullPath3 = @"c:\newsource2.cs";
 
-
             // Batched actions
             project.StartBatch();
             {
