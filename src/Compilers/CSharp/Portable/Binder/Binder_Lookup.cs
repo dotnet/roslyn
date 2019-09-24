@@ -951,6 +951,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
+            // The C# language specification forbids an interface from extending another interface that depends on it.
+            // That prevents a legal program from having an infinite inheritance chain.  We protect most of the
+            // compiler from having to deal with infinite inheritance chains arising in such illegal programs by
+            // removing the dependent base interfaces from the interface list.  This is accomplished by calling
+            // `BaseTypeAnalysis.TypeDependsOn` in `SourceNamedTypeSymbol.MakeAcyclicInterfaces`.  With the addition
+            // of support for types nested within interfaces in C# 8.0, type lookup within an interface needs to
+            // traverse base interfaces.  We cannot depend on the interfaces having been previously bound and cleaned
+            // of these cycles because such cycles might arise while we are binding a base clause.  The following
+            // code is specifically used in that case: to get the list of base interfaces for use in name lookup
+            // while some base clause is being bound.  To prevent infinite recursion in the case of (erroneous)
+            // infinite inheritance, we stop enumerating base interfaces when we encounter an interface type that
+            // inherits from an instantiation of the same interface.  We therefore track, in `cycleGuard`, the
+            // current set of interfaces whose base interfaces we are enumerating.
             var cycleGuard = ConsList<NamedTypeSymbol>.Empty.Prepend(type.OriginalDefinition);
 
             // Consumers of the result depend on the sorting performed by AllInterfacesWithDefinitionUseSiteDiagnostics.

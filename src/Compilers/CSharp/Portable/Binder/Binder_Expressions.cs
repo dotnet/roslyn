@@ -4149,19 +4149,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert((object)type != null);
 
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(typeSyntax, type) { WasCompilerGenerated = true };
+
             switch (syntax.Kind())
             {
                 case SyntaxKind.ObjectInitializerExpression:
-                    {
-                        var implicitReceiver = new BoundImplicitReceiver(typeSyntax, type) { WasCompilerGenerated = true };
-                        return BindObjectInitializerExpression(syntax, type, diagnostics, implicitReceiver);
-                    }
+                    return BindObjectInitializerExpression(syntax, type, diagnostics, implicitReceiver);
 
                 case SyntaxKind.CollectionInitializerExpression:
-                    {
-                        var implicitReceiver = new BoundImplicitReceiver(typeSyntax, type) { WasCompilerGenerated = true };
-                        return BindCollectionInitializerExpression(syntax, type, diagnostics, implicitReceiver);
-                    }
+                    return BindCollectionInitializerExpression(syntax, type, diagnostics, implicitReceiver);
 
                 default:
                     throw ExceptionUtilities.Unreachable;
@@ -4191,7 +4187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax initializerSyntax,
             TypeSymbol initializerType,
             DiagnosticBag diagnostics,
-            BoundImplicitReceiver implicitReceiver)
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver)
         {
             // SPEC:    7.6.10.2 Object initializers
             //
@@ -4225,15 +4221,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDuplicateObjectMemberInitializers(boundMemberInitializer, memberNameMap, diagnostics);
             }
 
-            return new BoundObjectInitializerExpression(initializerSyntax, initializerBuilder.ToImmutableAndFree(), initializerType);
+            return new BoundObjectInitializerExpression(initializerSyntax, implicitReceiver, initializerBuilder.ToImmutableAndFree(), initializerType);
         }
 
         private BoundExpression BindObjectInitializerMemberAssignment(
-                   ExpressionSyntax memberInitializer,
-                   TypeSymbol initializerType,
-                   Binder objectInitializerMemberBinder,
-                   DiagnosticBag diagnostics,
-                   BoundImplicitReceiver implicitReceiver)
+            ExpressionSyntax memberInitializer,
+            TypeSymbol initializerType,
+            Binder objectInitializerMemberBinder,
+            DiagnosticBag diagnostics,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver)
         {
             // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (spec 7.17.1) to the field or property.
 
@@ -4291,7 +4287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // returns BadBoundExpression or BoundObjectInitializerMember
         private BoundExpression BindObjectInitializerMember(
             AssignmentExpressionSyntax namedAssignment,
-            BoundImplicitReceiver implicitReceiver,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
             DiagnosticBag diagnostics)
         {
             BoundExpression boundMember;
@@ -4481,7 +4477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BadObjectInitializerMemberAccess(
             BoundExpression boundMember,
-            BoundImplicitReceiver implicitReceiver,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
             ExpressionSyntax memberNameSyntax,
             DiagnosticBag diagnostics,
             BindValueKind valueKind,
@@ -4552,7 +4548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax initializerSyntax,
             TypeSymbol initializerType,
             DiagnosticBag diagnostics,
-            BoundImplicitReceiver implicitReceiver)
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver)
         {
             // SPEC:    7.6.10.3 Collection initializers
             //
@@ -4599,7 +4595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerBuilder.Add(boundElementInitializer);
             }
 
-            return new BoundCollectionInitializerExpression(initializerSyntax, initializerBuilder.ToImmutableAndFree(), initializerType);
+            return new BoundCollectionInitializerExpression(initializerSyntax, implicitReceiver, initializerBuilder.ToImmutableAndFree(), initializerType);
         }
 
         private bool CollectionInitializerTypeImplementsIEnumerable(TypeSymbol initializerType, CSharpSyntaxNode node, DiagnosticBag diagnostics)
@@ -4637,7 +4633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder,
             DiagnosticBag diagnostics,
-            BoundImplicitReceiver implicitReceiver)
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver)
         {
             // SPEC:    Each element initializer specifies an element to be added to the collection object being initialized, and consists of
             // SPEC:    a list of expressions enclosed by { and } tokens and separated by commas.
@@ -4681,7 +4677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder = null,
-            BoundImplicitReceiver implicitReceiver = null)
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver = null)
         {
             var elementInitializerExpressions = elementInitializer.Expressions;
 
@@ -4721,7 +4717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasEnumerableInitializerType,
             Binder collectionInitializerAddMethodBinder,
             DiagnosticBag diagnostics,
-            BoundImplicitReceiver implicitReceiver)
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver)
         {
             // SPEC:    For each specified element in order, the collection initializer invokes an Add method on the target object
             // SPEC:    with the expression list of the element initializer as argument list, applying normal overload resolution for each invocation.
