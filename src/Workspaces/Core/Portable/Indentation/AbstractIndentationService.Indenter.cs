@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                         var nonWhitespaceOffset = updatedLine.GetFirstNonWhitespaceOffset();
                         if (nonWhitespaceOffset != null)
                         {
-                            // 'nonWhitespaceOffset' will simply an int indicating how many
+                            // 'nonWhitespaceOffset' is simply an int indicating how many
                             // *characters* of indentation to include.  For example, an indentation
                             // string of \t\t\t would just count for nonWhitespaceOffset of '3' (one
                             // for each tab char).
