@@ -126,12 +126,25 @@ namespace Microsoft.CodeAnalysis.Indentation
                     if (LineToBeIndented.LineNumber < updatedSourceText.Lines.Count)
                     {
                         var updatedLine = updatedSourceText.Lines[LineToBeIndented.LineNumber];
-                        var offset = updatedLine.GetFirstNonWhitespaceOffset();
-                        if (offset != null)
+                        var nonWhitespaceOffset = updatedLine.GetFirstNonWhitespaceOffset();
+                        if (nonWhitespaceOffset != null)
                         {
+                            // 'nonWhitespaceOffset' will simply an int indicating how many
+                            // *characters* of indentation to include.  For example, an indentation
+                            // string of \t\t\t would just count for nonWhitespaceOffset of '3' (one
+                            // for each tab char).
+                            //
+                            // However, what we want is the true columnar offset for the line.
+                            // That's what our caller (normally the editor) needs to determine where
+                            // to actually put the caret and what whitespace needs to proceed it.
+                            //
+                            // This can be computed with GetColumnFromLineOffset which again looks
+                            // at the contents of the line, but this time evaluates how \t characters 
+                            // should translate to column chars.
+                            var offset = updatedLine.GetColumnFromLineOffset(nonWhitespaceOffset.Value, _tabSize);
                             indentationResult = new IndentationResult(
                                 basePosition: LineToBeIndented.Start,
-                                offset: updatedLine.GetColumnFromLineOffset(offset.Value, _tabSize));
+                                offset: offset);
                             return true;
                         }
                     }
