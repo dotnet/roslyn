@@ -84,10 +84,9 @@ public class C
             var symbol1 = model.GetDeclaredSymbol(underscore);
             Assert.Equal(expectedType, symbol1.Type.ToTestDisplayString());
             Assert.Equal("_", symbol1.Name);
-
-            var discard1 = (IDiscardSymbol)symbol1;
-            Assert.Equal(expectedType, discard1.Type.ToTestDisplayString());
-            Assert.Equal(expectedAnnotation, discard1.NullableAnnotation);
+            Assert.True(symbol1.IsDiscard);
+            Assert.Equal(expectedType, symbol1.Type.ToTestDisplayString());
+            Assert.Equal(expectedAnnotation, symbol1.NullableAnnotation);
         }
 
         [Fact]
@@ -98,7 +97,7 @@ public class C
 {
     public static void Main()
     {
-        System.Func<short, short, long> f1 = (_, _) => 3L;
+        System.Func<short, short, long> f1 = (_, _) => { long _ = 3; return _; };
         System.Console.Write(f1(0, 0));
 
         System.Func<short, short, int, long> f2 = (_, _, a) => 4L + a;
@@ -111,6 +110,29 @@ public class C
 
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "356");
+        }
+
+        [Fact]
+        public void DiscardParameters_OnLocalFunction()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    static void M()
+    {
+        local();
+        void local(int _, int _) {}
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter '_' of 'local(int, int)'
+                //         local();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "local").WithArguments("_", "local(int, int)").WithLocation(6, 9),
+                // (7,31): error CS0100: The parameter name '_' is a duplicate
+                //         void local(int _, int _) {}
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "_").WithArguments("_").WithLocation(7, 31)
+                );
         }
 
         [Fact]
@@ -179,6 +201,28 @@ public class C
         }
 
         [Fact]
+        public void DiscardParameters_InDelegates_WithAttribute()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public static void Main()
+    {
+        System.Func<int, int, long> f1 = delegate([System.Obsolete]int _, int _ = 0) { return 3L; };
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (6,51): error CS7014: Attributes are not valid in this context.
+                //         System.Func<int, int, long> f1 = delegate([System.Obsolete]int _, int _ = 0) { return 3L; };
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[System.Obsolete]").WithLocation(6, 51),
+                // (6,81): error CS1065: Default values are not valid in this context.
+                //         System.Func<int, int, long> f1 = delegate([System.Obsolete]int _, int _ = 0) { return 3L; };
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(6, 81)
+                );
+        }
+
+        [Fact]
         public void DiscardParameters_NotInScope()
         {
             var comp = CreateCompilation(@"
@@ -231,11 +275,11 @@ public class C
 
             var parameterSymbol1 = model.GetDeclaredSymbol(underscoreParameters[0]);
             Assert.NotNull(parameterSymbol1);
-            Assert.IsNotType(typeof(IDiscardSymbol), parameterSymbol1);
+            Assert.False(parameterSymbol1.IsDiscard);
 
             var parameterSymbol2 = model.GetDeclaredSymbol(underscoreParameters[1]);
             Assert.NotNull(parameterSymbol2);
-            Assert.IsNotType(typeof(IDiscardSymbol), parameterSymbol2);
+            Assert.False(parameterSymbol2.IsDiscard);
         }
     }
 }

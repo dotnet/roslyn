@@ -65,6 +65,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend ReadOnly Property IsDiscard As Boolean Implements IParameterSymbol.IsDiscard
+            Get
+                Return False
+            End Get
+        End Property
+
         ''' <summary>
         ''' Describes how the parameter is marshalled when passed to native code.
         ''' Null if no specific marshalling information is available for the parameter.

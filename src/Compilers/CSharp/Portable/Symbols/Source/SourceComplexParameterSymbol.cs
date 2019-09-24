@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SyntaxTree SyntaxTree => _syntaxRef == null ? null : _syntaxRef.SyntaxTree;
 
+        public sealed override bool IsDiscard => false;
+
         internal override ConstantValue ExplicitDefaultConstantValue
         {
             get

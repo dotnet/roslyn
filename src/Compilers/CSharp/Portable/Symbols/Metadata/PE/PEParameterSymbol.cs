@@ -287,13 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(hasNameInMetadata == this.HasNameInMetadata);
         }
 
-        private bool HasNameInMetadata
-        {
-            get
-            {
-                return _packedFlags.HasNameInMetadata;
-            }
-        }
+        private bool HasNameInMetadata => _packedFlags.HasNameInMetadata;
+
+        public sealed override bool IsDiscard => false;
 
         private static PEParameterSymbol Create(
             PEModuleSymbol moduleSymbol,

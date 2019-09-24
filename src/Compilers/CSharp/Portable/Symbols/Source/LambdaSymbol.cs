@@ -362,9 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
 
-                var parameter = unboundLambda.ParameterIsDiscard(p)
-                    ? (ParameterSymbol)new DiscardParameterSymbol(owner: this, type, ordinal: p, refKind, locations)
-                    : new SourceSimpleParameterSymbol(owner: this, type, ordinal: p, refKind, name, locations);
+                var parameter = new SourceSimpleParameterSymbol(owner: this, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), locations);
 
                 builder.Add(parameter);
             }
