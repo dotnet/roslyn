@@ -515,6 +515,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return current == questionPosition;
         }
 
+        // For test purpose only
+        internal static AsyncCompletionData.CompletionFilter GetOrCreateFilter(CompletionItemFilter filter)
+            => FilterSet.GetFilter(filter);
+
         /// <summary>
         /// Provides an efficient way to compute a set of completion filters associated with a collection of completion items.
         /// Presence of expander and filter in the set have different meanings. Set contains a filter means the filter is
@@ -635,7 +639,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return listBuilder.ToImmutableAndFree();
             }
 
-            private static AsyncCompletionData.CompletionFilter GetFilter(CompletionItemFilter roslynFilter)
+            public static AsyncCompletionData.CompletionFilter GetFilter(CompletionItemFilter roslynFilter)
             {
                 if (!s_filterCache.TryGetValue(roslynFilter.DisplayText, out var vsFilter))
                 {
