@@ -576,13 +576,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddDocument(did, "goo.cs", text);
 
             var document = sol.GetDocument(did);
-            Assert.Equal(false, document.TryGetSyntaxRoot(out var root));
+            Assert.False(document.TryGetSyntaxRoot(out var root));
 
             root = await document.GetSyntaxRootAsync();
             Assert.NotNull(root);
             Assert.Equal(text, root.ToString());
 
-            Assert.Equal(true, document.TryGetSyntaxRoot(out root));
+            Assert.True(document.TryGetSyntaxRoot(out root));
             Assert.NotNull(root);
         }
 
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root2 = tree2.GetRoot();
             // text should not be available yet (it should be defer created from the node)
             // and getting the document or root should not cause it to be created.
-            Assert.Equal(false, tree2.TryGetText(out var text2));
+            Assert.False(tree2.TryGetText(out var text2));
 
             text2 = tree2.GetText();
             Assert.NotNull(text2);
@@ -639,8 +639,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotSame(tree, tree2);
             Assert.NotSame(annotatedRoot, root2);
 
-            Assert.Equal(true, annotatedRoot.IsEquivalentTo(root2));
-            Assert.Equal(true, root2.HasAnnotation(annotation));
+            Assert.True(annotatedRoot.IsEquivalentTo(root2));
+            Assert.True(root2.HasAnnotation(annotation));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1211,7 +1211,7 @@ End Class";
             Assert.NotEqual(oldVersion, solutionInfo.Version);
             Assert.Equal(newVersion, solutionInfo.Version);
 
-            Assert.Equal(null, solutionInfo.FilePath);
+            Assert.Null(solutionInfo.FilePath);
             var newFilePath = @"C:\test\fake.sln";
             solutionInfo = solutionInfo.WithFilePath(newFilePath);
             Assert.Equal(newFilePath, solutionInfo.FilePath);

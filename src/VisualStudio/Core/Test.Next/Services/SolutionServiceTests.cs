@@ -122,7 +122,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var array = new string[] { };
             Assert.Equal(Hash.CombineValues(array, StringComparer.Ordinal), compilationOptions.StrongNameProvider.GetHashCode());
-            Assert.Equal(((XmlFileResolver)compilationOptions.XmlReferenceResolver).BaseDirectory, null);
+            Assert.Null(((XmlFileResolver)compilationOptions.XmlReferenceResolver).BaseDirectory);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
