@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -170,5 +173,72 @@ namespace Analyzer.Utilities.Extensions
                      properties: properties,
                      messageArgs: args);
         }
+
+#if HAS_IOPERATION
+        /// <summary>
+        /// TODO: Revert this reflection based workaround once we move to Microsoft.CodeAnalysis version 3.0
+        /// </summary>
+        private static readonly PropertyInfo s_syntaxTreeDiagnosticOptionsProperty =
+            typeof(SyntaxTree).GetTypeInfo().GetDeclaredProperty("DiagnosticOptions");
+
+        public static void ReportNoLocationDiagnostic(
+            this CompilationAnalysisContext context,
+            DiagnosticDescriptor rule,
+            params object[] args)
+            => context.Compilation.ReportNoLocationDiagnostic(rule, context.ReportDiagnostic, properties: null, args);
+
+        public static void ReportNoLocationDiagnostic(
+            this Compilation compilation,
+            DiagnosticDescriptor rule,
+            Action<Diagnostic> addDiagnostic,
+            params object[] args)
+            => compilation.ReportNoLocationDiagnostic(rule, addDiagnostic, properties: null, args);
+
+        public static void ReportNoLocationDiagnostic(
+            this Compilation compilation,
+            DiagnosticDescriptor rule,
+            Action<Diagnostic> addDiagnostic,
+            ImmutableDictionary<string, string> properties,
+            params object[] args)
+        {
+            var effectiveSeverity = GetEffectiveSeverity();
+            if (!effectiveSeverity.HasValue)
+            {
+                // Disabled rule
+                return;
+            }
+
+            var diagnostic = Diagnostic.Create(rule, Location.None, effectiveSeverity.Value, additionalLocations: null, properties, args);
+            addDiagnostic(diagnostic);
+            return;
+
+            DiagnosticSeverity? GetEffectiveSeverity()
+            {
+                if (s_syntaxTreeDiagnosticOptionsProperty == null)
+                {
+                    return rule.DefaultSeverity;
+                }
+
+                ReportDiagnostic? overriddenSeverity = null;
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree);
+                    if (options.TryGetValue(rule.Id, out var configuredValue))
+                    {
+                        if (overriddenSeverity == null)
+                        {
+                            overriddenSeverity = configuredValue;
+                        }
+                        else if (overriddenSeverity != configuredValue)
+                        {
+                            return rule.DefaultSeverity;
+                        }
+                    }
+                }
+
+                return overriddenSeverity.HasValue ? overriddenSeverity.Value.ToDiagnosticSeverity() : rule.DefaultSeverity;
+            }
+        }
+#endif
     }
 }
