@@ -2793,6 +2793,31 @@ class C
                 expectedIndentation: 12);
         }
 
+        [WorkItem(38819, "https://github.com/dotnet/roslyn/issues/38819")]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void IndentationOfReturnInFileWithTabs1()
+        {
+            var code = @"
+public class Example
+{
+	public void Test(object session)
+	{
+		if (session == null)
+return;
+	}
+}";
+            // Ensure the test code doesn't get switched to spaces
+            Assert.Contains("\t\tif (session == null)", code);
+            AssertSmartIndent(
+                code,
+                indentationLine: 6,
+                expectedIndentation: 12,
+                useTabs: true,
+                options: null,
+                indentStyle: IndentStyle.Smart);
+        }
+
         private void AssertSmartIndentInProjection(
             string markup,
             int expectedIndentation,
