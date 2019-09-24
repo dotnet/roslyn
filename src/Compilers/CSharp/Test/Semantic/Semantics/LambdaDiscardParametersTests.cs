@@ -113,6 +113,30 @@ public class C
         }
 
         [Fact]
+        public void DiscardParameters_RefAndOut()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    delegate int RefAndOut(ref int i, out int j);
+    static void M()
+    {
+        RefAndOut f1 = (ref int _, out int _) =>
+            {
+                return 2;
+            };
+    }
+}");
+
+            // Note: this is somewhat problematic because there is nothing the user can do to fix this. We could have an error for out discards
+            comp.VerifyDiagnostics(
+                // (9,17): error CS0177: The out parameter '_' must be assigned to before control leaves the current method
+                //                 return 2;
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 2;").WithArguments("_").WithLocation(9, 17)
+                );
+        }
+
+        [Fact]
         public void DiscardParameters_OnLocalFunction()
         {
             var comp = CreateCompilation(@"
