@@ -193,7 +193,7 @@ class P
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("A", "{B}", "A {B}", "(new C()).A", DkmEvaluationResultFlags.Expandable));
+                EvalResult("A", "{B}", "A {B}", "(new C()).A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             children = GetChildren(children[0]);
             Verify(children,
                 EvalResult("G", "4", "object {int}", "new P((new C()).A).G", DkmEvaluationResultFlags.ReadOnly),
@@ -254,7 +254,7 @@ class P
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("A", "{B}", "A {B}", "(new C()).A", DkmEvaluationResultFlags.Expandable));
+                EvalResult("A", "{B}", "A {B}", "(new C()).A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             children = GetChildren(children[0]);
             Verify(children,
                 EvalResult("G", "4", "object {int}", "new P((new C()).A).G", DkmEvaluationResultFlags.ReadOnly),
@@ -319,7 +319,7 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("b", "{B<A<string>>}", "B<A<string>>", "(new C()).b", DkmEvaluationResultFlags.Expandable));
+                EvalResult("b", "{B<A<string>>}", "B<A<string>>", "(new C()).b", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             children = GetChildren(children[0]);
             Verify(children,
                 EvalResult("PG", "{A<string>}", "A<string>", "new PB<A<string>>((new C()).b).PG", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
@@ -410,19 +410,19 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("a", "{A<int>}", "A<int>", "(new C()).a", DkmEvaluationResultFlags.Expandable),
-                EvalResult("b", "{B<object>}", "B<object>", "(new C()).b", DkmEvaluationResultFlags.Expandable),
-                EvalResult("c", "{C<short>}", "C<short>", "(new C()).c", DkmEvaluationResultFlags.Expandable));
+                EvalResult("a", "{A<int>}", "A<int>", "(new C()).a", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("b", "{B<object>}", "B<object>", "(new C()).b", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("c", "{C<short>}", "C<short>", "(new C()).c", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
 
             // A<int> a = new A<int>(1);
             var more = GetChildren(children[0]);
             Verify(more,
-                EvalResult("F", "1", "int", "(new C()).a.F", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("F", "1", "int", "(new C()).a.F", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
 
             // B<object> b = new B<object>(2);
             more = GetChildren(children[1]);
             Verify(more,
-                EvalResult("F", "2", "object {int}", "(new C()).b.F", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("F", "2", "object {int}", "(new C()).b.F", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
 
             // C<short> c = new C<short>((short)3);
             more = GetChildren(children[2]);
@@ -519,10 +519,10 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("_1", "{B1<int, object>}", "B1<int, object>", "(new C())._1", DkmEvaluationResultFlags.Expandable),
-                EvalResult("_2", "{B2<object>}", "B2<object>", "(new C())._2", DkmEvaluationResultFlags.Expandable),
-                EvalResult("_3", "{B3<int>}", "B3<int>", "(new C())._3", DkmEvaluationResultFlags.Expandable),
-                EvalResult("_4", "{C4<string>}", "C4<string>", "(new C())._4", DkmEvaluationResultFlags.Expandable));
+                EvalResult("_1", "{B1<int, object>}", "B1<int, object>", "(new C())._1", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_2", "{B2<object>}", "B2<object>", "(new C())._2", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_3", "{B3<int>}", "B3<int>", "(new C())._3", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("_4", "{C4<string>}", "C4<string>", "(new C())._4", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             Verify(GetChildren(children[0]),
                 EvalResult("PF", "{int[3]}", "int[]", "new P<int[], object[,,]>((new C())._1).PF", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("PG", "{object[1, 1, 1]}", "object[,,]", "new P<int[], object[,,]>((new C())._1).PG", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
@@ -620,7 +620,7 @@ class B
                 EvalResult(rootExpr, "{B}", "B", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("a", "null", "A", "(new C()).a"));
+                EvalResult("a", "null", "A", "(new C()).a", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -1098,7 +1098,7 @@ class P
             // have been caught and proxy type dropped.
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("F", "3", "int", "(new C(3)).F"));
+                EvalResult("F", "3", "int", "(new C(3)).F", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [WorkItem(18581, "https://github.com/dotnet/roslyn/issues/18581")]
