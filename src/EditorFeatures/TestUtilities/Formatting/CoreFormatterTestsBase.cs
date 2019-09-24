@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -16,8 +17,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 {
-    using Microsoft.CodeAnalysis.Indentation;
-
     public abstract class CoreFormatterTestsBase
     {
         internal abstract string GetLanguageName();
@@ -39,8 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(expectedIndentation, actualIndentation.Value);
         }
 
-        protected void TestIndentation(TestWorkspace workspace, int indentationLine, int? expectedIndentation)
+        protected void TestIndentation(
+            TestWorkspace workspace, int indentationLine, int? expectedIndentation,
+            Action<TestWorkspace> updateWorkspace)
         {
+            updateWorkspace?.Invoke(workspace);
+
             var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);
             bufferGraph.Setup(x => x.MapUpToSnapshot(It.IsAny<SnapshotPoint>(),

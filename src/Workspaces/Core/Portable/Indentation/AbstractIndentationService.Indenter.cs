@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                         {
                             indentationResult = new IndentationResult(
                                 basePosition: LineToBeIndented.Start,
-                                offset: offset.Value);
+                                offset: updatedLine.GetColumnFromLineOffset(offset.Value, _tabSize));
                             return true;
                         }
                     }
