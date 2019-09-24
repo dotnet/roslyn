@@ -174,7 +174,6 @@ namespace Analyzer.Utilities.Extensions
                      messageArgs: args);
         }
 
-#if HAS_IOPERATION
         /// <summary>
         /// TODO: Revert this reflection based workaround once we move to Microsoft.CodeAnalysis version 3.0
         /// </summary>
@@ -208,7 +207,13 @@ namespace Analyzer.Utilities.Extensions
                 return;
             }
 
-            var diagnostic = Diagnostic.Create(rule, Location.None, effectiveSeverity.Value, additionalLocations: null, properties, args);
+            if (effectiveSeverity.Value != rule.DefaultSeverity)
+            {
+                rule = new DiagnosticDescriptor(rule.Id, rule.Title, rule.MessageFormat, rule.Category,
+                    effectiveSeverity.Value, rule.IsEnabledByDefault, rule.Description, rule.HelpLinkUri, rule.CustomTags.ToArray());
+            }
+
+            var diagnostic = Diagnostic.Create(rule, Location.None, properties, args);
             addDiagnostic(diagnostic);
             return;
 
@@ -246,6 +251,5 @@ namespace Analyzer.Utilities.Extensions
                 return overriddenSeverity.HasValue ? overriddenSeverity.Value.ToDiagnosticSeverity() : rule.DefaultSeverity;
             }
         }
-#endif
     }
 }
