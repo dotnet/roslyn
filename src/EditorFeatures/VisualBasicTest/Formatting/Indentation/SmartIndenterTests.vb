@@ -3001,7 +3001,7 @@ End Class
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
 
-                TestIndentation(workspace, indentationLine, expectedIndentation)
+                TestIndentation(workspace, indentationLine, expectedIndentation, updateWorkspace:=Nothing)
             End Using
         End Sub
     End Class
