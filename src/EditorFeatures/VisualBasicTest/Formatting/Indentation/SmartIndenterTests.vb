@@ -2582,7 +2582,6 @@ End Namespace
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0,
-                expectedBlankLineIndentation:=0,
                 indentStyle:=FormattingOptions.IndentStyle.None)
         End Sub
 
