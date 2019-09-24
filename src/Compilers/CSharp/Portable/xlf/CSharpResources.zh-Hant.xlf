@@ -832,6 +832,11 @@
         <target state="translated">對可移動的固定緩衝區編製索引</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLocalFunctionAttributes">
+        <source>local function attributes</source>
+        <target state="new">local function attributes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">巢狀函式中的名稱鏡像處理</target>

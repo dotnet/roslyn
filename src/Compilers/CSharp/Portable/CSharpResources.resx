@@ -126,6 +126,9 @@
   <data name="IDS_FeatureSwitchExpression" xml:space="preserve">
     <value>&lt;switch expression&gt;</value>
   </data>
+  <data name="IDS_FeatureLocalFunctionAttributes" xml:space="preserve">
+    <value>local function attributes</value>
+  </data>
   <data name="IDS_RELATEDERROR" xml:space="preserve">
     <value>(Location of symbol related to previous error)</value>
   </data>

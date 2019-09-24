@@ -422,7 +422,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (10,14): warning CS8321: The local function 'local' is declared but never used
                 //         void local() { }
@@ -465,7 +465,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (10,13): warning CS8321: The local function 'local' is declared but never used
                 //         int local() => 42;
@@ -490,6 +490,43 @@ class C
             var attributes = symbol.GetAttributes();
             // PROTOTYPE: method symbol should have the attribute
             //Assert.Single(attributes);
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute_LangVersionError()
+        {
+            const string text = @"
+using System;
+class A : Attribute { }
+
+class C
+{
+    void M()
+    {
+        [A]
+        void local1() { }
+
+        [return: A]
+        void local2() { }
+    }
+}
+";
+            // PROTOTYPE: attributes on local function type parameters and parameters should give a similar error.
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         [A]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(9, 9),
+                // (10,14): warning CS8321: The local function 'local1' is declared but never used
+                //         void local1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(10, 14),
+                // (12,9): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         [return: A]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[return: A]").WithArguments("local function attributes").WithLocation(12, 9),
+                // (13,14): warning CS8321: The local function 'local2' is declared but never used
+                //         void local2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(13, 14));
         }
 
         [Fact]

@@ -832,6 +832,11 @@
         <target state="translated">indexování mobilních vyrovnávacích pamětí pevné velikosti</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLocalFunctionAttributes">
+        <source>local function attributes</source>
+        <target state="new">local function attributes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">skrývání názvů ve vnořených funkcích</target>

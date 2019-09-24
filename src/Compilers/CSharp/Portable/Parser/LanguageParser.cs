@@ -8145,6 +8145,11 @@ tryAgain:
             var attributes = _pool.Allocate<AttributeListSyntax>();
             ParseAttributeDeclarations(attributes);
 
+            for (int i = 0; i < attributes.Count; i++)
+            {
+                attributes[i] = CheckFeatureAvailability(attributes[i], MessageID.IDS_FeatureLocalFunctionAttributes);
+            }
+
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
 

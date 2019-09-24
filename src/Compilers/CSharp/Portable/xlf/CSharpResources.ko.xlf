@@ -832,6 +832,11 @@
         <target state="translated">이동 가능한 고정 버퍼 인덱싱</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLocalFunctionAttributes">
+        <source>local function attributes</source>
+        <target state="new">local function attributes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">중첩된 함수의 이름 섀도잉</target>

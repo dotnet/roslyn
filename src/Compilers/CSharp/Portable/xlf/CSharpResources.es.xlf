@@ -832,6 +832,11 @@
         <target state="translated">indexando búferes fijos movibles</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLocalFunctionAttributes">
+        <source>local function attributes</source>
+        <target state="new">local function attributes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
         <target state="translated">sombreado de nombres en funciones anidadas</target>

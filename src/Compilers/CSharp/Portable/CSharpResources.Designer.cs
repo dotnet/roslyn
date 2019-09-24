@@ -11456,6 +11456,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to local function attributes.
+        /// </summary>
+        internal static string IDS_FeatureLocalFunctionAttributes {
+            get {
+                return ResourceManager.GetString("IDS_FeatureLocalFunctionAttributes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to local functions.
         /// </summary>
         internal static string IDS_FeatureLocalFunctions {
