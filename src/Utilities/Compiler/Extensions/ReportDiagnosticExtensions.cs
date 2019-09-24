@@ -30,5 +30,53 @@ namespace Microsoft.CodeAnalysis
                     throw new NotImplementedException();
             }
         }
+
+        public static bool IsLessSevereThen(this ReportDiagnostic current, ReportDiagnostic other)
+        {
+            switch (current)
+            {
+                case ReportDiagnostic.Error:
+                    return false;
+
+                case ReportDiagnostic.Warn:
+                    switch (other)
+                    {
+                        case ReportDiagnostic.Error:
+                            return true;
+
+                        default:
+                            return false;
+                    }
+
+                case ReportDiagnostic.Info:
+                    switch (other)
+                    {
+                        case ReportDiagnostic.Error:
+                        case ReportDiagnostic.Warn:
+                            return true;
+
+                        default:
+                            return false;
+                    }
+
+                case ReportDiagnostic.Hidden:
+                    switch (other)
+                    {
+                        case ReportDiagnostic.Error:
+                        case ReportDiagnostic.Warn:
+                        case ReportDiagnostic.Info:
+                            return true;
+
+                        default:
+                            return false;
+                    }
+
+                case ReportDiagnostic.Suppress:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
     }
 }

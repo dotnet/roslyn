@@ -225,13 +225,20 @@ namespace Analyzer.Utilities.Extensions
                     var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree);
                     if (options.TryGetValue(rule.Id, out var configuredValue))
                     {
+                        if (configuredValue == ReportDiagnostic.Suppress)
+                        {
+                            // Any suppression entry always wins.
+                            return null;
+                        }
+
                         if (overriddenSeverity == null)
                         {
                             overriddenSeverity = configuredValue;
                         }
-                        else if (overriddenSeverity != configuredValue)
+                        else if (overriddenSeverity.Value.IsLessSevereThen(configuredValue))
                         {
-                            return rule.DefaultSeverity;
+                            // Choose the most severe value for conflicts.
+                            overriddenSeverity = configuredValue;
                         }
                     }
                 }
