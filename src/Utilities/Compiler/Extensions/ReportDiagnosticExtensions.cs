@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static bool IsLessSevereThen(this ReportDiagnostic current, ReportDiagnostic other)
+        public static bool IsLessSevereThan(this ReportDiagnostic current, ReportDiagnostic other)
         {
             switch (current)
             {

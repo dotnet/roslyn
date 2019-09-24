@@ -240,7 +240,7 @@ namespace Analyzer.Utilities.Extensions
                         {
                             overriddenSeverity = configuredValue;
                         }
-                        else if (overriddenSeverity.Value.IsLessSevereThen(configuredValue))
+                        else if (overriddenSeverity.Value.IsLessSevereThan(configuredValue))
                         {
                             // Choose the most severe value for conflicts.
                             overriddenSeverity = configuredValue;
