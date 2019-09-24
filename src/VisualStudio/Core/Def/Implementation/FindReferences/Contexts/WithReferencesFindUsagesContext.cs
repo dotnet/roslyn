@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
-                ImmutableArray<AbstractCustomColumnDefinition> customColumns,
+                ImmutableArray<ITableColumnDefinition> customColumns,
                 bool includeContainingTypeAndMemberColumns,
                 bool includeKindColumn)
                 : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, propertiesWithMultipleValuesMapOpt: null, additionalProperties: definition.DisplayableProperties).ConfigureAwait(false);
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None, additionalProperties: definition.DisplayableProperties).ConfigureAwait(false);
                     declarations.AddIfNotNull(definitionEntry);
                 }
 
@@ -111,8 +111,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     bucket => TryCreateDocumentSpanEntryAsync(
                         bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
-                        reference.AdditionalPropertiesWithMultipleValues,
-                        reference.FindUsagesProperties),
+                        reference.SymbolUsageInfo,
+                        reference.AdditionalProperties),
                     addToEntriesWhenGroupingByDefinition: true,
                     addToEntriesWhenNotGroupingByDefinition: true);
             }

@@ -201,6 +201,7 @@
     <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudioVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Implementation\ChangeSignature\ChangeSignatureDialog.xaml.cs">
