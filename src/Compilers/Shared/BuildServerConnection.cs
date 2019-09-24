@@ -125,65 +125,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return new IncorrectHashBuildResponse();
             }
 
-            var clientDir = buildPaths.ClientDirectory;
-            var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
-            var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
-            Task<NamedPipeClientStream> pipeTask = null;
-            IServerMutex clientMutex = null;
-            try
+            var pipeTask = tryConnectToServer(pipeName, buildPaths, timeoutOverride, createServerFunc, cancellationToken);
+            if (pipeTask is null)
             {
-                var holdsMutex = false;
-                try
-                {
-                    var clientMutexName = GetClientMutexName(pipeName);
-                    clientMutex = OpenOrCreateMutex(clientMutexName, out holdsMutex);
-                }
-                catch
-                {
-                    // The Mutex constructor can throw in certain cases. One specific example is docker containers
-                    // where the /tmp directory is restricted. In those cases there is no reliable way to execute
-                    // the server and we need to fall back to the command line.
-                    //
-                    // Example: https://github.com/dotnet/roslyn/issues/24124
-                    return new RejectedBuildResponse();
-                }
-
-                if (!holdsMutex)
-                {
-                    try
-                    {
-                        holdsMutex = clientMutex.TryLock(timeoutNewProcess);
-
-                        if (!holdsMutex)
-                        {
-                            return new RejectedBuildResponse();
-                        }
-                    }
-                    catch (AbandonedMutexException)
-                    {
-                        holdsMutex = true;
-                    }
-                }
-
-                // Check for an already running server
-                var serverMutexName = GetServerMutexName(pipeName);
-                bool wasServerRunning = WasServerMutexOpen(serverMutexName);
-                var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
-
-                if (wasServerRunning || createServerFunc(clientDir, pipeName))
-                {
-                    pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
-                }
+                return new RejectedBuildResponse();
             }
-            finally
-            {
-                clientMutex?.Dispose();
-            }
-
-            if (pipeTask != null)
+            else
             {
                 var pipe = await pipeTask.ConfigureAwait(false);
-                if (pipe != null)
+                if (pipe is null)
+                {
+                    return new RejectedBuildResponse();
+                }
+                else
                 {
                     var request = BuildRequest.Create(language,
                                                       buildPaths.WorkingDirectory,
@@ -197,7 +151,83 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
             }
 
-            return new RejectedBuildResponse();
+            // This code uses a Mutex.WaitOne / ReleaseMutex pairing. Both of these calls must occur on the same thread 
+            // or an exception will be thrown. This code lives in a separate non-async function to help ensure this 
+            // invariant doesn't get invalidated in the future by an `await` being inserted. 
+            static Task<NamedPipeClientStream> tryConnectToServer(
+                string pipeName,
+                BuildPathsAlt buildPaths,
+                int? timeoutOverride,
+                CreateServerFunc createServerFunc,
+                CancellationToken cancellationToken)
+            {
+                var originalThreadId = Thread.CurrentThread.ManagedThreadId;
+                var clientDir = buildPaths.ClientDirectory;
+                var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
+                var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
+                Task<NamedPipeClientStream> pipeTask = null;
+                IServerMutex clientMutex = null;
+                try
+                {
+                    var holdsMutex = false;
+                    try
+                    {
+                        var clientMutexName = GetClientMutexName(pipeName);
+                        clientMutex = OpenOrCreateMutex(clientMutexName, out holdsMutex);
+                    }
+                    catch
+                    {
+                        // The Mutex constructor can throw in certain cases. One specific example is docker containers
+                        // where the /tmp directory is restricted. In those cases there is no reliable way to execute
+                        // the server and we need to fall back to the command line.
+                        //
+                        // Example: https://github.com/dotnet/roslyn/issues/24124
+                        return null;
+                    }
+
+                    if (!holdsMutex)
+                    {
+                        try
+                        {
+                            holdsMutex = clientMutex.TryLock(timeoutNewProcess);
+
+                            if (!holdsMutex)
+                            {
+                                return null;
+                            }
+                        }
+                        catch (AbandonedMutexException)
+                        {
+                            holdsMutex = true;
+                        }
+                    }
+
+                    // Check for an already running server
+                    var serverMutexName = GetServerMutexName(pipeName);
+                    bool wasServerRunning = WasServerMutexOpen(serverMutexName);
+                    var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
+
+                    if (wasServerRunning || createServerFunc(clientDir, pipeName))
+                    {
+                        pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
+                    }
+
+                    return pipeTask;
+                }
+                finally
+                {
+                    try
+                    {
+                        clientMutex?.Dispose();
+                    }
+                    catch (ApplicationException e)
+                    {
+                        var releaseThreadId = Thread.CurrentThread.ManagedThreadId;
+                        var message = $"ReleaseMutex failed. WaitOne Id: {originalThreadId} Release Id: {releaseThreadId}";
+                        throw new Exception(message, e);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -601,7 +631,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
     internal interface IServerMutex : IDisposable
     {
         bool TryLock(int timeoutMs);
-        void Unlock();
         bool IsDisposed { get; }
     }
 
@@ -732,16 +761,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return IsLocked = Mutex.WaitOne(timeoutMs);
         }
 
-        public void Unlock()
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException("Mutex");
-            if (!IsLocked)
-                throw new InvalidOperationException("Lock not held");
-            Mutex.ReleaseMutex();
-            IsLocked = false;
-        }
-
         public void Dispose()
         {
             if (IsDisposed)
@@ -756,6 +775,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             finally
             {
                 Mutex.Dispose();
+                IsLocked = false;
             }
         }
     }
@@ -790,13 +810,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             if (IsDisposed)
                 throw new ObjectDisposedException("Mutex");
             return HeldMutex.TryLock(timeoutMs);
-        }
-
-        public void Unlock()
-        {
-            if (IsDisposed)
-                throw new ObjectDisposedException("Mutex");
-            HeldMutex.Unlock();
         }
 
         public void Dispose()

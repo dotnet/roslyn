@@ -285,7 +285,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                      language == LanguageNames.VisualBasic ? ".vbproj" : ("." + language));
             }
 
-            var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
             var languageServices = workspace.Services.GetLanguageServices(language);
 
             var parseOptions = GetParseOptions(projectElement, language, languageServices);
@@ -766,6 +765,38 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             return new TestHostDocument(
                 exportProvider, languageServiceProvider, textBuffer, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
+        }
+
+        internal static TestHostDocument CreateDocument(
+            XElement documentElement,
+            ExportProvider exportProvider,
+            HostLanguageServices languageServiceProvider,
+            ImmutableArray<string> roles)
+        {
+            string markupCode = documentElement.NormalizedValue();
+
+            var folders = GetFolders(documentElement);
+            var optionsElement = documentElement.Element(ParseOptionsElementName);
+
+            var codeKind = SourceCodeKind.Regular;
+            if (optionsElement != null)
+            {
+                var attr = optionsElement.Attribute(KindAttributeName);
+                codeKind = attr == null
+                    ? SourceCodeKind.Regular
+                    : (SourceCodeKind)Enum.Parse(typeof(SourceCodeKind), attr.Value);
+            }
+
+            MarkupTestFile.GetPositionAndSpans(markupCode,
+                out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+
+            var documentServiceProvider = GetDocumentServiceProvider(documentElement);
+            var contentTypeLanguageService = languageServiceProvider.GetService<IContentTypeLanguageService>();
+            var contentType = contentTypeLanguageService.GetDefaultContentType();
+            var textBuffer = EditorFactory.CreateBuffer(contentType.TypeName, exportProvider, code);
+
+            return new TestHostDocument(
+                exportProvider, languageServiceProvider, textBuffer, filePath: string.Empty, cursorPosition, spans, codeKind, folders, isLinkFile: false, documentServiceProvider, roles: roles);
         }
 
 #nullable enable

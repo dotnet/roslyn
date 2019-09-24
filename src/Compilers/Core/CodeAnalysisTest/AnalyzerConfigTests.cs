@@ -97,7 +97,7 @@ my_PROP = my_VAL");
             var properties = config.GlobalSection.Properties;
 
             Assert.True(properties.TryGetValue("my_PrOp", out var val));
-            Assert.Equal(val, "my_VAL");
+            Assert.Equal("my_VAL", val);
             Assert.Equal("my_prop", properties.Keys.Single());
         }
 

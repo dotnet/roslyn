@@ -18,6 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class TestHostDocument
     {
+        private static readonly ImmutableArray<string> s_defaultRoles = ImmutableArray.Create<string>
+            (PredefinedTextViewRoles.Analyzable,
+            PredefinedTextViewRoles.Document,
+            PredefinedTextViewRoles.Editable,
+            PredefinedTextViewRoles.Interactive,
+            PredefinedTextViewRoles.Zoomable);
+
         private readonly ExportProvider _exportProvider;
         private HostLanguageServices _languageServiceProvider;
         private readonly Lazy<string> _initialText;
@@ -33,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly string _filePath;
         private readonly IReadOnlyList<string> _folders;
         private readonly IDocumentServiceProvider _documentServiceProvider;
+        private readonly ImmutableArray<string> _roles;
 
         public DocumentId Id
         {
@@ -103,7 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             IReadOnlyList<string> folders = null,
             bool isLinkFile = false,
-            IDocumentServiceProvider documentServiceProvider = null)
+            IDocumentServiceProvider documentServiceProvider = null,
+            ImmutableArray<string> roles = default)
         {
             Contract.ThrowIfNull(textBuffer);
             Contract.ThrowIfNull(filePath);
@@ -120,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _sourceCodeKind = sourceCodeKind;
             this.IsLinkFile = isLinkFile;
             _documentServiceProvider = documentServiceProvider;
+            _roles = roles.IsDefault ? s_defaultRoles : roles;
 
             this.SelectedSpans = new List<TextSpan>();
             if (spans.ContainsKey(string.Empty))
@@ -150,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Loader = new TestDocumentLoader(this);
             _filePath = filePath;
             _folders = folders;
+            _roles = s_defaultRoles;
         }
 
         internal void SetProject(TestHostProject project)
@@ -209,11 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // OutliningManager imports JoinableTaskContext in a way that's 
                 // difficult to satisfy in our unit tests. Since we don't directly
                 // depend on it, just disable it
-                var roles = factory.CreateTextViewRoleSet(PredefinedTextViewRoles.Analyzable,
-                    PredefinedTextViewRoles.Document,
-                    PredefinedTextViewRoles.Editable,
-                    PredefinedTextViewRoles.Interactive,
-                    PredefinedTextViewRoles.Zoomable);
+                var roles = factory.CreateTextViewRoleSet(_roles);
                 _textView = factory.CreateTextView(this.TextBuffer, roles);
                 if (this.CursorPosition.HasValue)
                 {

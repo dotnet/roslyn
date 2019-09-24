@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly bool _isDebuggerTextView;
         private readonly ImmutableHashSet<string> _roles;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
+        private bool _snippetCompletionTriggeredIndirectly;
 
         internal CompletionSource(ITextView textView, Lazy<IStreamingFindUsagesPresenter> streamingPresenter, IThreadingContext threadingContext)
             : base(threadingContext)
@@ -105,6 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
             _textView.Properties[PotentialCommitCharacters] = service.GetRules().DefaultCommitCharacters;
+
+            // Reset a flag which means a snippet triggerred by ? + Tab.
+            // Set it later if met the condition.
+            _snippetCompletionTriggeredIndirectly = false;
 
             CheckForExperimentStatus(_textView, document);
 
@@ -172,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return false;
         }
 
-        private static bool TryInvokeSnippetCompletion(
+        private bool TryInvokeSnippetCompletion(
             CompletionService completionService, Document document, SourceText text, int caretPoint)
         {
             var rules = completionService.GetRules();
@@ -198,6 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var textChange = new TextChange(TextSpan.FromBounds(caretPoint - 2, caretPoint), string.Empty);
             document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChange, CancellationToken.None);
 
+            _snippetCompletionTriggeredIndirectly = true;
             return true;
         }
 
@@ -247,6 +253,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var completionService = document.GetLanguageService<CompletionService>();
 
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
+            if (_snippetCompletionTriggeredIndirectly)
+            {
+                roslynTrigger = new CompletionTrigger(CompletionTriggerKind.Snippets);
+            }
 
             var workspace = document.Project.Solution.Workspace;
 

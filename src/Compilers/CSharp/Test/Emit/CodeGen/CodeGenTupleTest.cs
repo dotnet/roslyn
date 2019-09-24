@@ -5595,7 +5595,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         private static ImmutableArray<string> GetTupleElementNames(INamedTypeSymbol tuple)
@@ -5652,7 +5652,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5671,7 +5671,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
             Assert.All(tupleWithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5690,7 +5690,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32" }, ElementTypeNames(tupleWithSomeNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind);
             Assert.All(tupleWithSomeNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5708,7 +5708,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.Int32" }, ElementTypeNames(tupleWithNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
             Assert.All(tupleWithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5732,7 +5732,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
                         ElementTypeNames(tuple8WithoutNames));
             Assert.All(tuple8WithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5757,7 +5757,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
                         ElementTypeNames(tuple8WithNames));
             Assert.All(tuple8WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5782,7 +5782,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32" },
                         ElementTypeNames(tuple9WithoutNames));
             Assert.All(tuple9WithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5808,7 +5808,7 @@ class C
                         ElementTypeNames(tuple9WithNames));
 
             Assert.All(tuple9WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5837,7 +5837,7 @@ class C
                         ElementTypeNames(tuple9WithNames));
 
             Assert.All(tuple9WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5859,7 +5859,7 @@ class C
             Assert.Equal(SymbolKind.NamedType, types[0].Kind);
             Assert.Equal(SymbolKind.ErrorType, types[1].Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact, WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")]

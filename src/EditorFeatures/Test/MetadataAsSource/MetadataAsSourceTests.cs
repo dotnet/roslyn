@@ -659,8 +659,8 @@ End Class");
             var result = await context.GenerateSourceAsync(compilation.ObjectType);
             var openedDocument = context.GetDocument(result);
 
-            Assert.Equal(openedDocument.Project.AssemblyName, "mscorlib");
-            Assert.Equal(openedDocument.Project.Name, "mscorlib");
+            Assert.Equal("mscorlib", openedDocument.Project.AssemblyName);
+            Assert.Equal("mscorlib", openedDocument.Project.Name);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]

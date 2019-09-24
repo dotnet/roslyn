@@ -378,6 +378,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
+        SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit);
 
         bool ContainsInMemberBody(SyntaxNode node, TextSpan span);
         int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);

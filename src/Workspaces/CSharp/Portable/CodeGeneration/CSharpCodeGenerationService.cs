@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
@@ -273,42 +272,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override TDeclarationNode AddParameters<TDeclarationNode>(
-            TDeclarationNode destinationMember,
+            TDeclarationNode destination,
             IEnumerable<IParameterSymbol> parameters,
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            if (!(destinationMember is MemberDeclarationSyntax memberDeclaration))
-            {
-                return destinationMember;
-            }
+            var currentParameterList = CSharpSyntaxGenerator.GetParameterList(destination);
 
-            var currentParameterList = memberDeclaration.GetParameterList();
             if (currentParameterList == null)
             {
-                return destinationMember;
+                return destination;
             }
 
             var currentParamsCount = currentParameterList.Parameters.Count;
             var seenOptional = currentParamsCount > 0 && currentParameterList.Parameters[currentParamsCount - 1].Default != null;
             var isFirstParam = currentParamsCount == 0;
+            var newParams = ArrayBuilder<SyntaxNode>.GetInstance();
 
-            var parameterNodesAndTokens = currentParameterList.Parameters.GetWithSeparators().ToList();
             foreach (var parameter in parameters)
             {
-                if (parameterNodesAndTokens.Count > 0 && parameterNodesAndTokens.Last().Kind() != SyntaxKind.CommaToken)
-                {
-                    parameterNodesAndTokens.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
-                }
-
                 var parameterSyntax = ParameterGenerator.GetParameter(parameter, options, isExplicit: false, isFirstParam: isFirstParam, seenOptional: seenOptional);
-                parameterNodesAndTokens.Add(parameterSyntax);
+
                 isFirstParam = false;
                 seenOptional = seenOptional || parameterSyntax.Default != null;
+                newParams.Add(parameterSyntax);
             }
 
-            var finalParameterList = currentParameterList.WithParameters(SyntaxFactory.SeparatedList<ParameterSyntax>(parameterNodesAndTokens));
-            var finalMember = memberDeclaration.WithParameterList(finalParameterList);
+            var finalMember = CSharpSyntaxGenerator.Instance.AddParameters(destination, newParams.ToImmutableAndFree());
 
             return Cast<TDeclarationNode>(finalMember);
         }

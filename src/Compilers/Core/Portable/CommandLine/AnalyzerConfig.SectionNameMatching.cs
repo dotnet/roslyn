@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Compile a globbing character class of the form [...]. Returns true if
-        /// the character class was succesfully compiled. False if there was a syntax
+        /// the character class was successfully compiled. False if there was a syntax
         /// error. The starting character is expected to be directly after the '['.
         /// </summary>
         private static bool TryCompileCharacterClass(ref SectionNameLexer lexer, StringBuilder sb)

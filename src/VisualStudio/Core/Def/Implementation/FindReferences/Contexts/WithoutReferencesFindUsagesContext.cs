@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
@@ -23,8 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithoutReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
-                ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
-                : base(presenter, findReferencesWindow, customColumns)
+                ImmutableArray<AbstractCustomColumnDefinition> customColumns,
+                bool includeContainingTypeAndMemberColumns,
+                bool includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 
@@ -60,7 +63,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     foreach (var sourceSpan in definition.SourceSpans)
                     {
                         var entry = await TryCreateDocumentSpanEntryAsync(
-                            definitionBucket, sourceSpan, HighlightSpanKind.Definition, customColumnsDataOpt: null).ConfigureAwait(false);
+                            definitionBucket,
+                            sourceSpan,
+                            HighlightSpanKind.Definition,
+                            propertiesWithMultipleValuesMapOpt: null,
+                            additionalProperties: ImmutableArray<FindUsageProperty>.Empty)
+                                .ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }
                 }

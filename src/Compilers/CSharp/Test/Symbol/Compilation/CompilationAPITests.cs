@@ -1142,7 +1142,7 @@ var a = new C2();
             Assert.True(comp.References.Contains(compRef1));
             Assert.True(comp.References.Contains(compRef2));
             var smb = comp.GetReferencedAssemblySymbol(compRef1);
-            Assert.Equal(smb.Kind, SymbolKind.Assembly);
+            Assert.Equal(SymbolKind.Assembly, smb.Kind);
             Assert.Equal("Test1", smb.Identity.Name, StringComparer.OrdinalIgnoreCase);
 
             // Mixed reference type
@@ -2271,7 +2271,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
             var assemblyName = GetUniqueName();
             var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             CSharpCompilation.Create(assemblyName, new[] { tree1, tree2 }, new[] { MscorlibRef }, compilationOptions);
-            Assert.Throws(typeof(ArgumentException), () =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 CSharpCompilation.Create(assemblyName, new[] { tree1, tree3 }, new[] { MscorlibRef }, compilationOptions);
             });

@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var newTree = oldTree.WithFilePath("new.cs");
             var newText = newTree.GetText();
 
-            Assert.Equal(newTree.FilePath, "new.cs");
+            Assert.Equal("new.cs", newTree.FilePath);
             Assert.Equal(oldTree.ToString(), newTree.ToString());
 
             Assert.Null(newText.Encoding);
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var newTree = oldTree.WithFilePath("new.cs");
             var newText = newTree.GetText();
 
-            Assert.Equal(newTree.FilePath, "new.cs");
+            Assert.Equal("new.cs", newTree.FilePath);
             Assert.Equal(oldTree.ToString(), newTree.ToString());
 
             Assert.Same(Encoding.UTF7, newText.Encoding);
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var oldTree = new CSharpSyntaxTree.DummySyntaxTree();
             var newTree = oldTree.WithFilePath("new.cs");
 
-            Assert.Equal(newTree.FilePath, "new.cs");
+            Assert.Equal("new.cs", newTree.FilePath);
             Assert.Equal(oldTree.ToString(), newTree.ToString());
         }
 

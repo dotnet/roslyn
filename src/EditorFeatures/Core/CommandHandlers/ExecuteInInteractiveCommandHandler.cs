@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private Lazy<IExecuteInInteractiveCommandHandler> GetCommandHandler(ITextBuffer textBuffer)
         {
             return _executeInInteractiveHandlers
-                .Where(handler => handler.Metadata.ContentTypes.Contains(textBuffer.ContentType.TypeName))
+                .Where(handler => handler.Metadata.ContentTypes.Any(textBuffer.ContentType.IsOfType))
                 .SingleOrDefault();
         }
 
