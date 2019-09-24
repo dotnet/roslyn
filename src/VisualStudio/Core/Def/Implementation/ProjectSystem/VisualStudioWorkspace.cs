@@ -124,6 +124,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// - The type is partial and spread across multiple files
         /// - The solution changes during the operation
         /// </summary>
-        public abstract void TrySyncNamedTypeToFilePath(DocumentId documentId, string previousFilePath);
+        /// <returns> 
+        /// Returns false if the symbol update failed, true if it succeeded
+        /// </returns>
+        public abstract Task<bool> TryUpdateNamedTypeToMatchFilePath(DocumentId documentId, string previousFilePath, CancellationToken cancellation = CancellationToken.None);
     }
 }
