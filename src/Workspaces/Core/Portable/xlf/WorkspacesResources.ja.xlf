@@ -445,8 +445,8 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">16 進数のエスケープ</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">16 進数のエスケープ</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
