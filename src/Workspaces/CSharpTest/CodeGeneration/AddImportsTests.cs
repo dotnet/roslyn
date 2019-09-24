@@ -562,8 +562,7 @@ class C
     public void M1([global::N.M.A] String p1) { }
 
     public void M2([A] String p2) { }
-}",
-actualText);
+}", actualText);
         }
 
         private static MetadataReference GetInMemoryAssemblyReferenceForCode(string code)

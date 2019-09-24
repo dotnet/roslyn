@@ -10,16 +10,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestDiffTester()
         {
-            // Make sure the diff tester is working!
-            Assert.Equal(@"    A
-++> 1
-    B
-    C
---> D
-    E
-++> 2
---> F",
-DiffUtil.DiffReport(
+            var expected = DiffUtil.DiffReport(
 @"A
 B
 C
@@ -31,7 +22,16 @@ F",
 B
 C
 E
-2"));
+2");
+            // Make sure the diff tester is working!
+            Assert.Equal(@"    A
+++> 1
+    B
+    C
+--> D
+    E
+++> 2
+--> F", expected);
         }
     }
 }
