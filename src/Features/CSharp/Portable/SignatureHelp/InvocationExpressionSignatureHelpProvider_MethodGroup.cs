@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             else if (invocationExpression.Expression is SimpleNameSyntax &&
                 invocationExpression.IsInStaticContext())
             {
-                // Local functions even inside static methods can have IsStatic == false by the compiler update for C# 8.0.
-                // Therefore, here is a workaround to support these functions in the signature help.
+                // We always need to include local functions regardless of whether they are static.
                 methodGroup = methodGroup.Where(m => m.IsStatic || m is IMethodSymbol { MethodKind: MethodKind.LocalFunction });
             }
 
