@@ -538,8 +538,8 @@
         <note />
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
-        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="translated">使用推荐的 Dispose 模式以确保在所有路径中释放局部可释放对象。如果可能，请将创建包装在 "using" 语句或 "using" 声明中。否则，请使用 try-finally 模式，在 try 区域之前声明一个专用的局部变量，在 "finally" 区域中对非 null 值进行无条件 Dispose 调用，比如，"x?.Dispose()"。如果对象显式释放在 try 区域内或释放所有权转让给另一个对象或方法，则在这样的操作之后立即将 "null" 分配给局部变量，以防止在 "finally" 中进行双重释放。</target>
+        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
+        <target state="needs-review-translation">使用推荐的 Dispose 模式以确保在所有路径中释放局部可释放对象。如果可能，请将创建包装在 "using" 语句或 "using" 声明中。否则，请使用 try-finally 模式，在 try 区域之前声明一个专用的局部变量，在 "finally" 区域中对非 null 值进行无条件 Dispose 调用，比如，"x?.Dispose()"。如果对象显式释放在 try 区域内或释放所有权转让给另一个对象或方法，则在这样的操作之后立即将 "null" 分配给局部变量，以防止在 "finally" 中进行双重释放。</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">

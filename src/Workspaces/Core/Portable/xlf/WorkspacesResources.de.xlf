@@ -445,8 +445,8 @@ Der $-Anker stimmt mit "\n", aber nicht mit "\r\n" überein (Kombination aus Wag
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">Hexadezimale Escapesequenz</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">Hexadezimale Escapesequenz</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">

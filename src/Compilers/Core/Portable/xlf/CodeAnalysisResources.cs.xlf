@@ -90,8 +90,13 @@
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+<<<<<<< HEAD
         <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
         <target state="translated">Diagnostika {0}: {1} se programově potlačila pomocí DiagnosticSuppressor s ID potlačení {2} a odůvodněním {3}.</target>
+=======
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</target>
+>>>>>>> dotnet/master
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">

@@ -445,8 +445,8 @@ Ukotvení $ najde shodu s \n, ale nenajde shodu s \r\n (kombinace znaků návrat
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">šestnáctkový řídicí znak</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">šestnáctkový řídicí znak</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
