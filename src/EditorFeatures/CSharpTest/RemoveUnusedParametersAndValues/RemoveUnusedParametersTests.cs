@@ -571,6 +571,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task UnusedLambdaParameter_DiscardTwo()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    void M(int y)
+    {
+        Action<int, int> myLambda = ([|_|], _) =>
+        {
+        };
+
+        myLambda(y, y);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task UsedLocalFunctionParameter()
         {
             await TestDiagnosticMissingAsync(

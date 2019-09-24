@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If we have no modifiers then the modifiers array is null; if we have any modifiers
         // then the modifiers array is non-null and not empty.
 
-        private (ImmutableArray<RefKind>, ImmutableArray<TypeWithAnnotations>, ImmutableArray<string>, ImmutableArray<bool>, bool) AnalyzeAnonymousFunction(
+        private UnboundLambda AnalyzeAnonymousFunction(
             CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return (refKinds, types, names, discardsOpt, isAsync);
+            return new UnboundLambda(syntax, this, refKinds, types, names, discardsOpt, isAsync);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -242,12 +242,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
-            var (refKinds, types, names, discardsOpt, isAsync) = AnalyzeAnonymousFunction(syntax, diagnostics);
-            if (!types.IsDefault)
+            var lambda = AnalyzeAnonymousFunction(syntax, diagnostics);
+            var data = (PlainUnboundLambdaState)lambda.Data;
+            if (data.HasTypes)
             {
-                foreach (var type in types)
+                for (int i = 0; i < lambda.ParameterCount; i++)
                 {
                     // UNDONE: Where do we report improper use of pointer types?
+                    var type = lambda.Data.ParameterTypeWithAnnotations(i);
                     if (type.HasType && type.IsStatic)
                     {
                         Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, syntax, type.Type);
@@ -255,8 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var lambda = new UnboundLambda(syntax, this, refKinds, types, names, discardsOpt, isAsync);
-            if (!names.IsDefault)
+            if (data.HasNames)
             {
                 var binder = new LocalScopeBinder(this);
                 bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);

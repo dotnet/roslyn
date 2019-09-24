@@ -424,7 +424,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract bool IsAsync { get; }
         public abstract Location ParameterLocation(int index);
         public abstract TypeWithAnnotations ParameterTypeWithAnnotations(int index);
-        //public abstract SyntaxToken ParameterIdentifier(int index);
         public abstract RefKind RefKind(int index);
         protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics);
 
@@ -1103,6 +1102,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             _isAsync = isAsync;
         }
 
+        internal bool HasNames { get { return !_parameterNames.IsDefault; } }
+
+        internal bool HasTypes { get { return !_parameterTypesWithAnnotations.IsDefault; } }
+
         public override bool HasSignature { get { return !_parameterNames.IsDefault; } }
 
         public override bool HasExplicitlyTypedParameterList { get { return !_parameterTypesWithAnnotations.IsDefault; } }
@@ -1142,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override string ParameterName(int index)
         {
             Debug.Assert(!_parameterNames.IsDefault && 0 <= index && index < _parameterNames.Length);
-            return _parameterNames[index];
+            return _parameterNames.IsDefault ? null : _parameterNames[index];
         }
 
         public override bool ParameterIsDiscard(int index)
@@ -1160,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(this.HasExplicitlyTypedParameterList);
             Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
-            return _parameterTypesWithAnnotations[index];
+            return _parameterTypesWithAnnotations.IsDefault ? default : _parameterTypesWithAnnotations[index];
         }
 
         protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics)
