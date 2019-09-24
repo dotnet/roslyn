@@ -6606,7 +6606,7 @@ done:;
 
             tk = this.CurrentToken.ContextualKind;
 
-            var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBraceToken)
+            var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken)
                 && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: true));
             if (isPossibleAttributeOrModifier)
             {
