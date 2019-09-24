@@ -21,7 +21,7 @@ efforts behind them.
 | [Lambda discard parameters](https://github.com/dotnet/csharplang/issues/111) | master | [In Progress](https://github.com/dotnet/roslyn/issues/38820) | [jcouv](https://github.com/jcouv) | TBD | [jcouv](https://github.com/jcouv) |
 | [Native ints](https://github.com/dotnet/csharplang/issues/435) | TBD | [In Progress](https://github.com/dotnet/roslyn/issues/38821) | [cston](https://github.com/cston) | TBD | [jaredpar](https://github.com/jaredpar) |
 | [Attributes on local functions](https://github.com/dotnet/csharplang/issues/1888) | TBD | [In Progress](https://github.com/dotnet/roslyn/issues/38801) | [RikkiGibson](https://github.com/RikkiGibson) | TBD | [agocke](https://github.com/agocke) |
-
+| [Function pointers](https://github.com/dotnet/csharplang/issues/191) | [function-pointers](https://github.com/dotnet/roslyn/tree/features/function-pointers) | [In Progress](https://github.com/dotnet/roslyn/issues/38830) | [333fred](https://github.com/333fred) | TBD | [jaredpar](https://github.com/jaredpar) |
 
 # C# 8.0
 
