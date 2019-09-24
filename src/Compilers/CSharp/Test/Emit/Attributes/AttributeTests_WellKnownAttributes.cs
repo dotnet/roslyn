@@ -10547,6 +10547,8 @@ class C
 }";
             verifier.VerifyIL("C.E.add", il);
             verifier.VerifyIL("C.E.remove", il);
+            verifier.VerifyIL("C.E2.add", il);
+            verifier.VerifyIL("C.E2.remove", il.Replace(".locals", ".locals init"));
         }
 
         #endregion
