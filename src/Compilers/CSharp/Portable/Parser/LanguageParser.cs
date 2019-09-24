@@ -6605,8 +6605,10 @@ done:;
             }
 
             tk = this.CurrentToken.ContextualKind;
-            if (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken &&
-                (tk != SyntaxKind.AsyncKeyword || ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: true)))
+
+            var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBraceToken)
+                && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: true));
+            if (isPossibleAttributeOrModifier)
             {
                 return true;
             }
@@ -8164,11 +8166,11 @@ tryAgain:
                     return localFunction;
                 }
 
-                // If we find an accessibility modifier but no local function it's likely
+                // If we find an accessibility modifier or attribute but no local function it's likely
                 // the user forgot a closing brace. Let's back out of statement parsing.
                 if (canParseAsLocalFunction &&
-                    mods.Count > 0 &&
-                    IsAccessibilityModifier(((SyntaxToken)mods[0]).ContextualKind))
+                    attributes.Count > 0 ||
+                    (mods.Count > 0 && IsAccessibilityModifier(((SyntaxToken)mods[0]).ContextualKind)))
                 {
                     return null;
                 }

@@ -479,7 +479,7 @@ class C
                 .Single();
 
             var attributeList = localFunction.AttributeLists.Single();
-            Assert.Equal(SyntaxKind.ReturnKeyword, attributeList.Target.Kind());
+            Assert.Equal(SyntaxKind.ReturnKeyword, attributeList.Target.Identifier.Kind());
 
             var attribute = attributeList.Attributes.Single();
             Assert.Equal("A", ((SimpleNameSyntax)attribute.Name).Identifier.ValueText);
