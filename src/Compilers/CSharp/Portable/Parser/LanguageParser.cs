@@ -8173,9 +8173,10 @@ tryAgain:
 
                 // If we find an accessibility modifier or attribute but no local function it's likely
                 // the user forgot a closing brace. Let's back out of statement parsing.
-                if (canParseAsLocalFunction &&
-                    attributes.Count > 0 ||
-                    (mods.Count > 0 && IsAccessibilityModifier(((SyntaxToken)mods[0]).ContextualKind)))
+                if (canParseAsLocalFunction
+                    && (attributes.Count > 0
+                        || (mods.Count > 0
+                            && IsAccessibilityModifier(((SyntaxToken)mods[0]).ContextualKind))))
                 {
                     return null;
                 }
