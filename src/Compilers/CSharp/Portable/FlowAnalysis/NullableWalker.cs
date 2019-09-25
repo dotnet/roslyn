@@ -1819,11 +1819,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
         {
             TakeIncrementalSnapshot(node);
-            switch (node.Kind)
+            switch (node)
             {
-                case BoundKind.ObjectInitializerExpression:
+                case BoundObjectInitializerExpression objectInitializer:
                     checkImplicitReceiver();
-                    foreach (var initializer in ((BoundObjectInitializerExpression)node).Initializers)
+                    foreach (var initializer in objectInitializer.Initializers)
                     {
                         switch (initializer.Kind)
                         {
@@ -1835,10 +1835,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                         }
                     }
+                    SetNotNullResult(objectInitializer.Placeholder);
                     break;
-                case BoundKind.CollectionInitializerExpression:
+                case BoundCollectionInitializerExpression collectionInitializer:
                     checkImplicitReceiver();
-                    foreach (var initializer in ((BoundCollectionInitializerExpression)node).Initializers)
+                    foreach (var initializer in collectionInitializer.Initializers)
                     {
                         switch (initializer.Kind)
                         {
@@ -1850,6 +1851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                         }
                     }
+                    SetNotNullResult(collectionInitializer.Placeholder);
                     break;
                 default:
                     Debug.Assert((object)containingSymbol != null);
@@ -1915,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (var reinferredMethod, _, _) = VisitArguments(node, node.Arguments, refKindsOpt: default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod);
             if (node.ImplicitReceiverOpt != null)
             {
-                Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ImplicitReceiver);
+                Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ObjectOrCollectionValuePlaceholder);
                 SetAnalyzedNullability(node.ImplicitReceiverOpt, new VisitResult(node.ImplicitReceiverOpt.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
             }
             SetUnknownResultNullability(node);
@@ -5784,6 +5786,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var left = node.Left;
             var right = node.Right;
             VisitLValue(left);
+            // we may enter a conditional state for error scenarios on the LHS.
+            Unsplit();
+
             FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(left);
             TypeWithAnnotations declaredType = LvalueResultType;
             TypeWithAnnotations leftLValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);
@@ -7683,6 +7688,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            SetNotNullResult(node);
+            return null;
+        }
+
+        public override BoundNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
         {
             SetNotNullResult(node);
             return null;

@@ -1079,15 +1079,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to R&amp;emove and Sort Usings.
-        /// </summary>
-        internal static string Remove_and_Sort_Usings {
-            get {
-                return ResourceManager.GetString("Remove_and_Sort_Usings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove &apos;this&apos; qualification.
         /// </summary>
         internal static string Remove_this_qualification {
@@ -1255,15 +1246,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Sort_accessibility_modifiers {
             get {
                 return ResourceManager.GetString("Sort_accessibility_modifiers", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &amp;Sort Usings.
-        /// </summary>
-        internal static string Sort_Usings {
-            get {
-                return ResourceManager.GetString("Sort_Usings", resourceCulture);
             }
         }
         

@@ -5691,7 +5691,7 @@ End Module",
             Assert.Equal(typeParameter.IsValueType, isValueType);
             Assert.Equal(typeParameter.IsReferenceType, isReferenceType);
             Assert.Null(typeParameter.BaseType());
-            Assert.Equal(typeParameter.Interfaces().Length, 0);
+            Assert.Equal(0, typeParameter.Interfaces().Length);
             Utils.CheckSymbol(typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, effectiveBaseClassDescription);
             Utils.CheckSymbol(typeParameter.DeducedBaseTypeNoUseSiteDiagnostics, deducedBaseTypeDescription);
             Utils.CheckSymbols(typeParameter.ConstraintTypes(), constraintTypeDescriptions);

@@ -1808,7 +1808,7 @@ class C
             Assert.Equal(SymbolKind.Method, actualSymbol.Kind);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var info = model.GetSymbolInfo(crefSyntax);
-            Assert.Equal(info.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
             Assert.Equal(info.Symbol, actualSymbol);
         }
 

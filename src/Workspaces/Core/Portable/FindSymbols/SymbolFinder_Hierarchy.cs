@@ -301,37 +301,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
         {
             symbol = symbol.OriginalDefinition;
-            var foundSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            var foundSymbol = await FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             symbol = foundSymbol ?? symbol;
 
-            var callReferences = await FindCallReferencesAsync(solution, symbol, documents, cancellationToken).ConfigureAwait(false);
+            var references = await FindCallReferencesAsync(solution, symbol, documents, cancellationToken).ConfigureAwait(false);
 
-            var directReferences = callReferences.Where(
+            var directReference = references.Where(
                 r => SymbolEquivalenceComparer.Instance.Equals(symbol, r.Definition)).FirstOrDefault();
 
-            var indirectReferences = callReferences.WhereAsArray(r => r != directReferences);
+            var indirectReferences = references.WhereAsArray(r => r != directReference);
 
-            List<SymbolCallerInfo> results = null;
+            var results = new List<SymbolCallerInfo>();
 
-            if (directReferences != null)
+            if (directReference != null)
             {
-                foreach (var kvp in await directReferences.Locations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    results ??= new List<SymbolCallerInfo>();
-                    results.Add(new SymbolCallerInfo(kvp.Key, symbol, kvp.Value, isDirect: true));
-                }
+                await AddReferencingSymbols(directReference, isDirect: true).ConfigureAwait(false);
             }
 
+            foreach (var indirectReference in indirectReferences)
             {
-                var indirectLocations = indirectReferences.SelectMany(r => r.Locations);
-                foreach (var kvp in await indirectLocations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    results ??= new List<SymbolCallerInfo>();
-                    results.Add(new SymbolCallerInfo(kvp.Key, symbol, kvp.Value, isDirect: false));
-                }
+                await AddReferencingSymbols(indirectReference, isDirect: false).ConfigureAwait(false);
             }
 
-            return results ?? SpecializedCollections.EmptyEnumerable<SymbolCallerInfo>();
+            return results;
+
+            async Task AddReferencingSymbols(ReferencedSymbol reference, bool isDirect)
+            {
+                var result = await reference.Locations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false);
+                foreach (var (callingSymbol, locations) in result)
+                {
+                    results.Add(new SymbolCallerInfo(callingSymbol, reference.Definition, locations, isDirect));
+                }
+            }
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindCallReferencesAsync(

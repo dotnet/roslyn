@@ -445,8 +445,8 @@ $ 錨點會比對 \n，但不會比對 \r\n (歸位與新行字元的組合，�
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">十六進位逸出</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">十六進位逸出</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">

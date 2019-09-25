@@ -6,3 +6,4 @@ Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentInfoChanged(Microsoft.CodeA
 Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentInfoChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.DocumentInfo newInfo) -> void
 Microsoft.CodeAnalysis.WorkspaceChangeKind.AdditionalDocumentInfoChanged = 22 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
 Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentInfoChanged = 23 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
+static Microsoft.CodeAnalysis.Formatting.Formatter.OrganizeImportsAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>

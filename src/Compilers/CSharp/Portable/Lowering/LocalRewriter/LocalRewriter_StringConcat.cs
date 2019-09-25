@@ -423,11 +423,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // If it's a special value type, it should have its own ToString method (but we might fail to find
+            // If it's a special value type (and not a field of a MarshalByRef object), it should have its own ToString method (but we might fail to find
             // it if object.ToString is missing). Assume that this won't be removed, and emit a direct call rather
             // than a constrained virtual call. This keeps in the spirit of #7079, but expands the range of
             // types to all special value types.
-            if (structToStringMethod != null && expr.Type.SpecialType != SpecialType.None)
+            if (structToStringMethod != null && (expr.Type.SpecialType != SpecialType.None && !isFieldOfMarshalByRef(expr, _compilation)))
             {
                 return BoundCall.Synthesized(expr.Syntax, expr, structToStringMethod);
             }
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - We're calling the type's own ToString method, and it's effectively readonly (the method or the whole
             //   type is readonly): no copy
             // - Otherwise: copy
-            // This is to minic the old behaviour, where value types would be boxed before ToString was called on them,
+            // This is to mimic the old behaviour, where value types would be boxed before ToString was called on them,
             // but with optimizations for readonly methods.
             bool callWithoutCopy = expr.Type.IsReferenceType ||
                 expr.ConstantValue != null ||
@@ -489,6 +489,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     whenNullOpt: null,
                     id: currentConditionalAccessID,
                     type: _compilation.GetSpecialType(SpecialType.System_String));
+            }
+
+            static bool isFieldOfMarshalByRef(BoundExpression expr, CSharpCompilation compilation)
+            {
+                if (expr is BoundFieldAccess fieldAccess)
+                {
+                    return DiagnosticsPass.IsNonAgileFieldAccess(fieldAccess, compilation);
+                }
+                return false;
             }
         }
     }

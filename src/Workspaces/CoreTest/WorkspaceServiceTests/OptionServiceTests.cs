@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             });
 
             var optionvalid = new PerLanguageOption<bool>("Test Feature", "Test Name", false);
-            Assert.Equal(false, optionSet.GetOption(optionvalid, "CS"));
+            Assert.False(optionSet.GetOption(optionvalid, "CS"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var optionService = TestOptionService.GetService();
             var optionSet = optionService.GetOptions();
             var option = new Option<bool>("Test Feature", "Test Name", false);
-            Assert.Equal(false, optionSet.GetOption(option));
+            Assert.False(optionSet.GetOption(option));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
