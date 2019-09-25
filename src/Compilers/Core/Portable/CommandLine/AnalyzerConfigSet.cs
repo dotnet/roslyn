@@ -37,6 +37,43 @@ namespace Microsoft.CodeAnalysis
         private readonly ConcurrentDictionary<ReadOnlyMemory<char>, string> _diagnosticIdCache =
             new ConcurrentDictionary<ReadOnlyMemory<char>, string>(CharMemoryEqualityComparer.Instance);
 
+        // PERF: Most files will probably have the same options, so share the dictionary instances
+        private readonly ConcurrentCache<List<Section>, AnalyzerConfigOptionsResult> _optionsCache =
+            new ConcurrentCache<List<Section>, AnalyzerConfigOptionsResult>(50, SequenceEqualComparer.Instance); // arbitrary size
+
+        private readonly ObjectPool<TreeOptions.Builder> _treeOptionsPool =
+            new ObjectPool<TreeOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(Section.PropertiesKeyComparer));
+
+        private readonly ObjectPool<AnalyzerOptions.Builder> _analyzerOptionsPool =
+            new ObjectPool<AnalyzerOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, string>(Section.PropertiesKeyComparer));
+
+        private readonly ObjectPool<List<Section>> _sectionKeyPool = new ObjectPool<List<Section>>(() => new List<Section>());
+
+        private sealed class SequenceEqualComparer : IEqualityComparer<List<Section>>
+        {
+            public static SequenceEqualComparer Instance { get; } = new SequenceEqualComparer();
+
+            public bool Equals(List<Section> x, List<Section> y)
+            {
+                if (x.Count != y.Count)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < x.Count; i++)
+                {
+                    if (!ReferenceEquals(x[i], y[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(List<Section> obj) => Hash.CombineValues(obj);
+        }
+
         private readonly static DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
             = new DiagnosticDescriptor(
                 "InvalidSeverityInAnalyzerConfig",
@@ -95,11 +132,10 @@ namespace Microsoft.CodeAnalysis
                 throw new System.ArgumentNullException(nameof(sourcePath));
             }
 
-            var treeOptionsBuilder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(
-                CaseInsensitiveComparison.Comparer);
-            var analyzerOptionsBuilder = ImmutableDictionary.CreateBuilder<string, string>(
-                CaseInsensitiveComparison.Comparer);
+            var treeOptionsBuilder = _treeOptionsPool.Allocate();
+            var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
             var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
+            var sectionKey = _sectionKeyPool.Allocate();
 
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
 
@@ -143,15 +179,31 @@ namespace Microsoft.CodeAnalysis
                                 diagnosticBuilder,
                                 config.PathToFile,
                                 _diagnosticIdCache);
+                            sectionKey.Add(section);
                         }
                     }
                 }
             }
 
-            return new AnalyzerConfigOptionsResult(
-                treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
-                analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
-                diagnosticBuilder.ToImmutableAndFree());
+            // Try to avoid creating extra dictionaries if we've already seen an options result with the
+            // exact same options
+            if (!_optionsCache.TryGetValue(sectionKey, out var result))
+            {
+                result = new AnalyzerConfigOptionsResult(
+                    treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
+                    analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
+                    diagnosticBuilder.ToImmutableAndFree());
+                _optionsCache.TryAdd(sectionKey, result);
+            }
+
+            sectionKey.Clear();
+            treeOptionsBuilder.Clear();
+            analyzerOptionsBuilder.Clear();
+            _sectionKeyPool.Free(sectionKey);
+            _treeOptionsPool.Free(treeOptionsBuilder);
+            _analyzerOptionsPool.Free(analyzerOptionsBuilder);
+
+            return result;
 
             static void addOptions(
                 AnalyzerConfig.Section section,
