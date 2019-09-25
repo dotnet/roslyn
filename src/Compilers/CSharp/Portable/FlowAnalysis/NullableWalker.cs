@@ -5786,6 +5786,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var left = node.Left;
             var right = node.Right;
             VisitLValue(left);
+            // we may enter a conditional state for error scenarios on the LHS.
+            Unsplit();
+
             FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(left);
             TypeWithAnnotations declaredType = LvalueResultType;
             TypeWithAnnotations leftLValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);

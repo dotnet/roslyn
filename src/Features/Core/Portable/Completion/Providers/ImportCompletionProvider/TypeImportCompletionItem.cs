@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                     // We choose not to display the number of "type overloads" for simplicity. 
-                    // Otherwise, we need additonal logic to track internal and public visible
+                    // Otherwise, we need additional logic to track internal and public visible
                     // types separately, and cache both completion items.
                     return await CommonCompletionUtilities.CreateDescriptionAsync(
                         document.Project.Solution.Workspace,
