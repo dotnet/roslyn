@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
             public ImmutableArray<byte> ToImmutableArray()
             {
                 var array = ToArray();
-                return ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref array);
+                return Roslyn.Utilities.ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref array);
             }
 
             protected int CurrentChunkIndex { get { return GetChunkIndex(this.position); } }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// The collection of extension methods for the <see cref="ImmutableArray{T}"/> type
     /// </summary>
-    internal static partial class ImmutableArrayExtensions
+    internal static class ImmutableArrayExtensions
     {
         /// <summary>
         /// Converts a sequence to an immutable array.
