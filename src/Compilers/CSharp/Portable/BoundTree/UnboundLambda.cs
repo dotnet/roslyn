@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        analyzedNullabilityMapOpt: null,
                                        updatedSymbolMapOpt: null,
                                        snapshotBuilderOpt: null,
+                                       defaultValues: new Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression>(),
                                        returnTypes);
                 diagnostics.Free();
                 var inferredReturnType = InferReturnType(returnTypes, node: this, compilation, conversions, delegateType, Symbol.IsAsync);

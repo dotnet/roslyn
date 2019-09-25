@@ -211,6 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private VisitResult _currentConditionalReceiverVisitResult;
 
         /// <summary>
+        /// Gets the synthesized default argument expression for the given syntax node and parameter.
+        /// </summary>
+        private Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression> _defaultValues;
+
+        /// <summary>
         /// The result type represents the state of the last visited expression.
         /// </summary>
         private TypeWithState ResultType
@@ -356,6 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
             ImmutableDictionary<(BoundNode, Symbol), Symbol>.Builder updatedSymbolMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
+            Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression> defaultValues,
             bool isSpeculative = false)
             // Members of variables are tracked up to a fixed depth, to avoid cycles. The
             // maxSlotDepth value is arbitrary but large enough to allow most scenarios.
@@ -369,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _updatedSymbolMapOpt = updatedSymbolMapOpt;
             _returnTypesOpt = returnTypesOpt;
             _snapshotBuilderOpt = snapshotBuilderOpt;
+            _defaultValues = defaultValues;
             _isSpeculative = isSpeculative;
 
             if (initialState != null)
@@ -458,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilityMapOpt: null,
                 updatedSymbolMapOpt: null,
                 snapshotBuilderOpt: null,
+                defaultValues: new Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression>(),
                 returnTypesOpt: null);
         }
 
@@ -472,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
             var updatedSymbols = ImmutableDictionary.CreateBuilder<(BoundNode, Symbol), Symbol>(ExpressionAndSymbolEqualityComparer.Instance, SymbolEqualityComparer.ConsiderEverything);
+            var defaultValues = new Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression>();
             var methodSymbol = symbol as MethodSymbol;
             // Attributes don't have a symbol, which is what SnapshotBuilder uses as an index for maintaining global state.
             // Until we have a workaround for this, disable snapshots for null symbols.
@@ -490,6 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilities,
                 updatedSymbols,
                 snapshotBuilder,
+                defaultValues,
                 returnTypesOpt: null);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
@@ -516,8 +526,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
             var updatedSymbols = ImmutableDictionary.CreateBuilder<(BoundNode, Symbol), Symbol>(ExpressionAndSymbolEqualityComparer.Instance, SymbolEqualityComparer.ConsiderEverything);
+            var defaultValues = new Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression>();
             var newSnapshotBuilder = takeNewSnapshots ? new SnapshotManager.Builder() : null;
-            var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, updatedSymbols, newSnapshotBuilder);
+            var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, updatedSymbols, newSnapshotBuilder, defaultValues);
             try
             {
                 Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
@@ -565,7 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilityMapOpt: null,
                 updatedSymbolMapOpt: null,
                 snapshotBuilderOpt: null,
-                returnTypesOpt: null);
+                returnTypesOpt: null,
+                defaultValues: new Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression>());
         }
 
         internal static void Analyze(
@@ -578,6 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
             ImmutableDictionary<(BoundNode, Symbol), Symbol>.Builder updatedSymbolMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
+            Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression> defaultValues,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
             Analyze(
@@ -593,6 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilityMapOpt,
                 updatedSymbolMapOpt,
                 snapshotBuilderOpt,
+                defaultValues,
                 returnTypesOpt);
         }
 
@@ -609,6 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMapOpt,
             ImmutableDictionary<(BoundNode, Symbol), Symbol>.Builder updatedSymbolMapOpt,
             SnapshotManager.Builder snapshotBuilderOpt,
+            Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression> defaultValues,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt)
         {
             Debug.Assert(diagnostics != null);
@@ -623,7 +638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     returnTypesOpt,
                                                     analyzedNullabilityMapOpt,
                                                     updatedSymbolMapOpt,
-                                                    snapshotBuilderOpt);
+                                                    snapshotBuilderOpt,
+                                                    defaultValues);
 
             try
             {
@@ -2179,7 +2195,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             returnTypesOpt: null,
                                             analyzedNullabilityMapOpt: null,
                                             updatedSymbolMapOpt: null,
-                                            snapshotBuilderOpt: null);
+                                            snapshotBuilderOpt: null,
+                                            defaultValues: new Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression>());
 
             int n = returns.Count;
             var resultTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
@@ -3596,7 +3613,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameter.IsOptional && !visitedParameters.Contains(parameter))
                     {
                         var annotations = GetParameterAnnotations(parameter);
-                        var argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, ThreeState.Unknown, localRewriter: null, _binder, Diagnostics);
+                        if (!_defaultValues.TryGetValue((syntax, parameter), out var argument))
+                        {
+                            _defaultValues[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, ThreeState.Unknown, localRewriter: null, _binder, Diagnostics);
+                        }
                         resultsBuilder.Add(VisitArgumentEvaluate(argument, RefKind.None, annotations));
                         argsToParamsBuilder?.Add(i);
                     }
@@ -5763,6 +5783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedNullabilityMap,
                 updatedSymbolMap,
                 snapshotBuilder,
+                defaultValues: _defaultValues,
                 returnTypesOpt: null);
         }
 
@@ -5803,6 +5824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedNullabilityMap,
                         updatedSymbolMap,
                         snapshotBuilder,
+                        defaultValues: _defaultValues,
                         returnTypesOpt: null);
             }
             SetInvalidResult();
