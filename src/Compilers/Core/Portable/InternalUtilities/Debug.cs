@@ -9,6 +9,7 @@ namespace Roslyn.Utilities
 {
     internal static class RoslynDebug
     {
+        /// <inheritdoc cref="Debug.Assert(bool)"/>
         [Conditional("DEBUG")]
         public static void Assert([DoesNotReturnIf(false)]bool b) => Debug.Assert(b);
 
