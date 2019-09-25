@@ -17460,7 +17460,7 @@ public interface I2
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // https://github.com/dotnet/roslyn/issues/34455: The wording "accessor not found in interface member" is somewhat misleading
-            //                                                in this scenario. The accessor is there, but cannot be implemented. Prehaps
+            //                                                in this scenario. The accessor is there, but cannot be implemented. Perhaps
             //                                                the message should be adjusted. Should also check diagnostics for an attempt
             //                                                to implement other sealed members.
             compilation1.VerifyDiagnostics(

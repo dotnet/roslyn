@@ -15304,10 +15304,10 @@ class TestAttribute : System.Attribute
 
             var comp = CreateCompilation(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics(
-                // (6,32): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (6,32): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         var x0 = new {tuple = (null, null)};
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(6, 32),
-                // (6,38): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (6,38): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         var x0 = new {tuple = (null, null)};
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(6, 38),
                 // (8,31): error CS8330: Cannot implicitly convert tuple expression to 'ValueType'
@@ -15325,7 +15325,7 @@ class TestAttribute : System.Attribute
                 // (14,20): error CS0655: 'Val' is not a valid named attribute argument because it is not a valid attribute parameter type
                 //     [TestAttribute(Val = (5, "5"))]
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "Val").WithArguments("Val").WithLocation(14, 20),
-                // (19,16): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (19,16): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         await (null, "6");
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(19, 16),
                 // (20,9): error CS1061: '(int, string)' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type '(int, string)' could be found (are you missing a using directive or an assembly reference?)
@@ -15355,7 +15355,7 @@ class TestAttribute : System.Attribute
                 // (36,14): error CS8330: Cannot implicitly convert tuple expression to 'int'
                 //         V3 = ("15", "15"),
                 Diagnostic(ErrorCode.Unknown, @"(""15"", ""15"")").WithArguments("int").WithLocation(36, 14),
-                // (41,28): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (41,28): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         var x = (16, (16 , null));
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(41, 28),
                 // (44,17): error CS8330: Cannot implicitly convert tuple expression to 'TypedReference'
