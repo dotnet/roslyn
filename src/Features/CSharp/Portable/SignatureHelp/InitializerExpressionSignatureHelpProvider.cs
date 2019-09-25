@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,11 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     [ExportSignatureHelpProvider(nameof(InitializerExpressionSignatureHelpProvider), LanguageNames.CSharp), Shared]
     internal partial class InitializerExpressionSignatureHelpProvider : AbstractOrdinaryMethodSignatureHelpProvider
     {
-        [ImportingConstructor]
-        public InitializerExpressionSignatureHelpProvider()
-        {
-        }
-
         public override bool IsTriggerCharacter(char ch)
             => ch == '{' || ch == ',';
 
@@ -51,6 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(initializerExpression, cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
+            var ienumerableType = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
+            if (ienumerableType == null)
+            {
+                return null;
+            }
+
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
             if (within == null)
             {
@@ -67,6 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var parentType = parentOperation.Type;
             if (parentType == null)
+            {
+                return null;
+            }
+
+            if (!parentType.AllInterfaces.Contains(ienumerableType))
             {
                 return null;
             }
