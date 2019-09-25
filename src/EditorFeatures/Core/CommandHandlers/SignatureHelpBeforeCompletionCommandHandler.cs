@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         VSCommanding.CommandState IChainedCommandHandler<InvokeSignatureHelpCommandArgs>.GetCommandState(InvokeSignatureHelpCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
-            return GetCommandStateWorker(args, nextHandler);
+            return CommandState.Available;
         }
 
         void IChainedCommandHandler<InvokeSignatureHelpCommandArgs>.ExecuteCommand(InvokeSignatureHelpCommandArgs args, Action nextHandler, CommandExecutionContext context)
