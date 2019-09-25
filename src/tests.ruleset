@@ -12,4 +12,7 @@
     <Rule Id="VSTHRD111" Action="None" />
     <Rule Id="VSTHRD200" Action="Hidden" />
   </Rules>
+  <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
+    <Rule Id="CA1303" Action="None" />
+  </Rules>
 </RuleSet>
