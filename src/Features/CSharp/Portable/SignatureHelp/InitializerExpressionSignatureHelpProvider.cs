@@ -55,12 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
-            if (within == null)
-            {
-                return null;
-            }
-
             // get the regular signature help items
             var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var parentOperation = semanticModel.GetOperation(initializerExpression.Parent, cancellationToken) as IObjectOrCollectionInitializerOperation;
