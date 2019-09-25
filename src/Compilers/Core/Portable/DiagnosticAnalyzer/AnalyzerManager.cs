@@ -308,12 +308,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
 
-                // If the user said something about it, that overrides the author.
+                // Compilation wide user settings from ruleset/nowarn/warnaserror overrides the analyzer author.
                 if (diagnosticOptions.TryGetValue(diag.Id, out var severity))
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
                 }
-                else if (isEnabledWithAnalyzerConfigOptions(diag.Id, analyzerExecutor.Compilation))
+
+                // Editorconfig user settings override compilation wide settings.
+                if (isSuppressed &&
+                    isEnabledWithAnalyzerConfigOptions(diag.Id, analyzerExecutor.Compilation))
                 {
                     isSuppressed = false;
                 }

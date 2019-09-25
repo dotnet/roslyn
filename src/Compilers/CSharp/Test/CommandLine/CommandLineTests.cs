@@ -11436,53 +11436,48 @@ class C
 
         // Currently, configuring no location diagnostics through editorconfig is not supported.
         [Theory(Skip = "https://github.com/dotnet/roslyn/issues/38042")]
-        [InlineData(ReportDiagnostic.Error, true)]
-        [InlineData(ReportDiagnostic.Error, false)]
-        [InlineData(ReportDiagnostic.Warn, true)]
-        [InlineData(ReportDiagnostic.Warn, false)]
-        [InlineData(ReportDiagnostic.Info, true)]
-        [InlineData(ReportDiagnostic.Info, false)]
-        [InlineData(ReportDiagnostic.Hidden, true)]
-        [InlineData(ReportDiagnostic.Hidden, false)]
-        [InlineData(ReportDiagnostic.Suppress, true)]
-        [InlineData(ReportDiagnostic.Suppress, false)]
-        public void AnalyzerConfigRespectedForNoLocationDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault)
+        [CombinatorialData]
+        public void AnalyzerConfigRespectedForNoLocationDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault, bool noWarn)
         {
             var analyzer = new AnalyzerWithNoLocationDiagnostics(isEnabledByDefault);
-            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn);
         }
 
         [WorkItem(37876, "https://github.com/dotnet/roslyn/issues/37876")]
         [Theory]
-        [InlineData(ReportDiagnostic.Error, true)]
-        [InlineData(ReportDiagnostic.Error, false)]
-        [InlineData(ReportDiagnostic.Warn, true)]
-        [InlineData(ReportDiagnostic.Warn, false)]
-        [InlineData(ReportDiagnostic.Info, true)]
-        [InlineData(ReportDiagnostic.Info, false)]
-        [InlineData(ReportDiagnostic.Hidden, true)]
-        [InlineData(ReportDiagnostic.Hidden, false)]
-        [InlineData(ReportDiagnostic.Suppress, true)]
-        [InlineData(ReportDiagnostic.Suppress, false)]
-        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault)
+        [CombinatorialData]
+        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn)
         {
             var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault);
-            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity, noWarn);
         }
 
-        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity)
+        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity, bool noWarn)
         {
+            if (analyzerConfigSeverity == ReportDiagnostic.Default)
+            {
+                // "dotnet_diagnostic.ID.severity = default" is not supported.
+                return;
+            }
+
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 [*.cs]
 dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerConfigString()}");
-            var cmd = CreateCSharpCompiler(null, dir.Path, new[] {
+
+            var arguments = new[] {
                 "/nologo",
                 "/t:library",
                 "/preferreduilang:en",
                 "/analyzerconfig:" + analyzerConfig.Path,
-                src.Path },
+                src.Path };
+            if (noWarn)
+            {
+                arguments = arguments.Append($"/nowarn:{descriptor.Id}");
+            }
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, arguments,
                 analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
 
             Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
