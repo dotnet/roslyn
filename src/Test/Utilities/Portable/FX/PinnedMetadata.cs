@@ -7,11 +7,11 @@ using System.Reflection.Metadata;
 
 namespace Roslyn.Test.Utilities
 {
-    internal unsafe class PinnedMetadata : IDisposable
+    internal class PinnedMetadata : IDisposable
     {
         private MemoryHandle _handle;
 
-        public IntPtr Pointer => (IntPtr)_handle.Pointer;
+        public unsafe IntPtr Pointer => (IntPtr)_handle.Pointer;
         public readonly MetadataReader Reader;
         public readonly int Size;
 

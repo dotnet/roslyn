@@ -9,11 +9,11 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
-    internal unsafe class PinnedBlob : IDisposable
+    internal class PinnedBlob : IDisposable
     {
         private MemoryHandle _handle;
 
-        public IntPtr Pointer => (IntPtr)_handle.Pointer;
+        public unsafe IntPtr Pointer => (IntPtr)_handle.Pointer;
         public readonly int Size;
 
         public PinnedBlob(ReadOnlyMemory<byte> blob)
