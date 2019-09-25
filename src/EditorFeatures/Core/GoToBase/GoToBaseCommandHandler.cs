@@ -4,38 +4,37 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CommandHandlers;
-using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
+namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.GoToImplementation)]
-    internal class GoToImplementationCommandHandler : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>
+    [Name(PredefinedCommandHandlerNames.GoToBase)]
+    internal class GoToBaseCommandHandler : AbstractGoToCommandHandler<IGoToBaseService, GoToBaseCommandArgs>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToImplementationCommandHandler(
+        public GoToBaseCommandHandler(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter) : base(threadingContext, streamingPresenter)
         {
         }
 
-        public override string DisplayName => EditorFeaturesResources.Go_To_Implementation;
+        public override string DisplayName => EditorFeaturesResources.Go_To_Base;
 
-        protected override string _scopeDescription => EditorFeaturesResources.Locating_implementations;
+        protected override string _scopeDescription => EditorFeaturesResources.Locating_bases;
 
-        protected override FunctionId _functionId => FunctionId.CommandHandler_GoToImplementation;
+        protected override FunctionId _functionId => FunctionId.CommandHandler_GoToBase;
 
-        protected override Task FindAction(IFindUsagesService service, Document document, int caretPosition, IFindUsagesContext context)
-            => service.FindImplementationsAsync(document, caretPosition, context);
+        protected override Task FindAction(IGoToBaseService service, Document document, int caretPosition, IFindUsagesContext context)
+            => service.FindBasesAsync(document, caretPosition, context);
     }
 }

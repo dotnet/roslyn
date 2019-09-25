@@ -1094,31 +1094,6 @@ V rozevíracím seznamu si můžete zobrazit jiné projekty, ke kterým by tento
         <target state="translated">Sestavení analyzátoru {0} závisí na sestavení {1}, to se ale nepovedlo najít. Analyzátory možná nepoběží tak, jak by měly, dokud se jako odkaz analyzátoru nepřidá i chybějící sestavení.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppression_State">
-        <source>Suppression State</source>
-        <target state="translated">Stav potlačení</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Active">
-        <source>Active</source>
-        <target state="translated">Aktivní</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppressed">
-        <source>Suppressed</source>
-        <target state="translated">Potlačeno</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NotApplicable">
-        <source>N/A</source>
-        <target state="translated">Není k dispozici</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SuppressionNotSupportedToolTip">
-        <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
-        <target state="translated">Stav potlačení se podporuje jenom pro diagnostiky IntelliSense, které jsou určené pro aktuální snímek řešení. Pokud chcete využít potlačení, přepněte se na diagnostiky IntelliSense.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_diagnostics">
         <source>Suppress diagnostics</source>
         <target state="translated">Potlačit diagnostiku</target>

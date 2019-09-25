@@ -1094,31 +1094,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">分析器程序集“{0}”依赖于“{1}”，但是却找不到它。除非将缺少的程序集也添加为分析器引用，否则分析器可能不会正确运行。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppression_State">
-        <source>Suppression State</source>
-        <target state="translated">禁止显示状态</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Active">
-        <source>Active</source>
-        <target state="translated">活动的</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppressed">
-        <source>Suppressed</source>
-        <target state="translated">已禁止</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NotApplicable">
-        <source>N/A</source>
-        <target state="translated">N/A</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SuppressionNotSupportedToolTip">
-        <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
-        <target state="translated">禁止显示状态仅支持适用于当前解决方案快照的 IntelliSense 诊断。请切换到适用于禁止显示的 "IntelliSense" 诊断。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_diagnostics">
         <source>Suppress diagnostics</source>
         <target state="translated">禁止诊断</target>
