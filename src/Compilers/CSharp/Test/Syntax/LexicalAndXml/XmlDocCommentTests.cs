@@ -2652,7 +2652,7 @@ class C{}";
             var doc = classKeyword.GetLeadingTrivia()[0].GetStructure() as DocumentationCommentTriviaSyntax;
 
             // we should still get an XmlElement
-            Assert.IsType(typeof(XmlElementSyntax), doc.Content[0]);
+            Assert.IsType<XmlElementSyntax>(doc.Content[0]);
         }
 
         [WorkItem(926873, "DevDiv/Personal")]

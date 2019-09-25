@@ -373,10 +373,10 @@ public class Program
             SetUpEditor(@"$$");
 
             VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.A));
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
         }
     }
 }

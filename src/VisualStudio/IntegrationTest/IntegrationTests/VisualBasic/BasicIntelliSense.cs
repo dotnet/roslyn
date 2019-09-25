@@ -155,10 +155,10 @@ End Module");
             VisualStudio.Editor.Verify.CompletionItemsExist("Dim", "ReDim");
 
             VisualStudio.SendKeys.Send(' ');
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send('i');
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(' ');
             VisualStudio.Editor.Verify.CompletionItemsExist("As");
@@ -168,30 +168,30 @@ End Module");
             VisualStudio.Editor.Verify.CompletionItemsExist("Integer", "UInteger");
 
             VisualStudio.SendKeys.Send(' ');
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send('=');
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(' ');
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send("fooo");
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(' ');
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(VirtualKey.Backspace);
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(VirtualKey.Backspace);
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(
                 VirtualKey.Left,
                 VirtualKey.Delete);
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -210,7 +210,7 @@ End Module");
             VisualStudio.Editor.Verify.CompletionItemsExist("_AppDomain");
 
             VisualStudio.SendKeys.Send("'");
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"Module Module1
     Sub Main()
@@ -231,7 +231,7 @@ Imports$$");
             VisualStudio.Editor.Verify.CompletionItemsExist("Microsoft", "System");
 
             VisualStudio.SendKeys.Send('<');
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -313,7 +313,7 @@ End Class");
             VisualStudio.Editor.Verify.CompletionItemsExist("UFoo");
 
             VisualStudio.SendKeys.Send(VirtualKey.Enter);
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 Interface UFoo

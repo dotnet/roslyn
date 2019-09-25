@@ -560,21 +560,21 @@ class C : B<string>
             {
                 // Non-generic type.
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-                Assert.Equal(type.TypeParameters.Length, 0);
+                Assert.Equal(0, type.TypeParameters.Length);
                 Assert.Same(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));
 
                 // Generic type.
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-                Assert.Equal(type.TypeParameters.Length, 1);
+                Assert.Equal(1, type.TypeParameters.Length);
                 Assert.Same(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));
 
                 // Generic type with parameter substitution.
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").BaseType();
-                Assert.Equal(type.TypeParameters.Length, 1);
+                Assert.Equal(1, type.TypeParameters.Length);
                 Assert.NotSame(type, type.ConstructedFrom);
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("P"));
                 VerifyMethodsAndAccessorsSame(type, type.GetMember<PropertySymbol>("Q"));

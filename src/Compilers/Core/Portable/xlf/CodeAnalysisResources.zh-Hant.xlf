@@ -90,8 +90,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
-        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
-        <target state="translated">隱藏識別碼為 '{2}' 且理由為 '{3}' 的 DiagnosticSuppressor，以程式設計的方式隱藏了診斷 '{0}: {1}'</target>
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="needs-review-translation">隱藏識別碼為 '{2}' 且理由為 '{3}' 的 DiagnosticSuppressor，以程式設計的方式隱藏了診斷 '{0}: {1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">

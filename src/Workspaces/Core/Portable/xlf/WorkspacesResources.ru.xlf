@@ -445,8 +445,8 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">шестнадцатеричный escape-символ</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">шестнадцатеричный escape-символ</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">

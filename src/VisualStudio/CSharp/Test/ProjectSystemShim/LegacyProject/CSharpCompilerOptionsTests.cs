@@ -144,13 +144,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             var project = CSharpHelpers.CreateCSharpProject(environment, "Test");
 
             var outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
-            Assert.Equal(null, outputs.AssemblyFilePath);
+            Assert.Null(outputs.AssemblyFilePath);
 
             Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/pdb:C:\a\1.pdb /debug+", out _));
 
             // Compilation doesn't have output file, so we don't expect any build outputs either.
             outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
-            Assert.Equal(null, outputs.AssemblyFilePath);
+            Assert.Null(outputs.AssemblyFilePath);
 
             Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/out:C:\a\2.dll /debug+", out _));
 

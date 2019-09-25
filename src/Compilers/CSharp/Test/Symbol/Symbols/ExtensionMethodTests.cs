@@ -35,19 +35,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 var method = type.GetMember<MethodSymbol>("M1");
                 Assert.False(method.IsExtensionMethod);
                 var parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Object);
+                Assert.Equal(SpecialType.System_Object, parameter.Type.SpecialType);
 
                 // Extension method.
                 method = type.GetMember<MethodSymbol>("M2");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Object);
+                Assert.Equal(SpecialType.System_Object, parameter.Type.SpecialType);
 
                 // Extension method with type parameters.
                 method = type.GetMember<MethodSymbol>("M3");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.TypeKind, TypeKind.TypeParameter);
+                Assert.Equal(TypeKind.TypeParameter, parameter.Type.TypeKind);
             };
             CompileAndVerify(source, validator: validator, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
@@ -2581,7 +2581,7 @@ internal static class C
             {
                 var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PEMethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
-                Assert.Equal(method.Parameters.Single().Type.SpecialType, SpecialType.System_Object);
+                Assert.Equal(SpecialType.System_Object, method.Parameters.Single().Type.SpecialType);
 
                 var attr = ((PEModuleSymbol)module).GetCustomAttributesForToken(method.Handle).Single();
                 Assert.Equal("System.Runtime.CompilerServices.ExtensionAttribute", attr.AttributeClass.ToTestDisplayString());
@@ -4019,13 +4019,13 @@ public static class C
                 var method = type.GetMember<MethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
                 var parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, parameter.Type.SpecialType);
                 Assert.Equal(RefKind.In, parameter.RefKind);
 
                 method = type.GetMember<MethodSymbol>("M2");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, parameter.Type.SpecialType);
                 Assert.Equal(RefKind.In, parameter.RefKind);
             }
 
@@ -4049,13 +4049,13 @@ public static class C
                 var method = type.GetMember<MethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
                 var parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, parameter.Type.SpecialType);
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
 
                 method = type.GetMember<MethodSymbol>("M2");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, parameter.Type.SpecialType);
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
             }
 
