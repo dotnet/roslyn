@@ -321,20 +321,24 @@ class C
         public void ComparisonWithGenericType_ReferenceType()
         {
             string source = @"
-class C
+public class C
 {
-    static bool M<T>(T x = default) where T : class
+    public static void Main()
     {
-        return x == default
-            && default == x
-            && x == default(T)
-            && default(T) == x;
+        M<C>();
+    }
+    static void M<T>() where T : class, new()
+    {
+        T t = new T();
+        T nullT = null;
+
+        System.Console.Write($""{t == default}{default == t} {nullT == default}{default == nullT} {t == default(T)}{default(T) == t}"");
     }
 }
 ";
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseFalse TrueTrue FalseFalse");
         }
 
         [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
@@ -3097,20 +3101,53 @@ class C
         public void BinaryOperator_ValidObjectEquality()
         {
             string source = @"
+public class C
+{
+    public static void Main()
+    {
+        C c = new C();
+        C nullC = null;
+
+        System.Console.Write($""{c == default}{default == c} {nullC == default}{default == nullC} {c != default}{default != c} {nullC != default}{default != nullC}"");
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseFalse TrueTrue TrueTrue FalseFalse");
+        }
+
+        [Fact]
+        public void BinaryOperator_NullVersusDefault()
+        {
+            string source = @"
 class C
 {
     static void M(C x)
     {
-        _ = x == default
-            || default == x;
-        _ = x != default
-            || default != x;
+        _ = null == default
+            || default == null;
+        _ = null != default
+            || default != null;
     }
 }
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
+                //         _ = null == default
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "null == default").WithArguments("==", "<null>", "default").WithLocation(6, 13),
+                // (7,16): error CS0034: Operator '==' is ambiguous on operands of type 'default' and '<null>'
+                //             || default == null;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default == null").WithArguments("==", "default", "<null>").WithLocation(7, 16),
+                // (8,13): error CS0034: Operator '!=' is ambiguous on operands of type '<null>' and 'default'
+                //         _ = null != default
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "null != default").WithArguments("!=", "<null>", "default").WithLocation(8, 13),
+                // (9,16): error CS0034: Operator '!=' is ambiguous on operands of type 'default' and '<null>'
+                //             || default != null;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default != null").WithArguments("!=", "default", "<null>").WithLocation(9, 16)
+                );
         }
 
         [Fact]

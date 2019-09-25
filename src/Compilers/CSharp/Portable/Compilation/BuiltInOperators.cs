@@ -758,6 +758,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (leftIsDefault && rightIsNull)
+            {
+                return false;
+            }
+
+            if (leftIsNull && rightIsDefault)
+            {
+                return false;
+            }
+
             // If at least one side is null or default then clearly a conversion exists.
             if (leftIsNull || rightIsNull || leftIsDefault || rightIsDefault)
             {
