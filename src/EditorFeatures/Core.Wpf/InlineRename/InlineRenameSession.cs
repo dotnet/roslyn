@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         /// <summary>
-        /// This task is a continuation of the allRenameLocationsTask that is the result of computing
+        /// This task is a continuation of the <see cref="_allRenameLocationsTask"/> that is the result of computing
         /// the resolutions of the rename spans for the current replacementText.
         /// </summary>
         private JoinableTask<IInlineRenameReplacementInfo> _conflictResolutionTask;
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        private void UpdateReferenceLocationsTask(JoinableTask<IInlineRenameLocationSet> allRenameLocationsTask)
+        private void UpdateReferenceLocationsTask(JoinableTask<IInlineRenameLocationSet> findRenameLocationsTask)
         {
             AssertIsForeground();
 
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             _allRenameLocationsTask = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                var inlineRenameLocations = await allRenameLocationsTask.JoinAsync().ConfigureAwaitRunInline();
+                var inlineRenameLocations = await findRenameLocationsTask.JoinAsync().ConfigureAwaitRunInline();
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
                 _cancellationTokenSource.Token.ThrowIfCancellationRequested();
@@ -349,7 +349,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 UpdateReferenceLocationsTask(ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    await _allRenameLocationsTask.JoinAsync().ConfigureAwait(false);
+                    // Join prior work before proceeding, since it performs a required state update.
+                    // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
+                    //
+                    // The cancellation token is passed to the prior work when it starts, not when it's joined. This is
+                    // the equivalent of TaskContinuationOptions.LazyCancellation.
+                    await _allRenameLocationsTask.JoinAsync(CancellationToken.None).ConfigureAwait(false);
                     await TaskScheduler.Default;
 
                     return await _renameInfo.FindRenameLocationsAsync(_optionSet, cancellationToken).ConfigureAwait(false);
@@ -527,7 +532,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             _conflictResolutionTask = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                var result = await _allRenameLocationsTask.JoinAsync(cancellationToken).ConfigureAwait(false);
+                // Join prior work before proceeding, since it performs a required state update.
+                // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
+                //
+                // The cancellation token is passed to the prior work when it starts, not when it's joined. This is
+                // the equivalent of TaskContinuationOptions.LazyCancellation.
+                var result = await _allRenameLocationsTask.JoinAsync(CancellationToken.None).ConfigureAwait(false);
                 await TaskScheduler.Default;
 
                 return await result.GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false);
