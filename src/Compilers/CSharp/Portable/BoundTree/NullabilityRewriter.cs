@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var right = (BoundExpression)Visit(currentBinary.Right);
                 var type = foundInfo ? infoAndType.Type : currentBinary.Type;
 
-                // https://github.com/dotnet/roslyn/issues/35031: We'll need to update the symbols for the internal methods/operators used in the binary operators
                 currentBinary = currentBinary switch
                 {
-                    BoundBinaryOperator binary => binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    BoundBinaryOperator binary => binary.Update(binary.OperatorKind, binary.ConstantValueOpt, GetUpdatedSymbol(binary, binary.MethodOpt), binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    // https://github.com/dotnet/roslyn/issues/35031: We'll need to update logical.LogicalOperator
                     BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
                     _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
                 };
@@ -83,6 +83,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return sym;
+        }
+
+        private ImmutableArray<T> GetUpdatedArray<T>(BoundNode expr, ImmutableArray<T> symbols) where T : Symbol
+        {
+            if (symbols.IsDefaultOrEmpty)
+            {
+                return symbols;
+            }
+
+            var builder = ArrayBuilder<T>.GetInstance(symbols.Length);
+            bool foundUpdate = false;
+            foreach (var originalSymbol in symbols)
+            {
+                if (_updatedSymbols.TryGetValue((expr, originalSymbol), out var updatedSymbol))
+                {
+                    foundUpdate = true;
+                    builder.Add((T)updatedSymbol);
+                }
+                else
+                {
+                    builder.Add(originalSymbol);
+                }
+            }
+
+            if (foundUpdate)
+            {
+                return builder.ToImmutableAndFree();
+            }
+            else
+            {
+                builder.Free();
+                return symbols;
+            }
         }
     }
 }

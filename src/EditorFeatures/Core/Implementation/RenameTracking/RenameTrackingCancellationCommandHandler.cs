@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [Order(After = PredefinedCommandHandlerNames.SignatureHelpBeforeCompletion)]
     [Order(After = PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
     [Order(After = PredefinedCommandHandlerNames.AutomaticCompletion)]
-    [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     [Order(After = PredefinedCommandHandlerNames.QuickInfo)]
     [Order(After = PredefinedCommandHandlerNames.EventHookup)]

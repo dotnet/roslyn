@@ -372,6 +372,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<ResolvedReference> implicitlyResolvedReferenceMap;
                     ImmutableArray<AssemblyData> allAssemblyData;
 
+                    // Avoid resolving previously resolved missing references. If we call to the resolver again we would create new assembly symbols for them,
+                    // which would not match the previously created ones. As a result we would get duplicate PE types and conversion errors.
+                    var implicitReferenceResolutions = compilation.ScriptCompilationInfo?.PreviousScriptCompilation?.GetBoundReferenceManager().ImplicitReferenceResolutions ??
+                        ImmutableDictionary<AssemblyIdentity, PortableExecutableReference>.Empty;
+
                     BoundInputAssembly[] bindingResult = Bind(
                         compilation,
                         explicitAssemblyData,
@@ -385,6 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out allAssemblyData,
                         out implicitlyResolvedReferences,
                         out implicitlyResolvedReferenceMap,
+                        ref implicitReferenceResolutions,
                         resolutionDiagnostics,
                         out hasCircularReference,
                         out corLibraryIndex);
@@ -492,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     boundReferenceDirectiveMap,
                                     boundReferenceDirectives,
                                     explicitReferences,
-                                    implicitlyResolvedReferences,
+                                    implicitReferenceResolutions,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
                                     ReferenceEquals(corLibrary, assemblySymbol) ? null : corLibrary,

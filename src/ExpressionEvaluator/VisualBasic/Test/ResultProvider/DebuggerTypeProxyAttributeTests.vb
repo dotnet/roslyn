@@ -56,7 +56,7 @@ End Class"
                        EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable))
                 Dim children = GetChildren(result)
                 Verify(children,
-                    EvalResult("b", "{B(Of A(Of String))}", "B(Of A(Of String))", "o.b", DkmEvaluationResultFlags.Expandable))
+                    EvalResult("b", "{B(Of A(Of String))}", "B(Of A(Of String))", "o.b", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
                 children = GetChildren(children(0))
                 Verify(children,
                     EvalResult("PG", "{A(Of String)}", "A(Of String)", "New PB(Of A(Of String))(o.b).PG", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly),

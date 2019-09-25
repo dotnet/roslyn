@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+
 namespace Microsoft.CodeAnalysis.Editor
 {
     /// <summary>
@@ -40,11 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         /// <remarks></remarks>
         public const string Commit = "Commit Command Handler";
-
-        /// <summary>
-        /// Command handler name for Completion.
-        /// </summary>
-        public const string Completion = "Completion Command Handler";
 
         /// <summary>
         /// Command handler name for Documentation Comments.
@@ -137,12 +134,12 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string RenameTrackingCancellation = "Rename Tracking Cancellation Command Handler";
 
         /// <summary>
-        /// Command handler name for a Signature Help command handler executing before <see cref="Completion"/>.
+        /// Command handler name for a Signature Help command handler executing before <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>.
         /// </summary>
         public const string SignatureHelpBeforeCompletion = "Signature Help Before Completion Command Handler";
 
         /// <summary>
-        /// Command handler name for a Signature Help command handler executing after <see cref="Completion"/>.
+        /// Command handler name for a Signature Help command handler executing after <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>.
         /// </summary>
         public const string SignatureHelpAfterCompletion = "Signature Help After Completion Command Handler";
 

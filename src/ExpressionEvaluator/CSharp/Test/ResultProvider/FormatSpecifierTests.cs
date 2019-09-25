@@ -398,9 +398,9 @@ class C
                 // GetChildren without ResultsOnly
                 var children = GetChildren(evalResult, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.None));
                 Verify(children,
-                    EvalResult("F", "{C.<get_F>d__1}", "System.Collections.Generic.IEnumerable<int> {C.<get_F>d__1}", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
-                    EvalResult("G", "{C.<get_G>d__3}", "System.Collections.IEnumerable {C.<get_G>d__3}", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
-                    EvalResult("H", "3", "int", "o.H", DkmEvaluationResultFlags.ReadOnly));
+                    EvalResult("F", "{C.<get_F>d__1}", "System.Collections.Generic.IEnumerable<int> {C.<get_F>d__1}", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("G", "{C.<get_G>d__3}", "System.Collections.IEnumerable {C.<get_G>d__3}", "o.G", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("H", "3", "int", "o.H", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
                 // GetChildren with ResultsOnly
                 children = GetChildren(evalResult, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
                 Verify(children,

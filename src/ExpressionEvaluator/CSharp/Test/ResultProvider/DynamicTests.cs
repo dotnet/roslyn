@@ -41,8 +41,8 @@ class C
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("F", "null", "dynamic {object}", "(new C()).F"),
-                EvalResult("P", "null", "dynamic {object}", "(new C()).P"));
+                EvalResult("F", "null", "dynamic {object}", "(new C()).F", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("P", "null", "dynamic {object}", "(new C()).P", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -67,10 +67,10 @@ class C<T, U>
                 EvalResult(rootExpr, "{C<object, C<object, object>>}", "C<dynamic, C<object, dynamic>> {C<object, C<object, object>>}", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("Array", "null", "C<object, dynamic>[] {C<object, object>[]}", "c.Array"),
-                EvalResult("Complex", "null", "C<C<C<object, dynamic>, dynamic[]>, C<object, dynamic>[]>[] {C<C<C<object, object>, object[]>, C<object, object>[]>[]}", "c.Complex"),
-                EvalResult("Constructed", "null", "C<C<object, dynamic>, dynamic> {C<C<object, object>, object>}", "c.Constructed"),
-                EvalResult("Simple", "null", "dynamic {object}", "c.Simple"));
+                EvalResult("Array", "null", "C<object, dynamic>[] {C<object, object>[]}", "c.Array", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Complex", "null", "C<C<C<object, dynamic>, dynamic[]>, C<object, dynamic>[]>[] {C<C<C<object, object>, object[]>, C<object, object>[]>[]}", "c.Complex", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Constructed", "null", "C<C<object, dynamic>, dynamic> {C<C<object, object>, object>}", "c.Constructed", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Simple", "null", "dynamic {object}", "c.Simple", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -96,9 +96,9 @@ class Outer<T>
                 EvalResult(rootExpr, "{Outer<object>.Inner<object>}", "Outer<dynamic>.Inner<object> {Outer<object>.Inner<object>}", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("Array", "null", "object[]", "i.Array"),
-                EvalResult("Constructed", "null", "Outer<object>.Inner<dynamic> {Outer<object>.Inner<object>}", "i.Constructed"),
-                EvalResult("Simple", "null", "dynamic {object}", "i.Simple"));
+                EvalResult("Array", "null", "object[]", "i.Array", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Constructed", "null", "Outer<object>.Inner<dynamic> {Outer<object>.Inner<object>}", "i.Constructed", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Simple", "null", "dynamic {object}", "i.Simple", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -131,22 +131,22 @@ class D<T, U, V>
                 EvalResult(rootExpr, "{C<D<object, object, int>>}", "C<D<object, dynamic, int>> {C<D<object, object, int>>}", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("Array", "{D<object, object, int>[1]}", "D<object, dynamic, int>[] {D<object, object, int>[]}", "c.Array", DkmEvaluationResultFlags.Expandable),
-                EvalResult("Constructed", "{D<D<object, object, int>, object, object>}", "D<D<object, dynamic, int>, object, dynamic> {D<D<object, object, int>, object, object>}", "c.Constructed", DkmEvaluationResultFlags.Expandable),
-                EvalResult("Simple", "{D<object, object, int>}", "D<object, dynamic, int> {D<object, object, int>}", "c.Simple", DkmEvaluationResultFlags.Expandable));
+                EvalResult("Array", "{D<object, object, int>[1]}", "D<object, dynamic, int>[] {D<object, object, int>[]}", "c.Array", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Constructed", "{D<D<object, object, int>, object, object>}", "D<D<object, dynamic, int>, object, dynamic> {D<D<object, object, int>, object, object>}", "c.Constructed", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("Simple", "{D<object, object, int>}", "D<object, dynamic, int> {D<object, object, int>}", "c.Simple", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
 
             Verify(GetChildren(children[0]),
                 EvalResult("[0]", "{D<object, object, int>}", "D<object, dynamic, int> {D<object, object, int>}", "c.Array[0]", DkmEvaluationResultFlags.Expandable));
 
             Verify(GetChildren(children[1]),
-                EvalResult("TT", "null", "D<object, dynamic, int> {D<object, object, int>}", "c.Constructed.TT"),
-                EvalResult("UU", "null", "object", "c.Constructed.UU"),
-                EvalResult("VV", "null", "dynamic {object}", "c.Constructed.VV"));
+                EvalResult("TT", "null", "D<object, dynamic, int> {D<object, object, int>}", "c.Constructed.TT", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("UU", "null", "object", "c.Constructed.UU", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("VV", "null", "dynamic {object}", "c.Constructed.VV", DkmEvaluationResultFlags.CanFavorite));
 
             Verify(GetChildren(children[2]),
-                EvalResult("TT", "null", "object", "c.Simple.TT"),
-                EvalResult("UU", "null", "dynamic {object}", "c.Simple.UU"),
-                EvalResult("VV", "0", "int", "c.Simple.VV"));
+                EvalResult("TT", "null", "object", "c.Simple.TT", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("UU", "null", "dynamic {object}", "c.Simple.UU", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("VV", "0", "int", "c.Simple.VV", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -214,13 +214,13 @@ class Derived<T, U> : Base<T, U, object, dynamic>
             var children = GetChildren(evalResult);
             Verify(children,
                 EvalResult("P (Base<object, object, object, object>)", "null", "object", "((Base<object, object, object, object>)d).P"),
-                EvalResult("P", "null", "dynamic[] {object[]}", "d.P"),
+                EvalResult("P", "null", "dynamic[] {object[]}", "d.P", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Q (Base<object, object, object, object>)", "null", "object", "((Base<object, object, object, object>)d).Q"),
-                EvalResult("Q", "null", "object[]", "d.Q"),
+                EvalResult("Q", "null", "object[]", "d.Q", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("R (Base<object, object, object, object>)", "null", "object", "((Base<object, object, object, object>)d).R"),
-                EvalResult("R", "null", "dynamic[] {object[]}", "d.R"),
+                EvalResult("R", "null", "dynamic[] {object[]}", "d.R", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("S (Base<object, object, object, object>)", "null", "object", "((Base<object, object, object, object>)d).S"),
-                EvalResult("S", "null", "object[]", "d.S"));
+                EvalResult("S", "null", "object[]", "d.S", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]

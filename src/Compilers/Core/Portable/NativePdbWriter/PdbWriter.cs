@@ -68,7 +68,7 @@ namespace Microsoft.Cci
             // but there is no real need for such optimization.
             // 
             // Special case a hidden entry point (#line hidden applied) that would otherwise have no debug info.
-            // This is to accomodate for a requirement of Windows PDB writer that the entry point method must have some debug information.
+            // This is to accommodate for a requirement of Windows PDB writer that the entry point method must have some debug information.
             bool isKickoffMethod = methodBody.StateMachineTypeName != null;
             bool emitDebugInfo = isKickoffMethod || !methodBody.SequencePoints.IsEmpty ||
                 methodBody.MethodDefinition == (Context.Module.DebugEntryPoint ?? Context.Module.PEEntryPoint);
