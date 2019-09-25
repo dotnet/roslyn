@@ -2884,7 +2884,7 @@ class c1
             var comp = CreateCompilation(tree);
             var constantValue = comp.GetSemanticModel(tree).GetConstantValue(expr);
             Assert.True(constantValue.HasValue);
-            Assert.Equal(constantValue.Value, 6);
+            Assert.Equal(6, constantValue.Value);
         }
 
         [WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")]

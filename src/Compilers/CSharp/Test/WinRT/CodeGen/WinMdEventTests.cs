@@ -665,7 +665,7 @@ B");
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
             var type = model.GetTypeInfo(syntax);
-            Assert.Equal(type.Type.SpecialType, SpecialType.System_Void);
+            Assert.Equal(SpecialType.System_Void, type.Type.SpecialType);
         }
     }
 }

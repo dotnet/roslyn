@@ -3493,7 +3493,7 @@ class Program{
             var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
             if (tokenRange == null)
             {
-                Assert.Equal(startTokenKind, SyntaxKind.None);
+                Assert.Equal(SyntaxKind.None, startTokenKind);
                 return;
             }
 

@@ -331,7 +331,7 @@ class C
             var symbol1 = model1.GetSymbolInfo(statement.Expression).Symbol;
             var symbol2 = model2.GetSymbolInfo(statement.Expression).Symbol;
 
-            Assert.Equal(false, ReferenceEquals(symbol1, symbol2));
+            Assert.False(ReferenceEquals(symbol1, symbol2));
             Assert.Equal(symbol1, symbol2);
         }
 
