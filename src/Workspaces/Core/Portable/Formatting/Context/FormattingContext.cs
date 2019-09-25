@@ -597,6 +597,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public bool IsWrappingSuppressed(TextSpan textSpan, bool containsElasticTrivia)
         {
+            if (IsFormattingDisabled(textSpan))
+            {
+                return true;
+            }
+
             // use edge exclusive version of GetSmallestContainingInterval
             var data = _suppressWrappingTree.GetSmallestEdgeExclusivelyContainingInterval(textSpan.Start, textSpan.Length);
             if (data == null)
@@ -614,6 +619,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public bool IsSpacingSuppressed(TextSpan textSpan, bool containsElasticTrivia)
         {
+            if (IsFormattingDisabled(textSpan))
+            {
+                return true;
+            }
+
             // For spaces, never ignore elastic trivia because that can 
             // generate incorrect code
             if (containsElasticTrivia)
