@@ -407,7 +407,7 @@ throw e;", globals: new ScriptTests());
             Assert.Equal(5m, state.GetVariable("x").Value);
             Assert.Equal(20, state.GetVariable("X").Value);
 
-            Assert.Equal(null, state.GetVariable("A"));
+            Assert.Null(state.GetVariable("A"));
             Assert.Same(state.GetVariable("X"), state.GetVariable("X"));
         }
 

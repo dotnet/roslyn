@@ -454,7 +454,7 @@ class MainClass
             Assert.Equal(5, diagnostics[0].Location.SourceSpan.Start);
             Assert.Equal(0, diagnostics[0].Location.SourceSpan.Length);
 
-            Assert.Equal(true, treeSpan.Contains(diagnostics[0].Location.SourceSpan));
+            Assert.True(treeSpan.Contains(diagnostics[0].Location.SourceSpan));
 
             var lineSpan = diagnostics[0].Location.GetLineSpan();
             Assert.Equal(0, lineSpan.StartLinePosition.Line);
@@ -482,7 +482,7 @@ class MainClass
             Assert.Equal(0, diagnostics[0].Location.SourceSpan.Start);
             Assert.Equal(0, diagnostics[0].Location.SourceSpan.Length);
 
-            Assert.Equal(true, treeSpan.Contains(diagnostics[0].Location.SourceSpan));
+            Assert.True(treeSpan.Contains(diagnostics[0].Location.SourceSpan));
 
             var lineSpan = diagnostics[0].Location.GetLineSpan();
             Assert.Equal(0, lineSpan.StartLinePosition.Line);
