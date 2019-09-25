@@ -1828,5 +1828,88 @@ namespace Microsoft.CodeAnalysis
                 context.ReportSuppression(Suppression.Create(_descriptor2, nonReportedDiagnostic));
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class NamedTypeAnalyzer : DiagnosticAnalyzer
+        {
+            public enum AnalysisKind
+            {
+                Symbol,
+                SymbolStartEnd,
+                CompilationStartEnd
+            }
+
+            public const string RuleId = "ID1";
+            private readonly DiagnosticDescriptor _rule;
+            private readonly AnalysisKind _analysisKind;
+            private readonly GeneratedCodeAnalysisFlags _analysisFlags;
+            private readonly ConcurrentSet<ISymbol> _symbolCallbacks;
+
+            public NamedTypeAnalyzer(AnalysisKind analysisKind, GeneratedCodeAnalysisFlags analysisFlags = GeneratedCodeAnalysisFlags.None, bool configurable = true)
+            {
+                _analysisKind = analysisKind;
+                _analysisFlags = analysisFlags;
+                _symbolCallbacks = new ConcurrentSet<ISymbol>();
+
+                var customTags = configurable ? Array.Empty<string>() : new[] { WellKnownDiagnosticTags.NotConfigurable };
+                _rule = new DiagnosticDescriptor(
+                    RuleId,
+                    "Title1",
+                    "Symbol: {0}",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true,
+                    customTags: customTags);
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
+            public string GetSortedSymbolCallbacksString() => string.Join(", ", _symbolCallbacks.Select(s => s.Name).Order());
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.ConfigureGeneratedCodeAnalysis(_analysisFlags);
+
+                switch (_analysisKind)
+                {
+                    case AnalysisKind.Symbol:
+                        context.RegisterSymbolAction(c =>
+                            {
+                                _symbolCallbacks.Add(c.Symbol);
+                                ReportDiagnostic(c.Symbol, c.ReportDiagnostic);
+                            }, SymbolKind.NamedType);
+                        break;
+
+                    case AnalysisKind.SymbolStartEnd:
+                        context.RegisterSymbolStartAction(symbolStartContext =>
+                        {
+                            symbolStartContext.RegisterSymbolEndAction(symbolEndContext =>
+                            {
+                                _symbolCallbacks.Add(symbolEndContext.Symbol);
+                                ReportDiagnostic(symbolEndContext.Symbol, symbolEndContext.ReportDiagnostic);
+                            });
+                        }, SymbolKind.NamedType);
+
+                        break;
+
+                    case AnalysisKind.CompilationStartEnd:
+                        context.RegisterCompilationStartAction(compilationStartContext =>
+                        {
+                            compilationStartContext.RegisterSymbolAction(c =>
+                            {
+                                _symbolCallbacks.Add(c.Symbol);
+                            }, SymbolKind.NamedType);
+
+                            compilationStartContext.RegisterCompilationEndAction(
+                                compilationEndContext => compilationEndContext.ReportDiagnostic(
+                                    Diagnostic.Create(_rule, Location.None, GetSortedSymbolCallbacksString())));
+                        });
+
+                        break;
+                }
+            }
+
+            private void ReportDiagnostic(ISymbol symbol, Action<Diagnostic> reportDiagnostic)
+                => reportDiagnostic(Diagnostic.Create(_rule, symbol.Locations[0], symbol.Name));
+        }
     }
 }
