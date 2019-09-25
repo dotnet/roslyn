@@ -94,16 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return buffer.CanApplyChangeDocumentToWorkspace();
         }
 
-        private static CommandState GetCommandState(ITextBuffer buffer, Func<CommandState> nextHandler)
-        {
-            if (!CanExecuteCommand(buffer))
-            {
-                return nextHandler();
-            }
-
-            return CommandState.Available;
-        }
-
         private static CommandState GetCommandState(ITextBuffer buffer)
         {
             return CanExecuteCommand(buffer) ? CommandState.Available : CommandState.Unspecified;
