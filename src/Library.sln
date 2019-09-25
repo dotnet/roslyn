@@ -1,19 +1,29 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29322.22
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library", "Library\Library.csproj", "{C06D702E-6FC7-453B-BDDF-608F825EC003}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Library", "Library\Library.csproj", "{C06D702E-6FC7-453B-BDDF-608F825EC003}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.Tests", "Library.Tests\Library.Tests.csproj", "{DC5F3D1C-A9A3-44B7-A3C0-82C1FF4C3336}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Library.Tests", "Library.Tests\Library.Tests.csproj", "{DC5F3D1C-A9A3-44B7-A3C0-82C1FF4C3336}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1CE9670B-D5FF-46A7-9D00-24E70E6ED48B}"
+	ProjectSection(SolutionItems) = preProject
+		..\.editorconfig = ..\.editorconfig
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		..\global.json = ..\global.json
+		..\nuget.config = ..\nuget.config
+		shipping.ruleset = shipping.ruleset
+		stylecop.json = stylecop.json
+		tests.ruleset = tests.ruleset
+		..\version.json = ..\version.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{C06D702E-6FC7-453B-BDDF-608F825EC003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -24,5 +34,11 @@ Global
 		{DC5F3D1C-A9A3-44B7-A3C0-82C1FF4C3336}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC5F3D1C-A9A3-44B7-A3C0-82C1FF4C3336}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC5F3D1C-A9A3-44B7-A3C0-82C1FF4C3336}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E3944F6A-384B-4B0F-B93F-3BD513DC57BD}
 	EndGlobalSection
 EndGlobal
