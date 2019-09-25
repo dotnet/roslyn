@@ -202,12 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void VisitRvalue(BoundExpression node, bool isKnownToBeAnLvalue = false)
         {
             Debug.Assert(
+                node is null ||
                 !_shouldCheckConverted ||
-                isKnownToBeAnLvalue || node == null ||
+                isKnownToBeAnLvalue ||
                 !node.NeedsToBeConverted() ||
-                node.WasConverted ||
-                node.WasCompilerGenerated /* ||
-                methodMainNode.HasErrors */, "expressions should have been converted");
+                node.WasCompilerGenerated, "expressions should have been converted");
             base.VisitRvalue(node, isKnownToBeAnLvalue);
         }
 #endif

@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindRefExpression(node, diagnostics);
 
                 case SyntaxKind.DeclarationExpression:
-                    return BindDeclarationExpression((DeclarationExpressionSyntax)node, diagnostics);
+                    return BindDeclarationExpressionAsError((DeclarationExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.SuppressNullableWarningExpression:
                     return BindSuppressNullableWarningExpression((PostfixUnaryExpressionSyntax)node, diagnostics);
@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Bind a declaration expression where it isn't permitted.
-        private BoundExpression BindDeclarationExpression(DeclarationExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindDeclarationExpressionAsError(DeclarationExpressionSyntax node, DiagnosticBag diagnostics)
         {
             // This is an error, as declaration expressions are handled specially in every context in which
             // they are permitted. So we have a context in which they are *not* permitted. Nevertheless, we
@@ -759,13 +759,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             var declType = BindVariableTypeWithAnnotations(node.Designation, diagnostics, node.Type, ref isConst, out isVar, out alias);
             Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, node);
-            return BindDeclarationVariables(declType, node.Designation, node, diagnostics);
+            return BindDeclarationVariablesForErrorRecovery(declType, node.Designation, node, diagnostics);
         }
 
         /// <summary>
         /// Bind a declaration variable where it isn't permitted. The caller is expected to produce a diagnostic.
         /// </summary>
-        private BoundExpression BindDeclarationVariables(TypeWithAnnotations declTypeWithAnnotations, VariableDesignationSyntax node, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private BoundExpression BindDeclarationVariablesForErrorRecovery(TypeWithAnnotations declTypeWithAnnotations, VariableDesignationSyntax node, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             declTypeWithAnnotations = declTypeWithAnnotations.HasType ? declTypeWithAnnotations : TypeWithAnnotations.Create(CreateErrorType("var"));
             switch (node.Kind())
@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeclarationVariables(declTypeWithAnnotations, n, n, diagnostics));
+                            builder.Add(BindDeclarationVariablesForErrorRecovery(declTypeWithAnnotations, n, n, diagnostics));
                             namesBuilder.Add(InferTupleElementName(n));
                         }
                         ImmutableArray<BoundExpression> subExpressions = builder.ToImmutableAndFree();

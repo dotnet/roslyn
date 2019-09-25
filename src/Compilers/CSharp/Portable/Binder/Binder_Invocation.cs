@@ -1394,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.Parameter:
                     case BoundKind.Local:
                         {
-                            newArguments[i] = argument.WithWasConverted();
+                            newArguments[i] = BindToTypeForErrorRecovery(argument);
                             break;
                         }
                     default:

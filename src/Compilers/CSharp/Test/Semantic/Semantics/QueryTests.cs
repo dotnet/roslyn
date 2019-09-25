@@ -4070,53 +4070,47 @@ namespace System
     }
 }
 ";
-            //CreateCompilationWithMscorlib40AndSystemCore(csSource, parseOptions: TestOptions.Regular7_2)
-            //    .GetDiagnostics()
-            //    .Where(d => d.Code != (int)ErrorCode.ERR_DeclarationExpressionNotPermitted)
-            //    .Verify(
-            //    // (10,50): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zc = from x in a from y in M(a, (int z, int w) = x) select x; // error 1
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(10, 50),
-            //    // (11,54): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zd = from x in a from int y in M(a, (int z, int w) = x) select x; // error 2
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(11, 54),
-            //    // (12,50): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var ze = from x in a from y in M(a, (int z, int w) = x) where true select x; // error 3
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 50),
-            //    // (12,71): error CS1662: Cannot convert query expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-            //    //         var ze = from x in a from y in M(a, (int z, int w) = x) where true select x; // error 3
-            //    Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "true").WithArguments("query expression").WithLocation(12, 71),
-            //    // (13,54): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zf = from x in a from int y in M(a, (int z, int w) = x) where true select x; // error 4
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(13, 54),
-            //    // (13,75): error CS1662: Cannot convert query expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-            //    //         var zf = from x in a from int y in M(a, (int z, int w) = x) where true select x; // error 4
-            //    Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "true").WithArguments("query expression").WithLocation(13, 75),
-            //    // (14,48): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zg = from x in a let y = M(x, (int z, int w) = x) select x; // error 5
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(14, 48),
-            //    // (15,46): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zh = from x in a where M(x, (int z, int w) = x).Item1 == 1 select x; // error 6
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(15, 46),
-            //    // (17,55): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zj = from x in a join y in a on M(x, (int z, int w) = x) equals y select x; // error 7
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(17, 55),
-            //    // (18,64): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zk = from x in a join y in a on x equals M(y, (int z, int w) = y) select x; // error 8
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(18, 64),
-            //    // (19,48): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zl = from x in a orderby M(x, (int z, int w) = x) select x; // error 9
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(19, 48),
-            //    // (20,51): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zm = from x in a orderby x, M(x, (int z, int w) = x) select x; // error 10
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(20, 51),
-            //    // (21,46): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zn = from x in a group M(x, (int z, int w) = x) by x; // error 11
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(21, 46),
-            //    // (22,51): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
-            //    //         var zo = from x in a group x by M(x, (int z, int w) = x); // error 12
-            //    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(22, 51)
-            //    );
+            CreateCompilationWithMscorlib40AndSystemCore(csSource, parseOptions: TestOptions.Regular7_2)
+                .GetDiagnostics()
+                .Where(d => d.Code != (int)ErrorCode.ERR_DeclarationExpressionNotPermitted)
+                .Verify(
+                // (10,50): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zc = from x in a from y in M(a, (int z, int w) = x) select x; // error 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(10, 50),
+                // (11,54): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zd = from x in a from int y in M(a, (int z, int w) = x) select x; // error 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(11, 54),
+                // (12,50): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var ze = from x in a from y in M(a, (int z, int w) = x) where true select x; // error 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 50),
+                // (13,54): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zf = from x in a from int y in M(a, (int z, int w) = x) where true select x; // error 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(13, 54),
+                // (14,48): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zg = from x in a let y = M(x, (int z, int w) = x) select x; // error 5
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(14, 48),
+                // (15,46): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zh = from x in a where M(x, (int z, int w) = x).Item1 == 1 select x; // error 6
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(15, 46),
+                // (17,55): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zj = from x in a join y in a on M(x, (int z, int w) = x) equals y select x; // error 7
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(17, 55),
+                // (18,64): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zk = from x in a join y in a on x equals M(y, (int z, int w) = y) select x; // error 8
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(18, 64),
+                // (19,48): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zl = from x in a orderby M(x, (int z, int w) = x) select x; // error 9
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(19, 48),
+                // (20,51): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zm = from x in a orderby x, M(x, (int z, int w) = x) select x; // error 10
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(20, 51),
+                // (21,46): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zn = from x in a group M(x, (int z, int w) = x) by x; // error 11
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(21, 46),
+                // (22,51): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         var zo = from x in a group x by M(x, (int z, int w) = x); // error 12
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(22, 51)
+                );
 
             CreateCompilationWithMscorlib40AndSystemCore(csSource)
                 .GetDiagnostics()
