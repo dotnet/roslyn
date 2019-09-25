@@ -51,10 +51,10 @@ class Wrapper
             var value = CreateDkmClrValue(type.Instantiate(), type, evalFlags: DkmEvaluationResultFlags.None);
 
             Verify(GetChildren(FormatResult("w", value)),
-                EvalResult("c0", "{C0}", "C0", "w.c0", DkmEvaluationResultFlags.None),
-                EvalResult("c1", "Value", "C1", "w.c1", DkmEvaluationResultFlags.None),
+                EvalResult("c0", "{C0}", "C0", "w.c0", DkmEvaluationResultFlags.None | DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("c1", "Value", "C1", "w.c1", DkmEvaluationResultFlags.None | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Name", "Value", "C2", "w.c2", DkmEvaluationResultFlags.None),
-                EvalResult("c3", "Value", "Type", "w.c3", DkmEvaluationResultFlags.None),
+                EvalResult("c3", "Value", "Type", "w.c3", DkmEvaluationResultFlags.None | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Name", "Value", "Type", "w.c4", DkmEvaluationResultFlags.None));
         }
 
@@ -454,17 +454,17 @@ class C
 
             Verify(DepthFirstSearch(root, maxDepth: 4),
                 EvalResult("c", "{C}", "C", "c", DkmEvaluationResultFlags.Expandable),
-                EvalResult("DisplayArray", "{Display[1]}", "Display[]", "c.DisplayArray", DkmEvaluationResultFlags.Expandable),
+                EvalResult("DisplayArray", "{Display[1]}", "Display[]", "c.DisplayArray", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Name", "Value", "Type", "c.DisplayArray[0]", DkmEvaluationResultFlags.Expandable),
-                EvalResult("DisplayArray", "{Display[1]}", "Display[]", "c.DisplayArray[0].DisplayArray", DkmEvaluationResultFlags.Expandable),
+                EvalResult("DisplayArray", "{Display[1]}", "Display[]", "c.DisplayArray[0].DisplayArray", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Name", "Value", "Type", "c.DisplayArray[0].DisplayArray[0]", DkmEvaluationResultFlags.Expandable),
-                EvalResult("NoDisplayArray", "{NoDisplay[1]}", "NoDisplay[]", "c.DisplayArray[0].NoDisplayArray", DkmEvaluationResultFlags.Expandable),
+                EvalResult("NoDisplayArray", "{NoDisplay[1]}", "NoDisplay[]", "c.DisplayArray[0].NoDisplayArray", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("[0]", "{NoDisplay}", "NoDisplay", "c.DisplayArray[0].NoDisplayArray[0]", DkmEvaluationResultFlags.Expandable),
-                EvalResult("NoDisplayArray", "{NoDisplay[1]}", "NoDisplay[]", "c.NoDisplayArray", DkmEvaluationResultFlags.Expandable),
+                EvalResult("NoDisplayArray", "{NoDisplay[1]}", "NoDisplay[]", "c.NoDisplayArray", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("[0]", "{NoDisplay}", "NoDisplay", "c.NoDisplayArray[0]", DkmEvaluationResultFlags.Expandable),
-                EvalResult("DisplayArray", "{Display[1]}", "Display[]", "c.NoDisplayArray[0].DisplayArray", DkmEvaluationResultFlags.Expandable),
+                EvalResult("DisplayArray", "{Display[1]}", "Display[]", "c.NoDisplayArray[0].DisplayArray", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("Name", "Value", "Type", "c.NoDisplayArray[0].DisplayArray[0]", DkmEvaluationResultFlags.Expandable),
-                EvalResult("NoDisplayArray", "{NoDisplay[1]}", "NoDisplay[]", "c.NoDisplayArray[0].NoDisplayArray", DkmEvaluationResultFlags.Expandable),
+                EvalResult("NoDisplayArray", "{NoDisplay[1]}", "NoDisplay[]", "c.NoDisplayArray[0].NoDisplayArray", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("[0]", "{NoDisplay}", "NoDisplay", "c.NoDisplayArray[0].NoDisplayArray[0]", DkmEvaluationResultFlags.Expandable));
         }
 
@@ -610,8 +610,8 @@ class B
                 var children = GetChildren(evalResult);
                 Verify(children,
                     EvalResult("Name", "Value", "Type", "o.P", DkmEvaluationResultFlags.ReadOnly),
-                    EvalFailedResult("Q", "Function evaluation timed out", "A", "o.Q"),
-                    EvalResult("f", "false", "bool", "o.f", DkmEvaluationResultFlags.Boolean));
+                    EvalFailedResult("Q", "Function evaluation timed out", "A", "o.Q", DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("f", "false", "bool", "o.f", DkmEvaluationResultFlags.Boolean | DkmEvaluationResultFlags.CanFavorite));
             }
         }
 

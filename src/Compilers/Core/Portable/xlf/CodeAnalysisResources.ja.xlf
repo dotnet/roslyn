@@ -21,7 +21,7 @@
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
-        <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
+        <target state="translated">抑制された診断 ID '{0}' が、指定された抑制記述子の抑制可能な ID '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -41,7 +41,7 @@
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
         <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
-        <target state="new">Non-reported diagnostic with ID '{0}' cannot be suppressed.</target>
+        <target state="translated">ID '{0}' を持つ未報告の診断を抑制することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -86,27 +86,27 @@
       </trans-unit>
       <trans-unit id="SupportedSuppressionsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</target>
+        <target state="translated">アナライザー '{0}' の 'SupportedSuppressions' に null 記述子が含まれています。</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
-        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
-        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</target>
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
+        <target state="translated">診断 '{0}: {1}' は、抑制 ID '{2}' と理由 '{3}' で DiagnosticSuppressor によってプログラムで抑制されました</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">
         <source>Programmatic suppression of an analyzer diagnostic</source>
-        <target state="new">Programmatic suppression of an analyzer diagnostic</target>
+        <target state="translated">アナライザー診断のプログラムによる抑制</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
         <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
+        <target state="translated">SuppressionDescriptor では、null でも、空の文字列でも、空白のみの文字列でもない ID が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
-        <target state="new">If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</target>
+        <target state="translated">タプル要素の Null 許容の注釈を指定する場合、注釈の数はタプルの基数と一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -241,7 +241,7 @@
       </trans-unit>
       <trans-unit id="UnsupportedSuppressionReported">
         <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
-        <target state="new">Reported suppression with ID '{0}' is not supported by the suppressor.</target>
+        <target state="translated">ID '{0}' の報告済みの抑制はサプレッサーによってサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">

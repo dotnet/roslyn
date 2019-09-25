@@ -21,7 +21,7 @@
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
-        <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
+        <target state="translated">L'ID de diagnostic supprimé '{0}' ne correspond pas à l'ID supprimable '{1}' pour le descripteur de suppression spécifié.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -41,7 +41,7 @@
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
         <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
-        <target state="new">Non-reported diagnostic with ID '{0}' cannot be suppressed.</target>
+        <target state="translated">Impossible de supprimer le diagnostic non signalé ayant l'ID '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -86,27 +86,27 @@
       </trans-unit>
       <trans-unit id="SupportedSuppressionsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</target>
+        <target state="translated">L'analyseur '{0}' contient un descripteur ayant une valeur null dans 'SupportedSuppressions'.</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
-        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
-        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</target>
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
+        <target state="translated">Le diagnostic '{0} : {1}' a été supprimé par programmation par un DiagnosticSuppressor ayant l'ID de suppression '{2}' et la justification '{3}'</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">
         <source>Programmatic suppression of an analyzer diagnostic</source>
-        <target state="new">Programmatic suppression of an analyzer diagnostic</target>
+        <target state="translated">Suppression programmatique d'un diagnostic d'analyseur</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
         <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
+        <target state="translated">SuppressionDescriptor doit avoir un ID qui n'est ni une valeur null, ni une chaîne vide, ni une chaîne contenant uniquement des espaces blancs.</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
-        <target state="new">If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</target>
+        <target state="translated">Si des annotations de type Nullable pour des éléments de tuples sont spécifiées, le nombre d'annotations doit correspondre à la cardinalité du tuple.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -241,7 +241,7 @@
       </trans-unit>
       <trans-unit id="UnsupportedSuppressionReported">
         <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
-        <target state="new">Reported suppression with ID '{0}' is not supported by the suppressor.</target>
+        <target state="translated">La suppression signalée ayant l'ID '{0}' n'est pas prise en charge par le suppresseur.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">

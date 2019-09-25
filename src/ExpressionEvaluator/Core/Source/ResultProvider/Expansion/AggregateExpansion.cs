@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class AggregateExpansion : Expansion
     {
+        private readonly bool _containsFavorites;
         private readonly Expansion[] _expansions;
 
         internal static Expansion CreateExpansion(ArrayBuilder<Expansion> expansions)
@@ -25,7 +26,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal AggregateExpansion(Expansion[] expansions)
         {
             _expansions = expansions;
+
+            if (expansions != null)
+            {
+                foreach (var expansion in expansions)
+                {
+                    if (expansion.ContainsFavorites)
+                    {
+                        _containsFavorites = true;
+                        break;
+                    }
+                }
+            }
         }
+
+        internal override bool ContainsFavorites => _containsFavorites;
 
         internal override void GetRows(
             ResultProvider resultProvider,

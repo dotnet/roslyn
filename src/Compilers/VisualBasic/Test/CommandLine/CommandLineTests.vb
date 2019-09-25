@@ -9366,7 +9366,7 @@ End Class").Path
         End Sub
 
         <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
         Public Sub TestSuppression_CompilerWarning()
             ' warning BC40008 : 'C' is obsolete
             Dim source = "
@@ -9411,7 +9411,7 @@ End Class"
         End Sub
 
         <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
         Public Sub TestSuppression_CompilerWarningAsError()
             ' warning BC40008 : 'C' is obsolete
             Dim source = "
@@ -9489,7 +9489,7 @@ End Class"
         End Sub
 
         <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
         Public Sub TestSuppression_AnalyzerWarning()
             Dim source = "
 Class C
