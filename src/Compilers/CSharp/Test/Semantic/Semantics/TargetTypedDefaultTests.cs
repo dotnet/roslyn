@@ -252,7 +252,7 @@ class C
         }
 
         [Fact, WorkItem(35684, "https://github.com/dotnet/roslyn/issues/35684")]
-        public void ComparisonWithUnconstrainedGenericType()
+        public void ComparisonWithGenericType_Unconstrained()
         {
             string source = @"
 class C
@@ -290,6 +290,51 @@ class C
             Assert.Equal("?", model.GetTypeInfo(default2).Type.ToTestDisplayString());
             Assert.Equal("?", model.GetTypeInfo(default2).ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.Identity, model.GetConversion(default2));
+        }
+
+        [Fact, WorkItem(38643, "https://github.com/dotnet/roslyn/issues/38643")]
+        public void ComparisonWithGenericType_ValueType()
+        {
+            string source = @"
+class C
+{
+    static bool M<T>(T x = default) where T : struct
+    {
+        return x == default // 1
+            && x == default(T); // 2
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'default'
+                //         return x == default // 1
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
+                // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
+                //             && x == default(T); // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(T)").WithArguments("==", "T", "T").WithLocation(7, 16)
+                );
+        }
+
+        [Fact, WorkItem(38643, "https://github.com/dotnet/roslyn/issues/38643")]
+        public void ComparisonWithGenericType_ReferenceType()
+        {
+            string source = @"
+class C
+{
+    static bool M<T>(T x = default) where T : class
+    {
+        return x == default
+            && default == x
+            && x == default(T)
+            && default(T) == x;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
@@ -1455,21 +1500,7 @@ MODIFIER MyType
             validate("class", "string", "null", "true", "System.String");
             validate("class", "string", "\"\"", "false", "System.String");
 
-            // The object == operator is only used for reference types or `null`, but not for `default`
-            validate("class", "MyType", "null", "true", "?",
-                    // (8,14): error CS0019: Operator '==' cannot be applied to operands of type 'MyType' and 'default'
-                    //         if ((x == default) != true) throw null;
-                    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "MyType", "default").WithLocation(8, 14),
-                    // (9,14): error CS0019: Operator '==' cannot be applied to operands of type 'default' and 'MyType'
-                    //         if ((default == x) != true) throw null;
-                    Diagnostic(ErrorCode.ERR_BadBinaryOps, "default == x").WithArguments("==", "default", "MyType").WithLocation(9, 14),
-                    // (11,14): error CS0019: Operator '!=' cannot be applied to operands of type 'MyType' and 'default'
-                    //         if ((x != default) == true) throw null;
-                    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default").WithArguments("!=", "MyType", "default").WithLocation(11, 14),
-                    // (12,14): error CS0019: Operator '!=' cannot be applied to operands of type 'default' and 'MyType'
-                    //         if ((default != x) == true) throw null;
-                    Diagnostic(ErrorCode.ERR_BadBinaryOps, "default != x").WithArguments("!=", "default", "MyType").WithLocation(12, 14)
-                    );
+            validate("class", "MyType", "null", "true", "System.Object");
 
             // struct MyType doesn't have an == operator
             validate("struct", "MyType", "new MyType()", "false", semanticType: "?",
@@ -3063,7 +3094,7 @@ class C
         }
 
         [Fact]
-        public void BinaryOperator_InvalidObjectEquality()
+        public void BinaryOperator_ValidObjectEquality()
         {
             string source = @"
 class C
@@ -3079,20 +3110,7 @@ class C
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
-            comp.VerifyDiagnostics(
-                // (6,13): error CS0019: Operator '==' cannot be applied to operands of type 'C' and 'default'
-                //         _ = x == default
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "C", "default").WithLocation(6, 13),
-                // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'default' and 'C'
-                //             || default == x;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default == x").WithArguments("==", "default", "C").WithLocation(7, 16),
-                // (8,13): error CS0019: Operator '!=' cannot be applied to operands of type 'C' and 'default'
-                //         _ = x != default
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default").WithArguments("!=", "C", "default").WithLocation(8, 13),
-                // (9,16): error CS0019: Operator '!=' cannot be applied to operands of type 'default' and 'C'
-                //             || default != x;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default != x").WithArguments("!=", "default", "C").WithLocation(9, 16)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

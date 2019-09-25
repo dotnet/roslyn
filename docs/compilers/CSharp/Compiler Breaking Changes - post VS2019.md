@@ -25,10 +25,9 @@ Each entry should include a short description of the break, followed by either a
 
     Such code will produce an error in version 16.4.
 
-3. https://github.com/dotnet/roslyn/issues/35684 In C# `7.1` the resolution of a binary operator with a `default` literal could result in using an object equality and giving the literal a type `object`.
+3. https://github.com/dotnet/roslyn/issues/35684 In C# `7.1` the resolution of a binary operator with a `default` literal and unconstrained type parameter could result in using an object equality and giving the literal a type `object`.
     For example, given a variable `t` of an unconstrained type `T`, `t == default` would be improperly allowed and emitted as `t == default(object)`.
-    Similarly, for a reference type without a custom `==` operator, `x == default` would be improperly allowed and emitted as `x == default(object)`.
-    In *Visual Studio 2019 version 16.4* these scenarios will now produce an error.
+    In *Visual Studio 2019 version 16.4* this scenario will now produce an error.
 
 4. In C# `7.1`, `default as TClass` and `using (default)` were allowed. In *Visual Studio 2019 version 16.4* those scenarios will now produce errors.
 
