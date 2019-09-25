@@ -13,6 +13,7 @@ namespace Roslyn.Utilities
         [Conditional("DEBUG")]
         public static void Assert([DoesNotReturnIf(false)]bool b) => Debug.Assert(b);
 
+        /// <inheritdoc cref="Debug.Assert(bool, string)"/>
         [Conditional("DEBUG")]
         public static void Assert([DoesNotReturnIf(false)]bool b, string message)
             => Debug.Assert(b, message);
