@@ -90,8 +90,8 @@
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
-        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
-        <target state="translated">Le diagnostic '{0} : {1}' a été supprimé par programmation par un DiagnosticSuppressor ayant l'ID de suppression '{2}' et la justification '{3}'</target>
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="needs-review-translation">Le diagnostic '{0} : {1}' a été supprimé par programmation par un DiagnosticSuppressor ayant l'ID de suppression '{2}' et la justification '{3}'</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">
