@@ -57,12 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // get the regular signature help items
             var parentOperation = semanticModel.GetOperation(initializerExpression.Parent, cancellationToken) as IObjectOrCollectionInitializerOperation;
-            if (parentOperation == null)
-            {
-                return null;
-            }
-
-            var parentType = parentOperation.Type;
+            var parentType = parentOperation?.Type;
             if (parentType == null)
             {
                 return null;
