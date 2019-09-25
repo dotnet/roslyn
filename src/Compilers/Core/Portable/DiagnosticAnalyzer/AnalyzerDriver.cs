@@ -1783,11 +1783,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGenerated;
             if (!_lazyGeneratedCodeFilesMap.TryGetValue(tree, out isGenerated))
             {
-                isGenerated = _isGeneratedCode(tree, AnalyzerExecutor.CancellationToken);
+                isGenerated = computeIsGeneratedCode();
                 _lazyGeneratedCodeFilesMap.TryAdd(tree, isGenerated);
             }
 
             return isGenerated;
+
+            bool computeIsGeneratedCode()
+            {
+                // First check for explicit user configuration for generated code.
+                //     generated_code = true | false
+                var options = AnalyzerExecutor.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
+                if (options.TryGetValue("generated_code", out string optionValue) &&
+                    bool.TryParse(optionValue, out var boolValue))
+                {
+                    return boolValue;
+                }
+
+                // Either no explicit user configuration or we don't recognize the option value.
+                // Compute isGeneratedCode using our generated code heuristic.
+                return _isGeneratedCode(tree, AnalyzerExecutor.CancellationToken);
+            }
         }
 
         protected bool DoNotAnalyzeGeneratedCode => _doNotAnalyzeGeneratedCode;
