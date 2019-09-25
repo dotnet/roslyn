@@ -1965,5 +1965,46 @@ End Class
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
         End Sub
+
+        <WpfFact>
+        <WorkItem(28474, "https://github.com/dotnet/roslyn/issues/28474")>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function HandleProjectsWithoutCompilations() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+                            <Document>
+                                public interface IGoo
+                                {
+                                    void [|$$Goo|]();
+                                }
+                                public class C : IGoo
+                                {
+                                    public void [|Goo|]() {}
+                                }
+                            </Document>
+                        </Project>
+                        <Project Language="NoCompilation" CommonReferences="false">
+                            <ProjectReference>CSharpProject</ProjectReference>
+                            <Document>
+                                // a no-compilation document
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretDoc = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
+                Dim caretPosition = caretDoc.CursorPosition.Value
+                Dim textBuffer = caretDoc.TextBuffer
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+            End Using
+        End Function
     End Class
 End Namespace
