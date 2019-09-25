@@ -22,7 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestState
         Inherits AbstractCommandHandlerTestState
 
-        Private Const TimeoutMs = 10000
+        Private Const timeoutMs = 10000
+        Private Const editorTimeoutMs = 20000
         Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As VSCommanding.ICommandHandler
         Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
@@ -78,6 +79,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                        Optional cursorDocumentElement As XElement = Nothing,
                        Optional roles As ImmutableArray(Of String) = Nothing)
             MyBase.New(workspaceElement, GetExportProvider(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind, cursorDocumentElement, roles)
+
+            ' The current default timeout defined in the Editor may not work on slow virtual test machines.
+            ' Need to use a safe timeout there to follow real code paths.
+            MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionThresholdOptionId, editorTimeoutMs)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
@@ -485,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         End Sub
 
             AddHandler presenter.UiUpdated, uiUpdated
-            Dim ct = New CancellationTokenSource(TimeoutMs)
+            Dim ct = New CancellationTokenSource(timeoutMs)
             ct.Token.Register(Sub() tcs.TrySetCanceled(), useSynchronizationContext:=False)
 
             Await tcs.Task.ConfigureAwait(True)
