@@ -594,10 +594,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundLambda ReallyInferReturnType(NamedTypeSymbol delegateType, ImmutableArray<TypeWithAnnotations> parameterTypes, ImmutableArray<RefKind> parameterRefKinds)
+        private BoundLambda ReallyInferReturnType(
+            NamedTypeSymbol delegateType,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            bool forErrorRecovery = false)
         {
+            Debug.Assert(forErrorRecovery ^ delegateType is object);
             var diagnostics = DiagnosticBag.GetInstance();
-            // TypeWithAnnotations
             var lambdaSymbol = new LambdaSymbol(
                 Binder.Compilation,
                 Binder.ContainingMemberOrLambda,
@@ -605,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterTypes,
                 parameterRefKinds,
                 refKind: CodeAnalysis.RefKind.None,
-                returnType: delegateType is null ? TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(this.Binder.Compilation, "", arity: 0, errorInfo: null, unreported: false)) : default,
+                returnType: default,
                 diagnostics: diagnostics);
             Binder lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
@@ -623,6 +627,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType = TypeWithAnnotations.Create(LambdaSymbol.InferenceFailureReturnType);
             }
             lambdaSymbol.SetInferredReturnType(inferredReturnType.RefKind, returnType);
+
+            if (forErrorRecovery)
+            {
+                // When binding the lambda for error recovery, we bind one more time to permit the return expressions
+                // to be converted to the inferred return type so that no unconverted expressions remain in the bound tree.
+                diagnostics = DiagnosticBag.GetInstance();
+                lambdaSymbol = new LambdaSymbol(
+                    Binder.Compilation,
+                    Binder.ContainingMemberOrLambda,
+                    _unboundLambda,
+                    parameterTypes,
+                    parameterRefKinds,
+                    refKind: CodeAnalysis.RefKind.None,
+                    returnType: returnType,
+                    diagnostics: diagnostics);
+                lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
+                block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
+                result = new BoundLambda(
+                    _unboundLambda.Syntax, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder,
+                    delegateType, new InferredLambdaReturnType(true, CodeAnalysis.RefKind.None, returnType, ImmutableArray<DiagnosticInfo>.Empty))
+                    { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
+            }
 
             return result;
         }
@@ -794,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 GuessBestBoundLambda(_bindingCache)
                 ?? rebind(GuessBestBoundLambda(_returnInferenceCache))
-                ?? ReallyInferReturnType(null, ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty);
+                ?? ReallyInferReturnType(null, ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty, forErrorRecovery: true);
 
             // Rebind a lambda to push target conversions through the return/result expressions
             BoundLambda rebind(BoundLambda lambda)

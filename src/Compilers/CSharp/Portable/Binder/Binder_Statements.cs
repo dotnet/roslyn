@@ -221,6 +221,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 argument = binder.GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
+            else
+            {
+                argument = BindToTypeForErrorRecovery(argument);
+            }
 
             // NOTE: it's possible that more than one of these conditions is satisfied and that
             // we won't report the syntactically innermost.  However, dev11 appears to check
