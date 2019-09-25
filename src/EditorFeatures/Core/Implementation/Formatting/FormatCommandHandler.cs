@@ -21,19 +21,18 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
     [Export]
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
     internal partial class FormatCommandHandler :
-        VSCommanding.ICommandHandler<FormatDocumentCommandArgs>,
-        VSCommanding.ICommandHandler<FormatSelectionCommandArgs>,
+        ICommandHandler<FormatDocumentCommandArgs>,
+        ICommandHandler<FormatSelectionCommandArgs>,
         IChainedCommandHandler<PasteCommandArgs>,
         IChainedCommandHandler<TypeCharCommandArgs>,
         IChainedCommandHandler<ReturnKeyCommandArgs>
@@ -95,19 +94,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return buffer.CanApplyChangeDocumentToWorkspace();
         }
 
-        private static VSCommanding.CommandState GetCommandState(ITextBuffer buffer, Func<VSCommanding.CommandState> nextHandler)
+        private static CommandState GetCommandState(ITextBuffer buffer, Func<CommandState> nextHandler)
         {
             if (!CanExecuteCommand(buffer))
             {
                 return nextHandler();
             }
 
-            return VSCommanding.CommandState.Available;
+            return CommandState.Available;
         }
 
-        private static VSCommanding.CommandState GetCommandState(ITextBuffer buffer)
+        private static CommandState GetCommandState(ITextBuffer buffer)
         {
-            return CanExecuteCommand(buffer) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+            return CanExecuteCommand(buffer) ? CommandState.Available : CommandState.Unspecified;
         }
 
         public void ExecuteReturnOrTypeCommand(EditorCommandArgs args, Action nextHandler, CancellationToken cancellationToken)

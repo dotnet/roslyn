@@ -14,11 +14,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : VSCommanding.ICommandHandler<TCommandArgs>
+    internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : ICommandHandler<TCommandArgs>
         where TLanguageService : class, ILanguageService
         where TCommandArgs : EditorCommandArgs
     {
@@ -41,14 +40,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             _streamingPresenter = streamingPresenter;
         }
 
-        public VSCommanding.CommandState GetCommandState(TCommandArgs args)
+        public CommandState GetCommandState(TCommandArgs args)
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var findUsagesService = document?.GetLanguageService<TLanguageService>();
             return findUsagesService != null
-                ? VSCommanding.CommandState.Available
-                : VSCommanding.CommandState.Unavailable;
+                ? CommandState.Available
+                : CommandState.Unavailable;
         }
 
         public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
