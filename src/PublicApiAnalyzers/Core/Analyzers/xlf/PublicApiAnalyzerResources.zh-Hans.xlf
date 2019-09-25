@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="PublicApiFilesMissingMessage">
         <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="new">The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</target>
+        <target state="translated">解决方案必须包含两个具有类型 "AdditionalFiles" 的文件(PublicAPI.Unshipped.txt 和 PublicAPI.Shipped.txt)。其中至少有一个文件缺失或类型错误。</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesMissingTitle">
         <source>One or both of the public API files are missing</source>
-        <target state="new">One or both of the public API files are missing</target>
+        <target state="translated">缺少一个或两个公共 API 文件</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
-        <target state="translated">符号“{0}”是已声明 API 的一部分，但此符号为非公共或无法找到</target>
+        <target state="translated">符号“{0}”是已声明 API 的一部分，但此符号不是公共符号或无法找到</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiTitle">

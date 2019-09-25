@@ -11,8 +11,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
-
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
@@ -38,11 +36,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             Func<PropertySetAnalysisContext, PropertySetAnalysisResult> tryGetOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraphOpt,
             InterproceduralPropertySetAnalysisData interproceduralAnalysisDataOpt,
-            string typeToTrackMetadataName,
+            ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
-            ImmutableDictionary<INamedTypeSymbol, string> hazardousUsageTypesToNames)
+            ImmutableDictionary<(INamedTypeSymbol, bool), string> hazardousUsageTypesToNames)
             : base(
                   valueDomain,
                   wellKnownTypeProvider,
@@ -61,7 +59,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                   interproceduralAnalysisDataOpt,
                   interproceduralAnalysisPredicateOpt: null)
         {
-            this.TypeToTrackMetadataName = typeToTrackMetadataName;
+            this.TypeToTrackMetadataNames = typeToTrackMetadataNames;
             this.ConstructorMapper = constructorMapper;
             this.PropertyMappers = propertyMappers;
             this.HazardousUsageEvaluators = hazardousUsageEvaluators;
@@ -79,7 +77,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             PointsToAnalysisResult pointsToAnalysisResult,
             ValueContentAnalysisResult valueContentAnalysisResultOpt,
             Func<PropertySetAnalysisContext, PropertySetAnalysisResult> tryGetOrComputeAnalysisResult,
-            string typeToTrackMetadataName,
+            ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators)
@@ -97,7 +95,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 tryGetOrComputeAnalysisResult,
                 parentControlFlowGraphOpt: null,
                 interproceduralAnalysisDataOpt: null,
-                typeToTrackMetadataName: typeToTrackMetadataName,
+                typeToTrackMetadataNames: typeToTrackMetadataNames,
                 constructorMapper: constructorMapper,
                 propertyMappers: propertyMappers,
                 hazardousUsageEvaluators: hazardousUsageEvaluators,
@@ -129,7 +127,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 TryGetOrComputeAnalysisResult,
                 ControlFlowGraph,
                 interproceduralAnalysisData,
-                this.TypeToTrackMetadataName,
+                this.TypeToTrackMetadataNames,
                 this.ConstructorMapper,
                 this.PropertyMappers,
                 this.HazardousUsageEvaluators,
@@ -137,9 +135,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         /// <summary>
-        /// Metadata name of the type to track.
+        /// Metadata names of the types to track.
         /// </summary>
-        public string TypeToTrackMetadataName { get; }
+        public ImmutableHashSet<string> TypeToTrackMetadataNames { get; }
 
         /// <summary>
         /// How constructor invocations map to <see cref="PropertySetAbstractValueKind"/>s.
@@ -156,12 +154,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         public HazardousUsageEvaluatorCollection HazardousUsageEvaluators { get; }
 
-        public ImmutableDictionary<INamedTypeSymbol, string> HazardousUsageTypesToNames { get; }
+        public ImmutableDictionary<(INamedTypeSymbol, bool), string> HazardousUsageTypesToNames { get; }
 
 #pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
         protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
         {
-            addPart(TypeToTrackMetadataName.GetHashCode());
+            addPart(TypeToTrackMetadataNames.GetHashCode());
             addPart(ConstructorMapper.GetHashCode());
             addPart(PropertyMappers.GetHashCode());
             addPart(HazardousUsageEvaluators.GetHashCode());

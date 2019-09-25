@@ -100,10 +100,10 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="members"></param>
         /// <param name="expectedParameterTypesInOrder"></param>
         /// <returns></returns>
-        public static IMethodSymbol GetSingleOrDefaultMemberWithParameterInfos(this IEnumerable<IMethodSymbol> members, params ParameterInfo[] expectedParameterTypesInOrder)
+        public static IMethodSymbol GetFirstOrDefaultMemberWithParameterInfos(this IEnumerable<IMethodSymbol> members, params ParameterInfo[] expectedParameterTypesInOrder)
         {
             var expectedParameterCount = expectedParameterTypesInOrder.Count();
-            return members?.SingleOrDefault(member =>
+            return members?.FirstOrDefault(member =>
             {
                 if (member.Parameters.Count() != expectedParameterCount)
                 {

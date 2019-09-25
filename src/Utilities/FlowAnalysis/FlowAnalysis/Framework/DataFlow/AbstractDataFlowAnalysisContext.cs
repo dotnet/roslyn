@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> interproceduralAnalysisDataOpt,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
         {
+            Debug.Assert(valueDomain != null, "valueDomain must not be null for use in ComputeHashCodeParts");
             Debug.Assert(controlFlowGraph != null);
             Debug.Assert(owningSymbol != null);
             Debug.Assert(owningSymbol.Kind == SymbolKind.Method ||
@@ -49,6 +50,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(Equals(owningSymbol.OriginalDefinition, owningSymbol));
             Debug.Assert(wellKnownTypeProvider != null);
             Debug.Assert(tryGetOrComputeAnalysisResult != null);
+            Debug.Assert(pointsToAnalysisResultOpt == null ||
+                pointsToAnalysisResultOpt.ControlFlowGraph == controlFlowGraph);
+            Debug.Assert(copyAnalysisResultOpt == null ||
+                copyAnalysisResultOpt.ControlFlowGraph == controlFlowGraph);
+            Debug.Assert(valueContentAnalysisResultOpt == null ||
+                valueContentAnalysisResultOpt.ControlFlowGraph == controlFlowGraph);
 
             ValueDomain = valueDomain;
             WellKnownTypeProvider = wellKnownTypeProvider;
@@ -154,7 +161,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             addPart(ValueDomain.GetHashCode());
             addPart(OwningSymbol.GetHashCode());
-            addPart(ControlFlowGraph.OriginalOperation.GetHashCode());
+            addPart(ControlFlowGraph.GetHashCode());
             addPart(AnalyzerOptions.GetHashCode());
             addPart(InterproceduralAnalysisConfiguration.GetHashCode());
             addPart(PessimisticAnalysis.GetHashCode());
