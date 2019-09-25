@@ -105,7 +105,7 @@
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.27</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>16.0.28226-alpha</MicrosoftVisualStudioGraphModelVersion>
-    <MicrosoftVisualStudioImageCatalogVersion>16.0.28727</MicrosoftVisualStudioImageCatalogVersion>
+    <MicrosoftVisualStudioImageCatalogVersion>16.3.29316.127</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>16.0.28226-pre</MicrosoftVisualStudioImagingVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.8.0</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioLanguageVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageVersion>
