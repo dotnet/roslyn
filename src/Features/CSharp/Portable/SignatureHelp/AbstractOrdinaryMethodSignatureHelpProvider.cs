@@ -17,15 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal abstract class AbstractOrdinaryMethodSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
     {
         protected SignatureHelpItem ConvertMethodGroupMethod(
+            Document document,
             IMethodSymbol method,
             int position,
             SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
             CancellationToken cancellationToken)
         {
-            var item = CreateItem(
+            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
+
+            return CreateItem(
                 method, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 method.IsParams(),
@@ -34,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 GetSeparatorParts(),
                 GetMethodGroupPostambleParts(method),
                 method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList());
-            return item;
         }
 
         private IList<SymbolDisplayPart> GetMethodGroupPreambleParts(

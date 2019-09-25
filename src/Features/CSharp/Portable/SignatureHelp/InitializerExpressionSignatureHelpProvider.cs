@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             // get the regular signature help items
-            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var parentOperation = semanticModel.GetOperation(initializerExpression.Parent, cancellationToken) as IObjectOrCollectionInitializerOperation;
             if (parentOperation == null)
             {
@@ -92,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             //
             //      new JObject { { propName, propValue }, { propName, propValue } }
 
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var addMethods = addSymbols.OfType<IMethodSymbol>()
                                        .Where(m => m.Parameters.Length >= 2)
                                        .ToImmutableArray()
@@ -104,12 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(initializerExpression);
-            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             return CreateSignatureHelpItems(addMethods.Select(s =>
-                ConvertMethodGroupMethod(s, initializerExpression.OpenBraceToken.SpanStart, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                ConvertMethodGroupMethod(document, s, initializerExpression.OpenBraceToken.SpanStart, semanticModel, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem: null);
         }
 

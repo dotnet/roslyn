@@ -17,11 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
     internal partial class InvocationExpressionSignatureHelpProvider
     {
         private (IList<SignatureHelpItem>, int?) GetMethodGroupItemsAndSelection(
+            Document document,
             InvocationExpressionSyntax invocationExpression,
             SemanticModel semanticModel,
-            ISymbolDisplayService symbolDisplayService,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            IDocumentationCommentFormattingService documentationCommentFormattingService,
             ISymbol within,
             IEnumerable<IMethodSymbol> methodGroup,
             SymbolInfo currentSymbol,
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             accessibleMethods = accessibleMethods.Where(m => !IsHiddenByOtherMethod(m, methodSet)).ToImmutableArrayOrEmpty();
 
             return (accessibleMethods.Select(m =>
-                ConvertMethodGroupMethod(m, invocationExpression.SpanStart, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
+                ConvertMethodGroupMethod(document, m, invocationExpression.SpanStart, semanticModel, cancellationToken)).ToList(),
                 TryGetSelectedIndex(accessibleMethods, currentSymbol));
         }
 

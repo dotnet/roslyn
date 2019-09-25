@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             if (methodGroup.Any())
             {
-                var (items, selectedItem) =
-                    GetMethodGroupItemsAndSelection(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, symbolInfo, cancellationToken);
+                var (items, selectedItem) = GetMethodGroupItemsAndSelection(
+                    document, invocationExpression, semanticModel, within, methodGroup, symbolInfo, cancellationToken);
 
                 return CreateSignatureHelpItems(
                     items,
