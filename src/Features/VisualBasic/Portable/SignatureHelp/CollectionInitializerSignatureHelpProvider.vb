@@ -1,17 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Linq
 Imports System.Threading
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     <ExportSignatureHelpProvider(NameOf(CollectionInitializerSignatureHelpProvider), LanguageNames.VisualBasic), [Shared]>
