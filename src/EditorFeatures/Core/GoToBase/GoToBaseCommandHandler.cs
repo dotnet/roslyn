@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
         public override string DisplayName => EditorFeaturesResources.Go_To_Base;
 
-        protected override string _scopeDescription => EditorFeaturesResources.Locating_bases;
+        protected override string ScopeDescription => EditorFeaturesResources.Locating_bases;
 
-        protected override FunctionId _functionId => FunctionId.CommandHandler_GoToBase;
+        protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
 
         protected override Task FindAction(IGoToBaseService service, Document document, int caretPosition, IFindUsagesContext context)
             => service.FindBasesAsync(document, caretPosition, context);

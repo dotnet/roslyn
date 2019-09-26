@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public abstract string DisplayName { get; }
 
-        protected abstract string _scopeDescription { get; }
+        protected abstract string ScopeDescription { get; }
 
-        protected abstract FunctionId _functionId { get; }
+        protected abstract FunctionId FunctionId { get; }
 
         protected abstract Task FindAction(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context);
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
         {
-            using (context.OperationContext.AddScope(allowCancellation: true, _scopeDescription))
+            using (context.OperationContext.AddScope(allowCancellation: true, ScopeDescription))
             {
                 var subjectBuffer = args.SubjectBuffer;
                 if (!subjectBuffer.TryGetWorkspace(out var workspace))
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 string messageToShow = null;
 
                 var userCancellationToken = context.OperationContext.UserCancellationToken;
-                using (Logger.LogBlock(_functionId, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
+                using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
                 {
                     StreamingGoTo(
                         document, caretPosition,

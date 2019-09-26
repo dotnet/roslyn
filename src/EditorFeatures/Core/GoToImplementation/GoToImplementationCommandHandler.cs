@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         public override string DisplayName => EditorFeaturesResources.Go_To_Implementation;
 
-        protected override string _scopeDescription => EditorFeaturesResources.Locating_implementations;
+        protected override string ScopeDescription => EditorFeaturesResources.Locating_implementations;
 
-        protected override FunctionId _functionId => FunctionId.CommandHandler_GoToImplementation;
+        protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToImplementation;
 
         protected override Task FindAction(IFindUsagesService service, Document document, int caretPosition, IFindUsagesContext context)
             => service.FindImplementationsAsync(document, caretPosition, context);
