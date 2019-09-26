@@ -1533,7 +1533,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             static Diagnostic applyBulkConfiguration(Diagnostic diagnostic, Compilation compilation, AnalyzerOptions analyzerOptions)
             {
                 // Check if diagnostic has a location in source.
-                if (diagnostic?.Location.SourceTree == null)
+                if (diagnostic?.Location.SourceTree == null ||
+                    analyzerOptions == null)
                 {
                     return diagnostic;
                 }
