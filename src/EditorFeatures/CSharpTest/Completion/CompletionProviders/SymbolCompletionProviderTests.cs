@@ -10233,7 +10233,7 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters: new List<CompletionFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter });
+                matchingFilters: new List<CompletionFilter> { FilterSet.FieldFilter, FilterSet.TargetTypedFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10252,7 +10252,7 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters: new List<CompletionFilter> { CompletionItemFilter.FieldFilter });
+                matchingFilters: new List<CompletionFilter> { FilterSet.FieldFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10270,7 +10270,7 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "GetHashCode",
-                matchingFilters: new List<CompletionFilter> { CompletionItemFilter.MethodFilter });
+                matchingFilters: new List<CompletionFilter> { FilterSet.MethodFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10288,11 +10288,11 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "c",
-                matchingFilters: new List<CompletionFilter> { CompletionItemFilter.LocalAndParameterFilter, CompletionItemFilter.TargetTypedFilter });
+                matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter, FilterSet.TargetTypedFilter });
 
             await VerifyItemExistsAsync(
                 markup, "C",
-                matchingFilters: new List<CompletionFilter> { CompletionItemFilter.ClassFilter });
+                matchingFilters: new List<CompletionFilter> { FilterSet.ClassFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

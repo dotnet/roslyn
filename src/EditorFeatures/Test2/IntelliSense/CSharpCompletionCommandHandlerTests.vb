@@ -3749,11 +3749,11 @@ class C
                 Dim oldFilters = state.GetCompletionItemFilters()
                 Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
                 For Each f In oldFilters
-                    Assert.NotEqual(CompletionItemFilter.InterfaceFilter.DisplayText, f.Filter.DisplayText)
+                    Assert.NotEqual(FilterSet.InterfaceFilter.DisplayText, f.Filter.DisplayText)
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionItemFilter.InterfaceFilter, isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(FilterSet.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
 
@@ -3782,11 +3782,11 @@ class C
                 Dim oldFilters = state.GetCompletionItemFilters()
                 Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
                 For Each f In oldFilters
-                    Assert.NotEqual(CompletionItemFilter.InterfaceFilter.DisplayText, f.Filter.DisplayText)
+                    Assert.NotEqual(FilterSet.InterfaceFilter.DisplayText, f.Filter.DisplayText)
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionItemFilter.InterfaceFilter, isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(FilterSet.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -3816,11 +3816,11 @@ class C
                 Dim oldFilters = state.GetCompletionItemFilters()
                 Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
                 For Each f In oldFilters
-                    Assert.NotEqual(CompletionItemFilter.InterfaceFilter.DisplayText, f.Filter.DisplayText)
+                    Assert.NotEqual(FilterSet.InterfaceFilter.DisplayText, f.Filter.DisplayText)
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionItemFilter.InterfaceFilter, isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(FilterSet.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -3850,11 +3850,11 @@ class C
                 Dim oldFilters = state.GetCompletionItemFilters()
                 Dim newFilters = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
                 For Each f In oldFilters
-                    Assert.NotEqual(CompletionItemFilter.InterfaceFilter.DisplayText, f.Filter.DisplayText)
+                    Assert.NotEqual(FilterSet.InterfaceFilter.DisplayText, f.Filter.DisplayText)
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionItemFilter.InterfaceFilter, isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(FilterSet.InterfaceFilter, isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -3958,7 +3958,7 @@ class C
                 Dim oldFilters = state.GetCompletionItemFilters()
                 Dim newFiltersBuilder = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
                 For Each f In oldFilters
-                    newFiltersBuilder.Add(f.WithSelected(f.Filter.DisplayText = CompletionItemFilter.ConstantFilter.DisplayText))
+                    newFiltersBuilder.Add(f.WithSelected(f.Filter.DisplayText = FilterSet.ConstantFilter.DisplayText))
                 Next
 
                 state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())

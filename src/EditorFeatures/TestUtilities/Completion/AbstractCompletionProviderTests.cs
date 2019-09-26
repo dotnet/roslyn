@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
         {
-            var matchingFilters = CompletionItemFilter.GetFilters(item);
+            var matchingFilters = FilterSet.GetFilters(item);
             return expectedMatchingFilters.SetEquals(matchingFilters);
         }
 

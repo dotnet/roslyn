@@ -8241,7 +8241,7 @@ End Class
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters:=New List(Of CompletionFilter) From {CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter})
+                matchingFilters:=New List(Of CompletionFilter) From {FilterSet.FieldFilter, FilterSet.TargetTypedFilter})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
@@ -8256,7 +8256,7 @@ End Class"
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters:=New List(Of CompletionFilter) From {CompletionItemFilter.FieldFilter})
+                matchingFilters:=New List(Of CompletionFilter) From {FilterSet.FieldFilter})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
@@ -8271,7 +8271,7 @@ End Class"
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "GetHashCode",
-                matchingFilters:=New List(Of CompletionFilter) From {CompletionItemFilter.MethodFilter})
+                matchingFilters:=New List(Of CompletionFilter) From {FilterSet.MethodFilter})
         End Function
     End Class
 End Namespace
