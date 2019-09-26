@@ -406,11 +406,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        /// <summary>
+        /// Determines the status of projects containing given <paramref name="sourceFilePath"/> or the entire solution if <paramref name="sourceFilePath"/> is null.
+        /// Invoked by the debugger on every step. It is critical for stepping performance that this method returns as fast as possible in absence of changes.
+        /// </summary>
         public async Task<SolutionUpdateStatus> GetSolutionUpdateStatusAsync(Solution solution, string sourceFilePath, CancellationToken cancellationToken)
         {
             try
             {
                 if (_changesApplied)
+                {
+                    return SolutionUpdateStatus.None;
+                }
+
+                if (BaseSolution == solution)
                 {
                     return SolutionUpdateStatus.None;
                 }
@@ -442,22 +451,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var (mvid, _) = await DebuggingSession.GetProjectModuleIdAsync(baseProject.Id, cancellationToken).ConfigureAwait(false);
-                    if (mvid == Guid.Empty)
+                    var changedDocumentAnalyses = GetChangedDocumentsAnalyses(baseProject, project);
+                    if (changedDocumentAnalyses.Count == 0)
                     {
-                        // project not built
-                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not built", project.Id.DebugName, project.Id);
                         continue;
                     }
 
-                    var changedDocumentAnalyses = GetChangedDocumentsAnalyses(baseProject, project);
                     var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
-
-                    if (projectSummary == ProjectAnalysisSummary.ValidChanges &&
-                        !GetModuleDiagnostics(mvid, project.Name).IsEmpty)
+                    if (projectSummary == ProjectAnalysisSummary.ValidChanges)
                     {
-                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: module blocking EnC", project.Id.DebugName, project.Id);
-                        return SolutionUpdateStatus.Blocked;
+                        var (mvid, _) = await DebuggingSession.GetProjectModuleIdAsync(baseProject.Id, cancellationToken).ConfigureAwait(false);
+                        if (mvid == Guid.Empty)
+                        {
+                            // project not built
+                            EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not built", project.Id.DebugName, project.Id);
+                            continue;
+                        }
+
+                        if (!GetModuleDiagnostics(mvid, project.Name).IsEmpty)
+                        {
+                            EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: module blocking EnC", project.Id.DebugName, project.Id);
+                            return SolutionUpdateStatus.Blocked;
+                        }
                     }
 
                     EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: {2}", project.Id.DebugName, project.Id, projectSummary);
@@ -493,11 +508,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<(DocumentId DocumentId, AsyncLazy<DocumentAnalysisResults> Results)> documentAnalyses,
             CancellationToken cancellationToken)
         {
-            if (documentAnalyses.Length == 0)
-            {
-                return ProjectAnalysisSummary.NoChanges;
-            }
-
             bool hasChanges = false;
             bool hasSignificantValidChanges = false;
 
