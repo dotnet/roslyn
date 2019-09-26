@@ -198,16 +198,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             taintedParameterPairs = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
             {
-                foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(string source, string end)> sourceToEnds) passerMethod in sourceInfo.TransferMethods)
+                foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(string source, string end)> sourceToEnds) in sourceInfo.TransferMethods)
                 {
-                    if (passerMethod.methodMatcher(method.Name, arguments))
+                    if (methodMatcher(method.Name, arguments))
                     {
                         if (taintedParameterPairs == null)
                         {
                             taintedParameterPairs = PooledHashSet<(string, string)>.GetInstance();
                         }
 
-                        taintedParameterPairs.UnionWith(passerMethod.sourceToEnds.Where(s => taintedParameterNames.Contains(s.source)));
+                        taintedParameterPairs.UnionWith(sourceToEnds.Where(s => taintedParameterNames.Contains(s.source)));
                     }
                 }
             }
