@@ -239,7 +239,22 @@ namespace Microsoft.CodeAnalysis.Completion
         // If they both seemed just as good, but they differ on preselection, then
         // item1 is better if it is preselected, otherwise it is worse.
         private int ComparePreselection(CompletionItem item1, CompletionItem item2)
-            => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
+        {
+            // If they both seemed just as good, but they differ on preselection, then
+            // item1 is better if it is preselected, otherwise it is worse.
+            if (item1.Rules.MatchPriority == MatchPriority.Preselect &&
+                item2.Rules.MatchPriority != MatchPriority.Preselect)
+            {
+                return -1;
+            }
+            else if (item1.Rules.MatchPriority != MatchPriority.Preselect &&
+                     item2.Rules.MatchPriority == MatchPriority.Preselect)
+            {
+                return 1;
+            }
+
+            return 0;
+        }
 
         private static int CompareExpandedItem(CompletionItem item1, PatternMatch match1, CompletionItem item2, PatternMatch match2)
         {
