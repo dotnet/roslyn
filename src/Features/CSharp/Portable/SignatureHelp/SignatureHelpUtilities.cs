@@ -94,10 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getTypeArgumentListCloseToken);
         }
 
-        internal static TextSpan GetSignatureHelpSpan(InitializerExpressionSyntax argumentList)
-        {
-            return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getInitializerExpressionCloseToken);
-        }
+        internal static TextSpan GetSignatureHelpSpan(InitializerExpressionSyntax initializer)
+            => CommonSignatureHelpUtilities.GetSignatureHelpSpan(initializer, initializer.SpanStart, s_getInitializerExpressionCloseToken);
 
         internal static TextSpan GetSignatureHelpSpan(AttributeArgumentListSyntax argumentList)
         {

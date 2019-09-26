@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         End Function
 
         Friend Function GetSignatureHelpSpan(initializer As CollectionInitializerSyntax) As TextSpan
-            Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(initializer, s_getCollectionInitializerCloseToken)
+            Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(initializer, initializer.SpanStart, s_getCollectionInitializerCloseToken)
         End Function
 
         Friend Function GetSignatureHelpState(argumentList As ArgumentListSyntax, position As Integer) As SignatureHelpState
