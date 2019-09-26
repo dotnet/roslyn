@@ -224,6 +224,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var name = (typeDeclaringMember.Type == null) ?
                     row.Name :
                     GetQualifiedMemberName(row.InspectionContext, typeDeclaringMember, row.Name, FullNameProvider);
+                row.Value.SetDataItem(DkmDataCreationDisposition.CreateAlways, new FavoritesDataItem(row.CanFavorite, row.IsFavorite));
                 row.Value.GetResult(
                     workList.InnerWorkList,
                     row.DeclaredTypeAndInfo.ClrType,
@@ -530,7 +531,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReadOnlyCollection<string> formatSpecifiers,
             DkmEvaluationResultCategory category,
             DkmEvaluationResultFlags flags,
-            DkmEvaluationFlags evalFlags)
+            DkmEvaluationFlags evalFlags,
+            bool canFavorite,
+            bool isFavorite,
+            bool supportsFavorites)
         {
             if ((evalFlags & DkmEvaluationFlags.ShowValueRaw) != 0)
             {
@@ -572,7 +576,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     value = nullableValue;
                     Debug.Assert(lmrNullableTypeArg.Equals(value.Type.GetLmrType())); // If this is not the case, add a test for includeRuntimeTypeIfNecessary.
                     // CONSIDER: The DynamicAttribute for the type argument should just be Skip(1) of the original flag array.
-                    expansion = this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(DkmClrType.Create(declaredTypeAndInfo.ClrType.AppDomain, lmrNullableTypeArg)), value, ExpansionFlags.IncludeResultsView);
+                    expansion = this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(DkmClrType.Create(declaredTypeAndInfo.ClrType.AppDomain, lmrNullableTypeArg)), value, ExpansionFlags.IncludeResultsView, supportsFavorites: false);
                 }
             }
             else if (value.IsError() || (inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoExpansion) != 0)
@@ -597,8 +601,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (expansion == null)
                 {
                     expansion = value.HasExceptionThrown()
-                        ? this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(value.Type), value, expansionFlags)
-                        : this.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, expansionFlags);
+                        ? this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(value.Type), value, expansionFlags, supportsFavorites: false)
+                        : this.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, expansionFlags, supportsFavorites: supportsFavorites);
                 }
             }
 
@@ -618,7 +622,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 category: category,
                 flags: flags,
                 editableValue: Formatter2.GetEditableValueString(value, inspectionContext, declaredTypeAndInfo.Info),
-                inspectionContext: inspectionContext);
+                inspectionContext: inspectionContext,
+                canFavorite: canFavorite,
+                isFavorite: isFavorite);
         }
 
         private void GetRootResultAndContinue(
@@ -738,6 +744,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var expansionFlags = (inspectionContext.EvaluationFlags & NoResults) != 0 ?
                         ExpansionFlags.IncludeBaseMembers :
                         ExpansionFlags.All;
+                    var favortiesDataItem = value.GetDataItem<FavoritesDataItem>();
                     dataItem = CreateDataItem(
                         inspectionContext,
                         name,
@@ -751,7 +758,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         formatSpecifiers: formatSpecifiers,
                         category: DkmEvaluationResultCategory.Other,
                         flags: value.EvalFlags,
-                        evalFlags: inspectionContext.EvaluationFlags);
+                        evalFlags: inspectionContext.EvaluationFlags,
+                        canFavorite: favortiesDataItem?.CanFavorite ?? false,
+                        isFavorite: favortiesDataItem?.IsFavorite ?? false,
+                        supportsFavorites: true);
                     GetResultAndContinue(dataItem, workList, declaredType, declaredTypeInfo, inspectionContext, useDebuggerDisplay, completionRoutine);
                 }
             }
@@ -767,17 +777,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompletionRoutine<DkmEvaluationResult> completionRoutine)
         {
             var value = result.Value; // Value may have been replaced (specifically, for Nullable<T>).
-            DebuggerDisplayInfo displayInfo;
-            if (value.TryGetDebuggerDisplayInfo(out displayInfo))
+
+            if (value.TryGetDebuggerDisplayInfo(out DebuggerDisplayInfo displayInfo))
             {
-                var targetType = displayInfo.TargetType;
-                var attribute = displayInfo.Attribute;
                 void onException(Exception e) => completionRoutine(CreateEvaluationResultFromException(e, result, inspectionContext));
 
+                if (displayInfo.Name != null)
+                {
+                    // Favorites currently dependes on the name matching the member name
+                    result = result.WithDisableCanAddFavorite();
+                }
+
                 var innerWorkList = workList.InnerWorkList;
-                EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, targetType, attribute.Name,
-                    displayName => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, targetType, attribute.Value,
-                        displayValue => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, targetType, attribute.TypeName,
+                EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.Name,
+                    displayName => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.GetValue(inspectionContext),
+                        displayValue => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.TypeName,
                             displayType =>
                                 workList.ContinueWith(() =>
                                     completionRoutine(GetResult(inspectionContext, result, declaredType, declaredTypeInfo, displayName.Result, displayValue.Result, displayType.Result, useDebuggerDisplay))),
@@ -795,8 +809,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrValue value,
             DkmWorkList workList,
             DkmInspectionContext inspectionContext,
-            DkmClrType targetType,
-            string str,
+            DebuggerDisplayItemInfo displayInfo,
             CompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> onCompleted,
             CompletionRoutine<Exception> onException)
         {
@@ -811,13 +824,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     onException(e);
                 }
             }
-            if (str == null)
+            if (displayInfo == null)
             {
                 completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
             }
             else
             {
-                value.EvaluateDebuggerDisplayString(workList, inspectionContext, targetType, str, completionRoutine);
+                value.EvaluateDebuggerDisplayString(workList, inspectionContext, displayInfo.TargetType, displayInfo.Value, completionRoutine);
             }
         }
 
@@ -911,7 +924,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmInspectionContext inspectionContext,
             TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value,
-            ExpansionFlags flags)
+            ExpansionFlags flags,
+            bool supportsFavorites)
         {
             var declaredType = declaredTypeAndInfo.Type;
             Debug.Assert(!declaredType.IsTypeVariables());
@@ -987,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return TupleExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, cardinality);
             }
 
-            return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this, isProxyType: false);
+            return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this, isProxyType: false, supportsFavorites);
         }
 
         private static DkmEvaluationResult CreateEvaluationResultFromException(Exception e, EvalResult result, DkmInspectionContext inspectionContext)

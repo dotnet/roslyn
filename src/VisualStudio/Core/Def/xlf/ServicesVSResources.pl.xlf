@@ -1109,31 +1109,6 @@ Użyj listy rozwijanej, aby wyświetlać inne projekty, do których może należ
         <target state="translated">Zestaw analizatora „{0}” jest zależny od zestawu „{1}”, ale nie odnaleziono go. Analizatory mogą nie działać poprawnie, dopóki brakujący zestaw również nie zostanie dodany jako odwołanie analizatora.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppression_State">
-        <source>Suppression State</source>
-        <target state="translated">Stan pominięcia</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Active">
-        <source>Active</source>
-        <target state="translated">Aktywne</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppressed">
-        <source>Suppressed</source>
-        <target state="translated">Pominięty</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NotApplicable">
-        <source>N/A</source>
-        <target state="translated">Nie dotyczy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SuppressionNotSupportedToolTip">
-        <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
-        <target state="translated">Stan pominięcia jest obsługiwany tylko w przypadku diagnostyki IntelliSense używanej na potrzeby migawki bieżącego rozwiązania. Przełącz się do diagnostyki „IntelliSense” w celu pominięcia.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_diagnostics">
         <source>Suppress diagnostics</source>
         <target state="translated">Pomiń diagnostykę</target>
