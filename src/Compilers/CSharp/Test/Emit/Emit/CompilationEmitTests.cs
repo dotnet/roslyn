@@ -281,6 +281,34 @@ public class C
             }
         }
 
+        [Fact]
+        public void EmitRefAssembly_InternalAttributeConstructor()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+using System;
+
+public class A : Attribute
+{
+    internal A(int arg)
+    {
+    }
+}
+
+[A(42)]
+public class C
+{
+}
+");
+            using (var output = new MemoryStream())
+            using (var metadataOutput = new MemoryStream())
+            {
+                EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
+                    options: new EmitOptions(includePrivateMembers: false));
+                Assert.True(emitResult.Success);
+                emitResult.Diagnostics.Verify();
+            }
+        }
+
         private class TestResourceSectionBuilder : ResourceSectionBuilder
         {
             public TestResourceSectionBuilder()
