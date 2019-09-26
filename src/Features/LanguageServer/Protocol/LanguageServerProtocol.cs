@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <param name="request">the initialize parameters.</param>
         /// <param name="clientCapabilities">the client capabilities for the request.</param>
         /// <param name="cancellationToken">a cancellation token.</param>
-        /// <returns>the server cababilities.</returns>
+        /// <returns>the server capabilities.</returns>
         public Task<LSP.InitializeResult> InitializeAsync(Solution solution, LSP.InitializeParams request, LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, solution, request, clientCapabilities, cancellationToken);
 

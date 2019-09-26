@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                     (currentDeclaration, generator) =>
                     {
                         return generator.GetAccessibility(currentDeclaration) == Accessibility.NotApplicable
-                                    ? generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) // No accessibilty was declared, we need to add it
+                                    ? generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) // No accessibility was declared, we need to add it
                                     : generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable); // There was an accessibility, so remove it                       
                     });
             }

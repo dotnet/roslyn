@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var referencedSymbols = await SymbolFinder.FindReferencesAsync(
                 localFunctionSymbol, document.Project.Solution, documentImmutableSet, cancellationToken).ConfigureAwait(false);
 
-            // Now we need to find all the refereces to the local function that we might need to fix.
+            // Now we need to find all the references to the local function that we might need to fix.
             var shouldWarn = false;
             using var builderDisposer = ArrayBuilder<InvocationExpressionSyntax>.GetInstance(out var invocations);
 
