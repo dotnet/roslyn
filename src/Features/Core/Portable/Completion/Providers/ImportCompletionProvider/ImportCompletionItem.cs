@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal static class TypeImportCompletionItem
+    internal static class ImportCompletionItem
     {
         private const string SortTextFormat = "~{0} {1}";
         private const string GenericTypeNameManglingString = "`";
@@ -20,12 +20,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, string genericTypeSuffix)
         {
+            return Create(typeSymbol, typeSymbol.Arity, containingNamespace, genericTypeSuffix, CompletionItemFlags.CachedAndExpanded);
+        }
+
+        public static CompletionItem Create(IMethodSymbol methodSymbol, string containingNamespace, string genericTypeSuffix)
+        {
+            Debug.Assert(methodSymbol.IsExtensionMethod);
+            return Create(methodSymbol, methodSymbol.Arity, containingNamespace, genericTypeSuffix, CompletionItemFlags.Expanded);
+        }
+
+        private static CompletionItem Create(ISymbol symbol, int arity, string containingNamespace, string genericTypeSuffix, CompletionItemFlags flags)
+        {
             PooledDictionary<string, string> propertyBuilder = null;
 
-            if (typeSymbol.Arity > 0)
+            if (arity > 0)
             {
                 propertyBuilder = PooledDictionary<string, string>.GetInstance();
-                propertyBuilder.Add(TypeAritySuffixName, GetAritySuffix(typeSymbol.Arity));
+                propertyBuilder.Add(TypeAritySuffixName, GetAritySuffix(arity));
             }
 
             // Add tildes (ASCII: 126) to name and namespace as sort text:
@@ -33,19 +44,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // 2. ' ' before namespace makes types with identical type name but from different namespace all show up in the list,
             //    it also makes sure type with shorter name shows first, e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
             var sortTextBuilder = PooledStringBuilder.GetInstance();
-            sortTextBuilder.Builder.AppendFormat(SortTextFormat, typeSymbol.Name, containingNamespace);
+            sortTextBuilder.Builder.AppendFormat(SortTextFormat, symbol.Name, containingNamespace);
 
             var item = CompletionItem.Create(
-                 displayText: typeSymbol.Name,
+                 displayText: symbol.Name,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: propertyBuilder?.ToImmutableDictionaryAndFree(),
-                 tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
+                 tags: GlyphTags.GetTags(symbol.GetGlyph()),
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
-                 displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : genericTypeSuffix,
+                 displayTextSuffix: arity == 0 ? string.Empty : genericTypeSuffix,
                  inlineDescription: containingNamespace);
 
-            item.Flags = CompletionItemFlags.CachedAndExpanded;
+            item.Flags = flags;
             return item;
         }
 

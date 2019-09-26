@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 {
     internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
     {
-        private ITypeImportCompletionCacheService CacheService { get; }
+        private IImportCompletionCacheService CacheService { get; }
 
         protected abstract string GenericTypeSuffix { get; }
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         internal AbstractTypeImportCompletionService(Workspace workspace)
         {
-            CacheService = workspace.Services.GetService<ITypeImportCompletionCacheService>();
+            CacheService = workspace.Services.GetService<IImportCompletionCacheService>();
         }
 
         public async Task<ImmutableArray<CompletionItem>> GetTopLevelTypesAsync(
@@ -100,24 +100,36 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             IDictionary<TKey, ReferenceCacheEntry> cache,
             CancellationToken cancellationToken)
         {
+            var cacheEntry = GetCacheEntry(key, assembly, checksum, syntaxContext, cache, cancellationToken);
+            return cacheEntry.GetItemsForContext(
+                syntaxContext.SemanticModel.Language,
+                GenericTypeSuffix,
+                isInternalsVisible,
+                syntaxContext.IsAttributeNameContext,
+                IsCaseSensitive);
+        }
+
+        private ReferenceCacheEntry GetCacheEntry<TKey>(
+            TKey key,
+            IAssemblySymbol assembly,
+            Checksum checksum,
+            SyntaxContext syntaxContext,
+            IDictionary<TKey, ReferenceCacheEntry> cache,
+            CancellationToken cancellationToken)
+        {
             var language = syntaxContext.SemanticModel.Language;
 
             // Cache miss, create all requested items.
             if (!cache.TryGetValue(key, out var cacheEntry) ||
                 cacheEntry.Checksum != checksum)
             {
-                var builder = new ReferenceCacheEntry.Builder(checksum, language, GenericTypeSuffix);
+                using var builder = new ReferenceCacheEntry.Builder(checksum, language, GenericTypeSuffix);
                 GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
                 cacheEntry = builder.ToReferenceCacheEntry();
                 cache[key] = cacheEntry;
             }
 
-            return cacheEntry.GetItemsForContext(
-                language,
-                GenericTypeSuffix,
-                isInternalsVisible,
-                syntaxContext.IsAttributeNameContext,
-                IsCaseSensitive);
+            return cacheEntry;
         }
 
         private static void GetCompletionItemsForTopLevelTypeDeclarations(
@@ -233,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         private readonly struct ReferenceCacheEntry
         {
-            public class Builder
+            public class Builder : IDisposable
             {
                 private readonly string _language;
                 private readonly string _genericTypeSuffix;
@@ -255,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     return new ReferenceCacheEntry(
                         _checksum,
                         _language,
-                        _itemsBuilder.ToImmutableAndFree());
+                        _itemsBuilder.ToImmutable());
                 }
 
                 public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
@@ -270,9 +282,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     // attribute types that don't have "Attribute" suffix would be filtered out when in attribute context.
                     var isAttribute = symbol.Name.HasAttributeSuffix(isCaseSensitive: false) && symbol.IsAttribute();
 
-                    var item = TypeImportCompletionItem.Create(symbol, containingNamespace, _genericTypeSuffix);
+                    var item = ImportCompletionItem.Create(symbol, containingNamespace, _genericTypeSuffix);
                     _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute));
                 }
+
+                public void Dispose()
+                    => _itemsBuilder.Free();
             }
 
             private ReferenceCacheEntry(
@@ -324,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                         if (!isSameLanguage && info.IsGeneric)
                         {
                             // We don't want to cache this item.
-                            item = TypeImportCompletionItem.CreateItemWithGenericDisplaySuffix(item, genericTypeSuffix);
+                            item = ImportCompletionItem.CreateItemWithGenericDisplaySuffix(item, genericTypeSuffix);
                         }
 
                         builder.Add(item);
@@ -338,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     if (attributeItem.DisplayText.TryGetWithoutAttributeSuffix(isCaseSensitive: isCaseSensitive, out var attributeNameWithoutSuffix))
                     {
                         // We don't want to cache this item.
-                        return TypeImportCompletionItem.CreateAttributeItemWithoutSuffix(attributeItem, attributeNameWithoutSuffix);
+                        return ImportCompletionItem.CreateAttributeItemWithoutSuffix(attributeItem, attributeNameWithoutSuffix);
                     }
 
                     return attributeItem;
@@ -379,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             {
                 IsPublic = 0x1,
                 IsGeneric = 0x2,
-                IsAttribute = 0x4,
+                IsAttribute = 0x4
             }
         }
     }

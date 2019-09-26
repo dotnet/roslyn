@@ -8,10 +8,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportLanguageServiceFactory(typeof(ITypeImportCompletionService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpTypeImportCompletionServiceFactory : ILanguageServiceFactory
+    internal sealed class TypeImportCompletionServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
-        public CSharpTypeImportCompletionServiceFactory()
+        public TypeImportCompletionServiceFactory()
         {
         }
 

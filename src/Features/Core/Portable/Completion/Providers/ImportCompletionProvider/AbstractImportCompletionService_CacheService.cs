@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 {
     internal partial class AbstractTypeImportCompletionService
     {
-        private interface ITypeImportCompletionCacheService : IWorkspaceService
+        private interface IImportCompletionCacheService : IWorkspaceService
         {
             // PE references are keyed on assembly path.
             IDictionary<string, ReferenceCacheEntry> PEItemsCache { get; }
@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             IDictionary<ProjectId, ReferenceCacheEntry> ProjectItemsCache { get; }
         }
 
-        [ExportWorkspaceServiceFactory(typeof(ITypeImportCompletionCacheService), ServiceLayer.Editor), Shared]
-        private class TypeImportCompletionCacheServiceFactory : IWorkspaceServiceFactory
+        [ExportWorkspaceServiceFactory(typeof(IImportCompletionCacheService), ServiceLayer.Editor), Shared]
+        private class ImportCompletionCacheServiceFactory : IWorkspaceServiceFactory
         {
             private readonly ConcurrentDictionary<string, ReferenceCacheEntry> _peItemsCache
                 = new ConcurrentDictionary<string, ReferenceCacheEntry>();
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 = new ConcurrentDictionary<ProjectId, ReferenceCacheEntry>();
 
             [ImportingConstructor]
-            public TypeImportCompletionCacheServiceFactory()
+            public ImportCompletionCacheServiceFactory()
             {
             }
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     }
                 }
 
-                return new TypeImportCompletionCacheService(_peItemsCache, _projectItemsCache);
+                return new ImportCompletionCacheService(_peItemsCache, _projectItemsCache);
             }
 
             private void OnCacheFlushRequested(object sender, EventArgs e)
@@ -54,13 +54,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 _projectItemsCache.Clear();
             }
 
-            private class TypeImportCompletionCacheService : ITypeImportCompletionCacheService
+            private class ImportCompletionCacheService : IImportCompletionCacheService
             {
                 public IDictionary<string, ReferenceCacheEntry> PEItemsCache { get; }
 
                 public IDictionary<ProjectId, ReferenceCacheEntry> ProjectItemsCache { get; }
 
-                public TypeImportCompletionCacheService(
+                public ImportCompletionCacheService(
                     ConcurrentDictionary<string, ReferenceCacheEntry> peCache,
                     ConcurrentDictionary<ProjectId, ReferenceCacheEntry> projectCache)
                 {

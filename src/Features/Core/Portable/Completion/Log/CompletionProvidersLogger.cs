@@ -22,7 +22,12 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             TypeImportCompletionReferenceCount,
             TypeImportCompletionTimeoutCount,
 
-            TargetTypeCompletionTicks
+            TargetTypeCompletionTicks,
+
+            ExtensionMethodCompletionTicks,
+            ExtensionMethodCompletionTypesChecked,
+            ExtensionMethodCompletionMethodsChecked,
+            ExtensionMethodCompletionMethodsProvided
         }
 
         internal static void LogTypeImportCompletionTicksDataPoint(int count) =>
@@ -39,6 +44,16 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogTargetTypeCompletionTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
+
+
+        internal static void LogExtensionMethodCompletionTicksDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, count);
+        internal static void LogExtensionMethodCompletionTypesCheckedDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTypesChecked, count);
+        internal static void LogExtensionMethodCompletionMethodsCheckedDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsChecked, count);
+        internal static void LogExtensionMethodCompletionMethodsProvidedDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionMethodsProvided, count);
 
         internal static void ReportTelemetry()
         {
