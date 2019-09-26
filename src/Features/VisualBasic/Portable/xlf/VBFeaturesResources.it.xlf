@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
-        <target state="translated">Sono stati rilevati conflitti</target>
+        <target state="translated">Sono stati rilevati conflitti.</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_Using_statement">

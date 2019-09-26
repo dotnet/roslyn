@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
                 return true;
             }
 
-            // for now, we don't support converting in embeded statement if 
+            // for now, we don't support converting in embedded statement if 
             // new local declaration for collection is required.
             // we can support this by using Introduce local variable service
             // but the service is not currently written in a way that can be

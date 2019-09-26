@@ -6,20 +6,21 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     [UseExportProvider]
-    public class EditSessionTests : TestBase
+    public class EditSessionActiveStatementsTests : TestBase
     {
         internal sealed class TestActiveStatementProvider : IActiveStatementProvider
         {
@@ -92,36 +93,32 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
             Func<Solution, Solution> adjustSolution = null)
         {
-
             var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
 
             var exportProvider = exportProviderFactory.CreateExportProvider();
 
-            using var workspace = TestWorkspace.CreateCSharp(
-                ActiveStatementsDescription.ClearTags(markedSource),
-                exportProvider: exportProvider);
+            using var workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider);
 
-            var baseSolution = workspace.CurrentSolution;
             if (adjustSolution != null)
             {
-                baseSolution = adjustSolution(baseSolution);
+                workspace.ChangeSolution(adjustSolution(workspace.CurrentSolution));
             }
 
-            var docsIds = from p in baseSolution.Projects
+            var docsIds = from p in workspace.CurrentSolution.Projects
                           from d in p.DocumentIds
                           select d;
 
-            var debuggingSession = new DebuggingSession(baseSolution);
             var activeStatementProvider = new TestActiveStatementProvider(activeStatements);
+            var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
+            var mockCompilationOutputsProvider = new Mock<ICompilationOutputsProviderService>();
 
-            var editSession = new EditSession(
-                baseSolution,
-                debuggingSession,
-                activeStatementProvider,
-                ImmutableDictionary<ProjectId, ProjectReadOnlyReason>.Empty,
-                nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
-                stoppedAtException: false);
+            var debuggingSession = new DebuggingSession(workspace, mockDebuggeModuleProvider.Object, activeStatementProvider, mockCompilationOutputsProvider.Object);
+
+            debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
+
+            var telemetry = new EditSessionTelemetry();
+            var editSession = new EditSession(debuggingSession, telemetry);
 
             return (await editSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
                     await editSession.BaseActiveExceptionRegions.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
@@ -322,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             //   Test2.M2: adding a line in front of try-catch.
             //   Test2.F2: moving the entire method 2 lines down.
 
-            static LinePositionSpan AddDelta(LinePositionSpan span, int lineDelta)
+            LinePositionSpan AddDelta(LinePositionSpan span, int lineDelta)
                 => new LinePositionSpan(new LinePosition(span.Start.Line + lineDelta, span.Start.Character), new LinePosition(span.End.Line + lineDelta, span.End.Character));
 
             var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
@@ -341,11 +338,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
-            EditSession.TestAccessor.GetActiveStatementAndExceptionRegionSpans(
+            EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module2,
                 baseActiveStatements,
                 baseExceptionRegions,
-                updatedMethodTokens: new[] { 0x06000004 }, // contains only recompiled methods in the project we are interested in (module2)
+                updatedMethodTokens: ImmutableArray.Create(0x06000004), // contains only recompiled methods in the project we are interested in (module2)
                 ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
@@ -441,11 +438,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
-            EditSession.TestAccessor.GetActiveStatementAndExceptionRegionSpans(
+            EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module1,
                 baseActiveStatementMap,
                 baseExceptionRegions,
-                updatedMethodTokens: new[] { 0x06000001 }, // F1
+                updatedMethodTokens: ImmutableArray.Create(0x06000001), // F1
                 ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
@@ -623,11 +620,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 )
             );
 
-            EditSession.TestAccessor.GetActiveStatementAndExceptionRegionSpans(
+            EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module1,
                 baseActiveStatementMap,
                 baseExceptionRegions,
-                updatedMethodTokens: new[] { 0x06000002, 0x06000004 }, // F2, F4
+                updatedMethodTokens: ImmutableArray.Create(0x06000002, 0x06000004), // F2, F4
                 initialNonRemappableRegions,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
