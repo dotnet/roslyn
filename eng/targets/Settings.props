@@ -154,6 +154,7 @@
       <PropertyGroup>
         <LangVersion>15.5</LangVersion>
         <NoWarn>$(NoWarn);40057</NoWarn>
+        <VBRuntime>Embed</VBRuntime>
       </PropertyGroup>
       <ItemGroup>
         <Import Include="Microsoft.VisualBasic" />
