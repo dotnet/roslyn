@@ -5795,7 +5795,7 @@ namespace NS2
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ExpandedItemShouldBePreferred_IfIsOnlyCompleteMatch() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
-                  <Document><![CDATA[
+                <Document><![CDATA[
 namespace NS1
 {
     class C

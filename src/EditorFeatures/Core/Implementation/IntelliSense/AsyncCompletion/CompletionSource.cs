@@ -635,9 +635,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return listBuilder.ToImmutableAndFree();
             }
 
-            private ImmutableArray<AsyncCompletionData.CompletionFilter> GetFilters(RoslynCompletionItem item)
-                => CompletionItemFilter.AllFilters.WhereAsArray(f => f.Matches(item)).SelectAsArray(f => GetOrCreateFilter(f));
-
             internal static AsyncCompletionData.CompletionFilter GetOrCreateFilter(CompletionItemFilter filter)
             {
                 if (!s_filterCache.TryGetValue(filter.DisplayText, out var itemFilter))

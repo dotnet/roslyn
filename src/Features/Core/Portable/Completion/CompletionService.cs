@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the completions available at the caret position.
         /// </summary>
-        /// <param name="document">The document that completion is occuring within.</param>
+        /// <param name="document">The document that completion is occurring within.</param>
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The triggering action.</param>
         /// <param name="roles">Optional set of roles associated with the editor state.</param>

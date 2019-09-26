@@ -80,6 +80,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                        Optional roles As ImmutableArray(Of String) = Nothing)
             MyBase.New(workspaceElement, GetExportProvider(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind, cursorDocumentElement, roles)
 
+            ' The current default timeout defined in the Editor may not work on slow virtual test machines.
+            ' Need to use a safe timeout there to follow real code paths.
+            MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionThresholdOptionId, editorTimeoutMs)
+
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
 
