@@ -5519,10 +5519,9 @@ class C
             End Using
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        <MemberData(NameOf(AllCompletionImplementations))>
-        Public Async Function CompletingWithSpaceInMethodParametersWithNoInstanceToInsert(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletingWithSpaceInMethodParametersWithNoInstanceToInsert() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
 <Document><![CDATA[class C
 {
     void M(string s)
@@ -5858,10 +5857,9 @@ namespace NS2
         End Function
 
         <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
-        <InlineData(CompletionImplementation.Modern)>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SortItemsByPatternMatchIfExperimentEnabled(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SortItemsByPatternMatchIfExperimentEnabled() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 namespace NS
 {
@@ -5914,10 +5912,9 @@ namespace NS
         End Function
 
         <WorkItem(38253, "https://github.com/dotnet/roslyn/issues/38253")>
-        <InlineData(CompletionImplementation.Modern)>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SortItemsAlphabeticallyIfExperimentDisabled(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SortItemsAlphabeticallyIfExperimentDisabled() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
 namespace NS
 {
