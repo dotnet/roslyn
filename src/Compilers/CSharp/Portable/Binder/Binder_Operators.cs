@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool leftDefault = left.IsLiteralDefault();
                     bool rightDefault = right.IsLiteralDefault();
-                    foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, rightType, rightNull, ref useSiteDiagnostics);
+                    foundOperator = !isObjectEquality || BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, leftDefault, rightType, rightNull, rightDefault, ref useSiteDiagnostics);
                     diagnostics.Add(node, useSiteDiagnostics);
                 }
             }
