@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 
@@ -10,9 +13,9 @@ namespace Roslyn.Utilities
     {
         // TODO (DevDiv 1117307): Replace with CultureInfo.CurrentUICulture.set when available.
         private const string currentUICultureName = "CurrentUICulture";
-        private readonly static Action<CultureInfo> s_setCurrentUICulture;
+        private readonly static Action<CultureInfo>? s_setCurrentUICulture;
 
-        private static bool TryGetCurrentUICultureSetter(out Action<CultureInfo> setter)
+        private static bool TryGetCurrentUICultureSetter([NotNullWhen(returnValue: true)] out Action<CultureInfo>? setter)
         {
             const string cultureInfoTypeName = "System.Globalization.CultureInfo";
             const string cultureInfoTypeNameGlobalization = cultureInfoTypeName + ", System.Globalization, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
@@ -20,14 +23,14 @@ namespace Roslyn.Utilities
             try
             {
                 var type = Type.GetType(cultureInfoTypeNameGlobalization) ?? typeof(object).GetTypeInfo().Assembly.GetType(cultureInfoTypeName);
-                if ((object)type == null)
+                if ((object?)type == null)
                 {
                     setter = null;
                     return false;
                 }
 
                 var currentUICultureSetter = type.GetTypeInfo().GetDeclaredProperty(currentUICultureName)?.SetMethod;
-                if ((object)currentUICultureSetter == null || !currentUICultureSetter.IsStatic || currentUICultureSetter.ContainsGenericParameters || currentUICultureSetter.ReturnType != typeof(void))
+                if ((object?)currentUICultureSetter == null || !currentUICultureSetter.IsStatic || currentUICultureSetter.ContainsGenericParameters || currentUICultureSetter.ReturnType != typeof(void))
                 {
                     setter = null;
                     return false;
@@ -50,7 +53,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static bool TryGetCurrentThreadUICultureSetter(out Action<CultureInfo> setter)
+        private static bool TryGetCurrentThreadUICultureSetter([NotNullWhen(returnValue: true)] out Action<CultureInfo>? setter)
         {
             const string threadTypeName = "System.Threading.Thread";
             const string currentThreadName = "CurrentThread";
@@ -66,14 +69,14 @@ namespace Roslyn.Utilities
 
                 var typeInfo = type.GetTypeInfo();
                 var currentThreadGetter = typeInfo.GetDeclaredProperty(currentThreadName)?.GetMethod;
-                if ((object)currentThreadGetter == null || !currentThreadGetter.IsStatic || currentThreadGetter.ContainsGenericParameters || currentThreadGetter.ReturnType != type || currentThreadGetter.GetParameters().Length != 0)
+                if ((object?)currentThreadGetter == null || !currentThreadGetter.IsStatic || currentThreadGetter.ContainsGenericParameters || currentThreadGetter.ReturnType != type || currentThreadGetter.GetParameters().Length != 0)
                 {
                     setter = null;
                     return false;
                 }
 
                 var currentUICultureSetter = typeInfo.GetDeclaredProperty(currentUICultureName)?.SetMethod;
-                if ((object)currentUICultureSetter == null || currentUICultureSetter.IsStatic || currentUICultureSetter.ContainsGenericParameters || currentUICultureSetter.ReturnType != typeof(void))
+                if ((object?)currentUICultureSetter == null || currentUICultureSetter.IsStatic || currentUICultureSetter.ContainsGenericParameters || currentUICultureSetter.ReturnType != typeof(void))
                 {
                     setter = null;
                     return false;

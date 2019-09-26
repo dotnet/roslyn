@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -163,16 +165,17 @@ namespace Roslyn.Utilities
         //
         // https://github.com/dotnet/corefx/blob/master/src/System.Private.DataContractSerialization/src/System/Runtime/Serialization/Json/JavaScriptString.cs
         //
-        private static string EscapeString(string value)
+        private static string EscapeString(string? value)
         {
-            PooledStringBuilder pooledBuilder = null;
-            StringBuilder b = null;
+            PooledStringBuilder? pooledBuilder = null;
+            StringBuilder? b = null;
 
-            if (string.IsNullOrEmpty(value))
+            if (RoslynString.IsNullOrEmpty(value))
             {
                 return string.Empty;
             }
 
+#nullable disable // Needs work...
             int startIndex = 0;
             int count = 0;
             for (int i = 0; i < value.Length; i++)
@@ -183,7 +186,7 @@ namespace Roslyn.Utilities
                 {
                     if (b == null)
                     {
-                        Debug.Assert(pooledBuilder == null);
+                        RoslynDebug.Assert(pooledBuilder == null);
                         pooledBuilder = PooledStringBuilder.GetInstance();
                         b = pooledBuilder.Builder;
                     }
@@ -229,6 +232,7 @@ namespace Roslyn.Utilities
             }
 
             return pooledBuilder.ToStringAndFree();
+#nullable enable
         }
 
         private static void AppendCharAsUnicode(StringBuilder builder, char c)

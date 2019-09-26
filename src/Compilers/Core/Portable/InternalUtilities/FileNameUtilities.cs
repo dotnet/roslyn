@@ -1,5 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
 namespace Roslyn.Utilities
 {
     /// <summary>
@@ -36,7 +40,7 @@ namespace Roslyn.Utilities
         /// Returns 0 for path ".goo".
         /// Returns -1 for path "goo.".
         /// </remarks>
-        private static int IndexOfExtension(string path)
+        private static int IndexOfExtension(string? path)
         {
             if (path == null)
             {
@@ -75,7 +79,8 @@ namespace Roslyn.Utilities
         /// The same functionality as <see cref="System.IO.Path.GetExtension(string)"/> but doesn't throw an exception
         /// if there are invalid characters in the path.
         /// </remarks>
-        internal static string GetExtension(string path)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        internal static string? GetExtension(string? path)
         {
             if (path == null)
             {
@@ -93,7 +98,8 @@ namespace Roslyn.Utilities
         /// Returns "goo" for path "goo.".
         /// Returns "goo.." for path "goo...".
         /// </remarks>
-        private static string RemoveExtension(string path)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        private static string? RemoveExtension(string? path)
         {
             if (path == null)
             {
@@ -125,7 +131,8 @@ namespace Roslyn.Utilities
         /// If path does not end with an extension, the new extension is appended to the path.
         /// If extension is null, equivalent to <see cref="RemoveExtension"/>.
         /// </returns>
-        internal static string ChangeExtension(string path, string extension)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        internal static string? ChangeExtension(string? path, string? extension)
         {
             if (path == null)
             {
@@ -150,7 +157,7 @@ namespace Roslyn.Utilities
         /// Returns the position in given path where the file name starts.
         /// </summary>
         /// <returns>-1 if path is null.</returns>
-        internal static int IndexOfFileName(string path)
+        internal static int IndexOfFileName(string? path)
         {
             if (path == null)
             {
@@ -173,10 +180,11 @@ namespace Roslyn.Utilities
         /// Get file name from path.
         /// </summary>
         /// <remarks>Unlike <see cref="System.IO.Path.GetFileName(string)"/> doesn't check for invalid path characters.</remarks>
-        internal static string GetFileName(string path, bool includeExtension = true)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        internal static string? GetFileName(string? path, bool includeExtension = true)
         {
             int fileNameStart = IndexOfFileName(path);
-            var fileName = (fileNameStart <= 0) ? path : path.Substring(fileNameStart);
+            var fileName = (fileNameStart <= 0) ? path : path!.Substring(fileNameStart);
             return includeExtension ? fileName : RemoveExtension(fileName);
         }
     }
