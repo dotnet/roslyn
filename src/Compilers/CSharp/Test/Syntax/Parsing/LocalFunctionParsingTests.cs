@@ -501,25 +501,83 @@ class C
 
         [Fact]
         [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
-        public void LocalFunctionAttribute_Errors()
+        public void LocalFunctionModifier_Error_LocalVariable()
         {
-            // Also includes a disallowed modifier on a local declaration to compare the error behavior
+            var tree = UsingTree(@"
+class C
+{
+    void M()
+    {
+        public object local;
+    }
+}", TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "local");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            tree.GetDiagnostics().Verify(
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+        }
+
+        [Fact]
+        [WorkItem(38801, "https://github.com/dotnet/roslyn/issues/38801")]
+        public void LocalFunctionAttribute_Error_LocalVariable()
+        {
             var tree = UsingTree(@"
 class C
 {
     void M()
     {
         [A] object local;
-    }
-
-    void M()
-    {
-        [A]
-    }
-
-    void M()
-    {
-        public object local;
     }
 }", TestOptions.RegularPreview);
 
@@ -577,72 +635,73 @@ class C
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            tree.GetDiagnostics().Verify(
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+        }
+
+        [Fact]
+        [WorkItem(12280, "https://github.com/dotnet/roslyn/issues/12280")]
+        public void LocalFunctionAttribute_Error_IncompleteMember()
+        {
+            var tree = UsingTree(@"
+class C
+{
+    void M()
+    {
+        [A]
+    }
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
                 {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        M(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.AttributeList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Attribute);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                        }
-                        N(SyntaxKind.CloseBracketToken);
-                    }
-                }
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        M(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.FieldDeclaration);
-                {
-                    N(SyntaxKind.PublicKeyword);
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
                     {
                         N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.ObjectKeyword);
+                            N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.VariableDeclarator);
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
                         {
-                            N(SyntaxKind.IdentifierToken, "local");
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
                         }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -652,24 +711,12 @@ class C
                 // (5,6): error CS1513: } expected
                 //     {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (10,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 6),
-                // (11,11): error CS0116: A namespace cannot directly contain members such as fields or methods
-                //         [A]
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(11, 11),
-                // (12,5): error CS1022: Type or namespace definition, or end-of-file expected
+                // (7,5): error CS1519: Invalid token '}' in class, struct, or interface member declaration
                 //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 5),
-                // (15,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 6),
-                // (17,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(17, 5),
-                // (18,1): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(7, 5),
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(18, 1));
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
         }
 
         [Fact]
