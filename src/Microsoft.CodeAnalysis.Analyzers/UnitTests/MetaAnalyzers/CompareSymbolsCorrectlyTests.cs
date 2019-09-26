@@ -508,5 +508,35 @@ End Class
 
             await VerifyVB.VerifyAnalyzerAsync(source);
         }
+
+
+        [Theory]
+        [InlineData(nameof(ISymbol))]
+        [InlineData(nameof(INamedTypeSymbol))]
+        public async Task CompareSymbolImplementationWithInterface_EqualsComparison_CSharp(string symbolType)
+        {
+            var source = $@"
+using Microsoft.CodeAnalysis;
+class TestClass {{
+    bool Method(ISymbol x, {symbolType} y) {{
+        return [|Equals(x, y)|];
+    }}
+}}
+";
+            var fixedSource = $@"
+using Microsoft.CodeAnalysis;
+class TestClass {{
+    bool Method(ISymbol x, {symbolType} y) {{
+        return SymbolEqualityComparer.Default.Equals(x, y);
+    }}
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source, SymbolEqualityComparerStubCSharp } },
+                FixedState = { Sources = { fixedSource, SymbolEqualityComparerStubCSharp } },
+            }.RunAsync();
+        }
     }
 }
