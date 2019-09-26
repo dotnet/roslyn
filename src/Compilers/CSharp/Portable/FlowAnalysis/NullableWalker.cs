@@ -3464,14 +3464,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Visit the arguments and collect results
             ImmutableArray<VisitArgumentResult> results;
-            (results, argsToParamsOpt) = VisitArgumentsEvaluate(node.Syntax, argumentsNoConversions, refKindsOpt, parametersOpt, argsToParamsOpt, expanded);
+            (results, argsToParamsOpt, refKindsOpt) = VisitArgumentsEvaluate(node.Syntax, argumentsNoConversions, refKindsOpt, parametersOpt, argsToParamsOpt, expanded);
 
             // Re-infer method type parameters
             if ((object)method != null && method.IsGenericMethod)
             {
                 if (HasImplicitTypeArguments(node))
                 {
-                    method = InferMethodTypeArguments(node, method, GetArgumentsForMethodTypeInference(results));
+                    var binder = (node as BoundCall)?.BinderOpt ?? (node as BoundCollectionElementInitializer)?.BinderOpt ?? throw ExceptionUtilities.UnexpectedValue(node);
+                    method = InferMethodTypeArguments(binder, method, GetArgumentsForMethodTypeInference(results), refKindsOpt, argsToParamsOpt, expanded);
                     parametersOpt = method.Parameters;
                 }
                 if (ConstraintsHelper.RequiresChecking(method))
@@ -3566,7 +3567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private (ImmutableArray<VisitArgumentResult> results, ImmutableArray<int> allArgsToParamsOpt) VisitArgumentsEvaluate(
+        private (ImmutableArray<VisitArgumentResult> results, ImmutableArray<int> allArgsToParamsOpt, ImmutableArray<RefKind> allRefKindsOpt) VisitArgumentsEvaluate(
             SyntaxNode syntax,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -3578,7 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int n = arguments.Length;
             if (n == 0 && parametersOpt.IsDefaultOrEmpty)
             {
-                return (ImmutableArray<VisitArgumentResult>.Empty, argsToParamsOpt);
+                return (ImmutableArray<VisitArgumentResult>.Empty, argsToParamsOpt, refKindsOpt);
             }
 
             var visitedParameters = PooledHashSet<ParameterSymbol>.GetInstance();
@@ -3604,6 +3605,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsBuilder.AddRange(argsToParamsOpt);
                 }
 
+                ArrayBuilder<RefKind>? argRefKindsBuilder;
+                if (refKindsOpt.IsDefault)
+                {
+                    argRefKindsBuilder = null;
+                }
+                else
+                {
+                    argRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parametersOpt.Length);
+                    argRefKindsBuilder.AddRange(refKindsOpt);
+                }
+
                 var previousDisableNullabilityAnalysis = _disableNullabilityAnalysis;
                 _disableNullabilityAnalysis = true;
                 for (int i = 0; i < parametersOpt.Length; i++)
@@ -3619,16 +3631,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         resultsBuilder.Add(VisitArgumentEvaluate(argument, RefKind.None, annotations));
                         argsToParamsBuilder?.Add(i);
+                        argRefKindsBuilder?.Add(RefKind.None);
                     }
                 }
                 _disableNullabilityAnalysis = previousDisableNullabilityAnalysis;
 
                 argsToParamsOpt = argsToParamsBuilder?.ToImmutableAndFree() ?? default;
+                refKindsOpt = argRefKindsBuilder?.ToImmutableAndFree() ?? default;
             }
 
             SetInvalidResult();
             visitedParameters.Free();
-            return (resultsBuilder.ToImmutableAndFree(), argsToParamsOpt);
+            return (resultsBuilder.ToImmutableAndFree(), argsToParamsOpt, refKindsOpt);
         }
 #nullable restore
 
@@ -4114,28 +4128,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return (parameter, type, GetParameterAnnotations(parameter), isExpandedParamsArgument: false);
-        }
-
-        private MethodSymbol InferMethodTypeArguments(BoundExpression node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
-        {
-            return node switch
-            {
-                BoundCall call => InferMethodTypeArguments(
-                    call.BinderOpt,
-                    method,
-                    arguments,
-                    call.ArgumentRefKindsOpt,
-                    call.ArgsToParamsOpt,
-                    call.Expanded),
-                BoundCollectionElementInitializer initializer => InferMethodTypeArguments(
-                    initializer.BinderOpt,
-                    method,
-                    arguments,
-                    argumentRefKindsOpt: default,
-                    initializer.ArgsToParamsOpt,
-                    initializer.Expanded),
-                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind)
-            };
         }
 
         private MethodSymbol InferMethodTypeArguments(
@@ -6071,7 +6063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
                         }
-                        deconstructMethod = InferMethodTypeArguments(invocation, deconstructMethod, placeholderArgs.ToImmutableAndFree());
+                        deconstructMethod = InferMethodTypeArguments(invocation.BinderOpt, deconstructMethod, placeholderArgs.ToImmutableAndFree(), invocation.ArgumentRefKindsOpt, invocation.ArgsToParamsOpt, invocation.Expanded);
 
                         // check the constraints remain valid with the re-inferred parameter types
                         if (ConstraintsHelper.RequiresChecking(deconstructMethod))
@@ -7449,7 +7441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             var arguments = node.Arguments;
-            var (argumentResults, _) = VisitArgumentsEvaluate(node.Syntax, arguments, node.ArgumentRefKindsOpt, parametersOpt: default, argsToParamsOpt: default, expanded: false);
+            var (argumentResults, _, _) = VisitArgumentsEvaluate(node.Syntax, arguments, node.ArgumentRefKindsOpt, parametersOpt: default, argsToParamsOpt: default, expanded: false);
             VisitObjectOrDynamicObjectCreation(node, arguments, argumentResults, node.InitializerExpressionOpt);
             return null;
         }
