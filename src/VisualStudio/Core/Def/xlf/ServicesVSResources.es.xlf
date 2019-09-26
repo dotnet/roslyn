@@ -1109,31 +1109,6 @@ Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pe
         <target state="translated">El ensamblado del analizador "{0}" depende de "{1}", pero no se encontró. Es posible que los analizadores no se ejecuten correctamente, a menos que el ensamblado que falta se agregue también como referencia del analizador.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suppression_State">
-        <source>Suppression State</source>
-        <target state="translated">Estado suprimido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Active">
-        <source>Active</source>
-        <target state="translated">Activo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppressed">
-        <source>Suppressed</source>
-        <target state="translated">Suprimido</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NotApplicable">
-        <source>N/A</source>
-        <target state="translated">N/D</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SuppressionNotSupportedToolTip">
-        <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
-        <target state="translated">El estado de supresión solo es compatible con los diagnósticos de IntelliSense, que corresponden a la instantánea de la solución actual. Cambie a los diagnósticos de "IntelliSense" para la supresión.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_diagnostics">
         <source>Suppress diagnostics</source>
         <target state="translated">Suprimir diagnóstico</target>

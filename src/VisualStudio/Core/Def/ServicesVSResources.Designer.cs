@@ -153,15 +153,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Active.
-        /// </summary>
-        internal static string Active {
-            get {
-                return ResourceManager.GetString("Active", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add a naming rule.
         /// </summary>
         internal static string Add_a_naming_rule {
@@ -2055,15 +2046,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to N/A.
-        /// </summary>
-        internal static string NotApplicable {
-            get {
-                return ResourceManager.GetString("NotApplicable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         internal static string OK {
@@ -3020,33 +3002,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Suppress_diagnostics {
             get {
                 return ResourceManager.GetString("Suppress_diagnostics", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suppressed.
-        /// </summary>
-        internal static string Suppressed {
-            get {
-                return ResourceManager.GetString("Suppressed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suppression State.
-        /// </summary>
-        internal static string Suppression_State {
-            get {
-                return ResourceManager.GetString("Suppression_State", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to &apos;Intellisense&apos; diagnostics for suppression..
-        /// </summary>
-        internal static string SuppressionNotSupportedToolTip {
-            get {
-                return ResourceManager.GetString("SuppressionNotSupportedToolTip", resourceCulture);
             }
         }
         
