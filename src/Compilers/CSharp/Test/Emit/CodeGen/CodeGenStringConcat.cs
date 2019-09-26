@@ -110,7 +110,7 @@ public struct Bad
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
