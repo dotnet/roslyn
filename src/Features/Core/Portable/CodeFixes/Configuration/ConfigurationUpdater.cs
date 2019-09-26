@@ -362,16 +362,46 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     var commentValue = groups[commentIndex].Value.ToString();
 
                     // Check if the rule configuration entry we found is under a valid file header
-                    // such as '[*.cs]', '[*.vb]', etc. based on current project's langauge.
+                    // such as '[*]', '[*.cs]', '[*.vb]', etc.
                     var validRule = true;
-                    if (mostRecentHeader != null &&
-                        mostRecentHeader.Length != 0)
+                    if (mostRecentHeader == null)
                     {
-                        var allHeaders = mostRecentHeader.Split(',', '.', ' ', '{', '}');
-                        if ((_language == LanguageNames.CSharp && !allHeaders.Contains("cs")) ||
-                            (_language == LanguageNames.VisualBasic && !allHeaders.Contains("vb")))
+                        validRule = false;
+                    }
+                    else if (mostRecentHeader.Length != 0 &&
+                        !mostRecentHeader.Equals("*"))
+                    {
+                        // Finds the relative path between editorconfig directory and diagnostic filepath
+                        var editorConfigDirectory = PathUtilities.GetDirectoryName(FindOrGenerateEditorConfig(_project.Solution).FilePath).ToLowerInvariant();
+                        var diagnosticFilePath = _diagnostic.Location.SourceTree.FilePath.ToLowerInvariant();
+                        var relativePath = PathUtilities.GetRelativePath(editorConfigDirectory, diagnosticFilePath);
+                        relativePath = PathUtilities.NormalizeWithForwardSlash(relativePath);
+
+                        // Verify that editorconfig header regex matches filename
+                        var brokenUpHeader = mostRecentHeader.Split(new[] { '.' }, 2);
+                        var brokenUpFileExtensions = brokenUpHeader[1].Split(',', ' ', '{', '}');
+
+                        brokenUpHeader[0] = brokenUpHeader[0].Replace("*", ".*");
+                        brokenUpHeader[0] = brokenUpHeader[0].Replace("/", @"\/");
+                        var headerRegexStr = brokenUpHeader[0] + @"((\." + brokenUpFileExtensions[0] + ")";
+                        for (var i = 1; i < brokenUpFileExtensions.Length; i++)
+                        {
+                            headerRegexStr += @"|(\." + brokenUpFileExtensions[i] + ")";
+                        }
+                        headerRegexStr += ")";
+
+                        var headerRegex = new Regex(headerRegexStr);
+                        if (!headerRegex.IsMatch(relativePath))
                         {
                             validRule = false;
+                        }
+                        else
+                        {
+                            var match = headerRegex.Match(relativePath).Value.Split('.');
+                            if (!match[0].Contains(PathUtilities.GetFileName(diagnosticFilePath, false)))
+                            {
+                                validRule = false;
+                            }
                         }
                     }
 
