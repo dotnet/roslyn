@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 
@@ -11,17 +13,17 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class FatalError
     {
-        private static Action<Exception> s_fatalHandler;
-        private static Action<Exception> s_nonFatalHandler;
+        private static Action<Exception>? s_fatalHandler;
+        private static Action<Exception>? s_nonFatalHandler;
 
-        private static Exception s_reportedException;
-        private static string s_reportedExceptionMessage;
+        private static Exception? s_reportedException;
+        private static string? s_reportedExceptionMessage;
 
         /// <summary>
         /// Set by the host to a fail fast trigger, 
         /// if the host desires to crash the process on a fatal exception.
         /// </summary>
-        public static Action<Exception> Handler
+        public static Action<Exception>? Handler
         {
             get
             {
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// Set by the host to a fail fast trigger, 
         /// if the host desires to NOT crash the process on a non fatal exception.
         /// </summary>
-        public static Action<Exception> NonFatalHandler
+        public static Action<Exception>? NonFatalHandler
         {
             get
             {
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static readonly object s_reportedMarker = new object();
 
-        private static void Report(Exception exception, Action<Exception> handler)
+        private static void Report(Exception exception, Action<Exception>? handler)
         {
             // hold onto last exception to make investigation easier
             s_reportedException = exception;
