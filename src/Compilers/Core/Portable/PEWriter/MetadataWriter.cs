@@ -2109,8 +2109,9 @@ namespace Microsoft.Cci
         private void AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
         {
             IMethodReference constructor = customAttribute.Constructor(Context, reportDiagnostics: true);
+            IMethodDefinition methodDef = constructor.GetResolvedMethod(Context);
 
-            if (constructor != null)
+            if (constructor != null && (methodDef == null || methodDef.ShouldInclude(Context)))
             {
                 metadata.AddCustomAttribute(
                     parent: parentHandle,
