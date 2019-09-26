@@ -3436,8 +3436,16 @@ class Program{
 
         internal static void AutoFormatToken(string markup, string expected)
         {
+            AutoFormatToken(markup, expected, useTabs: false);
+            AutoFormatToken(markup.Replace("    ", "\t"), expected.Replace("    ", "\t"), useTabs: true);
+        }
+
+        internal static void AutoFormatToken(string markup, string expected, bool useTabs)
+        {
             using (var workspace = TestWorkspace.CreateCSharp(markup))
             {
+                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
+
                 var subjectDocument = workspace.Documents.Single();
 
                 var commandHandler = workspace.GetService<FormatCommandHandler>();
@@ -3474,8 +3482,16 @@ class Program{
 
         private async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
+            await AutoFormatOnMarkerAsync(initialMarkup, expected, useTabs: false, tokenKind, startTokenKind).ConfigureAwait(false);
+            await AutoFormatOnMarkerAsync(initialMarkup.Replace("    ", "\t"), expected.Replace("    ", "\t"), useTabs: true, tokenKind, startTokenKind).ConfigureAwait(false);
+        }
+
+        private async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, bool useTabs, SyntaxKind tokenKind, SyntaxKind startTokenKind)
+        {
             using (var workspace = TestWorkspace.CreateCSharp(initialMarkup))
             {
+                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
+
                 var tuple = GetService(workspace);
                 var testDocument = workspace.Documents.Single();
                 var buffer = testDocument.GetTextBuffer();

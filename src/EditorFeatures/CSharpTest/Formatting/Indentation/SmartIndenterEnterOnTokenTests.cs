@@ -1350,9 +1350,22 @@ class C
             int indentationLine,
             int? expectedIndentation)
         {
+            await AssertIndentUsingSmartTokenFormatterAsync(code, ch, indentationLine, expectedIndentation, useTabs: false).ConfigureAwait(false);
+            await AssertIndentUsingSmartTokenFormatterAsync(code.Replace("    ", "\t"), ch, indentationLine, expectedIndentation, useTabs: true).ConfigureAwait(false);
+        }
+
+        private async Task AssertIndentUsingSmartTokenFormatterAsync(
+            string code,
+            char ch,
+            int indentationLine,
+            int? expectedIndentation,
+            bool useTabs)
+        {
             // create tree service
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
+                workspace.Options = workspace.Options.WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
+
                 var hostdoc = workspace.Documents.First();
 
                 var buffer = hostdoc.GetTextBuffer();
@@ -1380,10 +1393,23 @@ class C
             int? expectedIndentation,
             IndentStyle indentStyle = IndentStyle.Smart)
         {
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(code, indentationLine, expectedIndentation, useTabs: false, indentStyle).ConfigureAwait(false);
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(code.Replace("    ", "\t"), indentationLine, expectedIndentation, useTabs: true, indentStyle).ConfigureAwait(false);
+        }
+
+        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+            string code,
+            int indentationLine,
+            int? expectedIndentation,
+            bool useTabs,
+            IndentStyle indentStyle)
+        {
             // create tree service
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
-                workspace.Options = workspace.Options.WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle);
+                workspace.Options = workspace.Options
+                    .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
                 var hostdoc = workspace.Documents.First();
                 var buffer = hostdoc.GetTextBuffer();
                 var snapshot = buffer.CurrentSnapshot;
