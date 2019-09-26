@@ -542,7 +542,7 @@ class Program
 }";
             var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (6,23): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (6,23): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         return ref (b switch { true => ref x, false => ref y });
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 23),
                 // (6,40): error CS1525: Invalid expression term 'ref'
@@ -1249,6 +1249,142 @@ Target->Ultimate
                 );
             CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 );
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_01()
+        {
+            var source = @"
+class Program
+{
+    public static bool? GetBool(string name)
+    {
+        return name switch
+        {
+            ""a"" => true,
+            ""b"" => false,
+            _ => null,
+        };
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_02()
+        {
+            var source = @"
+class Program
+{
+    public static bool? GetBool(string name) => name switch
+        {
+            ""a"" => true,
+            ""b"" => false,
+            _ => null,
+        };
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_03()
+        {
+            var source = @"
+class Program
+{
+    public static bool? GetBool(string name)
+    {
+        return name switch
+        {
+            ""a"" => true,
+            _ => name switch
+                {
+                    ""b"" => false,
+                    _ => null,
+                },
+        };
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                );
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_04()
+        {
+            var source = @"
+class Program
+{
+    public static bool? GetBool(string name)
+    {
+        var result = name switch
+        {
+            ""a"" => true,
+            ""b"" => false,
+            _ => null,
+        };
+        return result;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,27): error CS8506: No best type was found for the switch expression.
+                //         var result = name switch
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(6, 27)
+                );
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_05()
+        {
+            var source = @"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        System.Console.WriteLine(Get(""a"").Item1?.ToString() ?? ""null"");
+    }
+    public static (int?, int) Get(string name)
+    {
+        return name switch
+        {
+            ""a"" => (default, 1), // this is convertible to (int, int)
+            ""b"" => (1, 2),
+            _ => (3, 4),
+        };
+    }
+}
+";
+            CompileAndVerify(CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(), expectedOutput: "0");
+        }
+
+        [Fact, WorkItem(38226, "https://github.com/dotnet/roslyn/issues/38226")]
+        public void TargetTypedSwitch_NaturalTypeWithUntypedArm_06()
+        {
+            var source = @"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        System.Console.WriteLine(Get(""a"").Item1?.ToString() ?? ""null"");
+    }
+    public static (int?, int) Get(string name)
+    {
+        return name switch
+        {
+            ""a"" => (default, 1), // this is convertible to (int?, int)
+            ""b"" => (1, 2),
+            _ => (null, 4),
+        };
+    }
+}
+";
+            CompileAndVerify(CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(), expectedOutput: "null");
         }
     }
 }

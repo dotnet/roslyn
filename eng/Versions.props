@@ -8,7 +8,7 @@
     <MajorVersion>3</MajorVersion>
     <MinorVersion>4</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>beta1</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>beta2</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
@@ -62,7 +62,7 @@
     <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.19</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>$(MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion>
     <MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>$(CodeStyleAnalyzerVersion)</MicrosoftCodeAnalysisVisualBasicCodeStyleVersion>
-    <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.5</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
+    <MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>2.9.6</MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion>
     <MicrosoftCodeQualityAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftCodeQualityAnalyzersVersion>
     <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
     <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
@@ -106,7 +106,7 @@
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.27</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>16.0.28226-alpha</MicrosoftVisualStudioGraphModelVersion>
-    <MicrosoftVisualStudioImageCatalogVersion>16.3.29124.81</MicrosoftVisualStudioImageCatalogVersion>
+    <MicrosoftVisualStudioImageCatalogVersion>16.3.29316.127</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>16.3.29124.81</MicrosoftVisualStudioImagingVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.8.0</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioLanguageVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageVersion>
@@ -140,7 +140,7 @@
     <MicrosoftVisualStudioShellInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioShellInterop121DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop157DesignTimeVersion>15.7.1</MicrosoftVisualStudioShellInterop157DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop80Version>8.0.50728</MicrosoftVisualStudioShellInterop80Version>
-    <MicrosoftVisualStudioShellInterop90Version>9.0.30729</MicrosoftVisualStudioShellInterop90Version>
+    <MicrosoftVisualStudioShellInterop90Version>9.0.30730</MicrosoftVisualStudioShellInterop90Version>
     <MicrosoftVisualStudioTelemetryVersion>16.0.233</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
     <MicrosoftVisualStudioTextDataVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextDataVersion>

@@ -445,8 +445,8 @@ L'ancre $ correspond à \n mais ne correspond pas à \r\n (combinaison de caract
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">échappement hexadécimal</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">échappement hexadécimal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">

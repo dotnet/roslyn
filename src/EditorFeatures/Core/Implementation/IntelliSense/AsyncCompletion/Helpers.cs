@@ -4,8 +4,8 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
 using EditorAsyncCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using EditorAsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
-using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             initialTriggerLocation = default;
             return false;
         }
-        
+
         // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will intorduce this support and we will get rid of relying on the "★" then.
         internal static bool IsPreferredItem(this RoslynCompletionItem completionItem)

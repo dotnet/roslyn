@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.
         /// </summary>
-        /// <param name="text">The text that completion is occuring within.</param>
+        /// <param name="text">The text that completion is occurring within.</param>
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">The set of options in effect.</param>

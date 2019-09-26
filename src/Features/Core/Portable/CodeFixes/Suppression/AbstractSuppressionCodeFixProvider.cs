@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, project, diagnostic, this));
 
                         // local suppress message attribute
-                        // please note that in order to avoid issues with exising unit tests referencing the code fix
+                        // please note that in order to avoid issues with existing unit tests referencing the code fix
                         // by their index this needs to be the last added to nestedActions
                         if (suppressionTargetInfo.TargetMemberNode != null && suppressionTargetInfo.TargetSymbol.Kind != SymbolKind.Namespace)
                         {

@@ -8,11 +8,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         private static readonly HistogramLogAggregator s_lexicalClassificationsLogAggregator = new HistogramLogAggregator(bucketSize: 100, maxBucketValue: 5000);
         private static readonly HistogramLogAggregator s_syntacticClassificationsRemoteAggregator = new HistogramLogAggregator(bucketSize: 100, maxBucketValue: 5000);
+        private static readonly HistogramLogAggregator s_syntacticTaggerRemoteAggregator = new HistogramLogAggregator(bucketSize: 100, maxBucketValue: 5000);
 
         internal enum RequestType
         {
             LexicalClassifications,
             SyntacticClassifications,
+            SyntacticTagger,
         }
 
         internal static void LogRequestLatency(RequestType requestType, decimal latency)
@@ -25,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 case RequestType.SyntacticClassifications:
                     s_syntacticClassificationsRemoteAggregator.IncreaseCount(latency);
                     break;
+                case RequestType.SyntacticTagger:
+                    s_syntacticTaggerRemoteAggregator.IncreaseCount(latency);
+                    break;
                 default:
                     break;
 
@@ -33,23 +38,21 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         internal static void ReportTelemetry()
         {
-            Logger.Log(FunctionId.Liveshare_LexicalClassifications, KeyValueLogMessage.Create(m =>
-            {
-                foreach (var kv in s_lexicalClassificationsLogAggregator)
-                {
-                    var info = $"{RequestType.LexicalClassifications}.{kv.Key}";
-                    m[info] = kv.Value.GetCount();
-                }
-            }));
+            ReportTelemetry(FunctionId.Liveshare_LexicalClassifications, RequestType.LexicalClassifications.ToString(), s_lexicalClassificationsLogAggregator);
+            ReportTelemetry(FunctionId.Liveshare_SyntacticClassifications, RequestType.SyntacticClassifications.ToString(), s_syntacticClassificationsRemoteAggregator);
+            ReportTelemetry(FunctionId.Liveshare_SyntacticTagger, RequestType.SyntacticTagger.ToString(), s_syntacticTaggerRemoteAggregator);
 
-            Logger.Log(FunctionId.Liveshare_SyntacticClassifications, KeyValueLogMessage.Create(m =>
+            static void ReportTelemetry(FunctionId functionId, string typeName, HistogramLogAggregator aggregator)
             {
-                foreach (var kv in s_syntacticClassificationsRemoteAggregator)
+                Logger.Log(functionId, KeyValueLogMessage.Create(m =>
                 {
-                    var info = $"{RequestType.SyntacticClassifications}.{kv.Key}";
-                    m[info] = kv.Value.GetCount();
-                }
-            }));
+                    foreach (var kv in aggregator)
+                    {
+                        var info = $"{typeName}.{kv.Key}";
+                        m[info] = kv.Value.GetCount();
+                    }
+                }));
+            }
         }
     }
 }

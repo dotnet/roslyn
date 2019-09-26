@@ -33,7 +33,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions && !moveToNamespaceOptions.IsCancelled)
+            // We won't get an empty target namespace from VS, but still should handle it w/o crashing.
+            if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions &&
+                !moveToNamespaceOptions.IsCancelled &&
+                !string.IsNullOrEmpty(moveToNamespaceOptions.Namespace))
             {
                 var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
                     _moveToNamespaceAnalysisResult,
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
             => analysisResult.Container switch
             {
-                MoveToNamespaceAnalysisResult.ContainerType.NamedType => (AbstractMoveToNamespaceCodeAction)new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
+                MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
                 MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
                 _ => throw ExceptionUtilities.UnexpectedValue(analysisResult.Container)
             };

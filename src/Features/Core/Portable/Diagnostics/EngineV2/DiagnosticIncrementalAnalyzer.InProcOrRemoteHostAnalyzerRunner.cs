@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _owner = owner;
                 _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
 
-                // currently option is a bit wierd since it is not part of snapshot and 
+                // currently option is a bit weird since it is not part of snapshot and 
                 // we can't load all options without loading all language specific dlls.
                 // we have tracking issue for this.
                 // https://github.com/dotnet/roslyn/issues/13643

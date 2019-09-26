@@ -445,8 +445,8 @@ L'ancoraggio $ corrisponde a \n, ma non a \r\n (combinazione di ritorno a capo e
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">carattere esadecimale</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">carattere esadecimale</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">

@@ -99,7 +99,7 @@ End Class";
                     new object[] { Process.GetCurrentProcess().Id, "test", new Uri("file://test"), new ClientCapabilities(), TraceSetting.Off },
                     CancellationToken.None);
 
-                Assert.Equal(true, result["capabilities"]["workspaceStreamingSymbolProvider"].ToObject<bool>());
+                Assert.True(result["capabilities"]["workspaceStreamingSymbolProvider"].ToObject<bool>());
 
                 var symbolResult = await jsonRpc.InvokeWithCancellationAsync<VSBeginSymbolParams>(
                     VSSymbolMethods.WorkspaceBeginSymbolName,

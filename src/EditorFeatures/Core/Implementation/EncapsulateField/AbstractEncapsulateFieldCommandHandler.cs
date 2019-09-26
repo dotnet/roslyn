@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
         private bool Execute(EncapsulateFieldCommandArgs args, IUIThreadOperationScope waitScope)
         {
             using var token = _listener.BeginAsyncOperation("EncapsulateField");
-           
+
             var cancellationToken = waitScope.Context.UserCancellationToken;
             var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
                 waitScope.Context, _threadingContext);

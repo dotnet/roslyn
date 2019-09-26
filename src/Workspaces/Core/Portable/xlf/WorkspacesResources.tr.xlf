@@ -445,8 +445,8 @@ $ yer işareti \n ile eşleşir, ancak \r\n (satır başı ve yeni satır karakt
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">onaltılık kaçış</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">onaltılık kaçış</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             var node = token.Parent.AncestorsAndSelf().First(a => a.FullSpan.Contains(span));
-            return (await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false))!;
+            return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return document.GetSemanticModelAsync(cancellationToken)!;
             }
 
-            return semanticModelService.GetSemanticModelForNodeAsync(document, node, cancellationToken)!;
+            return semanticModelService.GetSemanticModelForNodeAsync(document, node, cancellationToken);
         }
 
 #nullable restore

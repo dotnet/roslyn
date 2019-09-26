@@ -2084,29 +2084,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // Of course we must ensure that we visit the left hand side before the right hand side.
             var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
-            stack.Push(node);
 
-            BoundBinaryOperator binary;
-            BoundExpression child = node.Left;
-
-            while (true)
+            BoundBinaryOperator binary = node;
+            do
             {
-                binary = child as BoundBinaryOperator;
-                if (binary == null || binary.OperatorKind.IsLogical())
-                {
-                    break;
-                }
-
                 stack.Push(binary);
-                child = binary.Left;
+                binary = binary.Left as BoundBinaryOperator;
             }
+            while (binary != null && !binary.OperatorKind.IsLogical());
 
-            VisitRvalue(child);
+            VisitBinaryOperatorChildren(stack);
+            stack.Free();
+        }
+
+        protected virtual void VisitBinaryOperatorChildren(ArrayBuilder<BoundBinaryOperator> stack)
+        {
+            var binary = stack.Pop();
+            VisitRvalue(binary.Left);
 
             while (true)
             {
-                binary = stack.Pop();
-                AfterLeftChildHasBeenVisited(binary);
+                VisitRvalue(binary.Right);
 
                 if (stack.Count == 0)
                 {
@@ -2114,15 +2112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Unsplit(); // VisitRvalue does this
+                binary = stack.Pop();
             }
-
-            Debug.Assert((object)binary == node);
-            stack.Free();
-        }
-
-        protected virtual void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
-        {
-            VisitRvalue(binary.Right);
         }
 
         public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
@@ -2863,6 +2854,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
         {
             return null;
         }

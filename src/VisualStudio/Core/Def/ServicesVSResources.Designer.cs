@@ -641,6 +641,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Containing Member.
+        /// </summary>
+        internal static string Containing_member {
+            get {
+                return ResourceManager.GetString("Containing_member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Containing Type.
+        /// </summary>
+        internal static string Containing_type {
+            get {
+                return ResourceManager.GetString("Containing_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy to Clipboard.
         /// </summary>
         internal static string Copy_to_Clipboard {
@@ -1636,6 +1654,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Naming_Rule {
             get {
                 return ResourceManager.GetString("Naming_Rule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naming rules.
+        /// </summary>
+        internal static string Naming_rules {
+            get {
+                return ResourceManager.GetString("Naming_rules", resourceCulture);
             }
         }
         

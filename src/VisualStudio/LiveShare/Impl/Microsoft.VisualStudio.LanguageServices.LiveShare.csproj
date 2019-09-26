@@ -10,23 +10,31 @@
     <PackageDescription>
       A private package for the liveshare team to grant access to LSP implementations.
     </PackageDescription>
+    <CreateVsixContainer>false</CreateVsixContainer>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
   </PropertyGroup>
+  
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
   </ItemGroup>
+  
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LiveShare.WebEditors" Version="$(MicrosoftVisualStudioLiveShareWebEditorsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
+  
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.LiveShare" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests" />
   </ItemGroup>
 </Project>
