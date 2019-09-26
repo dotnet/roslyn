@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
 {
     /// <summary>
     /// this is almost straight copy from typescript for syntatic LSP experiement.
-    /// we won't attemp to change code to follow Roslyn style until we have result of the experiement
+    /// we won't attempt to change code to follow Roslyn style until we have result of the experiement
     /// </summary>
     internal sealed partial class SyntacticClassificationTaggerProvider
     {
