@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         internal static int GetHashCode(byte[] x)
         {
-            Debug.Assert(x != null);
+            RoslynDebug.Assert(x != null);
             return Hash.GetFNVHashCode(x);
         }
 
