@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not cancelled.
             // Catching this scenario for further investigations.
+            // See https://github.com/dotnet/roslyn/issues/38455.
             try
             {
                 change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
