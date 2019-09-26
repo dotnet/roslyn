@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -142,6 +146,59 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
             expression = null;
             return false;
+        }
+
+        public static async Task<ImmutableArray<IMethodSymbol>> GetCollectionInitializerAddMethodsAsync(
+            Document document, SyntaxNode initializerParent, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
+            var ienumerableType = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
+            if (ienumerableType == null)
+            {
+                return default;
+            }
+
+            // get the regular signature help items
+            var parentOperation = semanticModel.GetOperation(initializerParent, cancellationToken) as IObjectOrCollectionInitializerOperation;
+            var parentType = parentOperation?.Type;
+            if (parentType == null)
+            {
+                return default;
+            }
+
+            if (!parentType.AllInterfaces.Contains(ienumerableType))
+            {
+                return default;
+            }
+
+            var position = initializerParent.SpanStart;
+            var addSymbols = semanticModel.LookupSymbols(
+                position, parentType, WellKnownMemberNames.CollectionInitializerAddMethodName, includeReducedExtensionMethods: true);
+
+            // We want all the accessible '.Add' methods that take at least two arguments. For
+            // example, say there is:
+            //
+            //      new JObject { { $$ } }
+            //
+            // Technically, the user could be calling the `.Add(object)` overload in this case.
+            // However, normally in that case, they would just supply the value directly like so:
+            //
+            //      new JObject { new JProperty(...), new JProperty(...) }
+            //
+            // So, it's a strong signal when they're inside another `{ $$ }` that they want to
+            // call the .Add methods that take multiple args, like so:
+            //
+            //      new JObject { { propName, propValue }, { propName, propValue } }
+
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
+            var addMethods = addSymbols.OfType<IMethodSymbol>()
+                                       .Where(m => m.Parameters.Length >= 2)
+                                       .ToImmutableArray()
+                                       .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+                                       .Sort(symbolDisplayService, semanticModel, position);
+
+            return addMethods;
         }
     }
 }
