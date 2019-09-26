@@ -181,7 +181,7 @@
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <StreamJsonRpcVersion>2.1.55</StreamJsonRpcVersion>
     <SystemBuffersVersion>4.5.0</SystemBuffersVersion>
-    <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
+    <SystemCollectionsImmutableVersion>1.6.0</SystemCollectionsImmutableVersion>
     <SystemCommandLineExperimentalVersion>0.1.0-alpha-63729-01</SystemCommandLineExperimentalVersion>
     <SystemCommandLineRenderingVersion>0.1.0-alpha-63729-01</SystemCommandLineRenderingVersion>
     <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
