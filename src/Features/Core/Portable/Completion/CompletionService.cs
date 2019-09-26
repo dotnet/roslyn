@@ -92,6 +92,25 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets the completions available at the caret position, with additional info indicates 
+        /// whether expander items are available.
+        /// </summary>
+        /// <remarks>
+        /// expandItemsAvailable is true when expanded items are returned or can be provided upon request.
+        /// </remarks>
+        internal virtual async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
+             Document document,
+             int caretPosition,
+             CompletionTrigger trigger = default,
+             ImmutableHashSet<string> roles = null,
+             OptionSet options = null,
+             CancellationToken cancellationToken = default)
+        {
+            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
+            return (completionList, false);
+        }
+
+        /// <summary>
         /// Gets the description of the item.
         /// </summary>
         /// <param name="document">This will be the  original document that

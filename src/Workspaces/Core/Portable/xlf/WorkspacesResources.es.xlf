@@ -1148,7 +1148,7 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
     Nd	Número, dígito decimal
     Pc	Puntuación, conector
 
-Si se especifica un comportamiento compatible con ECMAScript, \w equivale a [^a-zA-Z_0-9]</target>
+Si se especifica un comportamiento compatible con ECMAScript, \w equivale a [a-zA-Z_0-9]</target>
         <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized.</note>
       </trans-unit>
       <trans-unit id="Regex_word_character_short">
