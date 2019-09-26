@@ -67,30 +67,6 @@ end class"
             Await TestAsync(markup, expectedOrderedItems)
         End Function
 
-        '        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        '        Public Async Function ForNestedCollectionInitializer() As Task
-        '            Dim markup = "
-        'imports System.Collections.Generic
-
-        'class Bar
-        '{
-        '    public Dictionary<int, string> D
-        '}
-
-        'class C
-        '{
-        '    sub Goo()
-        '    {
-        '        new Bar { D = { { $$
-        '    end sub
-        'end class"
-
-        '            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-        '            expectedOrderedItems.Add(New SignatureHelpTestItem("Dictionary(Of Integer, String).Add(key As Integer, value As String)", currentParameterIndex:=0))
-
-        '            Await TestAsync(markup, expectedOrderedItems)
-        '        End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function WithoutClosingConstructs() As Task
             Dim markup = "

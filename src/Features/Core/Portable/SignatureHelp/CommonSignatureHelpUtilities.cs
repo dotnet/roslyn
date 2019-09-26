@@ -149,8 +149,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
 
         public static async Task<ImmutableArray<IMethodSymbol>> GetCollectionInitializerAddMethodsAsync(
-            Document document, SyntaxNode initializerParent, CancellationToken cancellationToken)
+            Document document, SyntaxNode initializer, CancellationToken cancellationToken)
         {
+            if (initializer == null || initializer.Parent == null)
+            {
+                return default;
+            }
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
             var ienumerableType = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
@@ -160,7 +165,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             // get the regular signature help items
-            var parentOperation = semanticModel.GetOperation(initializerParent, cancellationToken) as IObjectOrCollectionInitializerOperation;
+            var parentOperation = semanticModel.GetOperation(initializer.Parent, cancellationToken) as IObjectOrCollectionInitializerOperation;
             var parentType = parentOperation?.Type;
             if (parentType == null)
             {
@@ -172,7 +177,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 return default;
             }
 
-            var position = initializerParent.SpanStart;
+            var position = initializer.SpanStart;
             var addSymbols = semanticModel.LookupSymbols(
                 position, parentType, WellKnownMemberNames.CollectionInitializerAddMethodName, includeReducedExtensionMethods: true);
 

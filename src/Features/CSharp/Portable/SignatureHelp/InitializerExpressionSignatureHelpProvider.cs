@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             }
 
             var addMethods = await CommonSignatureHelpUtilities.GetCollectionInitializerAddMethodsAsync(
-                document, initializerExpression.Parent, cancellationToken).ConfigureAwait(false);
+                document, initializerExpression, cancellationToken).ConfigureAwait(false);
             if (addMethods.IsDefaultOrEmpty)
             {
                 return null;
