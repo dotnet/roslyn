@@ -553,8 +553,7 @@ internal class MyAttribute : System.Attribute { }
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-public class [|C|]<[MyAttribute]
-T>
+public class [|C|]<[MyAttribute] T>
 {{
     public C();
 
@@ -593,8 +592,7 @@ internal class AllowNullAttribute : System.Attribute { }
 using System.Runtime.CompilerServices;
 
 [NullableContextAttribute(1)]
-public interface [|C|]<[NullableAttribute(2)]
-T>
+public interface [|C|]<[NullableAttribute(2)] T>
 {{
     bool Equals([AllowNullAttribute] T other);
 }}");
@@ -2273,8 +2271,7 @@ class C
 
 using System.Runtime.CompilerServices;
 
-public class [|TestType|]<[NullableAttribute(1)]
-T> where T : notnull
+public class [|TestType|]<[NullableAttribute(1)] T> where T : notnull
 {{
     public TestType();
 }}";
@@ -2355,8 +2352,7 @@ class C
 
 using System.Runtime.CompilerServices;
 
-public delegate void [|D|]<[NullableAttribute(1)]
-T>() where T : notnull;";
+public delegate void [|D|]<[NullableAttribute(1)] T>() where T : notnull;";
 
             using var context = TestContext.Create(
                 LanguageNames.CSharp,
