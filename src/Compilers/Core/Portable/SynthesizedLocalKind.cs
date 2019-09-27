@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Stores a dynamic analysis instrumentation payload array. The value is initialized in
-        /// synthesized mehtod prologue code and referred to throughout the method body.
+        /// synthesized method prologue code and referred to throughout the method body.
         /// </summary>
         InstrumentationPayload = 34,
 
