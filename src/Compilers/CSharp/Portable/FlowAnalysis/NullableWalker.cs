@@ -210,6 +210,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Gets the synthesized default argument expression for the given syntax node and parameter.
+        /// Upon re-analysis, the bound nodes that get visited must have the same identity as the previous analysis pass
+        /// so that the analysis does not believe that new variables were found each time and repeat indefinitely.
+        ///
+        /// Each call which implicitly passes a default value needs its own synthesized BoundExpression
+        /// because the location of the call can affect the default parameter value.
+        /// Therefore the dictionary key must be (SyntaxNode, ParameterSymbol) instead of just ParameterSymbol.
         /// </summary>
         private Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression> _defaultValues;
 
@@ -3597,6 +3603,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argRefKindsBuilder = initBuilder(refKindsOpt);
 
                 var previousDisableNullabilityAnalysis = _disableNullabilityAnalysis;
+                // Synthesized default arguments will not be found in the DebugVerifier's traversal of the bound tree.
+                // Therefore we need to ensure they don't get added to _analyzedNullabilityMapOpt.
                 _disableNullabilityAnalysis = true;
                 for (int i = 0; i < parametersOpt.Length; i++)
                 {
@@ -3605,6 +3613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameter.IsOptional && !visitedParameters.Contains(parameter))
                     {
                         var annotations = GetParameterAnnotations(parameter);
+
                         if (!_defaultValues.TryGetValue((syntax, parameter), out var argument))
                         {
                             _defaultValues[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, ThreeState.Unknown, localRewriter: null, _binder, Diagnostics);
