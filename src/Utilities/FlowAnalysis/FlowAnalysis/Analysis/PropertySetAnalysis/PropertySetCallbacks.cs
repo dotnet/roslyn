@@ -22,20 +22,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <returns>Flagged if null, Unflagged if not null, MaybeFlagged otherwise.</returns>
         public static PropertySetAbstractValueKind FlagIfNull(PointsToAbstractValue pointsToAbstractValue)
         {
-            switch (pointsToAbstractValue.NullState)
+            return pointsToAbstractValue.NullState switch
             {
-                case NullAbstractValue.Null:
-                    return PropertySetAbstractValueKind.Flagged;
+                NullAbstractValue.Null => PropertySetAbstractValueKind.Flagged,
 
-                case NullAbstractValue.NotNull:
-                    return PropertySetAbstractValueKind.Unflagged;
+                NullAbstractValue.NotNull => PropertySetAbstractValueKind.Unflagged,
 
-                case NullAbstractValue.MaybeNull:
-                    return PropertySetAbstractValueKind.MaybeFlagged;
+                NullAbstractValue.MaybeNull => PropertySetAbstractValueKind.MaybeFlagged,
 
-                default:
-                    return PropertySetAbstractValueKind.Unknown;
-            }
+                _ => PropertySetAbstractValueKind.Unknown,
+            };
         }
 
         /// <summary>
@@ -45,8 +41,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="badLiteralValuePredicate">Predicate function to determine if a literal value is bad.</param>
         /// <returns>Mapped kind.</returns>
         /// <remarks>
-        /// Null is not handled by this.  Look at the <see cref="PointsToAbstractValue"/> if you need to treat null as bad.
-        /// 
         /// All literal values are bad => Flagged
         /// Some but not all literal are bad => MaybeFlagged
         /// All literal values are known and none are bad => Unflagged

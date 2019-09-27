@@ -638,16 +638,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 Debug.Assert(branch.ControlFlowConditionKind != ControlFlowConditionKind.None);
 
-                switch (predicateValueKind)
+                return predicateValueKind switch
                 {
-                    case PredicateValueKind.AlwaysFalse:
-                        return branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenTrue;
+                    PredicateValueKind.AlwaysFalse => branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenTrue,
 
-                    case PredicateValueKind.AlwaysTrue:
-                        return branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenFalse;
-                }
+                    PredicateValueKind.AlwaysTrue => branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenFalse,
 
-                return false;
+                    _ => false,
+                };
             }
         }
 

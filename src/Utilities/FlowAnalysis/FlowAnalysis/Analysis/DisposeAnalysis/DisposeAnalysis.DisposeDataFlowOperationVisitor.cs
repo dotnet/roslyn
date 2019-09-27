@@ -384,19 +384,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         return false;
                     }
 
-                    switch (operation.Parent)
+                    return operation.Parent switch
                     {
-                        case IObjectCreationOperation _:
-                            return DisposeOwnershipTransferAtConstructor ||
-                                DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type);
+                        IObjectCreationOperation _ => DisposeOwnershipTransferAtConstructor ||
+                            DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type),
 
-                        case IInvocationOperation invocation:
-                            return DisposeOwnershipTransferAtMethodCall ||
-                                IsDisposableCreationSpecialCase(invocation.TargetMethod) && DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type);
+                        IInvocationOperation invocation => DisposeOwnershipTransferAtMethodCall ||
+                            IsDisposableCreationSpecialCase(invocation.TargetMethod) && DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type),
 
-                        default:
-                            return false;
-                    }
+                        _ => false,
+                    };
                 }
             }
 
