@@ -138,6 +138,17 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsIList = "System.Collections.IList";
         public const string SystemCollectionsGenericIList1 = "System.Collections.Generic.IList`1";
         public const string SystemCollectionsSpecializedNameValueCollection = "System.Collections.Specialized.NameValueCollection";
+        public const string SystemCollectionsImmutableImmutableArray = "System.Collections.Immutable.ImmutableArray`1";
+        public const string SystemCollectionsImmutableImmutableList = "System.Collections.Immutable.ImmutableList`1";
+        public const string SystemCollectionsImmutableImmutableHashSet = "System.Collections.Immutable.ImmutableHashSet`1";
+        public const string SystemCollectionsImmutableImmutableSortedSet = "System.Collections.Immutable.ImmutableSortedSet`1";
+        public const string SystemCollectionsImmutableImmutableDictionary = "System.Collections.Immutable.ImmutableDictionary`2";
+        public const string SystemCollectionsImmutableImmutableSortedDictionary = "System.Collections.Immutable.ImmutableSortedDictionary`2";
+        public const string SystemCollectionsImmutableIImmutableDictionary = "System.Collections.Immutable.IImmutableDictionary`2";
+        public const string SystemCollectionsImmutableIImmutableList = "System.Collections.Immutable.IImmutableList`1";
+        public const string SystemCollectionsImmutableIImmutableQueue = "System.Collections.Immutable.IImmutableQueue`1";
+        public const string SystemCollectionsImmutableIImmutableSet = "System.Collections.Immutable.IImmutableSet`1";
+        public const string SystemCollectionsImmutableIImmutableStack = "System.Collections.Immutable.IImmutableStack`1";
         public const string SystemRuntimeSerializationFormattersBinaryBinaryFormatter = "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter";
         public const string SystemWebUILosFormatter = "System.Web.UI.LosFormatter";
         public const string SystemReflectionAssemblyFullName = "System.Reflection.Assembly";
@@ -342,8 +353,17 @@ namespace Analyzer.Utilities
         public const string SystemConvert = "System.Convert";
         public const string SystemSecurityCryptographySymmetricAlgorithm = "System.Security.Cryptography.SymmetricAlgorithm";
         public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
+        public const string SystemNetHttpHttpClient = "System.Net.Http.HttpClient";
+        public const string SystemNetHttpHttpClientHandler = "System.Net.Http.HttpClientHandler";
+        public const string SystemNetHttpWinHttpHandler = "System.Net.Http.WinHttpHandler";
+        public const string SystemNetHttpCurlHandler = "System.Net.Http.CurlHandler";
         public const string SystemNetServicePointManager = "System.Net.ServicePointManager";
         public const string SystemRandom = "System.Random";
         public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
+        public const string MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute = "Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute";
+        public const string SystemTextEncoding = "System.Text.Encoding";
+        public const string SystemSecurityCryptographyAesGcm = "System.Security.Cryptography.AesGcm";
+        public const string SystemSecurityCryptographyAesCcm = "System.Security.Cryptography.AesCcm";
+        public const string SystemThreadingInterlocked = "System.Threading.Interlocked";
     }
 }

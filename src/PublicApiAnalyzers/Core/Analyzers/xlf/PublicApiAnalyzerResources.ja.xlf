@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="PublicApiFilesMissingMessage">
         <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
-        <target state="new">The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</target>
+        <target state="translated">ソリューションには、種類が "AdditionalFiles" の 2 つのファイル (PublicAPI.Unshipped.txt と PublicAPI.Shipped.txt) が含まれている必要があります。これらのファイルのうち少なくとも 1 つが見つからないか、種類が正しくありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesMissingTitle">
         <source>One or both of the public API files are missing</source>
-        <target state="new">One or both of the public API files are missing</target>
+        <target state="translated">パブリック API ファイルの 1 つまたは両方が見つからない</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">

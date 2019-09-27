@@ -11,7 +11,7 @@ namespace Roslyn.Diagnostics.Analyzers
     /// </summary>
     public abstract class PartsExportedWithMEFv2MustBeMarkedAsSharedFixer : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RoslynDiagnosticIds.MissingSharedAttributeRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray<string>.Empty;
 
         public sealed override FixAllProvider GetFixAllProvider()
         {

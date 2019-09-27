@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
-    internal abstract partial class CodeAnalysisMetricData
+    public abstract partial class CodeAnalysisMetricData
     {
         private sealed class NamespaceMetricData : CodeAnalysisMetricData
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     // Avoid double counting lines for nested types.
                     if (child.Symbol.ContainingType == null)
                     {
-                        childrenLinesOfCode += child.LinesOfCode;
+                        childrenLinesOfCode += child.SourceLines;
                     }
                 }
 

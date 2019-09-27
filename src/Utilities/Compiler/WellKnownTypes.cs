@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
@@ -254,6 +255,11 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol CLSCompliantAttribute(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName(typeof(System.CLSCompliantAttribute).FullName);
+        }
+
+        public static INamedTypeSymbol RazorCompiledItemAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreRazorHostingRazorCompiledItemAttribute);
         }
 
         public static INamedTypeSymbol ConditionalAttribute(Compilation compilation)
@@ -528,29 +534,34 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemWebMvcHttpVerbs);
         }
 
+        public static INamedTypeSymbol ImmutableArray(Compilation compilation)
+        {
+            return compilation.GetVisibleTypeByMetadataName(WellKnownTypeNames.SystemCollectionsImmutableImmutableArray);
+        }
+
         public static INamedTypeSymbol IImmutableDictionary(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableDictionary<,>).FullName);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsImmutableIImmutableDictionary);
         }
 
         public static INamedTypeSymbol IImmutableList(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableList<>).FullName);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsImmutableIImmutableList);
         }
 
         public static INamedTypeSymbol IImmutableQueue(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableQueue<>).FullName);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsImmutableIImmutableQueue);
         }
 
         public static INamedTypeSymbol IImmutableSet(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableSet<>).FullName);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsImmutableIImmutableSet);
         }
 
         public static INamedTypeSymbol IImmutableStack(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(typeof(System.Collections.Immutable.IImmutableStack<>).FullName);
+            return compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsImmutableIImmutableStack);
         }
 
         public static INamedTypeSymbol SystemIOFile(Compilation compilation)
