@@ -203,6 +203,7 @@ sealed class Class
         $@"
 sealed class Class
 {{
+
 #pragma warning disable CS1574 // {CSharpResources.WRN_BadXMLRef_Title}
     /// <summary>Text</summary>
     /// <remarks>
