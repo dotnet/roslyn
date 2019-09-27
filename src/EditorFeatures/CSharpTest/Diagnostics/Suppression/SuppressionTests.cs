@@ -158,7 +158,7 @@ class Class
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
-                public async Task TestPragmaWarningDirectiveWithDocumentationComment()
+                public async Task TestPragmaWarningDirectiveWithDocumentationComment1()
                 {
                     await TestAsync(
         @"
@@ -172,13 +172,44 @@ sealed class Class
         $@"
 sealed class Class
 {{
-#pragma warning disable CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
     /// <summary>Text</summary>
+#pragma warning disable CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
     protected void Method()
 #pragma warning restore CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
     {{
     }}
 }}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
+                public async Task TestPragmaWarningDirectiveWithDocumentationComment2()
+                {
+                    await TestAsync(
+        @"
+sealed class Class
+{
+    /// <summary>Text</summary>
+    /// <remarks>
+    /// <see cref=""[|Class2|]""/>
+    /// </remarks>
+    void Method()
+    {
+    }
+}",
+        $@"
+sealed class Class
+{{
+#pragma warning disable CS1574 // {CSharpResources.WRN_BadXMLRef_Title}
+    /// <summary>Text</summary>
+    /// <remarks>
+    /// <see cref=""Class2""/>
+    /// </remarks>
+    void Method()
+#pragma warning restore CS1574 // {CSharpResources.WRN_BadXMLRef_Title}
+    {{
+    }}
+}}", new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose));
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
