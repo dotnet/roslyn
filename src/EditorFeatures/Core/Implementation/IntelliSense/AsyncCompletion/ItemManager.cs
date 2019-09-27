@@ -282,8 +282,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // 2. or, all associated expanders are unselected, therefore should be excluded
                 return associatedWithUnselectedExpander;
             }
-
-
         }
 
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
@@ -317,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (chosenItems.Length == 0)
             {
                 // We do not have matches: pick the first item from the list.
-                bestOrFirstMatchResult = itemsInList.First();
+                bestOrFirstMatchResult = itemsInList.FirstOrDefault();
             }
             else
             {
@@ -335,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // if "Console.WriteL$$" is typed, then we do want "WriteLine" to be committed.
                 selectedItemIndex = itemsInList.IndexOf(i => Equals(i.RoslynCompletionItem, bestItem));
                 bestOrFirstMatchResult = itemsInList[selectedItemIndex];
-                var deduplicatedListCount = matchingItems.Where(r => !r.RoslynCompletionItem.IsPreferredItem()).Count();
+                var deduplicatedListCount = matchingItems.Count(r => !r.RoslynCompletionItem.IsPreferredItem());
                 if (deduplicatedListCount == 1 &&
                     filterText.Length > 0)
                 {
@@ -565,15 +563,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     displayTextSuffix: item.Suffix);
             }
 
+            // Get the match of the given completion item for the pattern provided so far. 
+            // A completion item is checked against the pattern by see if it's 
+            // CompletionItem.FilterText matches the item. That way, the pattern it checked 
+            // against terms like "IList" and not IList<>.
+            // Note that the check on filter text length is purely for efficiency, we should 
+            // get the same result with or without it.
+            var patternMatch = filterText.Length > 0
+                ? completionHelper.GetMatch(item.FilterText, filterText, includeMatchSpans: highlightMatchingPortions, CultureInfo.CurrentCulture)
+                : null;
+
             var matchedFilterText = MatchesFilterText(
-                completionHelper,
                 roslynItem,
                 filterText,
                 initialTriggerKind,
                 filterReason,
                 recentItems,
-                highlightMatchingPortions,
-                out var patternMatch);
+                patternMatch);
 
             // If the item didn't match the filter text, we still keep it in the list
             // if one of two things is true:
@@ -631,25 +637,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         internal static bool MatchesFilterText(
-            CompletionHelper helper,
             RoslynCompletionItem item,
             string filterText,
             CompletionTriggerKind initialTriggerKind,
             CompletionFilterReason filterReason,
             ImmutableArray<string> recentItems,
-            bool includeMatchSpans,
-            out PatternMatch? patternMatch)
+            PatternMatch? patternMatch)
         {
-            // Get the match of the given completion item for the pattern provided so far. 
-            // A completion item is checked against the pattern by see if it's 
-            // CompletionItem.FilterText matches the item. That way, the pattern it checked 
-            // against terms like "IList" and not IList<>.
-            // Note that the check on filter text length is purely for efficiency, we should 
-            // get the same result with or without it.
-            patternMatch = filterText.Length > 0
-                ? helper.GetMatch(item.FilterText, filterText, includeMatchSpans: includeMatchSpans, CultureInfo.CurrentCulture)
-                : null;
-
             // For the deletion we bake in the core logic for how matching should work.
             // This way deletion feels the same across all languages that opt into deletion 
             // as a completion trigger.
