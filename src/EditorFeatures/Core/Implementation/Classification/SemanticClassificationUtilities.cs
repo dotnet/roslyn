@@ -20,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal static class SemanticClassificationUtilities
     {
+        /// <summary>
+        /// Name shared by the semantic classification view tagger provider and buffer tagger provider
+        /// to allow the editor layer to avoid creating both the view tagger and buffer tagger where possible.
+        /// </summary>
+        public const string SemanticClassificationTaggerProviderName = nameof(SemanticClassificationTaggerProviderName);
+
         public static async Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,

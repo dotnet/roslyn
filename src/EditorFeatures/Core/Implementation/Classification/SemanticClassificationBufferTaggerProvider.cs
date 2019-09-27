@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
+    [Name(SemanticClassificationUtilities.SemanticClassificationTaggerProviderName)]
     internal partial class SemanticClassificationBufferTaggerProvider : ForegroundThreadAffinitizedObject, ITaggerProvider
     {
         private readonly IAsynchronousOperationListener _asyncListener;

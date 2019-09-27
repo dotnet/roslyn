@@ -106,16 +106,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
             public IEnumerable<ITagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-            {
-                this.AssertIsForeground();
-
-                // we never return any tags for GetTags.  This tagger is only for 'Accurate' scenarios.
-                return Array.Empty<ITagSpan<IClassificationTag>>();
-            }
+                => GetTagsWorker(spans, CancellationToken.None);
 
             public IEnumerable<ITagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
+                => GetTagsWorker(spans, cancellationToken);
+
+            private IEnumerable<ITagSpan<IClassificationTag>> GetTagsWorker(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
+
                 if (spans.Count == 0)
                 {
                     return Array.Empty<ITagSpan<IClassificationTag>>();
