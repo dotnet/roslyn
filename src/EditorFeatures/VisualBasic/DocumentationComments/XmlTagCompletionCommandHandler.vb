@@ -15,7 +15,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
     <Export(GetType(VSCommanding.ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name("XmlTagCompletionCommandHandler")>
-    <Order(Before:=PredefinedCommandHandlerNames.Completion)>
     <Order(Before:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class XmlTagCompletionCommandHandler
         Inherits AbstractXmlTagCompletionCommandHandler

@@ -1940,5 +1940,30 @@ End Class
                 Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
             End Using
         End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub VerifyFileRenameNotAllowedForLinkedFiles()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
+                            <Document FilePath="C.cs"><![CDATA[public class [|$$C|] { } // [|C|]]]></Document>
+                        </Project>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
+                            <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
+                        </Project>
+                    </Workspace>)
+
+                ' Disable document changes to make sure file rename is not supported. 
+                ' Linked workspace files will report that applying changes to document
+                ' info is not allowed; this is intended to mimic that behavior
+                ' and make sure inline rename works as intended.
+                workspace.CanApplyChangeDocument = False
+
+                Dim session = StartSession(workspace)
+
+                Assert.Equal(InlineRenameFileRenameInfo.NotAllowed, session.FileRenameInfo)
+            End Using
+        End Sub
     End Class
 End Namespace

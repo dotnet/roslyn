@@ -233,6 +233,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add null checks for all parameters.
+        /// </summary>
+        internal static string Add_null_checks_for_all_parameters {
+            get {
+                return ResourceManager.GetString("Add_null_checks_for_all_parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameter to constructor.
         /// </summary>
         internal static string Add_optional_parameter_to_constructor {
@@ -721,14 +730,14 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
+        ///   Looks up a localized string similar to Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as &apos;_&apos;, &apos;_1&apos;, &apos;_2&apos;, etc. These are treated as special discard symbol names..
         /// </summary>
-        internal static string Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names {
+        internal static string Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names {
             get {
-                return ResourceManager.GetString("Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_ch" +
-                        "ange_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_i" +
-                        "nteger_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbo" +
-                        "l_names", resourceCulture);
+                return ResourceManager.GetString("Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_chan" +
+                        "ge_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_int" +
+                        "eger_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_" +
+                        "names", resourceCulture);
             }
         }
         
@@ -4627,7 +4636,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string UseRecommendedDisposePatternDescription {
             get {

@@ -19,11 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public SyntaxNodeKey(string name, int ordinal)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             if (ordinal < -1)
             {
                 // Note: An ordinal value of -1 is special -- it means that this is the node
@@ -31,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw new ArgumentOutOfRangeException(nameof(ordinal));
             }
 
-            _name = name;
+            _name = name ?? throw new ArgumentNullException(nameof(name));
             _ordinal = ordinal;
         }
 

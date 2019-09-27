@@ -445,8 +445,8 @@ Kotwica $ pasuje do znaku \n, lecz nie do znaków \r\n (kombinacji znaków powro
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">znak ucieczki szesnastkowo</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">znak ucieczki szesnastkowo</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">

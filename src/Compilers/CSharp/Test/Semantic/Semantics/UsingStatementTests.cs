@@ -72,7 +72,7 @@ class C
             var memberAccessExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
 
             var info = model.GetSymbolInfo(memberAccessExpression.Expression);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(declaredLocal, info.Symbol);
 
             var lookupSymbol = model.LookupSymbols(memberAccessExpression.SpanStart, name: declaredLocal.Name).Single();

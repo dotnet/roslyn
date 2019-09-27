@@ -445,8 +445,8 @@ El limitador $ coincide con \n pero no coincide con \r\n (la combinación de ret
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">escape hexadecimal</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">escape hexadecimal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">

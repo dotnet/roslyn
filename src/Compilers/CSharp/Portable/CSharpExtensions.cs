@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (conversionExpression.Language == LanguageNames.CSharp)
             {
-                return (Conversion)((BaseConversionOperation)conversionExpression).ConvertibleConversion;
+                return (Conversion)((BaseConversionOperation)conversionExpression).ConversionConvertible;
             }
             else
             {

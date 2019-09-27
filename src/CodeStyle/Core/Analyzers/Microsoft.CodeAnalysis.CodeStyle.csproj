@@ -31,6 +31,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="Formatting\NullableAttributes.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Link="PerformanceSensitiveAttribute.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs" Link="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
@@ -70,7 +71,6 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractAggregatedFormattingResult.cs" Link="Formatting\Engine\AbstractAggregatedFormattingResult.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.cs" Link="Formatting\Engine\AbstractFormatEngine.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.OperationApplier.cs" Link="Formatting\Engine\AbstractFormatEngine.OperationApplier.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormatEngine.Partitioner.cs" Link="Formatting\Engine\AbstractFormatEngine.Partitioner.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractFormattingResult.cs" Link="Formatting\Engine\AbstractFormattingResult.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.AbstractComplexTrivia.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.AbstractComplexTrivia.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\AbstractTriviaDataFactory.cs" Link="Formatting\Engine\AbstractTriviaDataFactory.cs" />
@@ -173,7 +173,6 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\IBidirectionalMap.cs" Link="InternalUtilities\IBidirectionalMap.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\LazyInitialization.cs" Link="Formatting\LazyInitialization.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\NonReentrantLock.cs" Link="Formatting\NonReentrantLock.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\NullableHelpers\NullableAttributes.cs" Link="Formatting\NullableAttributes.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\Extensions.cs" Link="Formatting\Extensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\PooledObject.cs" Link="Formatting\PooledObject.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Utilities\ObjectPools\SharedPools.cs" Link="Formatting\SharedPools.cs" />

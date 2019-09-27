@@ -230,8 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 {
                     while (true)
                     {
-                        var parentType = typeNameToReplace.Parent as TypeSyntax;
-                        if (parentType == null)
+                        if (!(typeNameToReplace.Parent is TypeSyntax parentType))
                         {
                             break;
                         }

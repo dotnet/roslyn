@@ -49,12 +49,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerActionCounts> _lazyAnalyzerActionCountsMap;
 
-        private readonly HashSet<SyntaxTree> _treesWithGeneratedSourceEvents;
         private readonly HashSet<ISymbol> _partialSymbolsWithGeneratedSourceEvents;
         private readonly CompilationData _compilationData;
         private readonly CompilationOptions _compilationOptions;
-        private bool _compilationStartGenerated;
-        private bool _compilationEndGenerated;
 
         private readonly ObjectPool<HashSet<CompilationEvent>> _compilationEventsPool;
         private readonly HashSet<CompilationEvent> _pooledEventsWithAnyActionsSet;
@@ -68,10 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _pendingSourceEvents = new Dictionary<SyntaxTree, HashSet<CompilationEvent>>();
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
             _lazyAnalyzerActionCountsMap = null;
-            _treesWithGeneratedSourceEvents = new HashSet<SyntaxTree>();
             _partialSymbolsWithGeneratedSourceEvents = new HashSet<ISymbol>();
-            _compilationStartGenerated = false;
-            _compilationEndGenerated = false;
             _compilationEventsPool = new ObjectPool<HashSet<CompilationEvent>>(() => new HashSet<CompilationEvent>());
             _pooledEventsWithAnyActionsSet = new HashSet<CompilationEvent>();
         }
@@ -101,117 +95,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var index = _analyzerStateMap[analyzer];
             return _analyzerStates[index];
-        }
-
-        public async Task GenerateSimulatedCompilationEventsAsync(
-            AnalysisScope analysisScope,
-            Compilation compilation,
-            Func<SyntaxTree, Compilation, CancellationToken, SemanticModel> getCachedSemanticModel,
-            AnalyzerDriver driver,
-            CancellationToken cancellationToken)
-        {
-            await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
-
-            // Compilation started event.
-            GenerateSimulatedCompilationNonSourceEvent(compilation, driver, started: true, cancellationToken: cancellationToken);
-
-            // Symbol declared and compilation unit completed events.
-            foreach (var tree in analysisScope.SyntaxTrees)
-            {
-                GenerateSimulatedCompilationSourceEvents(tree, compilation, getCachedSemanticModel, driver, cancellationToken);
-            }
-
-            // Compilation ended event.
-            if (analysisScope.FilterTreeOpt == null)
-            {
-                GenerateSimulatedCompilationNonSourceEvent(compilation, driver, started: false, cancellationToken: cancellationToken);
-            }
-        }
-
-        private void GenerateSimulatedCompilationSourceEvents(
-            SyntaxTree tree,
-            Compilation compilation,
-            Func<SyntaxTree, Compilation, CancellationToken, SemanticModel> getCachedSemanticModel,
-            AnalyzerDriver driver,
-            CancellationToken cancellationToken)
-        {
-            using (_gate.DisposableWait(cancellationToken))
-            {
-                if (_treesWithGeneratedSourceEvents.Contains(tree))
-                {
-                    return;
-                }
-            }
-
-            var globalNs = compilation.Assembly.GlobalNamespace;
-            var symbols = GetDeclaredSymbolsInTree(tree, compilation, getCachedSemanticModel, cancellationToken);
-            var compilationEvents = CreateCompilationEventsForTree(symbols.Concat(globalNs), tree, compilation);
-
-            using (_gate.DisposableWait(cancellationToken))
-            {
-                if (_treesWithGeneratedSourceEvents.Contains(tree))
-                {
-                    return;
-                }
-
-                OnCompilationEventsGenerated_NoLock(compilationEvents, tree, driver, cancellationToken);
-
-                var added = _treesWithGeneratedSourceEvents.Add(tree);
-                Debug.Assert(added);
-            }
-        }
-
-        private ImmutableArray<ISymbol> GetDeclaredSymbolsInTree(
-            SyntaxTree tree,
-            Compilation compilation,
-            Func<SyntaxTree, Compilation, CancellationToken, SemanticModel> getCachedSemanticModel,
-            CancellationToken cancellationToken)
-        {
-            var model = getCachedSemanticModel(tree, compilation, cancellationToken);
-            var fullSpan = tree.GetRoot(cancellationToken).FullSpan;
-            var declarationInfoBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            model.ComputeDeclarationsInSpan(fullSpan, getSymbol: true, builder: declarationInfoBuilder, cancellationToken: cancellationToken);
-            ImmutableArray<ISymbol> result = declarationInfoBuilder.Select(declInfo => declInfo.DeclaredSymbol).Distinct().WhereNotNull().ToImmutableArray();
-            declarationInfoBuilder.Free();
-            return result;
-        }
-
-        private static ImmutableArray<CompilationEvent> CreateCompilationEventsForTree(IEnumerable<ISymbol> declaredSymbols, SyntaxTree tree, Compilation compilation)
-        {
-            var builder = ImmutableArray.CreateBuilder<CompilationEvent>();
-            foreach (var symbol in declaredSymbols)
-            {
-                Debug.Assert(symbol.ContainingAssembly == compilation.Assembly);
-                builder.Add(new SymbolDeclaredCompilationEvent(compilation, symbol));
-            }
-
-            builder.Add(new CompilationUnitCompletedEvent(compilation, tree));
-            return builder.ToImmutable();
-        }
-
-        private void GenerateSimulatedCompilationNonSourceEvent(Compilation compilation, AnalyzerDriver driver, bool started, CancellationToken cancellationToken)
-        {
-            using (_gate.DisposableWait(cancellationToken))
-            {
-                var eventAlreadyGenerated = started ? _compilationStartGenerated : _compilationEndGenerated;
-                if (eventAlreadyGenerated)
-                {
-                    return;
-                }
-
-                var compilationEvent = started ? (CompilationEvent)new CompilationStartedEvent(compilation) : new CompilationCompletedEvent(compilation);
-                var events = ImmutableArray.Create(compilationEvent);
-                OnCompilationEventsGenerated_NoLock(events, filterTreeOpt: null, driver: driver, cancellationToken: cancellationToken);
-
-                if (started)
-                {
-                    _compilationStartGenerated = true;
-                }
-                else
-                {
-                    _compilationEndGenerated = true;
-                }
-            }
         }
 
         public async Task OnCompilationEventsGeneratedAsync(ImmutableArray<CompilationEvent> compilationEvents, AnalyzerDriver driver, CancellationToken cancellationToken)

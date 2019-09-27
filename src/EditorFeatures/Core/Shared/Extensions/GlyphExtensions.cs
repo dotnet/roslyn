@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     return new ImageId(ImageCatalogGuid, KnownImageIds.NuGet);
 
                 case Glyph.TargetTypeMatch:
-                    return new ImageId(ImageCatalogGuid, KnownImageIds.CorrelationScope);
+                    return new ImageId(ImageCatalogGuid, KnownImageIds.MatchType);
 
                 default:
                     throw new ArgumentException(nameof(glyph));

@@ -724,8 +724,14 @@ Do you want to proceed?</value>
   <data name="Locating_implementations" xml:space="preserve">
     <value>Locating implementations...</value>
   </data>
+  <data name="Locating_bases" xml:space="preserve">
+    <value>Locating bases...</value>
+  </data>
   <data name="Go_To_Implementation" xml:space="preserve">
     <value>Go To Implementation</value>
+  </data>
+  <data name="Go_To_Base" xml:space="preserve">
+    <value>Go To Base</value>
   </data>
   <data name="The_symbol_has_no_implementations" xml:space="preserve">
     <value>The symbol has no implementations.</value>

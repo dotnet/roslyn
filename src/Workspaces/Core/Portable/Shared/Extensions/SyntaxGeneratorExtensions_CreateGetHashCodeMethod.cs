@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var result = ArrayBuilder<SyntaxNode>.GetInstance();
 
-            if (GetBaseGetHashCodeMethod(containingType, cancellationToken) != null)
+            if (GetBaseGetHashCodeMethod(containingType) != null)
             {
                 result.Add(factory.InvocationExpression(
                     factory.MemberAccessExpression(factory.BaseExpression(), GetHashCodeName)));
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             const int hashFactor = -1521134295;
 
             var initHash = 0;
-            var baseHashCode = GetBaseGetHashCodeMethod(containingType, cancellationToken);
+            var baseHashCode = GetBaseGetHashCodeMethod(containingType);
             if (baseHashCode != null)
             {
                 initHash = initHash * hashFactor + Hash.GetFNVHashCode(baseHashCode.Name);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 ? factory.NegateExpression(factory.LiteralExpression(-value))
                 : factory.LiteralExpression(value);
 
-        public static IMethodSymbol GetBaseGetHashCodeMethod(INamedTypeSymbol containingType, CancellationToken cancellationToken)
+        public static IMethodSymbol GetBaseGetHashCodeMethod(INamedTypeSymbol containingType)
         {
             if (containingType.IsValueType)
             {

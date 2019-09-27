@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.DefaultLiteral)]
     public class DefaultLiteralTests : CompilingTestBase
     {
-        [Fact]
+        [Fact, WorkItem(30384, "https://github.com/dotnet/roslyn/issues/30384")]
         public void TestCSharp7()
         {
             string source = @"
@@ -30,6 +30,18 @@ class C
                 //         int x = default;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 17)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().Single();
+            Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.Equal("0", model.GetConstantValue(def).Value.ToString());
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.True(model.GetConversion(def).IsDefaultLiteral);
         }
 
         [Fact]
@@ -54,6 +66,55 @@ class C
         }
 
         [Fact]
+        public void LambdaWithInference()
+        {
+            string source = @"
+public class D
+{
+    public static void Main()
+    {
+        new C<string, string>().M();
+    }
+}
+class C<T1, T2>
+{
+    public void M(bool b = true)
+    {
+        var map = new C<string, string>();
+        map.GetOrAdd("""", _ => default);
+        map.GetOrAdd("""", _ => null);
+
+        var map2 = new C<string, int>();
+        map2.GetOrAdd("""", _ => default);
+
+        var map3 = new C<string, (string, string)>();
+        map3.GetOrAdd("""", _ => default);
+        map3.GetOrAdd("""", _ => (null, null));
+
+        var map4 = new C<string, string>();
+        map4.GetOrAdd("""", _ => b switch { _ => null });
+        map4.GetOrAdd("""", _ => b switch { _ => default });
+    }
+}
+internal static class Extensions
+{
+    public static V GetOrAdd<K, V>(this C<K, V> dictionary, K key, System.Func<K, V> function)
+    {
+        var value = function(key);
+        System.Console.Write(value is null ? ""null"" : value.ToString());
+        System.Console.Write($""({typeof(V).ToString()})"");
+        System.Console.Write("" "");
+        return value;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+                "null(System.String) null(System.String) 0(System.Int32) (, )(System.ValueTuple`2[System.String,System.String]) (, )(System.ValueTuple`2[System.String,System.String]) null(System.String) null(System.String) ");
+        }
+
+        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
         public void AssignmentToInt()
         {
             string source = @"
@@ -79,7 +140,8 @@ class C
             Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Equal("0", model.GetConstantValue(def).Value.ToString());
-            Assert.True(model.GetConversion(def).IsNullLiteral);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.True(model.GetConversion(def).IsDefaultLiteral);
         }
 
         [Fact]
@@ -152,7 +214,7 @@ public class CustomAttribute : System.Attribute
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
         public void InStringInterpolation()
         {
             string source = @"
@@ -175,20 +237,111 @@ class C
 
             var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
-            Assert.Null(model.GetTypeInfo(def).Type); // Should be given a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
-            Assert.Null(model.GetTypeInfo(def).ConvertedType);
+            Assert.Equal("System.Object", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("System.Object", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
-            Assert.False(model.GetConstantValue(def).HasValue);
+            Assert.True(model.GetConstantValue(def).HasValue);
             Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.True(model.GetConversion(def).IsDefaultLiteral);
 
             var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("null", nullSyntax.ToString());
             Assert.Null(model.GetTypeInfo(nullSyntax).Type);
-            Assert.Null(model.GetTypeInfo(nullSyntax).ConvertedType); // Should be given a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
+            Assert.Equal("System.Object", model.GetTypeInfo(nullSyntax).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(nullSyntax).Symbol);
         }
 
-        [Fact]
+        [Fact, WorkItem(35684, "https://github.com/dotnet/roslyn/issues/35684")]
+        public void ComparisonWithGenericType_Unconstrained()
+        {
+            string source = @"
+class C
+{
+    static bool M<T>(T x = default)
+    {
+        return x == default // 1
+            && x == default(T); // 2
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'default'
+                //         return x == default // 1
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
+                // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
+                //             && x == default(T); // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(T)").WithArguments("==", "T", "T").WithLocation(7, 16)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var default1 = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            Assert.Equal("default", default1.ToString());
+            Assert.Equal("T", model.GetTypeInfo(default1).Type.ToTestDisplayString());
+            Assert.Equal("T", model.GetTypeInfo(default1).ConvertedType.ToTestDisplayString());
+            Assert.True(model.GetConversion(default1).IsDefaultLiteral);
+
+            var default2 = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("default", default2.ToString());
+            Assert.Equal("?", model.GetTypeInfo(default2).Type.ToTestDisplayString());
+            Assert.Equal("?", model.GetTypeInfo(default2).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, model.GetConversion(default2));
+        }
+
+        [Fact, WorkItem(38643, "https://github.com/dotnet/roslyn/issues/38643")]
+        public void ComparisonWithGenericType_ValueType()
+        {
+            string source = @"
+class C
+{
+    static bool M<T>(T x = default) where T : struct
+    {
+        return x == default // 1
+            && x == default(T); // 2
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'default'
+                //         return x == default // 1
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
+                // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
+                //             && x == default(T); // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(T)").WithArguments("==", "T", "T").WithLocation(7, 16)
+                );
+        }
+
+        [Fact, WorkItem(38643, "https://github.com/dotnet/roslyn/issues/38643")]
+        public void ComparisonWithGenericType_ReferenceType()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        M<C>();
+    }
+    static void M<T>() where T : class, new()
+    {
+        T t = new T();
+        T nullT = null;
+
+        System.Console.Write($""{t == default}{default == t} {nullT == default}{default == nullT} {t == default(T)}{default(T) == t}"");
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseFalse TrueTrue FalseFalse");
+        }
+
+        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
         public void InUsing()
         {
             string source = @"
@@ -205,9 +358,12 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "ok");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS8716: There is no target type for the default literal.
+                //         using (default)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 16)
+                );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -215,16 +371,106 @@ class C
 
             var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
-            Assert.Null(model.GetTypeInfo(def).Type);
-            Assert.Null(model.GetTypeInfo(def).ConvertedType); // Should get a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
+            Assert.Equal("?", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
             Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.False(model.GetConversion(def).IsDefaultLiteral);
 
             var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(2);
             Assert.Equal("null", nullSyntax.ToString());
             Assert.Null(model.GetTypeInfo(nullSyntax).Type);
-            Assert.Null(model.GetTypeInfo(nullSyntax).ConvertedType); // Should get a type. Follow-up issue: https://github.com/dotnet/roslyn/issues/18609
+            Assert.Null(model.GetTypeInfo(nullSyntax).ConvertedType); // Should get a converted type https://github.com/dotnet/roslyn/issues/37798
+        }
+
+        [Fact]
+        public void InUsing_WithVar()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        using (var x = default)
+        {
+            System.Console.Write(""ok"");
+        }
+        using (var x = null) { }
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                    // (6,24): error CS8716: There is no target type for the default literal.
+                    //         using (var x = default)
+                    Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 24),
+                    // (10,20): error CS0815: Cannot assign <null> to an implicitly-typed variable
+                    //         using (var x = null) { }
+                    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x = null").WithArguments("<null>").WithLocation(10, 20)
+                    );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("?", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.False(model.GetConstantValue(def).HasValue);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.False(model.GetConversion(def).IsDefaultLiteral);
+
+            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(2);
+            Assert.Equal("null", nullSyntax.ToString());
+            Assert.Null(model.GetTypeInfo(nullSyntax).Type);
+            Assert.Null(model.GetTypeInfo(nullSyntax).ConvertedType); // Should get a converted type https://github.com/dotnet/roslyn/issues/37798
+        }
+
+        [Fact]
+        public void InUsingDeclaration()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        using var x = default;
+        using var y = null;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                    // (6,23): error CS8716: There is no target type for the default literal.
+                    //         using var x = default;
+                    Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 23),
+                    // (7,19): error CS0815: Cannot assign <null> to an implicitly-typed variable
+                    //         using var y = null;
+                    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = null").WithArguments("<null>").WithLocation(7, 19)
+                    );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("?", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.False(model.GetConstantValue(def).HasValue);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.False(model.GetConversion(def).IsDefaultLiteral);
+
+            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("null", nullSyntax.ToString());
+            Assert.Null(model.GetTypeInfo(nullSyntax).Type);
+            Assert.Null(model.GetTypeInfo(nullSyntax).ConvertedType); // Should get a converted type https://github.com/dotnet/roslyn/issues/37798
         }
 
         [Fact]
@@ -242,9 +488,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,9): error CS4001: Cannot await 'default'
+                // (6,15): error CS8716: There is no target type for the default literal.
                 //         await default;
-                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await default").WithArguments("default").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 15)
                 );
         }
 
@@ -276,7 +522,8 @@ class C
             Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsNullLiteral);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.True(model.GetConversion(def).IsDefaultLiteral);
         }
 
         [Fact]
@@ -323,7 +570,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
         public void BadAssignment()
         {
             string source = @"
@@ -331,16 +578,41 @@ class C<T>
 {
     static void M()
     {
-        var x4 = default;
+        var x = default;
+        var y = null;
     }
 }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,13): error CS0815: Cannot assign default to an implicitly-typed variable
-                //         var x4 = default;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "x4 = default").WithArguments("default").WithLocation(6, 13)
+                // (6,17): error CS8716: There is no target type for the default literal.
+                //         var x = default;
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 17),
+                // (7,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
+                //         var y = null;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "y = null").WithArguments("<null>").WithLocation(7, 13),
+                // (7,13): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         var y = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(7, 13)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("?", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(def).Symbol);
+            Assert.False(model.GetConstantValue(def).HasValue);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.False(model.GetConversion(def).IsDefaultLiteral);
+
+            var nullSyntax = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("null", nullSyntax.ToString());
+            Assert.Null(model.GetTypeInfo(nullSyntax).Type);
+            Assert.Null(model.GetTypeInfo(nullSyntax).ConvertedType); // Should get a converted type https://github.com/dotnet/roslyn/issues/37798
         }
 
         [Fact]
@@ -360,18 +632,18 @@ class C<T>
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
+                // (6,18): error CS8716: There is no target type for the default literal.
                 //         var a = +default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+default").WithArguments("+", "default").WithLocation(6, 17),
-                // (7,17): error CS8310: Operator '-' cannot be applied to operand 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 18),
+                // (7,18): error CS8716: There is no target type for the default literal.
                 //         var b = -default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-default").WithArguments("-", "default").WithLocation(7, 17),
-                // (8,17): error CS8310: Operator '~' cannot be applied to operand 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 18),
+                // (8,18): error CS8716: There is no target type for the default literal.
                 //         var c = ~default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~default").WithArguments("~", "default").WithLocation(8, 17),
-                // (9,17): error CS8310: Operator '!' cannot be applied to operand 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 18),
+                // (9,18): error CS8716: There is no target type for the default literal.
                 //         var d = !default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!default").WithArguments("!", "default").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 18)
                 );
         }
 
@@ -422,7 +694,8 @@ struct S
             Assert.Equal("S", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsNullLiteral);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.True(model.GetConversion(def).IsDefaultLiteral);
         }
 
         [Fact]
@@ -450,7 +723,8 @@ class C
             Assert.Equal("T", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsNullLiteral);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.True(model.GetConversion(def).IsDefaultLiteral);
         }
 
         [Fact]
@@ -566,22 +840,57 @@ class C
         System.Console.Write(nameof(default));
         throw default;
     }
+    void M2()
+    {
+        default(C).ToString();
+    }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
                 // (6,16): error CS0023: Operator '.' cannot be applied to operand of type 'default'
                 //         default.ToString();
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(6, 16),
-                // (7,9): error CS0021: Cannot apply indexing with [] to an expression of type 'default'
+                // (7,9): error CS8716: There is no target type for the default literal.
                 //         default[0].ToString();
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "default[0]").WithArguments("default").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 9),
                 // (8,37): error CS8081: Expression does not have a name.
                 //         System.Console.Write(nameof(default));
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "default").WithLocation(8, 37),
-                // (9,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                // (9,15): error CS8716: There is no target type for the default literal.
                 //         throw default;
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "default").WithLocation(9, 15)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 15),
+                // (13,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'C' is null
+                //         default(C).ToString();
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("C").WithLocation(13, 9)
+                );
+
+            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp2.VerifyDiagnostics(
+                // (6,9): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
+                //         default.ToString();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 9),
+                // (6,16): error CS0023: Operator '.' cannot be applied to operand of type 'default'
+                //         default.ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(6, 16),
+                // (7,9): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
+                //         default[0].ToString();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(7, 9),
+                // (7,9): error CS8716: There is no target type for the default literal.
+                //         default[0].ToString();
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 9),
+                // (8,37): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
+                //         System.Console.Write(nameof(default));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(8, 37),
+                // (9,15): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
+                //         throw default;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(9, 15),
+                // (9,15): error CS8716: There is no target type for the default literal.
+                //         throw default;
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 15),
+                // (13,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'C' is null
+                //         default(C).ToString();
+                Diagnostic(ErrorCode.WRN_DotOnDefault, "default(C).ToString").WithArguments("C").WithLocation(13, 9)
                 );
         }
 
@@ -738,18 +1047,18 @@ class C
                 // (14,17): error CS1031: Type expected
                 //         default();
                 Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(14, 17),
-                // (6,17): error CS8119: The switch expression must be a value; found 'default'.
+                // (6,17): error CS8716: There is no target type for the default literal.
                 //         switch (default)
-                Diagnostic(ErrorCode.ERR_SwitchExpressionValueExpected, "default").WithArguments("default").WithLocation(6, 17),
-                // (11,15): error CS0185: 'default' is not a reference type as required by the lock statement
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 17),
+                // (11,15): error CS8716: There is no target type for the default literal.
                 //         lock (default)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default").WithArguments("default").WithLocation(11, 15),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(11, 15),
                 // (16,19): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
                 //         int i = ++default;
                 Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "default").WithLocation(16, 19),
-                // (17,26): error CS0828: Cannot assign 'default' to anonymous type property
+                // (17,33): error CS8716: There is no target type for the default literal.
                 //         var anon = new { Name = default };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Name = default").WithArguments("default").WithLocation(17, 26),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(17, 33),
                 // (18,46): error CS1510: A ref or out value must be an assignable variable
                 //         System.TypedReference tr = __makeref(default);
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default").WithLocation(18, 46)
@@ -882,15 +1191,21 @@ class C
                 // (21,17): error CS8315: Operator '!=' is ambiguous on operands 'default' and 'default'
                 //         var p = default != default; // ambiguous
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=").WithLocation(21, 17),
-                // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'default'
+                // (22,17): error CS8716: There is no target type for the default literal.
                 //         var q = default && default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default && default").WithArguments("&&", "default").WithLocation(22, 17),
-                // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(22, 17),
+                // (22,28): error CS8716: There is no target type for the default literal.
+                //         var q = default && default;
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(22, 28),
+                // (23,17): error CS8716: There is no target type for the default literal.
                 //         var r = default || default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default || default").WithArguments("||", "default").WithLocation(23, 17),
-                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(23, 17),
+                // (23,28): error CS8716: There is no target type for the default literal.
+                //         var r = default || default;
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(23, 28),
+                // (24,17): error CS8716: There is no target type for the default literal.
                 //         var s = default ?? default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? default").WithArguments("??", "default").WithLocation(24, 17)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(24, 17)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
@@ -975,18 +1290,18 @@ class C
                 // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'default'
                 //         var n = default <= 1;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default <= 1").WithArguments("<=", "default").WithLocation(19, 17),
-                // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'default'
+                // (22,17): error CS8716: There is no target type for the default literal.
                 //         var q = default && 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default && 1").WithArguments("&&", "default").WithLocation(22, 17),
-                // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(22, 17),
+                // (23,17): error CS8716: There is no target type for the default literal.
                 //         var r = default || 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default || 1").WithArguments("||", "default").WithLocation(23, 17),
-                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(23, 17),
+                // (24,17): error CS8716: There is no target type for the default literal.
                 //         var s = default ?? 1;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? 1").WithArguments("??", "default").WithLocation(24, 17),
-                // (25,17): error CS8310: Operator '??' cannot be applied to operand 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(24, 17),
+                // (25,17): error CS8716: There is no target type for the default literal.
                 //         var t = default ?? default(int?);
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? default(int?)").WithArguments("??", "default").WithLocation(25, 17),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(25, 17),
                 // (20,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = default == 1; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
@@ -1077,12 +1392,12 @@ class C
                 // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'default'
                 //         var n = 1 <= default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 <= default").WithArguments("<=", "default").WithLocation(19, 17),
-                // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'default'
+                // (22,22): error CS8716: There is no target type for the default literal.
                 //         var q = 1 && default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 && default").WithArguments("&&", "default").WithLocation(22, 17),
-                // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(22, 22),
+                // (23,22): error CS8716: There is no target type for the default literal.
                 //         var r = 1 || default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 || default").WithArguments("||", "default").WithLocation(23, 17),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(23, 22),
                 // (25,17): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'default'
                 //         var t = 1 ?? default;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? default").WithArguments("??", "int", "default").WithLocation(25, 17),
@@ -1182,7 +1497,7 @@ MODIFIER MyType
     }
 }
 ";
-            validate("class", "int", "0", "true", "System.Int32");
+            validate(modifier: "class", type: "int", value: "0", equal: "true", semanticType: "System.Int32");
             validate("class", "int", "1", "false", "System.Int32");
             validate("class", "int?", "null", "true", "System.Int32?");
 
@@ -1190,10 +1505,9 @@ MODIFIER MyType
             validate("class", "string", "\"\"", "false", "System.String");
 
             validate("class", "MyType", "null", "true", "System.Object");
-            validate("class", "MyType", "new MyType()", "false", "System.Object");
 
             // struct MyType doesn't have an == operator
-            validate("struct", "MyType", "new MyType()", "false", semanticType: null,
+            validate("struct", "MyType", "new MyType()", "false", semanticType: "?",
                 // (8,14): error CS0019: Operator '==' cannot be applied to operands of type 'MyType' and 'default'
                 //         if ((x == default) != false) throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "MyType", "default").WithLocation(8, 14),
@@ -1215,7 +1529,7 @@ MODIFIER MyType
                 );
 
             // struct MyType doesn't have an == operator, so no lifted == operator on MyType?
-            validate("struct", "MyType?", "null", "true", semanticType: null,
+            validate("struct", "MyType?", "null", "true", semanticType: "?",
                 // (8,14): error CS0019: Operator '==' cannot be applied to operands of type 'MyType?' and 'default'
                 //         if ((x == default) != true) throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "MyType?", "default").WithLocation(8, 14),
@@ -1589,7 +1903,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "NullReferenceException");
         }
 
-        [Fact]
+        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
         public void NegationUnaryOperatorOnDefault()
         {
             string source = @"
@@ -1605,9 +1919,9 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,13): error CS8310: Operator '!' cannot be applied to operand 'default'
+                // (6,14): error CS8716: There is no target type for the default literal.
                 //         if (!default)
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!default").WithArguments("!", "default").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 14)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -1615,8 +1929,8 @@ class C
 
             var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
-            Assert.Null(model.GetTypeInfo(def).Type);
-            Assert.Null(model.GetTypeInfo(def).ConvertedType);
+            Assert.Equal("?", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -1753,12 +2067,12 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,17): error CS0193: The * or -> operator must be applied to a pointer
+                // (6,18): error CS8716: There is no target type for the default literal.
                 //         var p = *default;
-                Diagnostic(ErrorCode.ERR_PtrExpected, "*default").WithLocation(6, 17),
-                // (7,17): error CS0193: The * or -> operator must be applied to a pointer
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 18),
+                // (7,17): error CS8716: There is no target type for the default literal.
                 //         var q = default->F;
-                Diagnostic(ErrorCode.ERR_PtrExpected, "default->F").WithLocation(7, 17)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 17)
                 );
         }
 
@@ -1941,18 +2255,22 @@ struct S
             var first = nodes.OfType<LiteralExpressionSyntax>().ElementAt(2);
             Assert.Equal("(o, default)", first.Parent.Parent.ToString());
             Assert.Equal("System.Object[]", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("System.Object[]", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
 
             var second = nodes.OfType<LiteralExpressionSyntax>().ElementAt(3);
             Assert.Equal("(default, o)", second.Parent.Parent.ToString());
             Assert.Equal("System.Object", model.GetTypeInfo(second).Type.ToTestDisplayString());
+            Assert.Equal("System.Object", model.GetTypeInfo(second).ConvertedType.ToTestDisplayString());
 
             var third = nodes.OfType<LiteralExpressionSyntax>().ElementAt(4);
             Assert.Equal("(s, default)", third.Parent.Parent.ToString());
             Assert.Equal("S[]", model.GetTypeInfo(third).Type.ToTestDisplayString());
+            Assert.Equal("S[]", model.GetTypeInfo(third).ConvertedType.ToTestDisplayString());
 
             var fourth = nodes.OfType<LiteralExpressionSyntax>().ElementAt(5);
             Assert.Equal("(default, s)", fourth.Parent.Parent.ToString());
             Assert.Equal("S", model.GetTypeInfo(fourth).Type.ToTestDisplayString());
+            Assert.Equal("S", model.GetTypeInfo(fourth).ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -1980,6 +2298,7 @@ class C
             var def = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("default", def.ToString());
             Assert.Equal("System.Int32", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
         }
@@ -2149,9 +2468,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (7,14): error CS8310: Cannot use a default literal as an argument to a dynamically dispatched operation.
+                // (7,14): error CS8716: There is no target type for the default literal.
                 //         d.M2(default);
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgDefaultLiteral, "default").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 14)
                 );
         }
 
@@ -2264,9 +2583,9 @@ class C
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,27): error CS8311: Use of default literal is not valid in this context
+                // (6,27): error CS8716: There is no target type for the default literal.
                 //         foreach (int x in default) { }
-                Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "default").WithLocation(6, 27),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 27),
                 // (7,27): error CS0186: Use of null is not valid in this context
                 //         foreach (int x in null) { }
                 Diagnostic(ErrorCode.ERR_NullNotValid, "null").WithLocation(7, 27)
@@ -2289,7 +2608,7 @@ static class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
-                // (6,35): error CS8311: Use of default literal is not valid in this context
+                // (6,35): error CS8312: Use of default literal is not valid in this context
                 //         var q = from x in default select x;
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "select x").WithLocation(6, 35),
                 // (7,43): error CS1942: The type of the expression in the select clause is incorrect.  Type inference failed in the call to 'Select'.
@@ -2354,9 +2673,9 @@ class C
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                // (6,15): error CS8716: There is no target type for the default literal.
                 //         throw default;
-                Diagnostic(ErrorCode.ERR_BadExceptionType, "default").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 15)
                 );
         }
 
@@ -2376,15 +2695,15 @@ class C
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (6,30): error CS0077: The as operator must be used with a reference type or nullable type ('long' is a non-nullable value type)
+                // (6,30): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write(default as long);
-                Diagnostic(ErrorCode.ERR_AsMustHaveReferenceType, "default as long").WithArguments("long").WithLocation(6, 30),
-                // (7,30): error CS0413: The type parameter 'T' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 30),
+                // (7,30): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write(default as T);
-                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "default as T").WithArguments("T").WithLocation(7, 30),
-                // (8,30): warning CS0458: The result of the expression is always 'null' of type 'TClass'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 30),
+                // (8,30): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write(default as TClass);
-                Diagnostic(ErrorCode.WRN_AlwaysNull, "default as TClass").WithArguments("TClass").WithLocation(8, 30)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 30)
                 );
         }
 
@@ -2399,16 +2718,15 @@ class C
         System.Console.Write($""{default as C == null} {default as string == null}"");
     }
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,33): warning CS0458: The result of the expression is always 'null' of type 'C'
+                // (6,33): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write($"{default as C == null} {default as string == null}");
-                Diagnostic(ErrorCode.WRN_AlwaysNull, "default as C").WithArguments("C").WithLocation(6, 33),
-                // (6,56): warning CS0458: The result of the expression is always 'null' of type 'string'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 33),
+                // (6,56): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write($"{default as C == null} {default as string == null}");
-                Diagnostic(ErrorCode.WRN_AlwaysNull, "default as string").WithArguments("string").WithLocation(6, 56)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 56)
                 );
-            CompileAndVerify(comp, expectedOutput: "True True");
         }
 
         [Fact]
@@ -2425,9 +2743,9 @@ static class C
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                // (6,30): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write(default is C);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is C").WithArguments("is", "default").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 30)
                 );
         }
 
@@ -2448,24 +2766,21 @@ class C
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (6,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                // (6,30): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write(default is long);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is long").WithArguments("is", "default").WithLocation(6, 30),
-                // (7,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 30),
+                // (7,30): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write(default is string);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is string").WithArguments("is", "default").WithLocation(7, 30),
-                // (8,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 30),
+                // (8,30): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write(default is default);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is default").WithArguments("is", "default").WithLocation(8, 30),
-                // (8,41): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 30),
+                // (8,41): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         System.Console.Write(default is default);
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 41),
-                // (8,41): error CS0150: A constant value is expected
-                //         System.Console.Write(default is default);
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(8, 41),
-                // (9,30): error CS0023: Operator 'is' cannot be applied to operand of type 'default'
+                // (9,30): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write(default is T);
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "default is T").WithArguments("is", "default").WithLocation(9, 30)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 30)
                 );
         }
 
@@ -2487,20 +2802,19 @@ class C
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (10,42): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (10,42): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 42),
-                // (10,66): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (10,66): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 66),
-                // (10,83): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (10,83): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 83),
-                // (10,101): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (10,101): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         System.Console.Write($"{hello is default} {nullString is default} {two is default} {zero is default}");
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 101)
                 );
-            //CompileAndVerify(comp, expectedOutput: "False True False True");
         }
 
         [Fact]
@@ -2554,9 +2868,9 @@ class Program
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,47): error CS8310: Operator '??' cannot be applied to operand 'default'
+                // (6,47): error CS8716: There is no target type for the default literal.
                 //     Expression<Func<object>> testExpr = () => default ?? "hello";
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, @"default ?? ""hello""").WithArguments("??", "default").WithLocation(6, 47)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 47)
                 );
         }
 
@@ -2584,7 +2898,8 @@ class Program
             Assert.Equal("System.Int32?", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.False(model.GetConstantValue(def).HasValue);
-            Assert.True(model.GetConversion(def).IsNullLiteral);
+            Assert.False(model.GetConversion(def).IsNullLiteral);
+            Assert.True(model.GetConversion(def).IsDefaultLiteral);
         }
 
         [Fact]
@@ -2654,9 +2969,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                // (12,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //             case default:
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 18)
                 );
         }
 
@@ -2686,9 +3001,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                // (12,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //             case default:
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 18)
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 18)
                 );
         }
 
@@ -2718,9 +3033,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                // (12,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //             case (default):
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 19)
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 19)
                 );
         }
 
@@ -2750,9 +3065,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,19): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
+                // (12,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //             case (default):
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(12, 19)
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(12, 19)
                 );
         }
 
@@ -2780,6 +3095,136 @@ class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "01");
+        }
+
+        [Fact]
+        public void BinaryOperator_ValidObjectEquality()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        C c = new C();
+        C nullC = null;
+
+        System.Console.Write($""{c == default}{default == c} {nullC == default}{default == nullC} {c != default}{default != c} {nullC != default}{default != nullC}"");
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseFalse TrueTrue TrueTrue FalseFalse");
+        }
+
+        [Fact]
+        public void BinaryOperator_NullVersusDefault()
+        {
+            string source = @"
+class C
+{
+    static void M(C x)
+    {
+        _ = null == default
+            || default == null;
+        _ = null != default
+            || default != null;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
+                //         _ = null == default
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "null == default").WithArguments("==", "<null>", "default").WithLocation(6, 13),
+                // (7,16): error CS0034: Operator '==' is ambiguous on operands of type 'default' and '<null>'
+                //             || default == null;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default == null").WithArguments("==", "default", "<null>").WithLocation(7, 16),
+                // (8,13): error CS0034: Operator '!=' is ambiguous on operands of type '<null>' and 'default'
+                //         _ = null != default
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "null != default").WithArguments("!=", "<null>", "default").WithLocation(8, 13),
+                // (9,16): error CS0034: Operator '!=' is ambiguous on operands of type 'default' and '<null>'
+                //             || default != null;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default != null").WithArguments("!=", "default", "<null>").WithLocation(9, 16)
+                );
+        }
+
+        [Fact]
+        public void BinaryOperator_WithCustomComparisonOperator()
+        {
+            string source = @"
+class C
+{
+    static void M(C x)
+    {
+        _ = x == default
+            || default == x;
+        _ = x != default
+            || default != x;
+    }
+    public static bool operator ==(C one, C other) => throw null;
+    public static bool operator !=(C one, C other) => throw null;
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS0660: 'C' defines operator == or operator != but does not override Object.Equals(object o)
+                // class C
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "C").WithArguments("C").WithLocation(2, 7),
+                // (2,7): warning CS0661: 'C' defines operator == or operator != but does not override Object.GetHashCode()
+                // class C
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "C").WithArguments("C").WithLocation(2, 7)
+                );
+
+            var tree = comp.SyntaxTrees.Last();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().First();
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("C", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("C", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void BinaryOperator_WithCustomComparisonOperator_DifferentTypes()
+        {
+            string source = @"
+class C
+{
+    static void M(C x)
+    {
+        _ = x == default;
+        _ = x != default;
+    }
+    public static bool operator ==(C one, D other) => throw null;
+    public static bool operator !=(C one, D other) => throw null;
+}
+class D
+{
+}
+";
+            // Note: default gets its type from overload resolution, not from target-typing to the other side
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS0660: 'C' defines operator == or operator != but does not override Object.Equals(object o)
+                // class C
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "C").WithArguments("C").WithLocation(2, 7),
+                // (2,7): warning CS0661: 'C' defines operator == or operator != but does not override Object.GetHashCode()
+                // class C
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "C").WithArguments("C").WithLocation(2, 7)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var def = nodes.OfType<LiteralExpressionSyntax>().First();
+            Assert.Equal("default", def.ToString());
+            Assert.Equal("D", model.GetTypeInfo(def).Type.ToTestDisplayString());
+            Assert.Equal("D", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -2885,7 +3330,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "null");
         }
 
-        [Fact]
+        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
         public void ExplicitCast()
         {
             string source = @"
@@ -2908,6 +3353,7 @@ class C
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
             var def = nodes.OfType<LiteralExpressionSyntax>().Single();
+            Assert.Equal("default", def.ToString());
             Assert.Equal("System.Int16", model.GetTypeInfo(def).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(def).Symbol);
             Assert.Null(model.GetDeclaredSymbol(def));
@@ -2947,7 +3393,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(18609, "https://github.com/dotnet/roslyn/issues/18609")]
         public void DefaultNullableParameter()
         {
             var text = @"
@@ -2972,7 +3418,8 @@ class C
             Assert.Equal("System.Int32?", model.GetTypeInfo(default1).ConvertedType.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(default1).Symbol);
             Assert.False(model.GetConstantValue(default1).HasValue);
-            Assert.True(model.GetConversion(default1).IsNullLiteral);
+            Assert.False(model.GetConversion(default1).IsNullLiteral);
+            Assert.True(model.GetConversion(default1).IsDefaultLiteral);
 
             var default2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DefaultExpressionSyntax>().ElementAt(0);
             Assert.Equal("System.Int32?", model.GetTypeInfo(default2).Type.ToTestDisplayString());

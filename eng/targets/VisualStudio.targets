@@ -125,4 +125,19 @@
       </ReferencePath>
     </ItemGroup>
   </Target>
+
+  <!-- Add License and Third Party Notices files into each VSIX. -->
+  <ItemGroup Condition="'$(CreateVsixContainer)' == 'true'">
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.VsixLicense\EULA.rtf">
+      <Link>EULA.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.ThirdPartyNotices\ThirdPartyNotices.rtf">
+      <Link>ThirdPartyNotices.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
+  </ItemGroup>
+
 </Project>

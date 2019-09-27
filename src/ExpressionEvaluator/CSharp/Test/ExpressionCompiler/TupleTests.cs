@@ -420,7 +420,7 @@ class C
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(13589, "https://github.com/dotnet/roslyn/issues/13589")]
-        public void Alias()
+        public void AliasElement()
         {
             var source =
 @"class C
@@ -458,7 +458,7 @@ class C
                     testData: testData);
                 diagnostics.Verify();
                 diagnostics.Free();
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 ReadOnlyCollection<byte> customTypeInfo;
                 var customTypeInfoId = locals[0].GetCustomTypeInfo(out customTypeInfo);
                 ReadOnlyCollection<byte> dynamicFlags;

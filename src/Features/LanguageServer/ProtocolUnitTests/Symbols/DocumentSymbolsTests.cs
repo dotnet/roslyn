@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 }";
             var (solution, _) = CreateTestSolution(markup);
             var results = await RunGetDocumentSymbolsAsync(solution, false).ConfigureAwait(false);
-            Assert.Equal(results.Length, 3);
+            Assert.Equal(3, results.Length);
         }
 
         [Fact]

@@ -631,9 +631,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MergeOverloadedOrAmbiguousInTheSameType(other, imported)
             ElseIf other.Kind > Me.Kind Then
                 SetFrom(other)
-            ElseIf Me.Kind <> LookupResultKind.Inaccessible OrElse Me.Kind > other.Kind OrElse
-                Not CanOverload(Me.Symbols(0), other.Symbol) Then
+            ElseIf Me.Kind <> LookupResultKind.Inaccessible OrElse Me.Kind > other.Kind Then
                 Return
+            ElseIf Not CanOverload(Me.Symbols(0), other.Symbol) Then
+                Debug.Assert(Me.Kind = LookupResultKind.Inaccessible)
+                Debug.Assert(Me.Kind = other.Kind)
+                If Me.Symbols.All(Function(candidate, otherSymbol) candidate.DeclaredAccessibility < otherSymbol.DeclaredAccessibility, other.Symbol) Then
+                    SetFrom(other)
+                End If
             Else
                 _symList.Add(other.Symbol)
             End If

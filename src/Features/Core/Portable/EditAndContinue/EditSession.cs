@@ -153,16 +153,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal static bool SupportsEditAndContinue(Project project)
-            => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
-
         private ActiveStatementsMap CreateActiveStatementsMap(Solution solution, ImmutableArray<ActiveStatementDebugInfo> debugInfos)
         {
             var byDocument = PooledDictionary<DocumentId, ArrayBuilder<ActiveStatement>>.GetInstance();
             var byInstruction = PooledDictionary<ActiveInstructionId, ActiveStatement>.GetInstance();
 
             bool supportsEditAndContinue(DocumentId documentId)
-                => SupportsEditAndContinue(solution.GetProject(documentId.ProjectId));
+                => EditAndContinueWorkspaceService.SupportsEditAndContinue(solution.GetProject(documentId.ProjectId));
 
             foreach (var debugInfo in debugInfos)
             {
@@ -284,21 +281,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private List<(DocumentId DocumentId, AsyncLazy<DocumentAnalysisResults> Results)> GetChangedDocumentsAnalyses(Project baseProject, Project project)
+        private ImmutableArray<(DocumentId DocumentId, AsyncLazy<DocumentAnalysisResults> Results)> GetChangedDocumentsAnalyses(Project baseProject, Project project)
         {
             var changes = project.GetChanges(baseProject);
-            var changedDocuments = changes.GetChangedDocuments().Concat(changes.GetAddedDocuments());
-            var result = new List<(DocumentId, AsyncLazy<DocumentAnalysisResults>)>();
+
+            var changedDocuments =
+                changes.GetChangedDocuments().
+                Concat(changes.GetAddedDocuments()).
+                Select(id => project.GetDocument(id)).
+                Where(d => !EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(d)).
+                ToArray();
+
+            if (changedDocuments.Length == 0)
+            {
+                return ImmutableArray<(DocumentId, AsyncLazy<DocumentAnalysisResults>)>.Empty;
+            }
 
             lock (_analysesGuard)
             {
-                foreach (var changedDocumentId in changedDocuments)
-                {
-                    result.Add((changedDocumentId, GetDocumentAnalysisNoLock(project.GetDocument(changedDocumentId))));
-                }
+                return changedDocuments.SelectAsArray(d => (d.Id, GetDocumentAnalysisNoLock(d)));
             }
-
-            return result;
         }
 
         private async Task<HashSet<ISymbol>> GetAllAddedSymbolsAsync(Project project, CancellationToken cancellationToken)
@@ -420,7 +422,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 bool anyChanges = false;
                 foreach (var project in projects)
                 {
-                    if (!SupportsEditAndContinue(project))
+                    if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(project))
                     {
                         continue;
                     }
@@ -451,7 +453,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var changedDocumentAnalyses = GetChangedDocumentsAnalyses(baseProject, project);
                     var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
 
-                    if (projectSummary == ProjectAnalysisSummary.ValidChanges && 
+                    if (projectSummary == ProjectAnalysisSummary.ValidChanges &&
                         !GetModuleDiagnostics(mvid, project.Name).IsEmpty)
                     {
                         EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: module blocking EnC", project.Id.DebugName, project.Id);
@@ -488,10 +490,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private async Task<ProjectAnalysisSummary> GetProjectAnalysisSymmaryAsync(
-            List<(DocumentId DocumentId, AsyncLazy<DocumentAnalysisResults> Results)> documentAnalyses,
+            ImmutableArray<(DocumentId DocumentId, AsyncLazy<DocumentAnalysisResults> Results)> documentAnalyses,
             CancellationToken cancellationToken)
         {
-            if (documentAnalyses.Count == 0)
+            if (documentAnalyses.Length == 0)
             {
                 return ProjectAnalysisSummary.NoChanges;
             }
@@ -539,7 +541,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return ProjectAnalysisSummary.ValidChanges;
         }
 
-        private static async Task<ProjectChanges> GetProjectChangesAsync(List<(DocumentId Document, AsyncLazy<DocumentAnalysisResults> Results)> changedDocumentAnalyses, CancellationToken cancellationToken)
+        private static async Task<ProjectChanges> GetProjectChangesAsync(ImmutableArray<(DocumentId Document, AsyncLazy<DocumentAnalysisResults> Results)> changedDocumentAnalyses, CancellationToken cancellationToken)
         {
             try
             {
@@ -597,7 +599,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 foreach (var project in solution.Projects)
                 {
-                    if (!SupportsEditAndContinue(project))
+                    if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(project))
                     {
                         continue;
                     }

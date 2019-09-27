@@ -181,7 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitThrow:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.Boxing:
-                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultLiteral:
                 case ConversionKind.NullToPointer:
                 case ConversionKind.PointerToVoid:
                 case ConversionKind.PointerToPointer:
@@ -222,7 +223,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
         internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
-        internal static Conversion DefaultOrNullLiteral => new Conversion(ConversionKind.DefaultOrNullLiteral);
+        internal static Conversion NullLiteral => new Conversion(ConversionKind.NullLiteral);
+        internal static Conversion DefaultLiteral => new Conversion(ConversionKind.DefaultLiteral);
         internal static Conversion NullToPointer => new Conversion(ConversionKind.NullToPointer);
         internal static Conversion PointerToVoid => new Conversion(ConversionKind.PointerToVoid);
         internal static Conversion PointerToPointer => new Conversion(ConversionKind.PointerToPointer);
@@ -634,16 +636,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the conversion is an implicit null or default literal conversion.
+        /// Returns true if the conversion is an implicit null literal conversion.
         /// </summary>
         /// <remarks>
-        /// Null or default literal conversions are described in section 6.1.5 of the C# language specification.
+        /// Null literal conversions are described in section 6.1.5 of the C# language specification.
         /// </remarks>
         public bool IsNullLiteral
         {
             get
             {
-                return Kind == ConversionKind.DefaultOrNullLiteral;
+                return Kind == ConversionKind.NullLiteral;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit default literal conversion.
+        /// </summary>
+        public bool IsDefaultLiteral
+        {
+            get
+            {
+                return Kind == ConversionKind.DefaultLiteral;
             }
         }
 

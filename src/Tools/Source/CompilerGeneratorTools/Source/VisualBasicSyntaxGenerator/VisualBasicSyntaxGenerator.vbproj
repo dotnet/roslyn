@@ -15,6 +15,10 @@
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Declarations\DeclarationModifiers.vb" Link="Grammar\DeclarationModifiers.vb" />
+    <Compile Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Syntax\SyntaxKind.vb" Link="Grammar\SyntaxKind.vb" />
+  </ItemGroup>
+  <ItemGroup>
     <Import Include="System.Collections.ObjectModel" />
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
@@ -27,5 +31,8 @@
     <EmbeddedResource Include="VBSyntaxModelSchema.xsd">
       <LogicalName>VBSyntaxModelSchema.xsd</LogicalName>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\Compilers\VisualBasic\Portable\Generated\VisualBasic.Grammar.g4" Link="Grammar\VisualBasic.Grammar.g4" />
   </ItemGroup>
 </Project>

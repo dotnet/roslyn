@@ -31,8 +31,8 @@ class A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
-            Assert.NotEqual(null, m);
-            Assert.Equal(true, m.ReturnsVoid);
+            Assert.NotNull(m);
+            Assert.True(m.ReturnsVoid);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
             Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
@@ -105,9 +105,9 @@ class A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.InstanceConstructors.Single();
-            Assert.NotEqual(null, m);
+            Assert.NotNull(m);
             Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m.Name);
-            Assert.Equal(true, m.ReturnsVoid);
+            Assert.True(m.ReturnsVoid);
             Assert.Equal(MethodKind.Constructor, m.MethodKind);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
@@ -130,8 +130,8 @@ class A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
-            Assert.NotEqual(null, m);
-            Assert.Equal(true, m.ReturnsVoid);
+            Assert.NotNull(m);
+            Assert.True(m.ReturnsVoid);
             Assert.Equal(MethodKind.Ordinary, m.MethodKind);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
@@ -2314,6 +2314,73 @@ class C
             var compilation = CreateCompilation(source).VerifyDiagnostics();
             var method = compilation.GetMember<MethodSymbol>("C.M");
             Assert.True(method.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void OrdinaryMethodIsNotConditional()
+        {
+            var source = @"
+class C
+{
+    public void M() {}
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.False(method.IsConditional);
+        }
+
+        [Fact]
+        public void ConditionalMethodIsConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+class C
+{
+    [Conditional(""Debug"")]
+    public void M() {}
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.IsConditional);
+        }
+
+        [Fact]
+        public void ConditionalMethodOverrideIsConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+
+class Base
+{
+    [Conditional(""Debug"")]
+    public virtual void M() {}
+}
+
+class Derived : Base
+{
+    public override void M() {}
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var method = compilation.GetMember<MethodSymbol>("Derived.M");
+            Assert.True(method.IsConditional);
+        }
+
+        [Fact]
+        public void InvalidConditionalMethodIsConditional()
+        {
+            var source = @"
+using System.Diagnostics;
+class C
+{
+    [Conditional(""Debug"")]
+    public int M() => 42; 
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                    // (5,6): error CS0578: The Conditional attribute is not valid on 'C.M()' because its return type is not void
+                    //     [Conditional("Debug")]
+                    Diagnostic(ErrorCode.ERR_ConditionalMustReturnVoid, @"Conditional(""Debug"")").WithArguments("C.M()").WithLocation(5, 6));
+            var method = compilation.GetMember<MethodSymbol>("C.M");
+            Assert.True(method.IsConditional);
         }
     }
 }

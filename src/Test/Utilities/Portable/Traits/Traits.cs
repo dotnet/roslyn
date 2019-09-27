@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddRequiredParentheses = "CodeActions.AddRequiredParentheses";
             public const string CodeActionsAddShadows = "CodeActions.AddShadows";
             public const string CodeActionsAliasAmbiguousType = "CodeActions.AliasAmbiguousType";
+            public const string CodeActionsAssignOutParameters = "CodeActions.AssignOutParameters";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";
@@ -238,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Peek = nameof(Peek);
             public const string Progression = nameof(Progression);
             public const string ProjectSystemShims = nameof(ProjectSystemShims);
+            public const string SarifErrorLogging = nameof(SarifErrorLogging);
             public const string QuickInfo = nameof(QuickInfo);
             public const string RQName = nameof(RQName);
             public const string ReduceTokens = nameof(ReduceTokens);

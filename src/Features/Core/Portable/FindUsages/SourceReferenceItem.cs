@@ -3,10 +3,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
-    using ReferenceInfoMap = ImmutableDictionary<string, ImmutableArray<string>>;
+    using AdditionalPropertiesWithMultipleValuesMap = ImmutableDictionary<string, ImmutableArray<string>>;
 
     /// <summary>
     /// Information about a symbol's reference that can be used for display and 
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         // We can have only a handful of different values for enums within SymbolUsageInfo, so the maximum size of this dictionary is capped.
         // So, we store this as a static dictionary which will be held in memory for the lifetime of the process.
-        private static readonly ConcurrentDictionary<SymbolUsageInfo, ReferenceInfoMap> s_symbolUsageInfoToReferenceInfoMap
-            = new ConcurrentDictionary<SymbolUsageInfo, ReferenceInfoMap>();
+        private static readonly ConcurrentDictionary<SymbolUsageInfo, AdditionalPropertiesWithMultipleValuesMap> s_symbolUsageInfoToReferenceInfoMap
+            = new ConcurrentDictionary<SymbolUsageInfo, AdditionalPropertiesWithMultipleValuesMap>();
 
         /// <summary>
         /// The definition this reference corresponds to.
@@ -35,13 +36,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public bool IsWrittenTo { get; }
 
         /// <summary>
-        /// Additional information about the reference.
+        /// Additional properties for the reference that can have multiple values.
         /// Each entry represents a key-values pair of data. For example, consider the below entry:
         ///     { "ValueUsageInfo" } = { "Read", "Write" }
         /// This entry indicates that the reference has additional value usage information which indicate
         /// it is a read/write reference, such as say 'a++'.
         /// </summary>
-        public ReferenceInfoMap ReferenceInfo { get; }
+        public AdditionalPropertiesWithMultipleValuesMap AdditionalPropertiesWithMultipleValues { get; }
+
+        /// <summary>
+        /// Additional properties for the reference that can have only one value.
+        /// For example, { "ContainingTypeInfo" } = { "MyClass" }
+        /// </summary>
+        public ImmutableArray<FindUsageProperty> FindUsagesProperties { get; }
 
         [Obsolete]
         public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, bool isWrittenTo)
@@ -49,34 +56,45 @@ namespace Microsoft.CodeAnalysis.FindUsages
             Definition = definition;
             SourceSpan = sourceSpan;
             IsWrittenTo = isWrittenTo;
-            ReferenceInfo = ReferenceInfoMap.Empty;
+            AdditionalPropertiesWithMultipleValues = AdditionalPropertiesWithMultipleValuesMap.Empty;
+            FindUsagesProperties = ImmutableArray<FindUsageProperty>.Empty;
         }
 
-        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ReferenceInfoMap referenceInfo)
+        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, AdditionalPropertiesWithMultipleValuesMap referenceInfo)
         {
             Definition = definition;
             SourceSpan = sourceSpan;
-            ReferenceInfo = referenceInfo ?? ReferenceInfoMap.Empty;
+            AdditionalPropertiesWithMultipleValues = referenceInfo ?? AdditionalPropertiesWithMultipleValuesMap.Empty;
+            FindUsagesProperties = ImmutableArray<FindUsageProperty>.Empty;
         }
 
+        // Being used by TypeScript
         internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo)
-            : this(definition, sourceSpan, GetOrCreateReferenceInfo(symbolUsageInfo))
+            : this(definition, sourceSpan, GetOrCreateAdditionalPropertiesWithMultipleValuesMap(symbolUsageInfo))
         {
             IsWrittenTo = symbolUsageInfo.IsWrittenTo();
+            FindUsagesProperties = ImmutableArray<FindUsageProperty>.Empty;
         }
 
-        private static ReferenceInfoMap GetOrCreateReferenceInfo(SymbolUsageInfo symbolUsageInfo)
-            => s_symbolUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceInfo(v));
-
-        private static ReferenceInfoMap CreateReferenceInfo(SymbolUsageInfo symbolUsageInfo)
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableArray<FindUsageProperty> findUsagesProperties)
+            : this(definition, sourceSpan, GetOrCreateAdditionalPropertiesWithMultipleValuesMap(symbolUsageInfo))
         {
-            var referenceInfoMap = ReferenceInfoMap.Empty;
+            IsWrittenTo = symbolUsageInfo.IsWrittenTo();
+            FindUsagesProperties = findUsagesProperties.NullToEmpty();
+        }
+
+        private static AdditionalPropertiesWithMultipleValuesMap GetOrCreateAdditionalPropertiesWithMultipleValuesMap(SymbolUsageInfo symbolUsageInfo)
+            => s_symbolUsageInfoToReferenceInfoMap.GetOrAdd(symbolUsageInfo, v => CreateReferenceUsageInfo(v));
+
+        private static AdditionalPropertiesWithMultipleValuesMap CreateReferenceUsageInfo(SymbolUsageInfo symbolUsageInfo)
+        {
+            var additionalPropertiesWithMultipleValuesMap = AdditionalPropertiesWithMultipleValuesMap.Empty;
             if (!symbolUsageInfo.Equals(SymbolUsageInfo.None))
             {
-                referenceInfoMap = referenceInfoMap.Add(nameof(SymbolUsageInfo), symbolUsageInfo.ToLocalizableValues());
+                additionalPropertiesWithMultipleValuesMap = additionalPropertiesWithMultipleValuesMap.Add(nameof(SymbolUsageInfo), symbolUsageInfo.ToLocalizableValues());
             }
 
-            return referenceInfoMap;
+            return additionalPropertiesWithMultipleValuesMap;
         }
     }
 }

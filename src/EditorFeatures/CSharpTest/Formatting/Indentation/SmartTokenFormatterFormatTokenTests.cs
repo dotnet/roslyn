@@ -634,15 +634,14 @@ class Program
             bool useTabs)
         {
             // create tree service
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
+            using var workspace = TestWorkspace.CreateCSharp(code);
 
-                var buffer = workspace.Documents.First().GetTextBuffer();
+            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
 
-                var actual = await TokenFormatAsync(workspace, buffer, indentationLine, '{');
-                Assert.Equal(expected, actual);
-            }
+            var buffer = workspace.Documents.First().GetTextBuffer();
+
+            var actual = await TokenFormatAsync(workspace, buffer, indentationLine, '{');
+            Assert.Equal(expected, actual);
         }
 
         private async Task AssertSmartTokenFormatterCloseBraceWithBaseIndentation(string markup, int baseIndentation, int expectedIndentation)

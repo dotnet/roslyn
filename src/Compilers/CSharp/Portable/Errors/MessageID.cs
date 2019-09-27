@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
             DiagnosticBag diagnostics,
-            Compilation compilation, 
+            Compilation compilation,
             Location location)
         {
             if (GetFeatureAvailabilityDiagnosticInfoOpt(feature, (CSharpCompilation)compilation) is { } diagInfo)

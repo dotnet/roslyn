@@ -332,26 +332,36 @@ unsafe interface I
     void M7(A<A<int>.B1[]>.B1 o);
 }";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<int>*").WithArguments("A<int>").WithLocation(8, 15),
-                // (9,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<string>.B1*").WithArguments("A<string>.B1").WithLocation(9, 13),
                 // (10,22): error CS0122: 'A<int>.B2' is inaccessible due to its protection level
+                //     void M3(A<A<int>.B2>.B1* o);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B2").WithArguments("A<int>.B2").WithLocation(10, 22),
-                // (10,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<A<int>.B2>.B1')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<A<int>.B2>.B1*").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 13),
                 // (13,22): error CS0122: 'A<int>.B2' is inaccessible due to its protection level
+                //     void M6(A<A<int>.B2>.B1[] o);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B2").WithArguments("A<int>.B2").WithLocation(13, 22),
-                // (8,27): error CS0306: The type 'A<int>*' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o").WithArguments("A<int>*").WithLocation(8, 27),
+                // (14,31): error CS0453: The type 'A<int>.B1[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M7(A<A<int>.B1[]>.B1 o);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>.B1[]").WithLocation(14, 31),
+                // (9,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
+                //     void M2(A<string>.B1** o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<string>.B1").WithLocation(9, 28),
                 // (9,28): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M2(A<string>.B1** o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "string").WithLocation(9, 28),
+                // (10,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<A<int>.B2>.B1')
+                //     void M3(A<A<int>.B2>.B1* o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 30),
                 // (11,28): error CS0453: The type 'A<int>[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M4(A<A<int>[]>.B1 o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>[]").WithLocation(11, 28),
                 // (12,30): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M5(A<string>.B1[][] o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "string").WithLocation(12, 30),
-                // (14,31): error CS0453: The type 'A<int>.B1[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>.B1[]").WithLocation(14, 31));
+                // (8,27): error CS0306: The type 'A<int>*' may not be used as a type argument
+                //     void M1(A<A<int>*>.B1 o);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o").WithArguments("A<int>*").WithLocation(8, 27),
+                // (8,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
+                //     void M1(A<A<int>*>.B1 o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<int>").WithLocation(8, 27));
         }
 
         [WorkItem(542618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542618")]
@@ -5681,7 +5691,7 @@ End Module",
             Assert.Equal(typeParameter.IsValueType, isValueType);
             Assert.Equal(typeParameter.IsReferenceType, isReferenceType);
             Assert.Null(typeParameter.BaseType());
-            Assert.Equal(typeParameter.Interfaces().Length, 0);
+            Assert.Equal(0, typeParameter.Interfaces().Length);
             Utils.CheckSymbol(typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, effectiveBaseClassDescription);
             Utils.CheckSymbol(typeParameter.DeducedBaseTypeNoUseSiteDiagnostics, deducedBaseTypeDescription);
             Utils.CheckSymbols(typeParameter.ConstraintTypes(), constraintTypeDescriptions);
@@ -5764,14 +5774,9 @@ class c
     static void Main() { }
 }
 ";
-            // NOTE: As in Dev10, we don't report that object* and void* are invalid type arguments, since validation
+            // NOTE: we don't report that object* and void* are invalid type arguments, since validation
             // is performed on A.I, not on F<object*>.I or G<void*>.I.
-            // BREAKING: Dev10 (incorrectly) fails to report that "object*" is an illegal type since the pointed-at
-            // type is managed.
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-                // class F<T> : A where T : F<object*>.I
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the members of superType are accessible from subType due to inheritance.
         /// </summary>
-        public static bool IsAccessibleViaInheritance(this TypeSymbol superType, TypeSymbol subType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // NOTE: we don't use strict inheritance.  Instead we ignore constructed generic types
             // and only consider the unconstructed types.  Ecma-334, 4th edition contained the
@@ -54,14 +54,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //       class type constructed from G or a class type derived from a class type
             //       constructed from G.
             // This text is missing in the current version of the spec, but we believe this is accidental.
-            var originalSuperType = superType.OriginalDefinition;
-            for (TypeSymbol current = subType;
+            NamedTypeSymbol originalSuperType = superType.OriginalDefinition;
+            for (NamedTypeSymbol current = subType;
                 (object)current != null;
-                current = (current.Kind == SymbolKind.TypeParameter) ? ((TypeParameterSymbol)current).EffectiveBaseClass(ref useSiteDiagnostics) : current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
                 if (ReferenceEquals(current.OriginalDefinition, originalSuperType))
                 {
                     return true;
+                }
+            }
+
+            if (originalSuperType.IsInterface)
+            {
+                foreach (NamedTypeSymbol current in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+                {
+                    if (ReferenceEquals(current.OriginalDefinition, originalSuperType))
+                    {
+                        return true;
+                    }
                 }
             }
 

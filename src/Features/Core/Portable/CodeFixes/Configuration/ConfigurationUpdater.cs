@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     var commentValue = groups[commentIndex].Value.ToString();
 
                     // Check if the rule configuration entry we found is under a valid file header
-                    // such as '[*.cs]', '[*.vb]', etc. based on current project's langauge.
+                    // such as '[*.cs]', '[*.vb]', etc. based on current project's language.
                     var validRule = true;
                     if (mostRecentHeader != null &&
                         mostRecentHeader.Length != 0)
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             newEntry = $"\r\n# {_diagnostic.Id}: {_diagnostic.Descriptor.Title}\r\n{newEntry}\r\n";
 
             // Check if have a correct existing header for the new entry.
-            // If so, we don't need to generate a header guarding the new entry to specific langauge.
+            // If so, we don't need to generate a header guarding the new entry to specific language.
             TextLine? existingHeaderOpt = null;
             if (_language == LanguageNames.CSharp && headers.Any(header => header.Key.Contains(".cs")))
             {

@@ -63,6 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase));
             builder.Add(getId(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation));
+            builder.Add(getId(ErrorCode.WRN_NullReferenceInitializer));
+
+            builder.Add(getId(ErrorCode.WRN_ExpressionMayIntroduceNullT));
 
             NullableWarnings = builder.ToImmutable();
 
@@ -410,6 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullableValueTypeMayBeNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                 case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
+                case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustive:
@@ -429,6 +433,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                 case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
+                case ErrorCode.WRN_NullReferenceInitializer:
+                case ErrorCode.WRN_ExpressionMayIntroduceNullT:
                     return 1;
                 default:
                     return 0;

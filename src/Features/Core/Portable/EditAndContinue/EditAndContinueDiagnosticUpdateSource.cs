@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     documentDiagnosticData.Add(DiagnosticData.Create(documentOpt, diagnostic));
                 }
-                else 
+                else
                 {
                     nonDocumentDiagnosticData.Add(DiagnosticData.Create(solution.Workspace, diagnostic, projectIdOpt));
                 }

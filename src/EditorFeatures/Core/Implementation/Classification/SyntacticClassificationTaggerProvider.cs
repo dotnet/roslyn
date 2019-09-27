@@ -55,9 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             tagComputer.IncrementReferenceCount();
 
             var tagger = new Tagger(tagComputer);
-            var typedTagger = tagger as ITagger<T>;
 
-            if (typedTagger == null)
+            if (!(tagger is ITagger<T> typedTagger))
             {
                 // Oops, we can't actually return this tagger, so just clean up
                 tagger.Dispose();

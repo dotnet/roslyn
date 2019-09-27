@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
                 return name;
             }
 
-            // `this[...]`. Allow up throught the 'this' token.
+            // `this[...]`. Allow up through the 'this' token.
             if (expr is ThisExpressionSyntax || expr is BaseExpressionSyntax)
             {
                 return expr;
