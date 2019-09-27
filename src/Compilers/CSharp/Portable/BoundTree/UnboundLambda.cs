@@ -636,7 +636,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindWithDelegateAndReturnType(delegateType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, returnType);
         }
 
-
         private (LambdaSymbol lambdaSymbol, BoundBlock block, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics) BindWithDelegateAndReturnType(
             NamedTypeSymbol delegateType,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
