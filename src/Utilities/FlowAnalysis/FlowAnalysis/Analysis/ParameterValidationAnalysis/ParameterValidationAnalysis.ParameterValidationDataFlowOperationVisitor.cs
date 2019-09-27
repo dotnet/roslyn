@@ -150,19 +150,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     return false;
                 }
 
-                switch (operation.Parent)
+                return operation.Parent switch
                 {
-                    case IMemberReferenceOperation memberReference:
-                        return memberReference.Instance == operation;
+                    IMemberReferenceOperation memberReference => memberReference.Instance == operation,
 
-                    case IArrayElementReferenceOperation arrayElementReference:
-                        return arrayElementReference.ArrayReference == operation;
+                    IArrayElementReferenceOperation arrayElementReference => arrayElementReference.ArrayReference == operation,
 
-                    case IInvocationOperation invocation:
-                        return invocation.Instance == operation;
-                }
+                    IInvocationOperation invocation => invocation.Instance == operation,
 
-                return false;
+                    _ => false,
+                };
             }
 
             private void HandlePotentiallyHazardousOperation(IOperation operation, IEnumerable<AbstractLocation> nonValidatedLocations)

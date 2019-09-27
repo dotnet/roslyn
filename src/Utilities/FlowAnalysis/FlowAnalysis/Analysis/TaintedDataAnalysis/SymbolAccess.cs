@@ -6,8 +6,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
-
     /// <summary>
     /// Represents an access to a symbol.
     /// </summary>
