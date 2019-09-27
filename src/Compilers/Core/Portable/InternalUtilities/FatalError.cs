@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 #if COMPILERCORE
 namespace Microsoft.CodeAnalysis
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// Set by the host to a fail fast trigger, 
         /// if the host desires to crash the process on a fatal exception.
         /// </summary>
+        [DisallowNull]
         public static Action<Exception>? Handler
         {
             get
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// Set by the host to a fail fast trigger, 
         /// if the host desires to NOT crash the process on a non fatal exception.
         /// </summary>
+        [DisallowNull]
         public static Action<Exception>? NonFatalHandler
         {
             get
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         // Same as setting the Handler property except that it avoids the assert.  This is useful in 
         // test code which needs to verify the handler is called in specific cases and will continually
         // overwrite this value.
-        public static void OverwriteHandler(Action<Exception> value)
+        public static void OverwriteHandler(Action<Exception>? value)
         {
             s_fatalHandler = value;
         }

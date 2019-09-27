@@ -175,7 +175,6 @@ namespace Roslyn.Utilities
                 return string.Empty;
             }
 
-#nullable disable // Needs work...
             int startIndex = 0;
             int count = 0;
             for (int i = 0; i < value.Length; i++)
@@ -198,32 +197,34 @@ namespace Roslyn.Utilities
 
                     startIndex = i + 1;
                     count = 0;
-                }
 
-                switch (c)
-                {
-                    case '\"':
-                        b.Append("\\\"");
-                        break;
-                    case '\\':
-                        b.Append("\\\\");
-                        break;
-                    default:
-                        if (ShouldAppendAsUnicode(c))
-                        {
+                    switch (c)
+                    {
+                        case '\"':
+                            b.Append("\\\"");
+                            break;
+                        case '\\':
+                            b.Append("\\\\");
+                            break;
+                        default:
+                            Debug.Assert(ShouldAppendAsUnicode(c));
                             AppendCharAsUnicode(b, c);
-                        }
-                        else
-                        {
-                            count++;
-                        }
-                        break;
+                            break;
+                    }
+                }
+                else
+                {
+                    count++;
                 }
             }
 
             if (b == null)
             {
                 return value;
+            }
+            else
+            {
+                RoslynDebug.Assert(pooledBuilder is object);
             }
 
             if (count > 0)
@@ -232,7 +233,6 @@ namespace Roslyn.Utilities
             }
 
             return pooledBuilder.ToStringAndFree();
-#nullable enable
         }
 
         private static void AppendCharAsUnicode(StringBuilder builder, char c)

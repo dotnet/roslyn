@@ -95,7 +95,7 @@ namespace Roslyn.Utilities
             return shortName;
         }
 
-        internal static bool IsValidClrTypeName(this string? name)
+        internal static bool IsValidClrTypeName([NotNullWhen(returnValue: true)] this string? name)
         {
             return !RoslynString.IsNullOrEmpty(name) && name.IndexOf('\0') == -1;
         }
@@ -103,7 +103,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Checks if the given name is a sequence of valid CLR names separated by a dot.
         /// </summary>
-        internal static bool IsValidClrNamespaceName(this string? name)
+        internal static bool IsValidClrNamespaceName([NotNullWhen(returnValue: true)] this string? name)
         {
             if (RoslynString.IsNullOrEmpty(name))
             {

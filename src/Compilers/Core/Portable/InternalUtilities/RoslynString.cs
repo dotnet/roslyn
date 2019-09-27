@@ -9,7 +9,7 @@ namespace Roslyn.Utilities
     internal static class RoslynString
     {
         /// <inheritdoc cref="string.IsNullOrEmpty(string)"/>
-        public static bool IsNullOrEmpty([NotNullWhen(returnValue: false)] this string? value)
+        public static bool IsNullOrEmpty([NotNullWhen(returnValue: false)] string? value)
             => string.IsNullOrEmpty(value);
     }
 }

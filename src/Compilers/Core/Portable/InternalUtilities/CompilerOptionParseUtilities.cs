@@ -15,12 +15,12 @@ namespace Roslyn.Utilities
         /// </summary>
         public static IList<string> ParseFeatureFromMSBuild(string? features)
         {
-            if (string.IsNullOrEmpty(features))
+            if (RoslynString.IsNullOrEmpty(features))
             {
                 return new List<string>(capacity: 0);
             }
 
-            return features!.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return features.Split(new[] { ';', ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         public static void ParseFeatures(IDictionary<string, string> builder, List<string> values)

@@ -53,6 +53,7 @@ namespace Roslyn.Utilities
                 if (newTail != null)
                 {
                     // Suppress false positive CS8717 reported for MaybeNull assignment to AllowNull
+                    // https://github.com/dotnet/roslyn/issues/38926
                     _current = currentTail._head!;
                     _tail = newTail;
                     return true;
@@ -110,7 +111,8 @@ namespace Roslyn.Utilities
             get
             {
                 Debug.Assert(this != Empty);
-                return _tail!;
+                RoslynDebug.Assert(_tail is object);
+                return _tail;
             }
         }
 
@@ -150,7 +152,7 @@ namespace Roslyn.Utilities
                     result.Append(", ");
                 }
 
-                result.Append(list._head!);
+                result.Append(list.Head);
                 any = true;
             }
 
