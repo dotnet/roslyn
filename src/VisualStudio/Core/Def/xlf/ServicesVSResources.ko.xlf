@@ -482,6 +482,11 @@
         <target state="translated">사용되지 않는 값이 무시 항목에 명시적으로 할당됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="new">Updating severity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
         <source>Use .editorconfig compatibility mode (requires restart)</source>
         <target state="translated">.editorconfig 호환성 모드 사용(다시 시작해야 함)</target>
