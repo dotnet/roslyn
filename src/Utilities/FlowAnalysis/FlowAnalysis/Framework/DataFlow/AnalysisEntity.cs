@@ -10,8 +10,6 @@ using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
-
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>
@@ -173,17 +171,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                switch (SymbolOpt)
+                return SymbolOpt switch
                 {
-                    case IFieldSymbol field:
-                        return field.HasConstantValue;
+                    IFieldSymbol field => field.HasConstantValue,
 
-                    case ILocalSymbol local:
-                        return local.HasConstantValue;
+                    ILocalSymbol local => local.HasConstantValue,
 
-                    default:
-                        return false;
-                }
+                    _ => false,
+                };
             }
         }
 

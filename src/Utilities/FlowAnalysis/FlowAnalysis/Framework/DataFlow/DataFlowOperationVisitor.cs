@@ -638,16 +638,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 Debug.Assert(branch.ControlFlowConditionKind != ControlFlowConditionKind.None);
 
-                switch (predicateValueKind)
+                return predicateValueKind switch
                 {
-                    case PredicateValueKind.AlwaysFalse:
-                        return branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenTrue;
+                    PredicateValueKind.AlwaysFalse => branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenTrue,
 
-                    case PredicateValueKind.AlwaysTrue:
-                        return branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenFalse;
-                }
+                    PredicateValueKind.AlwaysTrue => branch.ControlFlowConditionKind == ControlFlowConditionKind.WhenFalse,
 
-                return false;
+                    _ => false,
+                };
             }
         }
 
@@ -1969,7 +1967,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Check if we are already at the maximum allowed interprocedural call chain length.
-            int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !((IMethodSymbol)m.OwningSymbol).IsLambdaOrLocalFunctionOrDelegate()).Count();
+            int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !(m.OwningSymbol is IMethodSymbol ms && ms.IsLambdaOrLocalFunctionOrDelegate())).Count();
             int currentLambdaOrLocalFunctionCallCount = currentMethodsBeingAnalyzed.Count - currentMethodCallCount;
 
             if (currentMethodCallCount >= MaxInterproceduralMethodCallChain ||
