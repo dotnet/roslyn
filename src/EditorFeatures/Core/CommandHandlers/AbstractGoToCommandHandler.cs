@@ -14,11 +14,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : VSCommanding.ICommandHandler<TCommandArgs>
+    internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : ICommandHandler<TCommandArgs>
         where TLanguageService : class, ILanguageService
         where TCommandArgs : EditorCommandArgs
     {
@@ -27,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public abstract string DisplayName { get; }
 
-        protected abstract string _scopeDescription { get; }
+        protected abstract string ScopeDescription { get; }
 
-        protected abstract FunctionId _functionId { get; }
+        protected abstract FunctionId FunctionId { get; }
 
         protected abstract Task FindAction(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context);
 
@@ -41,19 +40,19 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             _streamingPresenter = streamingPresenter;
         }
 
-        public VSCommanding.CommandState GetCommandState(TCommandArgs args)
+        public CommandState GetCommandState(TCommandArgs args)
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var findUsagesService = document?.GetLanguageService<TLanguageService>();
             return findUsagesService != null
-                ? VSCommanding.CommandState.Available
-                : VSCommanding.CommandState.Unavailable;
+                ? CommandState.Available
+                : CommandState.Unavailable;
         }
 
         public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
         {
-            using (context.OperationContext.AddScope(allowCancellation: true, _scopeDescription))
+            using (context.OperationContext.AddScope(allowCancellation: true, ScopeDescription))
             {
                 var subjectBuffer = args.SubjectBuffer;
                 if (!subjectBuffer.TryGetWorkspace(out var workspace))
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 string messageToShow = null;
 
                 var userCancellationToken = context.OperationContext.UserCancellationToken;
-                using (Logger.LogBlock(_functionId, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
+                using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
                 {
                     StreamingGoTo(
                         document, caretPosition,

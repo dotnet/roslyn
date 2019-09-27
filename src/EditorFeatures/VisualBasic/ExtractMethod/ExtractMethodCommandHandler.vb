@@ -3,12 +3,12 @@
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
-    <Export(GetType(VSCommanding.ICommandHandler))>
+    <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.ExtractMethod)>
     <Order(After:=PredefinedCommandHandlerNames.DocumentationComments)>

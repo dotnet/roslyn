@@ -11,12 +11,11 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 {
-    internal abstract class AbstractChangeSignatureCommandHandler : VSCommanding.ICommandHandler<ReorderParametersCommandArgs>,
-        VSCommanding.ICommandHandler<RemoveParametersCommandArgs>
+    internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<ReorderParametersCommandArgs>,
+        ICommandHandler<RemoveParametersCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
 
@@ -27,14 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
         public string DisplayName => EditorFeaturesResources.Change_Signature;
 
-        public VSCommanding.CommandState GetCommandState(ReorderParametersCommandArgs args)
+        public CommandState GetCommandState(ReorderParametersCommandArgs args)
             => GetCommandState(args.SubjectBuffer);
 
-        public VSCommanding.CommandState GetCommandState(RemoveParametersCommandArgs args)
+        public CommandState GetCommandState(RemoveParametersCommandArgs args)
             => GetCommandState(args.SubjectBuffer);
 
-        private static VSCommanding.CommandState GetCommandState(ITextBuffer subjectBuffer)
-            => IsAvailable(subjectBuffer, out _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+        private static CommandState GetCommandState(ITextBuffer subjectBuffer)
+            => IsAvailable(subjectBuffer, out _) ? CommandState.Available : CommandState.Unspecified;
 
         public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
