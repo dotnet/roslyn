@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var changedDocumentAnalyses = GetChangedDocumentsAnalyses(baseProject, project);
-                    if (changedDocumentAnalyses.Count == 0)
+                    if (changedDocumentAnalyses.Length == 0)
                     {
                         continue;
                     }
