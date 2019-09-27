@@ -148,15 +148,16 @@ class Class
     {{
         // Start comment previous line
 #pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
-                              /* Start comment same line */
+        /* Start comment same line */
         int x = 0; // End comment same line
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
-                              /* End comment next line */
+        /* End comment next line */
     }}
 }}");
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
                 public async Task TestPragmaWarningDirectiveWithDocumentationComment()
                 {
                     await TestAsync(
@@ -172,7 +173,7 @@ sealed class Class
 sealed class Class
 {{
 #pragma warning disable CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
-                              /// <summary>Text</summary>
+    /// <summary>Text</summary>
     protected void Method()
 #pragma warning restore CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
     {{
