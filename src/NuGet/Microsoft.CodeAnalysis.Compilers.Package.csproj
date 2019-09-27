@@ -7,6 +7,8 @@
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Compilers</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- https://github.com/NuGet/Home/issues/8583 -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <PackageDescription>
       Compiler layer of the .NET Compiler Platform ("Roslyn").
       Install this package to get both C# and Visual Basic support.

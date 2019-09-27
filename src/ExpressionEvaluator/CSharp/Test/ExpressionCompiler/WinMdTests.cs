@@ -227,9 +227,9 @@ class C
                     SignatureHeader signatureHeader;
                     BadImageFormatException metadataException;
                     var parameters = metadataDecoder.GetSignatureForMethod(methodHandle, out signatureHeader, out metadataException);
-                    Assert.Equal(parameters.Length, 5);
+                    Assert.Equal(5, parameters.Length);
                     var actualReturnType = parameters[0].Type;
-                    Assert.Equal(actualReturnType.TypeKind, TypeKind.Class); // not error
+                    Assert.Equal(TypeKind.Class, actualReturnType.TypeKind); // not error
                     var expectedReturnType = compilation.GetMember("Windows.Storage.StorageFolder");
                     Assert.Equal(expectedReturnType, actualReturnType);
                     Assert.Equal(storageAssemblyName, actualReturnType.ContainingAssembly.Name);

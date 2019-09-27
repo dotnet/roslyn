@@ -35,7 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             // Since this is an async void method, exceptions here will crash the host VS. We catch exceptions here to make sure that we don't crash the host since
             // the worst outcome here is that guests may not see all diagnostics.

@@ -445,8 +445,8 @@ $ 定位点匹配 \n，但不匹配 \r\n (回车符和换行符的组合，或 C
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">十六进制转义符</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">十六进制转义符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -2009,7 +2009,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="translated">没有</target>
+        <target state="translated">无</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_suffix_colon_0">

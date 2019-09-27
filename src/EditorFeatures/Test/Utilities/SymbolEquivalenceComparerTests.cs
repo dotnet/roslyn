@@ -1435,10 +1435,10 @@ End Class
             var method2 = GetInvokedSymbol<TInvocation>(comp2, typeName, methodName);
 
             Assert.NotNull(method1);
-            Assert.Equal(method1.MethodKind, MethodKind.ReducedExtension);
+            Assert.Equal(MethodKind.ReducedExtension, method1.MethodKind);
 
             Assert.NotNull(method2);
-            Assert.Equal(method2.MethodKind, MethodKind.ReducedExtension);
+            Assert.Equal(MethodKind.ReducedExtension, method2.MethodKind);
 
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(method1, method2));
 

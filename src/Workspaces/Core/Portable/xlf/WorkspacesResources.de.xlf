@@ -445,8 +445,8 @@ Der $-Anker stimmt mit "\n", aber nicht mit "\r\n" überein (Kombination aus Wag
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">Hexadezimale Escapesequenz</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">Hexadezimale Escapesequenz</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -703,7 +703,7 @@ If the RegexOptions parameter of a regular expression pattern matching method in
 
 "Name" ist ein gültiger Gruppenname, und "Teilausdruck" ist ein gültiges Muster für reguläre Ausdrücke. "Name" darf keine Satzzeichen enthalten und nicht mit einer Zahl beginnen.
 
-Wenn der RegexOptions-Parameter einer Methode zum Abgleich von Mustern für reguläre Ausdrücke das Flag "RegexOptions.ExplicitCapture" enthält oder wenn die Option "n" auf das diesen Teilausdruck angewendet wird, besteht die einzige Möglichkeit zum Erfassen eines Unterausdrucks darin, die Erfassungsgruppen explizit zu benennen.</target>
+Wenn der RegexOptions-Parameter einer Methode zum Abgleich von Mustern für reguläre Ausdrücke das Flag "RegexOptions.ExplicitCapture" enthält oder wenn die Option "n" auf diesen Teilausdruck angewendet wird, besteht die einzige Möglichkeit zum Erfassen eines Unterausdrucks darin, die Erfassungsgruppen explizit zu benennen.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_matched_subexpression_short">
@@ -838,7 +838,7 @@ Wenn das ECMAScript-konforme Verhalten angegeben wird, ist "\W" gleichbedeutend 
         <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="translated">Dieses Konstrukt deaktiviert die Rückverfolgung. Die Engine für reguläre Ausdrücke gleicht so viele Zeichen in der Eingabezeichenfolge wie möglich ab. Wenn kein weiterer Abgleich möglich ist, wird keine Rückverfolgung durchgeführt, um alternative Musterabgleiche zu versuchen. (Das heißt, der Teilausdruck stimmt mit nur mit Zeichenfolgen überein, die dem Teilausdruck allein entsprechen; es wird nicht versucht, eine Zeichenfolge basierend auf dem Teilausdruck und allen nachfolgenden Teilausdrücken abzugleichen.)
+        <target state="translated">Dieses Konstrukt deaktiviert die Rückverfolgung. Die Engine für reguläre Ausdrücke gleicht so viele Zeichen in der Eingabezeichenfolge wie möglich ab. Wenn kein weiterer Abgleich möglich ist, wird keine Rückverfolgung durchgeführt, um alternative Musterabgleiche zu versuchen. (Das heißt, der Teilausdruck stimmt nur mit Zeichenfolgen überein, die dem Teilausdruck allein entsprechen; es wird nicht versucht, eine Zeichenfolge basierend auf dem Teilausdruck und allen nachfolgenden Teilausdrücken abzugleichen.)
 
 Diese Option empfiehlt sich, wenn Sie wissen, dass die Rückverfolgung nicht zum Erfolg führt. Indem Sie die Ausführung unnötiger Suchvorgänge durch die Engine für reguläre Ausdrücke verhindern, erzielen Sie eine verbesserte Leistung.</target>
         <note />

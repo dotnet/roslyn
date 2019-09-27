@@ -4,9 +4,9 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -25,16 +25,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
     internal partial class RenameCommandHandler
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly InlineRenameService _renameService;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         [ImportingConstructor]
         public RenameCommandHandler(
-            InlineRenameService renameService,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IThreadingContext threadingContext,
+            InlineRenameService renameService)
         {
+            _threadingContext = threadingContext;
             _renameService = renameService;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
         public string DisplayName => EditorFeaturesResources.Rename;

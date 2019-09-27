@@ -2,189 +2,79 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../ServicesVSResources.resx">
     <body>
-      <trans-unit id="ALL_UPPER">
-        <source>ALL UPPER</source>
-        <target state="new">ALL UPPER</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Access_colon">
-        <source>_Access:</source>
-        <target state="new">_Access:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessibilities_can_match_any">
-        <source>Accessibilities (can match any)</source>
-        <target state="new">Accessibilities (can match any)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Active">
-        <source>Active</source>
-        <target state="new">Active</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_a_naming_rule">
-        <source>Add a naming rule</source>
-        <target state="new">Add a naming rule</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_a_reference_to_0">
-        <source>Add a reference to '{0}'</source>
-        <target state="new">Add a reference to '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_a_symbol_specification">
-        <source>Add a symbol specification</source>
-        <target state="new">Add a symbol specification</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_item">
-        <source>Add item</source>
-        <target state="new">Add item</target>
+        <target state="translated">将创建一个新的命名空间</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
-        <target state="new">Add to _current file</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_to_existing_file">
-        <source>Add to _existing file</source>
-        <target state="new">Add to _existing file</target>
+        <target state="translated">添加到当前文件(_C)</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
         <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
-        <target state="new">Additional changes are needed to complete the refactoring. Review changes below.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Additional_information_colon">
-        <source>Additional information:</source>
-        <target state="new">Additional information:</target>
+        <target state="translated">需要进行其他更改才可完成重构。请在下方查看所作更改。</target>
         <note />
       </trans-unit>
       <trans-unit id="All_methods">
         <source>All methods</source>
-        <target state="new">All methods</target>
+        <target state="translated">所有方法</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_colon">
         <source>Allow:</source>
-        <target state="new">Allow:</target>
+        <target state="translated">允许:</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
-        <target state="new">Always for clarity</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analysis">
-        <source>Analysis</source>
-        <target state="new">Analysis</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnalyzerChangedOnDisk">
-        <source>AnalyzerChangedOnDisk</source>
-        <target state="new">AnalyzerChangedOnDisk</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnalyzerDependencyConflict">
-        <source>AnalyzerDependencyConflict</source>
-        <target state="new">AnalyzerDependencyConflict</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly">
-        <source>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</source>
-        <target state="new">Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well">
-        <source>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</source>
-        <target state="new">Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzer_reference_to_0_in_project_1">
-        <source>Analyzer reference to '{0}' in project '{1}'</source>
-        <target state="new">Analyzer reference to '{0}' in project '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzing_0">
-        <source>Analyzing '{0}'</source>
-        <target state="new">Analyzing '{0}'</target>
+        <target state="translated">为始终保持清楚起见</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
         <source>Apply '{0}' keymapping scheme</source>
-        <target state="new">Apply '{0}' keymapping scheme</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Applying_remove_suppressions_fix">
-        <source>Applying remove suppressions fix...</source>
-        <target state="new">Applying remove suppressions fix...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Applying_suppressions_fix">
-        <source>Applying suppressions fix...</source>
-        <target state="new">Applying suppressions fix...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Assembly">
-        <source>Assembly </source>
-        <target state="new">Assembly </target>
+        <target state="translated">应用“{0}”项映射计划</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
-        <target state="new">Avoid expression statements that implicitly ignore value</target>
+        <target state="translated">避免会隐式忽略值的表达式语句</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_parameters">
         <source>Avoid unused parameters</source>
-        <target state="new">Avoid unused parameters</target>
+        <target state="translated">避免未使用的参数</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_unused_value_assignments">
         <source>Avoid unused value assignments</source>
-        <target state="new">Avoid unused value assignments</target>
+        <target state="translated">避免未使用的值赋值</target>
         <note />
       </trans-unit>
       <trans-unit id="Back">
         <source>Back</source>
-        <target state="new">Back</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Base_Types">
-        <source>Base Types</source>
-        <target state="new">Base Types</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Block_Structure_Guides">
-        <source>Block Structure Guides</source>
-        <target state="new">Block Structure Guides</target>
+        <target state="translated">后退</target>
         <note />
       </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
-        <target state="new">Build + live analysis (NuGet package)</target>
+        <target state="translated">生成 + 实时分析(NuGet 包)</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_VB_Build_Table_Data_Source">
-        <source>C#/VB Build Table Data Source</source>
-        <target state="new">C#/VB Build Table Data Source</target>
+      <trans-unit id="Calculating_dependents">
+        <source>Calculating dependents...</source>
+        <target state="translated">正在计算依赖项...</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_VB_Diagnostics_Table_Data_Source">
-        <source>C#/VB Diagnostics Table Data Source</source>
-        <target state="new">C#/VB Diagnostics Table Data Source</target>
+      <trans-unit id="Classifications">
+        <source>Classifications</source>
+        <target state="translated">分类</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_VB_Todo_List_Table_Data_Source">
-        <source>C#/VB Todo List Table Data Source</source>
-        <target state="new">C#/VB Todo List Table Data Source</target>
+      <trans-unit id="Colorize_regular_expressions">
+        <source>Colorize regular expressions</source>
+        <target state="translated">为正规表达式着色</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -197,249 +87,19 @@
         <target state="new">Containing Type</target>
         <note />
       </trans-unit>
-      <trans-unit id="Element_is_not_valid">
-        <source>Element is not valid.</source>
-        <target state="translated">元素无效。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Calculating_dependents">
-        <source>Calculating dependents...</source>
-        <target state="new">Calculating dependents...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_create_a_node_id_for_this_symbol_kind_colon_0">
-        <source>Can't create a node id for this symbol kind: '{0}'</source>
-        <target state="new">Can't create a node id for this symbol kind: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_find_where_to_insert_member">
-        <source>Can't find where to insert member</source>
-        <target state="new">Can't find where to insert member</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_rename_other_elements">
-        <source>Can't rename 'other' elements</source>
-        <target state="new">Can't rename 'other' elements</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cancel">
-        <source>Cancel</source>
-        <target state="new">Cancel</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="new">Can't apply changes -- module '{0}' has been unloaded.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Capitalization_colon">
-        <source>Capitalization:</source>
-        <target state="new">Capitalization:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Change_Signature">
-        <source>Change Signature</source>
-        <target state="new">Change Signature</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="new">Changes are not allowed if the assembly has not been loaded.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="new">Changes are not allowed if the project wasn't built when debugging started.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="new">Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="new">Changes are not allowed while code is running.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Choose_a_Symbol_Specification_and_a_Naming_Style">
-        <source>Choose a Symbol Specification and a Naming Style.</source>
-        <target state="new">Choose a Symbol Specification and a Naming Style.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Classifications">
-        <source>Classifications</source>
-        <target state="new">Classifications</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Close">
-        <source>Close</source>
-        <target state="new">Close</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_block_preferences_colon">
-        <source>Code block preferences:</source>
-        <target state="new">Code block preferences:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_style_header_use_editor_config">
-        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
-        <target state="new">Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Collapse_regions_when_collapsing_to_definitions">
-        <source>Collapse #regions when collapsing to definitions</source>
-        <target state="new">Collapse #regions when collapsing to definitions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Colorize_regular_expressions">
-        <source>Colorize regular expressions</source>
-        <target state="new">Colorize regular expressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Computing_remove_suppressions_fix">
-        <source>Computing remove suppressions fix...</source>
-        <target state="new">Computing remove suppressions fix...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Computing_suppressions_fix">
-        <source>Computing suppressions fix...</source>
-        <target state="new">Computing suppressions fix...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Copy_to_Clipboard">
-        <source>Copy to Clipboard</source>
-        <target state="new">Copy to Clipboard</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Could_not_find_location_of_folder_on_disk">
-        <source>Could not find location of folder on disk</source>
-        <target state="new">Could not find location of folder on disk</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Could_not_find_project_0">
-        <source>Could not find project '{0}'</source>
-        <target state="new">Could not find project '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Create_new_file">
-        <source>_Create new file</source>
-        <target state="new">_Create new file</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Current_block">
-        <source>Current block</source>
-        <target state="new">Current block</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Debugger">
-        <source>Debugger</source>
-        <target state="new">Debugger</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
- 
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
- 
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="new">Decompiler Legal Notice</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Default_">
-        <source>Default</source>
-        <target state="new">Default</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Description">
-        <source>Description</source>
-        <target state="new">Description</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deselect_All">
-        <source>_Deselect All</source>
-        <target state="new">_Deselect All</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Determining_autos">
-        <source>Determining autos...</source>
-        <target state="new">Determining autos...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Determining_breakpoint_location">
-        <source>Determining breakpoint location...</source>
-        <target state="new">Determining breakpoint location...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Determining_current_block">
-        <source>Determining current block.</source>
-        <target state="new">Determining current block.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Disable_analyzers">
         <source>Disable analyzers</source>
         <target state="new">Disable analyzers</target>
         <note />
       </trans-unit>
-      <trans-unit id="DocumentPath_is_illegal">
-        <source>DocumentPath is illegal</source>
-        <target state="new">DocumentPath is illegal</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_item">
-        <source>Edit item</source>
-        <target state="new">Edit item</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable">
-        <source>Enable</source>
-        <target state="new">Enable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_and_ignore_future_errors">
-        <source>Enable and ignore future errors</source>
-        <target state="new">Enable and ignore future errors</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_full_solution_analysis">
-        <source>Enable full solution _analysis</source>
-        <target state="new">Enable full solution _analysis</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="new">Enable navigation to decompiled sources (experimental)</target>
+      <trans-unit id="Element_is_not_valid">
+        <source>Element is not valid.</source>
+        <target state="translated">元素无效。</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">启用可为 null 的引用分析 IDE 功能</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_power_save_mode">
@@ -447,413 +107,89 @@ I agree to all of the foregoing:</target>
         <target state="new">Enable power save mode (disables all background analysis)</target>
         <note />
       </trans-unit>
-      <trans-unit id="End_of_inner_exception_stack">
-        <source>--- End of inner exception stack trace ---</source>
-        <target state="new">--- End of inner exception stack trace ---</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="End_position_must_be_start_position">
-        <source>End position must be &gt;= start position</source>
-        <target state="new">End position must be &gt;= start position</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_a_title_for_this_Naming_Rule">
-        <source>Enter a title for this Naming Rule.</source>
-        <target state="new">Enter a title for this Naming Rule.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_a_title_for_this_Naming_Style">
-        <source>Enter a title for this Naming Style.</source>
-        <target state="new">Enter a title for this Naming Style.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_a_title_for_this_Symbol_Specification">
-        <source>Enter a title for this Symbol Specification.</source>
-        <target state="new">Enter a title for this Symbol Specification.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="new">Error while reading file '{0}': {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="new">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled">
-        <source>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</source>
-        <target state="new">Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="new">Error reading ruleset file {0} - {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
-        <target state="new">Evaluating ({0} tasks in queue)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Event_type_is_invalid">
-        <source>Event type is invalid</source>
-        <target state="new">Event type is invalid</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Exceptions_colon">
-        <source>Exceptions:</source>
-        <target state="new">Exceptions:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expression_preferences_colon">
-        <source>Expression preferences:</source>
-        <target state="new">Expression preferences:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="External_reference_found">
-        <source>External reference found</source>
-        <target state="new">External reference found</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Interface">
-        <source>Extract Interface</source>
-        <target state="new">Extract Interface</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fade_out_unreachable_code">
-        <source>Fade out unreachable code</source>
-        <target state="new">Fade out unreachable code</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fading">
-        <source>Fading</source>
-        <target state="new">Fading</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_create_document_in_miscellaneous_files_project">
-        <source>Failed to create document in miscellaneous files project.</source>
-        <target state="new">Failed to create document in miscellaneous files project.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="File_Name_colon">
-        <source>File Name:</source>
-        <target state="new">File Name:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="File_already_exists">
-        <source>File already exists</source>
-        <target state="new">File already exists</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="File_name_must_have_the_0_extension">
-        <source>File name must have the "{0}" extension.</source>
-        <target state="new">File name must have the "{0}" extension.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="File_path_cannot_use_reserved_keywords">
-        <source>File path cannot use reserved keywords</source>
-        <target state="new">File path cannot use reserved keywords</target>
+        <target state="translated">正在评估(队列中有 {0} 个任务)</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
-        <target state="new">Finish</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="First_word_upper">
-        <source>First word upper</source>
-        <target state="new">First word upper</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level">
-        <source>For a given symbol, only the topmost rule with a matching 'Specification' will be applied. Violation of that rule's 'Required Style' will be reported at the chosen 'Severity' level.</source>
-        <target state="new">For a given symbol, only the topmost rule with a matching 'Specification' will be applied. Violation of that rule's 'Required Style' will be reported at the chosen 'Severity' level.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_locals_parameters_and_members">
-        <source>For locals, parameters and members</source>
-        <target state="new">For locals, parameters and members</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_member_access_expressions">
-        <source>For member access expressions</source>
-        <target state="new">For member access expressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_Type">
-        <source>Generate Type</source>
-        <target state="new">Generate Type</target>
+        <target state="translated">完成</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
-        <target state="new">Generate .editorconfig file from settings</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generated_name_colon">
-        <source>Generated name:</source>
-        <target state="new">Generated name:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="new">Get help for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="new">Get help for '{0}' from Bing</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Getting_DataTip_text">
-        <source>Getting DataTip text...</source>
-        <target state="new">Getting DataTip text...</target>
+        <target state="translated">基于设置生成 .editorconfig 文件</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
-        <target state="new">Highlight related components under cursor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDs_are_not_supported_for_this_symbol_type">
-        <source>IDs are not supported for this symbol type.</source>
-        <target state="new">IDs are not supported for this symbol type.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Illegal_characters_in_path">
-        <source>Illegal characters in path.</source>
-        <target state="new">Illegal characters in path.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_Interface_or_Abstract_Class">
-        <source>Implement Interface or Abstract Class</source>
-        <target state="new">Implement Interface or Abstract Class</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implemented_By">
-        <source>Implemented By</source>
-        <target state="new">Implemented By</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implements_">
-        <source>Implements</source>
-        <target state="new">Implements</target>
+        <target state="translated">突出显示光标下的相关组件</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
-        <target state="new">In other operators</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inherited_By">
-        <source>Inherited By</source>
-        <target state="new">Inherited By</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inherits_">
-        <source>Inherits</source>
-        <target state="new">Inherits</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Install_0">
-        <source>Install '{0}'</source>
-        <target state="new">Install '{0}'</target>
+        <target state="translated">在其他运算符中</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
         <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
-        <target state="new">Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Installing_0">
-        <source>Installing '{0}'</source>
-        <target state="new">Installing '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Installing_0_completed">
-        <source>Installing '{0}' completed</source>
-        <target state="new">Installing '{0}' completed</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Installing_0_failed_Additional_information_colon_1">
-        <source>Installing '{0}' failed.
-
-Additional information: {1}</source>
-        <target state="new">Installing '{0}' failed.
-
-Additional information: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IntelliSense">
-        <source>IntelliSense</source>
-        <target state="new">IntelliSense</target>
+        <target state="translated">安装 Microsoft 推荐的 Roslyn 分析器，它提供了针对常见 API 设计、安全性、性能和可靠性问题的额外诊断和修补程序</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
-        <target state="new">Interface cannot have field.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
-        <source>Interface name conflicts with an existing type name.</source>
-        <target state="new">Interface name conflicts with an existing type name.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
-        <source>Interface name is not a valid {0} identifier.</source>
-        <target state="new">Interface name is not a valid {0} identifier.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_access">
-        <source>Invalid access.</source>
-        <target state="new">Invalid access.</target>
+        <target state="translated">接口不可具有字段。</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
-        <target state="new">Keep all parentheses in:</target>
+        <target state="translated">保留所有括号:</target>
         <note />
       </trans-unit>
       <trans-unit id="Kind">
         <source>Kind</source>
-        <target state="new">Kind</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Kind_colon">
-        <source>_Kind:</source>
-        <target state="new">_Kind:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Learn_more">
-        <source>Learn more</source>
-        <target state="new">Learn more</target>
+        <target state="translated">种类</target>
         <note />
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
-        <target state="new">Live analysis (VSIX extension)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Location_colon">
-        <source>Location:</source>
-        <target state="new">Location:</target>
+        <target state="translated">实时分析(VSIX 扩展)</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
-        <target state="new">Make '{0}' abstract</target>
+        <target state="translated">将“{0}”设为抽象</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_abstract">
         <source>Make abstract</source>
-        <target state="new">Make abstract</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Manage_naming_styles">
-        <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Manage_specifications">
-        <source>Manage specifications</source>
-        <target state="new">Manage specifications</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Maximum_number_of_documents_are_open">
-        <source>Maximum number of documents are open.</source>
-        <target state="new">Maximum number of documents are open.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Member_of_0">
-        <source>Member of {0}</source>
-        <target state="new">Member of {0}</target>
+        <target state="translated">设为抽象</target>
         <note />
       </trans-unit>
       <trans-unit id="Members">
         <source>Members</source>
-        <target state="new">Members</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="MissingAnalyzerReference">
-        <source>MissingAnalyzerReference</source>
-        <target state="new">MissingAnalyzerReference</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifier">
-        <source>Modifier</source>
-        <target state="new">Modifier</target>
+        <target state="translated">成员</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="new">Modifier preferences:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifiers_must_match_all">
-        <source>Modifiers (must match all)</source>
-        <target state="new">Modifiers (must match all)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ModuleHasBeenUnloaded">
-        <source>Module has been unloaded.</source>
-        <target state="new">Module has been unloaded.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="More_about_0">
-        <source>More about {0}</source>
-        <target state="new">More about {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Move_0_above_1">
-        <source>Move {0} above {1}</source>
-        <target state="new">Move {0} above {1}</target>
-        <note>{0} and {1} are parameter descriptions</note>
-      </trans-unit>
-      <trans-unit id="Move_0_below_1">
-        <source>Move {0} below {1}</source>
-        <target state="new">Move {0} below {1}</target>
-        <note>{0} and {1} are parameter descriptions</note>
-      </trans-unit>
-      <trans-unit id="Move_down">
-        <source>Move down</source>
-        <target state="new">Move down</target>
+        <target state="translated">修饰符首选项:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Move_up">
-        <source>Move up</source>
-        <target state="new">Move up</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_colon1">
-        <source>Name:</source>
-        <target state="new">Name:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_colon2">
-        <source>Name:</source>
-        <target state="new">Name:</target>
+        <target state="translated">移动到命名空间</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">命名空间</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
-        <target state="new">Namespace: '{0}'</target>
+        <target state="translated">命名空间:“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
@@ -878,7 +214,7 @@ Additional information: {1}</target>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Field">
         <source>field</source>
-        <target state="new">field</target>
+        <target state="translated">字段</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Interface">
@@ -888,17 +224,17 @@ Additional information: {1}</target>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Local">
         <source>local</source>
-        <target state="new">local</target>
+        <target state="translated">局部</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_LocalFunction">
         <source>local function</source>
-        <target state="new">local function</target>
+        <target state="translated">本地函数</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Method">
         <source>method</source>
-        <target state="new">method</target>
+        <target state="translated">方法</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Namespace">
@@ -908,12 +244,12 @@ Additional information: {1}</target>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Parameter">
         <source>parameter</source>
-        <target state="new">parameter</target>
+        <target state="translated">参数</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Property">
         <source>property</source>
-        <target state="new">property</target>
+        <target state="translated">属性</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Struct">
@@ -923,7 +259,7 @@ Additional information: {1}</target>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_TypeParameter">
         <source>type parameter</source>
-        <target state="new">type parameter</target>
+        <target state="translated">类型形参</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Class">
@@ -948,7 +284,7 @@ Additional information: {1}</target>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Field">
         <source>Field</source>
-        <target state="new">Field</target>
+        <target state="translated">字段</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Interface">
@@ -958,12 +294,12 @@ Additional information: {1}</target>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Local">
         <source>Local</source>
-        <target state="new">Local</target>
+        <target state="translated">本地</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Method">
         <source>Method</source>
-        <target state="new">Method</target>
+        <target state="translated">方法</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Module">
@@ -978,7 +314,7 @@ Additional information: {1}</target>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Parameter">
         <source>Parameter</source>
-        <target state="new">Parameter</target>
+        <target state="translated">参数</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Property">
@@ -993,720 +329,1074 @@ Additional information: {1}</target>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_TypeParameter">
         <source>Type Parameter</source>
-        <target state="new">Type Parameter</target>
+        <target state="translated">类型参数</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
-      </trans-unit>
-      <trans-unit id="Naming_Rule">
-        <source>Naming Rule</source>
-        <target state="new">Naming Rule</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled">
-        <source>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</source>
-        <target state="new">Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_Style">
-        <source>Naming Style</source>
-        <target state="new">Naming Style</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_Style_Title_colon">
-        <source>Naming Style Title:</source>
-        <target state="new">Naming Style Title:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_Style_colon">
-        <source>Naming Style:</source>
-        <target state="new">Naming Style:</target>
-        <note />
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="new">Naming rules</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigation_must_be_performed_on_the_foreground_thread">
-        <source>Navigation must be performed on the foreground thread.</source>
-        <target state="new">Navigation must be performed on the foreground thread.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
-        <target state="new">Never if unnecessary</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_show_this_again">
-        <source>Never show this again</source>
-        <target state="new">Never show this again</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_file_name_colon">
-        <source>New _file name:</source>
-        <target state="new">New _file name:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_interface_name_colon">
-        <source>New _interface name:</source>
-        <target state="new">New _interface name:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No">
-        <source>No</source>
-        <target state="new">No</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_Changes">
-        <source>No Changes</source>
-        <target state="new">No Changes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_references_found_to_0">
-        <source>No references found to '{0}'</source>
-        <target state="new">No references found to '{0}'</target>
+        <target state="translated">从不(若无必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
-        <target state="new">Non-public methods</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NotApplicable">
-        <source>N/A</source>
-        <target state="new">N/A</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_a_valid_value">
-        <source>Not a valid value</source>
-        <target state="new">Not a valid value</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="OK">
-        <source>OK</source>
-        <target state="new">OK</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options">
-        <source>Options</source>
-        <target state="new">Options</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Outlining">
-        <source>Outlining</source>
-        <target state="new">Outlining</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Over_colon">
-        <source>Over:</source>
-        <target state="new">Over:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Overridden_By">
-        <source>Overridden By</source>
-        <target state="new">Overridden By</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Overrides_">
-        <source>Overrides</source>
-        <target state="new">Overrides</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Package_install_failed_colon_0">
-        <source>Package install failed: {0}</source>
-        <target state="new">Package install failed: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Package_uninstall_failed_colon_0">
-        <source>Package uninstall failed: {0}</source>
-        <target state="new">Package uninstall failed: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parameter">
-        <source>Parameter</source>
-        <target state="new">Parameter</target>
+        <target state="translated">非公共成员</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
         <source>Parameter preferences:</source>
-        <target state="new">Parameter preferences:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parameters_colon1">
-        <source>Parameters:</source>
-        <target state="new">Parameters:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parameters_colon2">
-        <source>Parameters:</source>
-        <target state="new">Parameters:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parent_Rule_colon">
-        <source>Parent Rule:</source>
-        <target state="new">Parent Rule:</target>
+        <target state="translated">参数首选项:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
-        <target state="new">Parentheses preferences:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pascal_Case_Name">
-        <source>Pascal Case Name</source>
-        <target state="new">Pascal Case Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Path_cannot_have_empty_filename">
-        <source>Path cannot have empty filename</source>
-        <target state="new">Path cannot have empty filename</target>
+        <target state="translated">括号首选项:</target>
         <note />
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
         <source>Paused ({0} tasks in queue)</source>
-        <target state="new">Paused ({0} tasks in queue)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pick_members">
-        <source>Pick members</source>
-        <target state="new">Pick members</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_braces">
-        <source>Prefer braces</source>
-        <target state="new">Prefer braces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_coalesce_expression">
-        <source>Prefer coalesce expression</source>
-        <target state="new">Prefer coalesce expression</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_collection_initializer">
-        <source>Prefer collection initializer</source>
-        <target state="new">Prefer collection initializer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_colon">
-        <source>Prefer:</source>
-        <target state="new">Prefer:</target>
+        <target state="translated">已暂停(队列中有 {0} 个任务)</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
-        <target state="new">Prefer compound assignments</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
-        <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="new">Prefer conditional expression over 'if' with assignments</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
-        <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="new">Prefer conditional expression over 'if' with returns</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_deconstructed_variable_declaration">
-        <source>Prefer deconstructed variable declaration</source>
-        <target state="new">Prefer deconstructed variable declaration</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_explicit_tuple_name">
-        <source>Prefer explicit tuple name</source>
-        <target state="new">Prefer explicit tuple name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_framework_type">
-        <source>Prefer framework type</source>
-        <target state="new">Prefer framework type</target>
+        <target state="translated">首选复合赋值</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_index_operator">
         <source>Prefer index operator</source>
-        <target state="new">Prefer index operator</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
-        <source>Prefer inferred anonymous type member names</source>
-        <target state="new">Prefer inferred anonymous type member names</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inferred_tuple_names">
-        <source>Prefer inferred tuple element names</source>
-        <target state="new">Prefer inferred tuple element names</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inlined_variable_declaration">
-        <source>Prefer inlined variable declaration</source>
-        <target state="new">Prefer inlined variable declaration</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefer local function over anonymous function</source>
-        <target state="new">Prefer local function over anonymous function</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_null_propagation">
-        <source>Prefer null propagation</source>
-        <target state="new">Prefer null propagation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_object_initializer">
-        <source>Prefer object initializer</source>
-        <target state="new">Prefer object initializer</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_predefined_type">
-        <source>Prefer predefined type</source>
-        <target state="new">Prefer predefined type</target>
+        <target state="translated">首选索引运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
-        <target state="new">Prefer range operator</target>
+        <target state="translated">首选范围运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="new">Prefer readonly fields</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simple_default_expression">
-        <source>Prefer simple 'default' expression</source>
-        <target state="new">Prefer simple 'default' expression</target>
+        <target state="translated">首选只读字段</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
         <source>Prefer simple 'using' statement</source>
-        <target state="new">Prefer simple 'using' statement</target>
+        <target state="translated">首选简单的 "using" 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
-        <target state="new">Prefer static local functions</target>
+        <target state="translated">首选静态本地函数</target>
         <note />
       </trans-unit>
-      <trans-unit id="Preference">
-        <source>Preference</source>
-        <target state="new">Preference</target>
+      <trans-unit id="Pull_Members_Up">
+        <source>Pull Members Up</source>
+        <target state="translated">拉取成员</target>
         <note />
       </trans-unit>
-      <trans-unit id="Preview_method_signature_colon">
-        <source>Preview method signature:</source>
-        <target state="new">Preview method signature:</target>
+      <trans-unit id="Regular_Expressions">
+        <source>Regular Expressions</source>
+        <target state="translated">正规表达式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Preview_pane">
-        <source>Preview pane</source>
-        <target state="new">Preview pane</target>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="translated">将 {0} 重命名为 {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Preview_reference_changes">
-        <source>Preview reference changes</source>
-        <target state="new">Preview reference changes</target>
+      <trans-unit id="Report_invalid_regular_expressions">
+        <source>Report invalid regular expressions</source>
+        <target state="translated">报告无效的正规表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_Visual_Studio_default_keymapping">
+        <source>Reset Visual Studio default keymapping</source>
+        <target state="translated">重置 Visual Studio 默认项映射</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Review_Changes">
+        <source>Review Changes</source>
+        <target state="translated">预览更改</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_low_priority_background_processes">
+        <source>Running low priority background processes</source>
+        <target state="translated">正在运行低优先级后台进程</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Save_dot_editorconfig_file">
+        <source>Save .editorconfig file</source>
+        <target state="translated">保存 .editorconfig 文件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination">
+        <source>Select destination</source>
+        <target state="translated">选择目标</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Dependents">
+        <source>Select _Dependents</source>
+        <target state="translated">选择依赖项(_D)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_Public">
+        <source>Select _Public</source>
+        <target state="translated">选择公共(_P)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_and_members_to_pull_up">
+        <source>Select destination and members to pull up.</source>
+        <target state="translated">选择要拉取的目标和成员。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_destination_colon">
+        <source>Select destination:</source>
+        <target state="translated">选择目标:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_member">
+        <source>Select member</source>
+        <target state="translated">选择成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_members_colon">
+        <source>Select members:</source>
+        <target state="translated">选择成员:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list">
+        <source>Show completion list</source>
+        <target state="translated">显示完成列表</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Target_Namespace_colon">
+        <source>Target Namespace:</source>
+        <target state="translated">目标命名空间:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_is_an_invalid_namespace">
+        <source>This is an invalid namespace</source>
+        <target state="translated">这是一个无效的命名空间</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
+        <source>Unused value is explicitly assigned to an unused local</source>
+        <target state="translated">未使用的值会显式分配给未使用的本地函数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
+        <source>Unused value is explicitly assigned to discard</source>
+        <target state="translated">未使用的值会显式分配以弃用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="new">Updating severity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_editorconfig_compatibility_mode">
+        <source>Use .editorconfig compatibility mode (requires restart)</source>
+        <target state="translated">使用 .editorconfig 兼容模式(需要重启)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
+        <source>Use enhanced colors for C# and Basic</source>
+        <target state="translated">对 C# 和 Basic 使用增强色</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambdas">
+        <source>Use expression body for lambdas</source>
+        <target state="translated">使用 lambdas 的表达式主体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="translated">使用本地函数的表达式主体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_here_is_never_used">
+        <source>Value assigned here is never used</source>
+        <target state="translated">此处分配的值从未使用过</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
+        <source>Value returned by invocation is implicitly ignored</source>
+        <target state="translated">已隐式忽略调用所返回的值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
+        <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
+        <target state="translated">我们注意到你挂起了“{0}”。请重置项映射以继续导航和重构。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
+        <source>This workspace does not support updating Visual Basic compilation options.</source>
+        <target state="translated">此工作区不支持更新 Visual Basic 编译选项。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_select_at_least_one_member">
+        <source>You must select at least one member.</source>
+        <target state="translated">必须至少选择一个成员。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
+        <source>Interface name conflicts with an existing type name.</source>
+        <target state="translated">接口名称与现有类型名称相冲突。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
+        <source>Interface name is not a valid {0} identifier.</source>
+        <target state="translated">接口名称不是有效的 {0} 标识符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Illegal_characters_in_path">
+        <source>Illegal characters in path.</source>
+        <target state="translated">路径中存在非法字符。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_name_must_have_the_0_extension">
+        <source>File name must have the "{0}" extension.</source>
+        <target state="translated">文件名必须具有“{0}”扩展。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Debugger">
+        <source>Debugger</source>
+        <target state="translated">调试程序</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determining_breakpoint_location">
+        <source>Determining breakpoint location...</source>
+        <target state="translated">正在确定断点位置...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determining_autos">
+        <source>Determining autos...</source>
+        <target state="translated">正在确定自动窗口...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resolving_breakpoint_location">
+        <source>Resolving breakpoint location...</source>
+        <target state="translated">正在解析断点位置...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Validating_breakpoint_location">
+        <source>Validating breakpoint location...</source>
+        <target state="translated">正在验证断点位置...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Getting_DataTip_text">
+        <source>Getting DataTip text...</source>
+        <target state="translated">正在获取数据提示文本...</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_unavailable">
         <source>Preview unavailable</source>
-        <target state="new">Preview unavailable</target>
+        <target state="translated">预览不可用</target>
         <note />
       </trans-unit>
-      <trans-unit id="Project">
-        <source>Project </source>
-        <target state="new">Project </target>
+      <trans-unit id="Overrides_">
+        <source>Overrides</source>
+        <target state="translated">重写</target>
         <note />
       </trans-unit>
-      <trans-unit id="Project_Path_is_illegal">
-        <source>Project Path is illegal</source>
-        <target state="new">Project Path is illegal</target>
+      <trans-unit id="Overridden_By">
+        <source>Overridden By</source>
+        <target state="translated">重写者</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherits_">
+        <source>Inherits</source>
+        <target state="translated">继承</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_By">
+        <source>Inherited By</source>
+        <target state="translated">继承者</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implements_">
+        <source>Implements</source>
+        <target state="translated">实现</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_By">
+        <source>Implemented By</source>
+        <target state="translated">实现者</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Maximum_number_of_documents_are_open">
+        <source>Maximum number of documents are open.</source>
+        <target state="translated">打开的文档达到最大数目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Failed_to_create_document_in_miscellaneous_files_project">
+        <source>Failed to create document in miscellaneous files project.</source>
+        <target state="translated">未能在杂项文件项目中创建文档。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_access">
+        <source>Invalid access.</source>
+        <target state="translated">访问无效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_following_references_were_not_found_0_Please_locate_and_add_them_manually">
+        <source>The following references were not found. {0}Please locate and add them manually.</source>
+        <target state="translated">找不到以下引用。{0}请手动查找并添加这些引用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_position_must_be_start_position">
+        <source>End position must be &gt;= start position</source>
+        <target state="translated">结束位置必须 &gt;= 开始位置</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_a_valid_value">
+        <source>Not a valid value</source>
+        <target state="translated">值无效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_abstract">
+        <source>'{0}' will be changed to abstract.</source>
+        <target state="translated">“{0}”将更改为“抽象”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_non_static">
+        <source>'{0}' will be changed to non-static.</source>
+        <target state="translated">“{0}”将更改为“非静态”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_will_be_changed_to_public">
+        <source>'{0}' will be changed to public.</source>
+        <target state="translated">“{0}”将更改为“公共”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="given_workspace_doesn_t_support_undo">
+        <source>given workspace doesn't support undo</source>
+        <target state="translated">给定的工作区不支持撤消</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_a_reference_to_0">
+        <source>Add a reference to '{0}'</source>
+        <target state="translated">添加对“{0}”的引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Event_type_is_invalid">
+        <source>Event type is invalid</source>
+        <target state="translated">事件类型无效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Can_t_find_where_to_insert_member">
+        <source>Can't find where to insert member</source>
+        <target state="translated">无法找到插入成员的位置</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Can_t_rename_other_elements">
+        <source>Can't rename 'other' elements</source>
+        <target state="translated">无法重命名 "other" 元素</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown_rename_type">
+        <source>Unknown rename type</source>
+        <target state="translated">重命名类型未知</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDs_are_not_supported_for_this_symbol_type">
+        <source>IDs are not supported for this symbol type.</source>
+        <target state="translated">此符号类型不支持 ID。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Can_t_create_a_node_id_for_this_symbol_kind_colon_0">
+        <source>Can't create a node id for this symbol kind: '{0}'</source>
+        <target state="translated">无法为此符号种类创建节点 ID:“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_References">
         <source>Project References</source>
-        <target state="new">Project References</target>
+        <target state="translated">项目引用</target>
         <note />
       </trans-unit>
-      <trans-unit id="Project_colon">
-        <source>_Project:</source>
-        <target state="new">_Project:</target>
+      <trans-unit id="Base_Types">
+        <source>Base Types</source>
+        <target state="translated">基类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="translated">杂项文件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_project_0">
+        <source>Could not find project '{0}'</source>
+        <target state="translated">无法找到项目“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_location_of_folder_on_disk">
+        <source>Could not find location of folder on disk</source>
+        <target state="translated">无法在磁盘上找到文件夹的位置</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assembly">
+        <source>Assembly </source>
+        <target state="translated">程序集</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Exceptions_colon">
+        <source>Exceptions:</source>
+        <target state="translated">异常:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Member_of_0">
+        <source>Member of {0}</source>
+        <target state="translated">{0} 的成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameters_colon1">
+        <source>Parameters:</source>
+        <target state="translated">参数:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project">
+        <source>Project </source>
+        <target state="translated">项目</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remarks_colon">
+        <source>Remarks:</source>
+        <target state="translated">备注:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Returns_colon">
+        <source>Returns:</source>
+        <target state="translated">返回结果:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Summary_colon">
+        <source>Summary:</source>
+        <target state="translated">摘要:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Parameters_colon">
+        <source>Type Parameters:</source>
+        <target state="translated">类型参数:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_already_exists">
+        <source>File already exists</source>
+        <target state="translated">文件已存在</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_path_cannot_use_reserved_keywords">
+        <source>File path cannot use reserved keywords</source>
+        <target state="translated">文件路径无法使用保留的关键字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DocumentPath_is_illegal">
+        <source>DocumentPath is illegal</source>
+        <target state="translated">DocumentPath 非法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_Path_is_illegal">
+        <source>Project Path is illegal</source>
+        <target state="translated">项目路径非法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Path_cannot_have_empty_filename">
+        <source>Path cannot have empty filename</source>
+        <target state="translated">路径中不能包含空文件名</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace">
+        <source>The given DocumentId did not come from the Visual Studio workspace.</source>
+        <target state="translated">给定的 DocumentId 并非来自 Visual Studio 工作区。</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_colon_0_1_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to">
         <source>Project: {0} ({1})
 
 Use the dropdown to view and switch to other projects this file may belong to.</source>
-        <target state="new">Project: {0} ({1})
+        <target state="translated">项目: {0} ({1})
 
-Use the dropdown to view and switch to other projects this file may belong to.</target>
+使用下拉列表可查看和切换到此文件所属的其他项目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Use_the_dropdown_to_view_and_navigate_to_other_items_in_this_file">
+        <source>{0}
+
+Use the dropdown to view and navigate to other items in this file.</source>
+        <target state="translated">{0}
+
+使用下拉列表可查看并导航到此文件中的其他项。</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_colon_0_Use_the_dropdown_to_view_and_switch_to_other_projects_this_file_may_belong_to">
         <source>Project: {0}
 
 Use the dropdown to view and switch to other projects this file may belong to.</source>
-        <target state="new">Project: {0}
+        <target state="translated">项目: {0}
 
-Use the dropdown to view and switch to other projects this file may belong to.</target>
+使用下拉列表可查看和切换到此文件所属的其他项目。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Project_loading_failed">
-        <source>Project loading failed.</source>
-        <target state="new">Project loading failed.</target>
+      <trans-unit id="ErrorReadingRuleset">
+        <source>ErrorReadingRuleset</source>
+        <target state="translated">ErrorReadingRuleset</target>
         <note />
       </trans-unit>
-      <trans-unit id="Project_reference_to_0_in_project_1">
-        <source>Project reference to '{0}' in project '{1}'</source>
-        <target state="new">Project reference to '{0}' in project '{1}'</target>
+      <trans-unit id="Error_reading_ruleset_file_0_1">
+        <source>Error reading ruleset file {0} - {1}</source>
+        <target state="translated">读取规则集文件 {0} 时出错 - {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_Members_Up">
-        <source>Pull Members Up</source>
-        <target state="new">Pull Members Up</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Re_enable">
-        <source>Re-enable</source>
-        <target state="new">Re-enable</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Re_move">
-        <source>Re_move</source>
-        <target state="new">Re_move</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reference_to_0_in_project_1">
-        <source>Reference to '{0}' in project '{1}'</source>
-        <target state="new">Reference to '{0}' in project '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular_Expressions">
-        <source>Regular Expressions</source>
-        <target state="new">Regular Expressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remarks_colon">
-        <source>Remarks:</source>
-        <target state="new">Remarks:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove">
-        <source>Remove</source>
-        <target state="new">Remove</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_0">
-        <source>Remove {0}</source>
-        <target state="new">Remove {0}</target>
-        <note>{0} is a parameter description</note>
-      </trans-unit>
-      <trans-unit id="Remove_item">
-        <source>Remove item</source>
-        <target state="new">Remove item</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_naming_rule">
-        <source>Remove naming rule</source>
-        <target state="new">Remove naming rule</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_suppressions">
-        <source>Remove suppressions</source>
-        <target state="new">Remove suppressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_symbol_specification">
-        <source>Remove symbol specification</source>
-        <target state="new">Remove symbol specification</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_0_to_1">
-        <source>Rename {0} to {1}</source>
-        <target state="new">Rename {0} to {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reorder">
-        <source>Reorder</source>
-        <target state="new">Reorder</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Report_invalid_regular_expressions">
-        <source>Report invalid regular expressions</source>
-        <target state="new">Report invalid regular expressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Required_Prefix_colon">
-        <source>Required Prefix:</source>
-        <target state="new">Required Prefix:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Required_Style">
-        <source>Required Style</source>
-        <target state="new">Required Style</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Required_Suffix_colon">
-        <source>Required Suffix:</source>
-        <target state="new">Required Suffix:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reset_Visual_Studio_default_keymapping">
-        <source>Reset Visual Studio default keymapping</source>
-        <target state="new">Reset Visual Studio default keymapping</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolving_breakpoint_location">
-        <source>Resolving breakpoint location...</source>
-        <target state="new">Resolving breakpoint location...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Restore">
-        <source>_Restore</source>
-        <target state="new">_Restore</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Restore_0">
-        <source>Restore {0}</source>
-        <target state="new">Restore {0}</target>
-        <note>{0} is a parameter description</note>
-      </trans-unit>
-      <trans-unit id="Returns_colon">
-        <source>Returns:</source>
-        <target state="new">Returns:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Review_Changes">
-        <source>Review Changes</source>
-        <target state="new">Review Changes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Running_low_priority_background_processes">
-        <source>Running low priority background processes</source>
-        <target state="new">Running low priority background processes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sample_Identifier_colon">
-        <source>Sample Identifier:</source>
-        <target state="new">Sample Identifier:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Save_dot_editorconfig_file">
-        <source>Save .editorconfig file</source>
-        <target state="new">Save .editorconfig file</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Search_found_no_results">
-        <source>Search found no results</source>
-        <target state="new">Search found no results</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_All">
-        <source>_Select All</source>
-        <target state="new">_Select All</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_Dependents">
-        <source>Select _Dependents</source>
-        <target state="new">Select _Dependents</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_Public">
-        <source>Select _Public</source>
-        <target state="new">Select _Public</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_destination">
-        <source>Select destination</source>
-        <target state="new">Select destination</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_destination_and_members_to_pull_up">
-        <source>Select destination and members to pull up.</source>
-        <target state="new">Select destination and members to pull up.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_destination_colon">
-        <source>Select destination:</source>
-        <target state="new">Select destination:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_member">
-        <source>Select member</source>
-        <target state="new">Select member</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_members_colon">
-        <source>Select members:</source>
-        <target state="new">Select members:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Select_public_members_to_form_interface">
-        <source>Select public _members to form interface</source>
-        <target state="new">Select public _members to form interface</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Severity">
-        <source>Severity</source>
-        <target state="new">Severity</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Severity_colon">
-        <source>Severity:</source>
-        <target state="new">Severity:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list">
-        <source>Show completion list</source>
-        <target state="new">Show completion list</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_guides_for_code_level_constructs">
-        <source>Show guides for code level constructs</source>
-        <target state="new">Show guides for code level constructs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
-        <source>Show guides for comments and preprocessor regions</source>
-        <target state="new">Show guides for comments and preprocessor regions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_guides_for_declaration_level_constructs">
-        <source>Show guides for declaration level constructs</source>
-        <target state="new">Show guides for declaration level constructs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_outlining_for_code_level_constructs">
-        <source>Show outlining for code level constructs</source>
-        <target state="new">Show outlining for code level constructs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_outlining_for_comments_and_preprocessor_regions">
-        <source>Show outlining for comments and preprocessor regions</source>
-        <target state="new">Show outlining for comments and preprocessor regions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_outlining_for_declaration_level_constructs">
-        <source>Show outlining for declaration level constructs</source>
-        <target state="new">Show outlining for declaration level constructs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Some_naming_rules_are_incomplete_Please_complete_or_remove_them">
-        <source>Some naming rules are incomplete. Please complete or remove them.</source>
-        <target state="new">Some naming rules are incomplete. Please complete or remove them.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specification">
-        <source>Specification</source>
-        <target state="new">Specification</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Summary_colon">
-        <source>Summary:</source>
-        <target state="new">Summary:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppress_diagnostics">
-        <source>Suppress diagnostics</source>
-        <target state="new">Suppress diagnostics</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppressed">
-        <source>Suppressed</source>
-        <target state="new">Suppressed</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SuppressionNotSupportedToolTip">
-        <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
-        <target state="new">Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppression_State">
-        <source>Suppression State</source>
-        <target state="new">Suppression State</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Kinds_can_match_any">
-        <source>Symbol Kinds (can match any)</source>
-        <target state="new">Symbol Kinds (can match any)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Specification">
-        <source>Symbol Specification</source>
-        <target state="new">Symbol Specification</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Specification_Title_colon">
-        <source>Symbol Specification Title:</source>
-        <target state="new">Symbol Specification Title:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Specification_colon">
-        <source>Symbol Specification:</source>
-        <target state="new">Symbol Specification:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sync_Class_View">
-        <source>Sync Class View</source>
-        <target state="new">Sync Class View</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Synchronize_0">
-        <source>Synchronize {0}</source>
-        <target state="new">Synchronize {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Synchronizing_with_0">
-        <source>Synchronizing with {0}...</source>
-        <target state="new">Synchronizing with {0}...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Target_Namespace_colon">
-        <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+      <trans-unit id="AnalyzerChangedOnDisk">
+        <source>AnalyzerChangedOnDisk</source>
+        <target state="translated">AnalyzerChangedOnDisk</target>
         <note />
       </trans-unit>
       <trans-unit id="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted">
         <source>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</source>
-        <target state="new">The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</target>
+        <target state="translated">分析器程序集“{0}”已更改。如果不重启 Visual Studio，诊断则可能出错。</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule">
-        <source>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</source>
-        <target state="new">The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</target>
+      <trans-unit id="CSharp_VB_Diagnostics_Table_Data_Source">
+        <source>C#/VB Diagnostics Table Data Source</source>
+        <target state="translated">C#/VB 诊断表格数据源</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_following_references_were_not_found_0_Please_locate_and_add_them_manually">
-        <source>The following references were not found. {0}Please locate and add them manually.</source>
-        <target state="new">The following references were not found. {0}Please locate and add them manually.</target>
+      <trans-unit id="CSharp_VB_Todo_List_Table_Data_Source">
+        <source>C#/VB Todo List Table Data Source</source>
+        <target state="translated">C#/VB 待办事项表格数据源</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace">
-        <source>The given DocumentId did not come from the Visual Studio workspace.</source>
-        <target state="new">The given DocumentId did not come from the Visual Studio workspace.</target>
+      <trans-unit id="Cancel">
+        <source>Cancel</source>
+        <target state="translated">取消</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_is_an_invalid_namespace">
-        <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+      <trans-unit id="Deselect_All">
+        <source>_Deselect All</source>
+        <target state="translated">取消全选(_D)</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule">
-        <source>This item cannot be deleted because it is used by an existing Naming Rule.</source>
-        <target state="new">This item cannot be deleted because it is used by an existing Naming Rule.</target>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface</source>
+        <target state="translated">提取接口</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
-        <source>This workspace does not support updating Visual Basic compilation options.</source>
-        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
+      <trans-unit id="Generated_name_colon">
+        <source>Generated name:</source>
+        <target state="translated">生成的名称:</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_parse_options">
-        <source>This workspace does not support updating Visual Basic parse options.</source>
-        <target state="new">This workspace does not support updating Visual Basic parse options.</target>
+      <trans-unit id="New_file_name_colon">
+        <source>New _file name:</source>
+        <target state="translated">新文件名(_F):</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_interface_name_colon">
+        <source>New _interface name:</source>
+        <target state="translated">新接口名称(_I):</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OK">
+        <source>OK</source>
+        <target state="translated">确定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_All">
+        <source>_Select All</source>
+        <target state="translated">全选(_S)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_public_members_to_form_interface">
+        <source>Select public _members to form interface</source>
+        <target state="translated">选择构成接口的公共成员(_M)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Access_colon">
+        <source>_Access:</source>
+        <target state="translated">访问(_A):</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_to_existing_file">
+        <source>Add to _existing file</source>
+        <target state="translated">添加到现有文件(_E)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_Signature">
+        <source>Change Signature</source>
+        <target state="translated">更改签名</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Create_new_file">
+        <source>_Create new file</source>
+        <target state="translated">创建新文件(_C)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default_">
+        <source>Default</source>
+        <target state="translated">默认值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_Name_colon">
+        <source>File Name:</source>
+        <target state="translated">文件名:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Type">
+        <source>Generate Type</source>
+        <target state="translated">生成类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Kind_colon">
+        <source>_Kind:</source>
+        <target state="translated">种类(_K):</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location_colon">
+        <source>Location:</source>
+        <target state="translated">位置:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifier">
+        <source>Modifier</source>
+        <target state="translated">修饰符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_colon1">
+        <source>Name:</source>
+        <target state="translated">名称:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter">
+        <source>Parameter</source>
+        <target state="translated">参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameters_colon2">
+        <source>Parameters:</source>
+        <target state="translated">参数:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_method_signature_colon">
+        <source>Preview method signature:</source>
+        <target state="translated">预览方法签名:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_reference_changes">
+        <source>Preview reference changes</source>
+        <target state="translated">预览引用更改</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_colon">
+        <source>_Project:</source>
+        <target state="translated">项目(_P):</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type">
+        <source>Type</source>
+        <target state="translated">类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Details_colon">
+        <source>Type Details:</source>
+        <target state="translated">类型详细信息:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Re_move">
+        <source>Re_move</source>
+        <target state="translated">删除(_M)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Restore">
+        <source>_Restore</source>
+        <target state="translated">还原(_R)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="More_about_0">
+        <source>More about {0}</source>
+        <target state="translated">有关 {0} 的详细信息</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigation_must_be_performed_on_the_foreground_thread">
+        <source>Navigation must be performed on the foreground thread.</source>
+        <target state="translated">导航必须在前台线程上进行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="bracket_plus_bracket">
+        <source>[+] </source>
+        <target state="translated">[+] </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="bracket_bracket">
+        <source>[-] </source>
+        <target state="translated">[-] </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reference_to_0_in_project_1">
+        <source>Reference to '{0}' in project '{1}'</source>
+        <target state="translated">项目“{1}”中对“{0}”的引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown1">
+        <source>&lt;Unknown&gt;</source>
+        <target state="translated">&lt;未知&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_reference_to_0_in_project_1">
+        <source>Analyzer reference to '{0}' in project '{1}'</source>
+        <target state="translated">项目“{1}”中对“{0}”的分析器引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_reference_to_0_in_project_1">
+        <source>Project reference to '{0}' in project '{1}'</source>
+        <target state="translated">项目“{1}”中对“{0}”的项目引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDependencyConflict">
+        <source>AnalyzerDependencyConflict</source>
+        <target state="translated">AnalyzerDependencyConflict</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly">
+        <source>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</source>
+        <target state="translated">分析器程序集“{0}”和“{1}”都具有标识“{2}”，但是却具有不同的内容。只会加载其中一个程序集，并且使用这些程序集的分析器可能不会正确运行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>{0} references</source>
+        <target state="translated">{0} 个引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_1_reference">
+        <source>1 reference</source>
+        <target state="translated">1 个引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
+        <source>'{0}' encountered an error and has been disabled.</source>
+        <target state="translated">'“{0}”遇到了错误，且已被禁用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable">
+        <source>Enable</source>
+        <target state="translated">启用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_and_ignore_future_errors">
+        <source>Enable and ignore future errors</source>
+        <target state="translated">启用并忽略将来发生的错误</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_Changes">
+        <source>No Changes</source>
+        <target state="translated">未更改</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Current_block">
+        <source>Current block</source>
+        <target state="translated">当前块</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Determining_current_block">
+        <source>Determining current block.</source>
+        <target state="translated">正在确定当前块。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IntelliSense">
+        <source>IntelliSense</source>
+        <target state="translated">IntelliSense</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_VB_Build_Table_Data_Source">
+        <source>C#/VB Build Table Data Source</source>
+        <target state="translated">C#/VB 内部版本表格数据源</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingAnalyzerReference">
+        <source>MissingAnalyzerReference</source>
+        <target state="translated">MissingAnalyzerReference</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well">
+        <source>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</source>
+        <target state="translated">分析器程序集“{0}”依赖于“{1}”，但是却找不到它。除非将缺少的程序集也添加为分析器引用，否则分析器可能不会正确运行。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_diagnostics">
+        <source>Suppress diagnostics</source>
+        <target state="translated">禁止诊断</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_suppressions_fix">
+        <source>Computing suppressions fix...</source>
+        <target state="translated">正在计算禁止显示修复...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_suppressions_fix">
+        <source>Applying suppressions fix...</source>
+        <target state="translated">正在应用禁止显示修复...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_suppressions">
+        <source>Remove suppressions</source>
+        <target state="translated">删除禁止显示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_remove_suppressions_fix">
+        <source>Computing remove suppressions fix...</source>
+        <target state="translated">正在计算删除禁止显示修复...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_remove_suppressions_fix">
+        <source>Applying remove suppressions fix...</source>
+        <target state="translated">正在应用删除禁止显示修复...</target>
         <note />
       </trans-unit>
       <trans-unit id="This_workspace_only_supports_opening_documents_on_the_UI_thread">
         <source>This workspace only supports opening documents on the UI thread.</source>
-        <target state="new">This workspace only supports opening documents on the UI thread.</target>
+        <target state="translated">此工作区仅支持在 UI 线程上打开文档。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_parse_options">
+        <source>This workspace does not support updating Visual Basic parse options.</source>
+        <target state="translated">此工作区不支持更新 Visual Basic 分析选项。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Synchronize_0">
+        <source>Synchronize {0}</source>
+        <target state="translated">同步 {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Synchronizing_with_0">
+        <source>Synchronizing with {0}...</source>
+        <target state="translated">正在与 {0} 同步...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance">
+        <source>Visual Studio has suspended some advanced features to improve performance.</source>
+        <target state="translated">Visual Studio 已挂起一些高级功能来提高性能。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Installing_0">
+        <source>Installing '{0}'</source>
+        <target state="translated">正在安装“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Installing_0_completed">
+        <source>Installing '{0}' completed</source>
+        <target state="translated">安装“{0}”已完成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_failed_colon_0">
+        <source>Package install failed: {0}</source>
+        <target state="translated">包安装失败: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unknown2">
+        <source>&lt;Unknown&gt;</source>
+        <target state="translated">&lt;未知&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No">
+        <source>No</source>
+        <target state="translated">否</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Yes">
+        <source>Yes</source>
+        <target state="translated">是</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Choose_a_Symbol_Specification_and_a_Naming_Style">
+        <source>Choose a Symbol Specification and a Naming Style.</source>
+        <target state="translated">选择符号规范和命名样式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_title_for_this_Naming_Rule">
+        <source>Enter a title for this Naming Rule.</source>
+        <target state="translated">为此命名规则输入标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_title_for_this_Naming_Style">
+        <source>Enter a title for this Naming Style.</source>
+        <target state="translated">为此命名样式输入标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_title_for_this_Symbol_Specification">
+        <source>Enter a title for this Symbol Specification.</source>
+        <target state="translated">为此符号规范输入标题。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Accessibilities_can_match_any">
+        <source>Accessibilities (can match any)</source>
+        <target state="translated">可访问性(可任意匹配)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Capitalization_colon">
+        <source>Capitalization:</source>
+        <target state="translated">大写:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="all_lower">
+        <source>all lower</source>
+        <target state="translated">全部小写</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ALL_UPPER">
+        <source>ALL UPPER</source>
+        <target state="translated">全部大写</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="camel_Case_Name">
+        <source>camel Case Name</source>
+        <target state="translated">camel 事例名称</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="First_word_upper">
+        <source>First word upper</source>
+        <target state="translated">第一个单词大写</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pascal_Case_Name">
+        <source>Pascal Case Name</source>
+        <target state="translated">Pascal 事例名称</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Severity_colon">
+        <source>Severity:</source>
+        <target state="translated">严重性:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifiers_must_match_all">
+        <source>Modifiers (must match all)</source>
+        <target state="translated">修饰符(必须全部匹配)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_colon2">
+        <source>Name:</source>
+        <target state="translated">名称:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_Rule">
+        <source>Naming Rule</source>
+        <target state="translated">命名规则</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_Style">
+        <source>Naming Style</source>
+        <target state="translated">命名样式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_Style_colon">
+        <source>Naming Style:</source>
+        <target state="translated">命名样式:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled">
+        <source>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</source>
+        <target state="translated">命名规则能够使用户定义特定符号集的命名方式以及错误命名符号的处理方式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule">
+        <source>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</source>
+        <target state="translated">命名符号时，默认使用第一个匹配的顶级命名规则，而匹配的子规则会处理任何的特殊情况。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_Style_Title_colon">
+        <source>Naming Style Title:</source>
+        <target state="translated">命名样式标题:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parent_Rule_colon">
+        <source>Parent Rule:</source>
+        <target state="translated">父规则:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required_Prefix_colon">
+        <source>Required Prefix:</source>
+        <target state="translated">必填前缀:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required_Suffix_colon">
+        <source>Required Suffix:</source>
+        <target state="translated">必填后缀:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sample_Identifier_colon">
+        <source>Sample Identifier:</source>
+        <target state="translated">示例标识符:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Kinds_can_match_any">
+        <source>Symbol Kinds (can match any)</source>
+        <target state="translated">符号种类(可任意匹配)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Specification">
+        <source>Symbol Specification</source>
+        <target state="translated">符号规范</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Specification_colon">
+        <source>Symbol Specification:</source>
+        <target state="translated">符号规范:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Specification_Title_colon">
+        <source>Symbol Specification Title:</source>
+        <target state="translated">符号规范标题:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Word_Separator_colon">
+        <source>Word Separator:</source>
+        <target state="translated">单词分隔符:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="example">
+        <source>example</source>
+        <target state="translated">示例</target>
+        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+      </trans-unit>
+      <trans-unit id="identifier">
+        <source>identifier</source>
+        <target state="translated">标识符</target>
+        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+      </trans-unit>
+      <trans-unit id="Install_0">
+        <source>Install '{0}'</source>
+        <target state="translated">安装“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uninstalling_0">
+        <source>Uninstalling '{0}'</source>
+        <target state="translated">正在卸载“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uninstalling_0_completed">
+        <source>Uninstalling '{0}' completed</source>
+        <target state="translated">卸载“{0}”已完成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uninstall_0">
+        <source>Uninstall '{0}'</source>
+        <target state="translated">卸载“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_failed_colon_0">
+        <source>Package uninstall failed: {0}</source>
+        <target state="translated">包卸载失败: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled">
+        <source>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</source>
+        <target state="translated">加载项目时遇到了错误。已禁用了某些项目功能，例如用于失败项目和依赖于失败项目的其他项目的完整解决方案分析。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_loading_failed">
+        <source>Project loading failed.</source>
+        <target state="translated">项目加载失败。</target>
         <note />
       </trans-unit>
       <trans-unit id="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows">
@@ -1719,318 +1409,569 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 5. Restart VS from the command prompt you set the environment variable (devenv)
 6. Open the solution
 7. Check '{0}' and look for the failed tasks (FAILED)</source>
-        <target state="new">To see what caused the issue, please try below.
+        <target state="translated">若要查看导致问题的原因，请尝试进行以下操作。
 
-1. Close Visual Studio
-2. Open a Visual Studio Developer Command Prompt
-3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
-4. Delete .vs directory/.suo file
-5. Restart VS from the command prompt you set the environment variable (devenv)
-6. Open the solution
-7. Check '{0}' and look for the failed tasks (FAILED)</target>
+1. 关闭 Visual Studio
+2. 打开 Visual Studio 开发人员命令提示
+3. 将环境变量 "TraceDesignTime" 设置为 true (设置 TraceDesignTime=true)
+4. 删除 .vs 目录/.suo 文件
+5. 在设置环境变量(devenv)的命令提示中重启 VS
+6. 打开解决方案
+7. 检查“{0}”并查找失败任务(FAILED)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type">
-        <source>Type</source>
-        <target state="new">Type</target>
+      <trans-unit id="Additional_information_colon">
+        <source>Additional information:</source>
+        <target state="translated">其他信息:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_Details_colon">
-        <source>Type Details:</source>
-        <target state="new">Type Details:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Parameters_colon">
-        <source>Type Parameters:</source>
-        <target state="new">Type Parameters:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
-        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
-        <target state="new">Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Uninstall_0">
-        <source>Uninstall '{0}'</source>
-        <target state="new">Uninstall '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Uninstalling_0">
-        <source>Uninstalling '{0}'</source>
-        <target state="new">Uninstalling '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Uninstalling_0_completed">
-        <source>Uninstalling '{0}' completed</source>
-        <target state="new">Uninstalling '{0}' completed</target>
+      <trans-unit id="Installing_0_failed_Additional_information_colon_1">
+        <source>Installing '{0}' failed.
+
+Additional information: {1}</source>
+        <target state="translated">安装“{0}”失败。
+
+其他信息: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Uninstalling_0_failed_Additional_information_colon_1">
         <source>Uninstalling '{0}' failed.
 
 Additional information: {1}</source>
-        <target state="new">Uninstalling '{0}' failed.
+        <target state="translated">卸载“{0}”失败。
 
-Additional information: {1}</target>
+其他信息: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown1">
-        <source>&lt;Unknown&gt;</source>
-        <target state="new">&lt;Unknown&gt;</target>
+      <trans-unit id="Move_0_below_1">
+        <source>Move {0} below {1}</source>
+        <target state="translated">将 {0} 移到 {1} 的下方</target>
+        <note>{0} and {1} are parameter descriptions</note>
+      </trans-unit>
+      <trans-unit id="Move_0_above_1">
+        <source>Move {0} above {1}</source>
+        <target state="translated">将 {0} 移到 {1} 的上方</target>
+        <note>{0} and {1} are parameter descriptions</note>
+      </trans-unit>
+      <trans-unit id="Remove_0">
+        <source>Remove {0}</source>
+        <target state="translated">删除 {0}</target>
+        <note>{0} is a parameter description</note>
+      </trans-unit>
+      <trans-unit id="Restore_0">
+        <source>Restore {0}</source>
+        <target state="translated">还原 {0}</target>
+        <note>{0} is a parameter description</note>
+      </trans-unit>
+      <trans-unit id="Re_enable">
+        <source>Re-enable</source>
+        <target state="translated">重新启用</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown2">
-        <source>&lt;Unknown&gt;</source>
-        <target state="new">&lt;Unknown&gt;</target>
+      <trans-unit id="Learn_more">
+        <source>Learn more</source>
+        <target state="translated">了解详细信息</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_framework_type">
+        <source>Prefer framework type</source>
+        <target state="translated">首选框架类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_predefined_type">
+        <source>Prefer predefined type</source>
+        <target state="translated">首选预定义类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copy_to_Clipboard">
+        <source>Copy to Clipboard</source>
+        <target state="translated">复制到剪贴板</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Close">
+        <source>Close</source>
+        <target state="translated">关闭</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_parameters">
         <source>&lt;Unknown Parameters&gt;</source>
-        <target state="new">&lt;Unknown Parameters&gt;</target>
+        <target state="translated">&lt;未知参数&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unknown_rename_type">
-        <source>Unknown rename type</source>
-        <target state="new">Unknown rename type</target>
+      <trans-unit id="End_of_inner_exception_stack">
+        <source>--- End of inner exception stack trace ---</source>
+        <target state="translated">--- 内部异常堆栈跟踪的末尾 ---</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
-        <source>Unused value is explicitly assigned to an unused local</source>
-        <target state="new">Unused value is explicitly assigned to an unused local</target>
+      <trans-unit id="For_locals_parameters_and_members">
+        <source>For locals, parameters and members</source>
+        <target state="translated">针对局部变量、参数和成员</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
-        <source>Unused value is explicitly assigned to discard</source>
-        <target state="new">Unused value is explicitly assigned to discard</target>
+      <trans-unit id="For_member_access_expressions">
+        <source>For member access expressions</source>
+        <target state="translated">针对成员访问表达式</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_editorconfig_compatibility_mode">
-        <source>Use .editorconfig compatibility mode (requires restart)</source>
-        <target state="new">Use .editorconfig compatibility mode (requires restart)</target>
+      <trans-unit id="Prefer_object_initializer">
+        <source>Prefer object initializer</source>
+        <target state="translated">首选对象初始值设定项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
-        <source>Use enhanced colors for C# and Basic</source>
-        <target state="new">Use enhanced colors for C# and Basic</target>
+      <trans-unit id="Expression_preferences_colon">
+        <source>Expression preferences:</source>
+        <target state="translated">表达式首选项:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_accessors">
-        <source>Use expression body for accessors</source>
-        <target state="new">Use expression body for accessors</target>
+      <trans-unit id="Block_Structure_Guides">
+        <source>Block Structure Guides</source>
+        <target state="translated">块结构指南</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_constructors">
-        <source>Use expression body for constructors</source>
-        <target state="new">Use expression body for constructors</target>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="translated">大纲</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_indexers">
-        <source>Use expression body for indexers</source>
-        <target state="new">Use expression body for indexers</target>
+      <trans-unit id="Show_guides_for_code_level_constructs">
+        <source>Show guides for code level constructs</source>
+        <target state="translated">显示代码级别构造的指南</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambdas">
-        <source>Use expression body for lambdas</source>
-        <target state="new">Use expression body for lambdas</target>
+      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
+        <source>Show guides for comments and preprocessor regions</source>
+        <target state="translated">显示注释和预处理器区域的指南</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_local_functions">
-        <source>Use expression body for local functions</source>
-        <target state="new">Use expression body for local functions</target>
+      <trans-unit id="Show_guides_for_declaration_level_constructs">
+        <source>Show guides for declaration level constructs</source>
+        <target state="translated">显示声明级别构造的指南</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_methods">
-        <source>Use expression body for methods</source>
-        <target state="new">Use expression body for methods</target>
+      <trans-unit id="Show_outlining_for_code_level_constructs">
+        <source>Show outlining for code level constructs</source>
+        <target state="translated">显示代码级别构造的大纲</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_operators">
-        <source>Use expression body for operators</source>
-        <target state="new">Use expression body for operators</target>
+      <trans-unit id="Show_outlining_for_comments_and_preprocessor_regions">
+        <source>Show outlining for comments and preprocessor regions</source>
+        <target state="translated">显示注释和预处理器区域的大纲</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_expression_body_for_properties">
-        <source>Use expression body for properties</source>
-        <target state="new">Use expression body for properties</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Validating_breakpoint_location">
-        <source>Validating breakpoint location...</source>
-        <target state="new">Validating breakpoint location...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_here_is_never_used">
-        <source>Value assigned here is never used</source>
-        <target state="new">Value assigned here is never used</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
-        <source>Value returned by invocation is implicitly ignored</source>
-        <target state="new">Value returned by invocation is implicitly ignored</target>
+      <trans-unit id="Show_outlining_for_declaration_level_constructs">
+        <source>Show outlining for declaration level constructs</source>
+        <target state="translated">显示声明级别构造的大纲</target>
         <note />
       </trans-unit>
       <trans-unit id="Variable_preferences_colon">
         <source>Variable preferences:</source>
-        <target state="new">Variable preferences:</target>
+        <target state="translated">变量首选项:</target>
         <note />
       </trans-unit>
-      <trans-unit id="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread">
-        <source>VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</source>
-        <target state="new">VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</target>
+      <trans-unit id="Prefer_inlined_variable_declaration">
+        <source>Prefer inlined variable declaration</source>
+        <target state="translated">首选内联变量声明</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance">
-        <source>Visual Studio has suspended some advanced features to improve performance.</source>
-        <target state="new">Visual Studio has suspended some advanced features to improve performance.</target>
+      <trans-unit id="Use_expression_body_for_methods">
+        <source>Use expression body for methods</source>
+        <target state="translated">使用方法的表达式主体</target>
         <note />
       </trans-unit>
-      <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
-        <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
-        <target state="new">We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</target>
+      <trans-unit id="Code_block_preferences_colon">
+        <source>Code block preferences:</source>
+        <target state="translated">代码块首选项:</target>
         <note />
       </trans-unit>
-      <trans-unit id="When_generating_properties">
-        <source>When generating properties:</source>
-        <target state="new">When generating properties:</target>
+      <trans-unit id="Use_expression_body_for_accessors">
+        <source>Use expression body for accessors</source>
+        <target state="translated">使用访问器的表达式主体</target>
         <note />
       </trans-unit>
-      <trans-unit id="When_inserting_properties_events_and_methods_place_them">
-        <source>When inserting properties, events and methods, place them:</source>
-        <target state="new">When inserting properties, events and methods, place them:</target>
+      <trans-unit id="Use_expression_body_for_constructors">
+        <source>Use expression body for constructors</source>
+        <target state="translated">使用构造函数的表达式主体</target>
         <note />
       </trans-unit>
-      <trans-unit id="Word_Separator_colon">
-        <source>Word Separator:</source>
-        <target state="new">Word Separator:</target>
+      <trans-unit id="Use_expression_body_for_indexers">
+        <source>Use expression body for indexers</source>
+        <target state="translated">使用索引器的表达式主体</target>
         <note />
       </trans-unit>
-      <trans-unit id="Yes">
-        <source>Yes</source>
-        <target state="new">Yes</target>
+      <trans-unit id="Use_expression_body_for_operators">
+        <source>Use expression body for operators</source>
+        <target state="translated">使用运算符的表达式主体</target>
         <note />
       </trans-unit>
-      <trans-unit id="You_must_select_at_least_one_member">
-        <source>You must select at least one member.</source>
-        <target state="new">You must select at least one member.</target>
+      <trans-unit id="Use_expression_body_for_properties">
+        <source>Use expression body for properties</source>
+        <target state="translated">使用属性的表达式主体</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_Use_the_dropdown_to_view_and_navigate_to_other_items_in_this_file">
-        <source>{0}
-
-Use the dropdown to view and navigate to other items in this file.</source>
-        <target state="new">{0}
-
-Use the dropdown to view and navigate to other items in this file.</target>
+      <trans-unit id="Some_naming_rules_are_incomplete_Please_complete_or_remove_them">
+        <source>Some naming rules are incomplete. Please complete or remove them.</source>
+        <target state="translated">一些命名规则不完整。请完善这些命名规则或将其删除。</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
-        <source>'{0}' encountered an error and has been disabled.</source>
-        <target state="new">'{0}' encountered an error and has been disabled.</target>
+      <trans-unit id="Manage_specifications">
+        <source>Manage specifications</source>
+        <target state="translated">管理规范</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_references">
-        <source>{0} references</source>
-        <target state="new">{0} references</target>
+      <trans-unit id="Reorder">
+        <source>Reorder</source>
+        <target state="translated">重新排序</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_will_be_changed_to_abstract">
-        <source>'{0}' will be changed to abstract.</source>
-        <target state="new">'{0}' will be changed to abstract.</target>
+      <trans-unit id="Severity">
+        <source>Severity</source>
+        <target state="translated">严重性</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_will_be_changed_to_non_static">
-        <source>'{0}' will be changed to non-static.</source>
-        <target state="new">'{0}' will be changed to non-static.</target>
+      <trans-unit id="Specification">
+        <source>Specification</source>
+        <target state="translated">规范</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_will_be_changed_to_public">
-        <source>'{0}' will be changed to public.</source>
-        <target state="new">'{0}' will be changed to public.</target>
+      <trans-unit id="Required_Style">
+        <source>Required Style</source>
+        <target state="translated">必填样式</target>
         <note />
       </trans-unit>
-      <trans-unit id="_1_reference">
-        <source>1 reference</source>
-        <target state="new">1 reference</target>
+      <trans-unit id="This_item_cannot_be_deleted_because_it_is_used_by_an_existing_Naming_Rule">
+        <source>This item cannot be deleted because it is used by an existing Naming Rule.</source>
+        <target state="translated">无法删除该项，因为它由现有的命名规则使用。</target>
         <note />
       </trans-unit>
-      <trans-unit id="all_lower">
-        <source>all lower</source>
-        <target state="new">all lower</target>
+      <trans-unit id="Prefer_collection_initializer">
+        <source>Prefer collection initializer</source>
+        <target state="translated">首选集合初始值设定项</target>
         <note />
       </trans-unit>
-      <trans-unit id="analyzer_Prefer_auto_properties">
-        <source>Prefer auto properties</source>
-        <target state="new">Prefer auto properties</target>
+      <trans-unit id="Prefer_coalesce_expression">
+        <source>Prefer coalesce expression</source>
+        <target state="translated">首选联合表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_when_collapsing_to_definitions">
+        <source>Collapse #regions when collapsing to definitions</source>
+        <target state="translated">折叠到定义时可折叠 #regions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_propagation">
+        <source>Prefer null propagation</source>
+        <target state="translated">首选 null 传播</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicit_tuple_name">
+        <source>Prefer explicit tuple name</source>
+        <target state="translated">首选显式元组名称</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Description">
+        <source>Description</source>
+        <target state="translated">说明</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preference">
+        <source>Preference</source>
+        <target state="translated">首选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Interface_or_Abstract_Class">
+        <source>Implement Interface or Abstract Class</source>
+        <target state="translated">实现接口或抽象类</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_a_given_symbol_only_the_topmost_rule_with_a_matching_Specification_will_be_applied_Violation_of_that_rules_Required_Style_will_be_reported_at_the_chosen_Severity_level">
+        <source>For a given symbol, only the topmost rule with a matching 'Specification' will be applied. Violation of that rule's 'Required Style' will be reported at the chosen 'Severity' level.</source>
+        <target state="translated">对于给定的符号，仅应用具有匹配“规范”的最顶端规则。对该规则的“必需样式”的违反将以所选的“严重性”级别进行报告。</target>
         <note />
       </trans-unit>
       <trans-unit id="at_the_end">
         <source>at the end</source>
-        <target state="new">at the end</target>
+        <target state="translated">在末尾</target>
         <note />
       </trans-unit>
-      <trans-unit id="bracket_bracket">
-        <source>[-] </source>
-        <target state="new">[-] </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="bracket_plus_bracket">
-        <source>[+] </source>
-        <target state="new">[+] </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="built_in_types">
-        <source>built-in types</source>
-        <target state="new">built-in types</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="camel_Case_Name">
-        <source>camel Case Name</source>
-        <target state="new">camel Case Name</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="codegen_prefer_auto_properties">
-        <source>prefer auto properties</source>
-        <target state="new">prefer auto properties</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="everywhere_else">
-        <source>everywhere else</source>
-        <target state="new">everywhere else</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="example">
-        <source>example</source>
-        <target state="new">example</target>
-        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
-      </trans-unit>
-      <trans-unit id="given_workspace_doesn_t_support_undo">
-        <source>given workspace doesn't support undo</source>
-        <target state="new">given workspace doesn't support undo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="identifier">
-        <source>identifier</source>
-        <target state="new">identifier</target>
-        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
-      </trans-unit>
-      <trans-unit id="or">
-        <source>or</source>
-        <target state="new">or</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="prefer_throwing_properties">
-        <source>prefer throwing properties</source>
-        <target state="new">prefer throwing properties</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="type_is_apparent_from_assignment_expression">
-        <source>type is apparent from assignment expression</source>
-        <target state="new">type is apparent from assignment expression</target>
+      <trans-unit id="When_inserting_properties_events_and_methods_place_them">
+        <source>When inserting properties, events and methods, place them:</source>
+        <target state="translated">插入属性、事件和方法时，请将其置于以下位置:</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">
         <source>with other members of the same kind</source>
-        <target state="new">with other members of the same kind</target>
+        <target state="translated">与同一类型的其他成员一起</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_braces">
+        <source>Prefer braces</source>
+        <target state="translated">首选大括号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Over_colon">
+        <source>Over:</source>
+        <target state="translated">超过:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_colon">
+        <source>Prefer:</source>
+        <target state="translated">首选:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="or">
+        <source>or</source>
+        <target state="translated">或</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="built_in_types">
+        <source>built-in types</source>
+        <target state="translated">内置类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="everywhere_else">
+        <source>everywhere else</source>
+        <target state="translated">其他任何位置</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type_is_apparent_from_assignment_expression">
+        <source>type is apparent from assignment expression</source>
+        <target state="translated">赋值表达式中类型明显</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0">
+        <source>Get help for '{0}'</source>
+        <target state="translated">获取有关“{0}”的帮助</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Get_help_for_0_from_Bing">
+        <source>Get help for '{0}' from Bing</source>
+        <target state="translated">从必应获取有关“{0}”的帮助</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_down">
+        <source>Move down</source>
+        <target state="translated">下移</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_up">
+        <source>Move up</source>
+        <target state="translated">上移</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove">
+        <source>Remove</source>
+        <target state="translated">删除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pick_members">
+        <source>Pick members</source>
+        <target state="translated">挑选成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
+        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
+        <target state="translated">很遗憾，Visual Studio 使用的一个进程遇到了不可恢复的错误。建议保存工作，再关闭并重启 Visual Studio。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_a_symbol_specification">
+        <source>Add a symbol specification</source>
+        <target state="translated">添加符号规范</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_symbol_specification">
+        <source>Remove symbol specification</source>
+        <target state="translated">删除符号规范</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_item">
+        <source>Add item</source>
+        <target state="translated">添加项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_item">
+        <source>Edit item</source>
+        <target state="translated">编辑项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_item">
+        <source>Remove item</source>
+        <target state="translated">删除项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_a_naming_rule">
+        <source>Add a naming rule</source>
+        <target state="translated">添加命名规则</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_naming_rule">
+        <source>Remove naming rule</source>
+        <target state="translated">删除命名规则</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread">
+        <source>VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</source>
+        <target state="translated">VisualStudioWorkspace。TryApplyChanges 不能从后台线程调用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="prefer_throwing_properties">
+        <source>prefer throwing properties</source>
+        <target state="translated">首选引发属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_generating_properties">
+        <source>When generating properties:</source>
+        <target state="translated">生成属性时:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Options">
+        <source>Options</source>
+        <target state="translated">选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_show_this_again">
+        <source>Never show this again</source>
+        <target state="translated">永不再显示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simple_default_expression">
+        <source>Prefer simple 'default' expression</source>
+        <target state="translated">偏爱简单的 "default" 表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_tuple_names">
+        <source>Prefer inferred tuple element names</source>
+        <target state="translated">首选推断元组元素名称</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
+        <source>Prefer inferred anonymous type member names</source>
+        <target state="translated">首选推断匿名类型成员名称</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_pane">
+        <source>Preview pane</source>
+        <target state="translated">预览窗格</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analysis">
+        <source>Analysis</source>
+        <target state="translated">分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_full_solution_analysis">
+        <source>Enable full solution _analysis</source>
+        <target state="translated">启用完整解决方案分析(_A)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fade_out_unreachable_code">
+        <source>Fade out unreachable code</source>
+        <target state="translated">淡出无法访问的代码</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fading">
+        <source>Fading</source>
+        <target state="translated">淡入淡出</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_local_function_over_anonymous_function">
+        <source>Prefer local function over anonymous function</source>
+        <target state="translated">首选本地函数而不是匿名函数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_deconstructed_variable_declaration">
+        <source>Prefer deconstructed variable declaration</source>
+        <target state="translated">首选析构变量声明</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="External_reference_found">
+        <source>External reference found</source>
+        <target state="translated">找到外部引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_references_found_to_0">
+        <source>No references found to '{0}'</source>
+        <target state="translated">未找到对“{0}”的引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_found_no_results">
+        <source>Search found no results</source>
+        <target state="translated">找不到搜索结果</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="analyzer_Prefer_auto_properties">
+        <source>Prefer auto properties</source>
+        <target state="translated">首选自动属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="codegen_prefer_auto_properties">
+        <source>prefer auto properties</source>
+        <target state="translated">首选自动属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasBeenUnloaded">
+        <source>Module has been unloaded.</source>
+        <target state="translated">已卸载模块。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_navigation_to_decompiled_sources">
+        <source>Enable navigation to decompiled sources (experimental)</source>
+        <target state="translated">支持导航到反编译源(实验)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Decompiler_Legal_Notice_Message">
+        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+ 
+You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
+(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
+(ii) obtain permission to decompile the binary code from the owner of the software.
+ 
+Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+
+I agree to all of the foregoing:</source>
+        <target state="translated">重要说明: Visual Studio 包含反编译功能("Decompiler")，可支持从二进制代码重现源代码。访问和使用 Decompiler 即表示您同意 Visual Studio 许可条款和以下 Decompiler 条款。如果不同意这些组合条款，请勿访问和使用 Decompiler。
+ 
+您同意二进制代码和源代码可能受版权法和商标法保护。在对任何二进制代码使用 Decompiler 前，首先需要:  
+(i) 确认约束您使用二进制代码的许可条款不包含禁止反编译软件的条款；或者
+(ii) 获得软件所有者关于反编译二进制代码的许可。
+ 
+使用 Decompiler 是个人的选择。如果您使用 Decompiler 时违反了任何法律或任何禁止软件反编译的软件许可条款，Microsoft 不承担任何责任和法律责任。
+
+我同意上述所有条款:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Decompiler_Legal_Notice_Title">
+        <source>Decompiler Legal Notice</source>
+        <target state="translated">Decompiler 法律声明</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
+        <target state="translated">.editorconfig 文件可能会替代在本页上配置的仅适用于你的计算机的本地设置。要配置这些设置，使其始终随解决方案一起提供，请使用 EditorConfig 文件。详细信息</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="translated">同步类视图</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">分析“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="translated">管理命名样式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="translated">首选条件表达式而非赋值的“if”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="translated">首选条件表达式而非带有返回结果的“if”</target>
         <note />
       </trans-unit>
     </body>

@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity)
         {
-            return new LegacyDiagnosticItem(_item, diagnostic, effectiveSeverity, _commandHandler.DiagnosticContextMenuController);
+            return new LegacyDiagnosticItem(_item, diagnostic, effectiveSeverity, CommandHandler.DiagnosticContextMenuController);
         }
     }
 }

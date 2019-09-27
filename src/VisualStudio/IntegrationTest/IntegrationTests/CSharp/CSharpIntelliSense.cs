@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -20,6 +21,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpIntelliSense(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
             : base(instanceFactory, testOutputHelper, nameof(CSharpIntelliSense))
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
+
+            // Disable import completion.
+            VisualStudio.Workspace.SetImportCompletionOption(false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -364,10 +373,10 @@ public class Program
             SetUpEditor(@"$$");
 
             VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.Space));
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.Editor.SendKeys(Ctrl(VirtualKey.A));
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
         }
     }
 }

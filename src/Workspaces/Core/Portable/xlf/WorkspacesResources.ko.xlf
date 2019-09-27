@@ -184,12 +184,12 @@
       </trans-unit>
       <trans-unit id="Regex_any_character_group_long">
         <source>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</source>
-        <target state="translated">마침표(.) 문자는 \n(줄 바꿈 문자, \u000A)을 제외한 임의의 문자와 일치시킵니다. 정규식 패턴이 RegexOptions.Singleline 옵션으로 수정되거나 . 문자 클래스가 포함된 패턴의 일부가 's' 옵션으로 수정된 경우 .는 임의의 문자와 일치시킵니다.</target>
+        <target state="translated">마침표(.) 문자는 \n(줄 바꿈 문자, \u000A)을 제외한 모든 문자와 일치시킵니다. 정규식 패턴이 RegexOptions.Singleline 옵션으로 수정되거나 . 문자 클래스가 포함된 패턴의 일부가 's' 옵션으로 수정된 경우 .는 모든 문자와 일치시킵니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_short">
         <source>any character</source>
-        <target state="translated">임의 문자</target>
+        <target state="translated">모든 문자</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_long">
@@ -445,8 +445,8 @@ $ 앵커는 \n은 일치시키지만 \r\n(캐리지 리턴 및 줄 바꿈 문자
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">16진수 이스케이프</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">16진수 이스케이프</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -741,7 +741,7 @@ Two or more character ranges can be concatenated. For example, to specify the ra
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">정규식 구문 \P{ name }는 유니코드 일반 범주 또는 명명된 블록에 속하지 않는 임의의 문자와 일치시킵니다. 여기서, name은 범주 약어 또는 명명된 블록 이름입니다.</target>
+        <target state="translated">정규식 구문 \P{ name }는 유니코드 일반 범주 또는 명명된 블록에 속하지 않는 모든 문자와 일치시킵니다. 여기서, name은 범주 약어 또는 명명된 블록 이름입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_short">
@@ -782,7 +782,7 @@ ECMAScript 규격 동작을 지정한 경우 \D는 [^0-9]와 같습니다.</targ
         <source>\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
 
 If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</source>
-        <target state="translated">\S는 공백이 아닌 문자와 일치시킵니다. [^\f\n\r\t\v\x85\p{Z}] 정규식 패턴과 같거나, 공백 문자와 일치시키는 \s와 같은 정규식 패턴의 반대입니다.
+        <target state="translated">\S는 공백이 아닌 문자와 일치시킵니다. [^\f\n\r\t\v\x85\p{Z}] 정규식 패턴과 같거나, 공백 문자와 일치시키는 \s와 같은 정규식 패턴과 반대됩니다.
 
 ECMAScript 규격 동작을 지정한 경우 \S는 [^ \f\n\r\t\v]와 같습니다.</target>
         <note />
@@ -815,7 +815,7 @@ ECMAScript 규격 동작을 지정한 경우 \S는 [^ \f\n\r\t\v]와 같습니�
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</source>
-        <target state="translated">\W는 단어가 아닌 문자와 일치시킵니다. 다음 유니코드 범주의 문자를 제외한 임의의 문자와 일치시킵니다.
+        <target state="translated">\W는 단어가 아닌 문자와 일치시킵니다. 다음 유니코드 범주의 문자를 제외한 모든 문자와 일치시킵니다.
 
     Ll	문자, 소문자
     Lu	문자, 대문자
@@ -1047,7 +1047,7 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
       </trans-unit>
       <trans-unit id="Regex_unicode_category_long">
         <source>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">정규식 구문 \p{ name }는 유니코드 일반 범주 또는 명명된 블록에 속하는 임의의 문자와 일치시킵니다. 여기서, name은 범주 약어 또는 명명된 블록 이름입니다.</target>
+        <target state="translated">정규식 구문 \p{ name }는 유니코드 일반 범주 또는 명명된 블록에 속하는 모든 문자와 일치시킵니다. 여기서, name은 범주 약어 또는 명명된 블록 이름입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_short">
@@ -1114,7 +1114,7 @@ ECMAScript와 호환되는 동작을 지정한 경우 \s는 [ \f\n\r\t\v]와 같
         <source>The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
 
 The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</source>
-        <target state="translated">\b 앵커는 단어 문자(\w 언어 요소)와 단어가 아닌 문자(\W 언어 요소) 사이의 경계에서 일치 항목을 찾도록 지정합니다. 단어 문자는 영숫자 문자 및 밑줄로 구성되고, 단어가 아닌 문자는 영숫자나 밑줄이 아닌 임의의 문자입니다. 문자열의 시작 또는 끝부분 단어 경계에서 일치 항목을 찾을 수도 있습니다.
+        <target state="translated">\b 앵커는 단어 문자(\w 언어 요소)와 단어가 아닌 문자(\W 언어 요소) 사이의 경계에서 일치 항목을 찾도록 지정합니다. 단어 문자는 영숫자 문자 및 밑줄로 구성되고, 단어가 아닌 문자는 영숫자나 밑줄이 아닌 모든 문자입니다. 문자열의 시작 또는 끝부분 단어 경계에서 일치 항목을 찾을 수도 있습니다.
 
 \b 앵커는 하위 식이 단어의 시작 또는 끝부분이 아닌 전체 단어를 일치시키도록 하는 데 자주 사용됩니다.</target>
         <note />
