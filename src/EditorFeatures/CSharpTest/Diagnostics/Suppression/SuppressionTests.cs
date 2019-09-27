@@ -551,7 +551,7 @@ class Class
     int Method()
     {
 #pragma warning disable format
-        int x = 0;
+        int x = 0 ;
 #pragma warning restore format
     }
 }");

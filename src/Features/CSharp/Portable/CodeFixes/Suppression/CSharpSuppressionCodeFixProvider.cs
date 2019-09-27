@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var pragmaDirective = SyntaxFactory.PragmaWarningDirectiveTrivia(disableOrRestoreKeyword, ids, true);
             pragmaDirective = (PragmaWarningDirectiveTriviaSyntax)formatNode(pragmaDirective);
             var pragmaDirectiveTrivia = SyntaxFactory.Trivia(pragmaDirective);
-            var endOfLineTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed;
+            var endOfLineTrivia = SyntaxFactory.CarriageReturnLineFeed;
             var triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia);
 
             var title = includeTitle ? diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture) : null;
