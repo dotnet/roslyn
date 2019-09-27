@@ -33,14 +33,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal struct InferredLambdaReturnType
     {
-        internal readonly bool FromSingleType;
+        internal readonly int NumExpressions;
+        internal readonly bool HadExpressionlessReturn;
         internal readonly RefKind RefKind;
         internal readonly TypeWithAnnotations TypeWithAnnotations;
         internal readonly ImmutableArray<DiagnosticInfo> UseSiteDiagnostics;
 
-        internal InferredLambdaReturnType(bool fromSingleType, RefKind refKind, TypeWithAnnotations typeWithAnnotations, ImmutableArray<DiagnosticInfo> useSiteDiagnostics)
+        internal InferredLambdaReturnType(
+            int numExpressions,
+            bool hadExpressionlessReturn,
+            RefKind refKind,
+            TypeWithAnnotations typeWithAnnotations,
+            ImmutableArray<DiagnosticInfo> useSiteDiagnostics)
         {
-            FromSingleType = fromSingleType;
+            NumExpressions = numExpressions;
+            HadExpressionlessReturn = hadExpressionlessReturn;
             RefKind = refKind;
             TypeWithAnnotations = typeWithAnnotations;
             UseSiteDiagnostics = useSiteDiagnostics;
@@ -160,8 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var bestType = CalculateReturnType(compilation, conversions, delegateType, types, isAsync, node, ref useSiteDiagnostics);
-            int numberOfDistinctReturns = types.Count + (hasReturnWithoutArgument ? 1 : 0);
-            return new InferredLambdaReturnType(numberOfDistinctReturns < 2, refKind, bestType, useSiteDiagnostics.AsImmutableOrEmpty());
+            return new InferredLambdaReturnType(types.Count, hasReturnWithoutArgument, refKind, bestType, useSiteDiagnostics.AsImmutableOrEmpty());
         }
 
         private static TypeWithAnnotations CalculateReturnType(
@@ -833,12 +839,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (lambda is null)
                     return null;
                 var delegateType = (NamedTypeSymbol)lambda.Type;
-                var returnType = lambda.InferredReturnType.TypeWithAnnotations;
+                InferredLambdaReturnType inferredReturnType = lambda.InferredReturnType;
+                var returnType = inferredReturnType.TypeWithAnnotations;
+                var refKind = lambda.Symbol.RefKind;
                 if (!returnType.HasType)
                 {
-                    returnType = (delegateType?.DelegateInvokeMethod()?.ReturnType.ContainsTypeParameter() == false)
-                        ? delegateType.DelegateInvokeMethod().ReturnTypeWithAnnotations
-                        : TypeWithAnnotations.Create(this.Binder.Compilation.GetSpecialType(SpecialType.System_Void));
+                    var invokeMethod = DelegateInvokeMethod(delegateType);
+                    returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out refKind);
+                    if (!returnType.HasType || returnType.Type.ContainsTypeParameter())
+                    {
+                        var t = (inferredReturnType.HadExpressionlessReturn || inferredReturnType.NumExpressions == 0)
+                            ? this.Binder.Compilation.GetSpecialType(SpecialType.System_Void)
+                            : this.Binder.CreateErrorType();
+                        returnType = TypeWithAnnotations.Create(t);
+                        refKind = CodeAnalysis.RefKind.None;
+                    }
                 }
 
                 (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithDelegateAndReturnType(delegateType, returnType);
@@ -849,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.ToReadOnlyAndFree(),
                     lambdaBodyBinder,
                     delegateType,
-                    new InferredLambdaReturnType(true, CodeAnalysis.RefKind.None, returnType, ImmutableArray<DiagnosticInfo>.Empty))
+                    new InferredLambdaReturnType(inferredReturnType.NumExpressions, inferredReturnType.HadExpressionlessReturn, refKind, returnType, ImmutableArray<DiagnosticInfo>.Empty))
                     { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
             }
         }
