@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private NamespaceDeclarationSyntax ParseNamespaceDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributeLists,
+            SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxListBuilder modifiers)
         {
             _recursionDepth++;
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private NamespaceDeclarationSyntax ParseNamespaceDeclarationCore(
-            SyntaxListBuilder<AttributeListSyntax> attributeLists,
+            SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword);
@@ -741,17 +741,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private void ParseAttributeDeclarations(SyntaxListBuilder list)
+        private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations()
         {
-            var saveTerm = _termState;
-            _termState |= TerminatorState.IsAttributeDeclarationTerminator;
-
-            while (this.IsPossibleAttributeDeclaration())
+            var attributes = _pool.Allocate<AttributeListSyntax>();
+            try
             {
-                list.Add(this.ParseAttributeDeclaration());
-            }
+                var saveTerm = _termState;
+                _termState |= TerminatorState.IsAttributeDeclarationTerminator;
 
-            _termState = saveTerm;
+                while (this.IsPossibleAttributeDeclaration())
+                {
+                    attributes.Add(this.ParseAttributeDeclaration());
+                }
+
+                _termState = saveTerm;
+
+                return attributes.ToList();
+            }
+            finally
+            {
+                _pool.Free(attributes);
+            }
         }
 
         private bool IsAttributeDeclarationTerminator()
@@ -1303,7 +1313,7 @@ tryAgain:
             }
         }
 
-        private MemberDeclarationSyntax ParseTypeDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private MemberDeclarationSyntax ParseTypeDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -1350,7 +1360,7 @@ tryAgain:
             }
         }
 
-        private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ClassKeyword ||
                 this.CurrentToken.Kind == SyntaxKind.StructKeyword ||
@@ -1932,15 +1942,13 @@ tryAgain:
                 }
             }
 
-            var attributes = _pool.Allocate<AttributeListSyntax>();
             var modifiers = _pool.Allocate();
 
             var saveTermState = _termState;
 
             try
             {
-                this.ParseAttributeDeclarations(attributes);
-
+                var attributes = this.ParseAttributeDeclarations();
                 if (attributes.Count > 0)
                 {
                     acceptStatement = false;
@@ -2238,7 +2246,6 @@ parse_member_name:;
             finally
             {
                 _pool.Free(modifiers);
-                _pool.Free(attributes);
                 _termState = saveTermState;
             }
         }
@@ -2335,7 +2342,7 @@ parse_member_name:;
         }
 
         private ConstructorDeclarationSyntax ParseConstructorDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+            SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             var name = this.ParseIdentifierToken();
             var saveTerm = _termState;
@@ -2391,13 +2398,13 @@ parse_member_name:;
             {
                 var openToken = this.EatToken(SyntaxKind.OpenParenToken, reportError);
                 var closeToken = this.EatToken(SyntaxKind.CloseParenToken, reportError);
-                argumentList = _syntaxFactory.ArgumentList(openToken, default(SeparatedSyntaxList<ArgumentSyntax>), closeToken);
+                argumentList = _syntaxFactory.ArgumentList(openToken, default, closeToken);
             }
 
             return _syntaxFactory.ConstructorInitializer(kind, colon, token, argumentList);
         }
 
-        private DestructorDeclarationSyntax ParseDestructorDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private DestructorDeclarationSyntax ParseDestructorDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.TildeToken);
             var tilde = this.EatToken(SyntaxKind.TildeToken);
@@ -2526,7 +2533,7 @@ parse_member_name:;
         }
 
         private MethodDeclarationSyntax ParseMethodDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
+            SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
@@ -2623,7 +2630,7 @@ parse_member_name:;
             }
         }
 
-        private ConversionOperatorDeclarationSyntax ParseConversionOperatorDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private ConversionOperatorDeclarationSyntax ParseConversionOperatorDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             SyntaxToken style;
             if (this.CurrentToken.Kind == SyntaxKind.ImplicitKeyword || this.CurrentToken.Kind == SyntaxKind.ExplicitKeyword)
@@ -2659,7 +2666,7 @@ parse_member_name:;
         }
 
         private OperatorDeclarationSyntax ParseOperatorDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
+            SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             TypeSyntax type)
         {
@@ -2790,7 +2797,7 @@ parse_member_name:;
         }
 
         private IndexerDeclarationSyntax ParseIndexerDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
+            SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
@@ -2852,7 +2859,7 @@ parse_member_name:;
         }
 
         private PropertyDeclarationSyntax ParsePropertyDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
+            SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt,
@@ -3218,11 +3225,10 @@ parse_member_name:;
                 return (AccessorDeclarationSyntax)this.EatNode();
             }
 
-            var accAttrs = _pool.Allocate<AttributeListSyntax>();
             var accMods = _pool.Allocate();
             try
             {
-                this.ParseAttributeDeclarations(accAttrs);
+                var accAttrs = this.ParseAttributeDeclarations();
                 this.ParseModifiers(accMods, forAccessors: true);
 
                 // check availability of readonly members feature for accessors
@@ -3319,7 +3325,6 @@ parse_member_name:;
             finally
             {
                 _pool.Free(accMods);
-                _pool.Free(accAttrs);
             }
         }
 
@@ -3474,7 +3479,6 @@ parse_member_name:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfParameterList;
 
-            var attributes = _pool.Allocate<AttributeListSyntax>();
             var modifiers = _pool.Allocate();
             try
             {
@@ -3484,9 +3488,8 @@ tryAgain:
                     if (this.IsPossibleParameter() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
                         // first parameter
-                        attributes.Clear();
                         modifiers.Clear();
-                        var parameter = this.ParseParameter(attributes, modifiers);
+                        var parameter = this.ParseParameter(modifiers);
                         nodes.Add(parameter);
 
                         // additional parameters
@@ -3499,9 +3502,8 @@ tryAgain:
                             else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleParameter())
                             {
                                 nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                                attributes.Clear();
                                 modifiers.Clear();
-                                parameter = this.ParseParameter(attributes, modifiers);
+                                parameter = this.ParseParameter(modifiers);
                                 if (parameter.IsMissing && this.IsPossibleParameter())
                                 {
                                     // ensure we always consume tokens
@@ -3529,7 +3531,6 @@ tryAgain:
             finally
             {
                 _pool.Free(modifiers);
-                _pool.Free(attributes);
             }
         }
 
@@ -3565,17 +3566,9 @@ tryAgain:
             }
         }
 
-        private static bool CanReuseParameter(CSharp.Syntax.ParameterSyntax parameter, SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private static bool CanReuseParameter(CSharp.Syntax.ParameterSyntax parameter, SyntaxListBuilder modifiers)
         {
             if (parameter == null)
-            {
-                return false;
-            }
-
-            // cannot reuse parameter if it had attributes.
-            //
-            // TODO(cyrusn): Why?  We can reuse other constructs if they have attributes.
-            if (attributes.Count != 0 || parameter.AttributeLists.Count != 0)
             {
                 return false;
             }
@@ -3619,15 +3612,14 @@ tryAgain:
         }
 
         private ParameterSyntax ParseParameter(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameter(this.CurrentNode as CSharp.Syntax.ParameterSyntax, attributes, modifiers))
+            if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameter(this.CurrentNode as CSharp.Syntax.ParameterSyntax, modifiers))
             {
                 return (ParameterSyntax)this.EatNode();
             }
 
-            this.ParseAttributeDeclarations(attributes);
+            var attributes = this.ParseAttributeDeclarations();
             this.ParseParameterModifiers(modifiers);
 
             TypeSyntax type;
@@ -3721,7 +3713,7 @@ tryAgain:
         }
 
         private FieldDeclarationSyntax ParseFixedSizeBufferDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
+            SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             SyntaxKind parentKind)
         {
@@ -3755,7 +3747,7 @@ tryAgain:
         }
 
         private MemberDeclarationSyntax ParseEventDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
+            SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             SyntaxKind parentKind)
         {
@@ -3775,7 +3767,7 @@ tryAgain:
         }
 
         private EventDeclarationSyntax ParseEventDeclarationWithAccessors(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
+            SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             SyntaxToken eventToken,
             TypeSyntax type)
@@ -3886,7 +3878,7 @@ tryAgain:
         }
 
         private FieldDeclarationSyntax ParseNormalFieldDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
+            SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             TypeSyntax type,
             SyntaxKind parentKind)
@@ -3913,7 +3905,7 @@ tryAgain:
         }
 
         private EventFieldDeclarationSyntax ParseEventFieldDeclaration(
-            SyntaxListBuilder<AttributeListSyntax> attributes,
+            SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             SyntaxToken eventToken,
             TypeSyntax type,
@@ -4454,7 +4446,7 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.IsPossibleExpression();
         }
 
-        private FieldDeclarationSyntax ParseConstantFieldDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxKind parentKind)
+        private FieldDeclarationSyntax ParseConstantFieldDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxKind parentKind)
         {
             var constToken = this.EatToken(SyntaxKind.ConstKeyword);
             modifiers.Add(constToken);
@@ -4478,7 +4470,7 @@ tryAgain:
             }
         }
 
-        private DelegateDeclarationSyntax ParseDelegateDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private DelegateDeclarationSyntax ParseDelegateDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DelegateKeyword);
 
@@ -4512,7 +4504,7 @@ tryAgain:
             }
         }
 
-        private EnumDeclarationSyntax ParseEnumDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private EnumDeclarationSyntax ParseEnumDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EnumKeyword);
 
@@ -4644,35 +4636,27 @@ tryAgain:
                 return (EnumMemberDeclarationSyntax)this.EatNode();
             }
 
-            var memberAttrs = _pool.Allocate<AttributeListSyntax>();
-            try
+            var memberAttrs = this.ParseAttributeDeclarations();
+            var memberName = this.ParseIdentifierToken();
+            EqualsValueClauseSyntax equalsValue = null;
+            if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
-                this.ParseAttributeDeclarations(memberAttrs);
-                var memberName = this.ParseIdentifierToken();
-                EqualsValueClauseSyntax equalsValue = null;
-                if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                var equals = this.EatToken(SyntaxKind.EqualsToken);
+                ExpressionSyntax value;
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                 {
-                    var equals = this.EatToken(SyntaxKind.EqualsToken);
-                    ExpressionSyntax value;
-                    if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
-                    {
-                        //an identifier is a valid expression
-                        value = this.ParseIdentifierName(ErrorCode.ERR_ConstantExpected);
-                    }
-                    else
-                    {
-                        value = this.ParseExpressionCore();
-                    }
-
-                    equalsValue = _syntaxFactory.EqualsValueClause(equals, value: value);
+                    //an identifier is a valid expression
+                    value = this.ParseIdentifierName(ErrorCode.ERR_ConstantExpected);
+                }
+                else
+                {
+                    value = this.ParseExpressionCore();
                 }
 
-                return _syntaxFactory.EnumMemberDeclaration(memberAttrs, modifiers: default, memberName, equalsValue);
+                equalsValue = _syntaxFactory.EqualsValueClause(equals, value: value);
             }
-            finally
-            {
-                _pool.Free(memberAttrs);
-            }
+
+            return _syntaxFactory.EnumMemberDeclaration(memberAttrs, modifiers: default, memberName, equalsValue);
         }
 
         private bool IsPossibleEnumMemberDeclaration()
@@ -4878,30 +4862,23 @@ tryAgain:
                     this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected));
             }
 
-            var attrs = _pool.Allocate<AttributeListSyntax>();
-            try
+            var attrs = default(SyntaxList<AttributeListSyntax>);
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
-                {
-                    var saveTerm = _termState;
-                    _termState = TerminatorState.IsEndOfTypeArgumentList;
-                    this.ParseAttributeDeclarations(attrs);
-                    _termState = saveTerm;
-                }
-
-                SyntaxToken varianceToken = null;
-                if (this.CurrentToken.Kind == SyntaxKind.InKeyword ||
-                    this.CurrentToken.Kind == SyntaxKind.OutKeyword)
-                {
-                    varianceToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureTypeVariance);
-                }
-
-                return _syntaxFactory.TypeParameter(attrs, varianceToken, this.ParseIdentifierToken());
+                var saveTerm = _termState;
+                _termState = TerminatorState.IsEndOfTypeArgumentList;
+                attrs = this.ParseAttributeDeclarations();
+                _termState = saveTerm;
             }
-            finally
+
+            SyntaxToken varianceToken = null;
+            if (this.CurrentToken.Kind == SyntaxKind.InKeyword ||
+                this.CurrentToken.Kind == SyntaxKind.OutKeyword)
             {
-                _pool.Free(attrs);
+                varianceToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureTypeVariance);
             }
+
+            return _syntaxFactory.TypeParameter(attrs, varianceToken, this.ParseIdentifierToken());
         }
 
         // Parses the parts of the names between Dots and ColonColons.
@@ -5274,82 +5251,75 @@ tryAgain:
         // Parses the individual generic parameter/arguments in a name.
         private TypeSyntax ParseTypeArgument()
         {
-            var attrs = _pool.Allocate<AttributeListSyntax>();
-            try
+            var attrs = default(SyntaxList<AttributeListSyntax>);
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind != SyntaxKind.CloseBracketToken)
-                {
-                    // Here, if we see a "[" that looks like it has something in it, we parse
-                    // it as an attribute and then later put an error on the whole type if
-                    // it turns out that attributes are not allowed. 
-                    // TODO: should there be another flag that controls this behavior? we have
-                    // "allowAttrs" but should there also be a "recognizeAttrs" that we can
-                    // set to false in an expression context?
+                // Here, if we see a "[" that looks like it has something in it, we parse
+                // it as an attribute and then later put an error on the whole type if
+                // it turns out that attributes are not allowed. 
+                // TODO: should there be another flag that controls this behavior? we have
+                // "allowAttrs" but should there also be a "recognizeAttrs" that we can
+                // set to false in an expression context?
 
-                    var saveTerm = _termState;
-                    _termState = TerminatorState.IsEndOfTypeArgumentList;
-                    this.ParseAttributeDeclarations(attrs);
-                    _termState = saveTerm;
-                }
-
-                SyntaxToken varianceToken = null;
-                if (this.CurrentToken.Kind == SyntaxKind.InKeyword || this.CurrentToken.Kind == SyntaxKind.OutKeyword)
-                {
-                    // Recognize the variance syntax, but give an error as it's
-                    // only appropriate in a type parameter list.
-                    varianceToken = this.EatToken();
-                    varianceToken = CheckFeatureAvailability(varianceToken, MessageID.IDS_FeatureTypeVariance);
-                    varianceToken = this.AddError(varianceToken, ErrorCode.ERR_IllegalVarianceSyntax);
-                }
-
-                var result = this.ParseType();
-
-                // Consider the case where someone supplies an invalid type argument
-                // Such as Action<0> or Action<static>.  In this case we generate a missing 
-                // identifier in ParseType, but if we continue as is we'll immediately start to 
-                // interpret 0 as the start of a new expression when we can tell it's most likely
-                // meant to be part of the type list.  
-                //
-                // To solve this we check if the current token is not comma or greater than and 
-                // the next token is a comma or greater than. If so we assume that the found 
-                // token is part of this expression and we attempt to recover. This does open 
-                // the door for cases where we have an  incomplete line to be interpretted as 
-                // a single expression.  For example:
-                //
-                // Action< // Incomplete line
-                // a>b;
-                //
-                // However, this only happens when the following expression is of the form a>... 
-                // or a,... which  means this case should happen less frequently than what we're 
-                // trying to solve here so we err on the side of better error messages
-                // for the majority of cases.
-                SyntaxKind nextTokenKind = SyntaxKind.None;
-
-                if (result.IsMissing &&
-                    (this.CurrentToken.Kind != SyntaxKind.CommaToken && this.CurrentToken.Kind != SyntaxKind.GreaterThanToken) &&
-                    ((nextTokenKind = this.PeekToken(1).Kind) == SyntaxKind.CommaToken || nextTokenKind == SyntaxKind.GreaterThanToken))
-                {
-                    // Eat the current token and add it as skipped so we recover
-                    result = AddTrailingSkippedSyntax(result, this.EatToken());
-                }
-
-                if (varianceToken != null)
-                {
-                    result = AddLeadingSkippedSyntax(result, varianceToken);
-                }
-
-                if (attrs.Count > 0)
-                {
-                    result = AddLeadingSkippedSyntax(result, attrs.ToListNode());
-                    result = this.AddError(result, ErrorCode.ERR_TypeExpected);
-                }
-
-                return result;
+                var saveTerm = _termState;
+                _termState = TerminatorState.IsEndOfTypeArgumentList;
+                attrs = this.ParseAttributeDeclarations();
+                _termState = saveTerm;
             }
-            finally
+
+            SyntaxToken varianceToken = null;
+            if (this.CurrentToken.Kind == SyntaxKind.InKeyword || this.CurrentToken.Kind == SyntaxKind.OutKeyword)
             {
-                _pool.Free(attrs);
+                // Recognize the variance syntax, but give an error as it's
+                // only appropriate in a type parameter list.
+                varianceToken = this.EatToken();
+                varianceToken = CheckFeatureAvailability(varianceToken, MessageID.IDS_FeatureTypeVariance);
+                varianceToken = this.AddError(varianceToken, ErrorCode.ERR_IllegalVarianceSyntax);
             }
+
+            var result = this.ParseType();
+
+            // Consider the case where someone supplies an invalid type argument
+            // Such as Action<0> or Action<static>.  In this case we generate a missing 
+            // identifier in ParseType, but if we continue as is we'll immediately start to 
+            // interpret 0 as the start of a new expression when we can tell it's most likely
+            // meant to be part of the type list.  
+            //
+            // To solve this we check if the current token is not comma or greater than and 
+            // the next token is a comma or greater than. If so we assume that the found 
+            // token is part of this expression and we attempt to recover. This does open 
+            // the door for cases where we have an  incomplete line to be interpretted as 
+            // a single expression.  For example:
+            //
+            // Action< // Incomplete line
+            // a>b;
+            //
+            // However, this only happens when the following expression is of the form a>... 
+            // or a,... which  means this case should happen less frequently than what we're 
+            // trying to solve here so we err on the side of better error messages
+            // for the majority of cases.
+            SyntaxKind nextTokenKind = SyntaxKind.None;
+
+            if (result.IsMissing &&
+                (this.CurrentToken.Kind != SyntaxKind.CommaToken && this.CurrentToken.Kind != SyntaxKind.GreaterThanToken) &&
+                ((nextTokenKind = this.PeekToken(1).Kind) == SyntaxKind.CommaToken || nextTokenKind == SyntaxKind.GreaterThanToken))
+            {
+                // Eat the current token and add it as skipped so we recover
+                result = AddTrailingSkippedSyntax(result, this.EatToken());
+            }
+
+            if (varianceToken != null)
+            {
+                result = AddLeadingSkippedSyntax(result, varianceToken);
+            }
+
+            if (attrs.Count > 0)
+            {
+                result = AddLeadingSkippedSyntax(result, attrs.Node);
+                result = this.AddError(result, ErrorCode.ERR_TypeExpected);
+            }
+
+            return result;
         }
 
         private bool IsEndOfTypeArgumentList()
