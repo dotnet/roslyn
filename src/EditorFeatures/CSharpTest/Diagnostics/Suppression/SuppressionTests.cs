@@ -157,6 +157,30 @@ class Class
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningDirectiveWithDocumentationComment()
+                {
+                    await TestAsync(
+        @"
+sealed class Class
+{
+    /// <summary>Text</summary>
+    [|protected void Method()|]
+    {
+    }
+}",
+        $@"
+sealed class Class
+{{
+#pragma warning disable CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
+                              /// <summary>Text</summary>
+    protected void Method()
+#pragma warning restore CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
+    {{
+    }}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestMultipleInstancesOfPragmaWarningDirective()
                 {
                     await TestAsync(
