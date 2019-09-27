@@ -535,6 +535,81 @@ Public Class [|G|](Of SomeType)
 End Class");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(38916, "https://github.com/dotnet/roslyn/issues/38916")]
+        public async Task TestParameterAttributes()
+        {
+            var metadataSource = @"
+public class C<[My] T>
+{
+    public void Method([My] T x, [My] T y) { }
+}
+
+internal class MyAttribute : System.Attribute { }
+";
+            var symbolName = "C`1";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class [|C|]<[MyAttribute]
+T>
+{{
+    public C();
+
+    public void Method([MyAttribute] T x, [MyAttribute] T y);
+}}");
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Class [|C|](Of T)
+    Public Sub New()
+
+    Public Sub Method(<MyAttribute> x As T, <MyAttribute> y As T)
+End Class");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WorkItem(38916, "https://github.com/dotnet/roslyn/issues/38916")]
+        public async Task TestGenericWithNullableReferenceTypes()
+        {
+            var metadataSource = @"
+#nullable enable
+public interface C<T>
+{
+    bool Equals([AllowNull] T other);
+}
+
+internal class AllowNullAttribute : System.Attribute { }
+";
+            var symbolName = "C`1";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Runtime.CompilerServices;
+
+[NullableContextAttribute(1)]
+public interface [|C|]<[NullableAttribute(2)]
+T>
+{{
+    bool Equals([AllowNullAttribute] T other);
+}}");
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Runtime.CompilerServices
+
+<NullableContextAttribute(1)>
+Public Interface [|C|](Of T)
+    Function Equals(<AllowNullAttribute> other As T) As Boolean
+End Interface");
+        }
+
         [WorkItem(546227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546227")]
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public async Task TestGenericDelegate()
