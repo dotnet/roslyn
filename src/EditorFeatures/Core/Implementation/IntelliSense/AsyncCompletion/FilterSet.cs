@@ -16,14 +16,13 @@ using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-
     /// <summary>
     /// Provides an efficient way to compute a set of completion filters associated with a collection of completion items.
     /// Presence of expander and filter in the set have different meanings. Set contains a filter means the filter is
     /// available but unselected, whereas it means available and selected for an expander. Note that even though VS supports 
     /// having multiple expanders, we only support one.
     /// </summary>
-    internal class FilterSet
+    internal sealed class FilterSet
     {
         // Cache all the VS completion filters which essentially make them singletons.
         // Because all items that should be filtered using the same filter button must 
@@ -32,6 +31,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private BitVector32 _vector;
         private static readonly int s_expanderMask;
+
+        public static readonly CompletionFilter NamespaceFilter;
+        public static readonly CompletionFilter ClassFilter;
+        public static readonly CompletionFilter ModuleFilter;
+        public static readonly CompletionFilter StructureFilter;
+        public static readonly CompletionFilter InterfaceFilter;
+        public static readonly CompletionFilter EnumFilter;
+        public static readonly CompletionFilter DelegateFilter;
+        public static readonly CompletionFilter ConstantFilter;
+        public static readonly CompletionFilter FieldFilter;
+        public static readonly CompletionFilter EventFilter;
+        public static readonly CompletionFilter PropertyFilter;
+        public static readonly CompletionFilter MethodFilter;
+        public static readonly CompletionFilter ExtensionMethodFilter;
+        public static readonly CompletionFilter LocalAndParameterFilter;
+        public static readonly CompletionFilter KeywordFilter;
+        public static readonly CompletionFilter SnippetFilter;
+        public static readonly CompletionFilter TargetTypedFilter;
+
+        public static readonly CompletionExpander Expander;
 
         static FilterSet()
         {
@@ -80,26 +99,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return filter;
             }
         }
-
-        public static readonly CompletionFilter NamespaceFilter;
-        public static readonly CompletionFilter ClassFilter;
-        public static readonly CompletionFilter ModuleFilter;
-        public static readonly CompletionFilter StructureFilter;
-        public static readonly CompletionFilter InterfaceFilter;
-        public static readonly CompletionFilter EnumFilter;
-        public static readonly CompletionFilter DelegateFilter;
-        public static readonly CompletionFilter ConstantFilter;
-        public static readonly CompletionFilter FieldFilter;
-        public static readonly CompletionFilter EventFilter;
-        public static readonly CompletionFilter PropertyFilter;
-        public static readonly CompletionFilter MethodFilter;
-        public static readonly CompletionFilter ExtensionMethodFilter;
-        public static readonly CompletionFilter LocalAndParameterFilter;
-        public static readonly CompletionFilter KeywordFilter;
-        public static readonly CompletionFilter SnippetFilter;
-        public static readonly CompletionFilter TargetTypedFilter;
-
-        public static readonly CompletionExpander Expander;
 
         private static CompletionFilter CreateCompletionFilter(
             string displayText, string[] tags, char accessKey)
@@ -185,10 +184,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return builder.ToImmutableAndFree();
         }
 
-        private struct FilterWithMask
+        private readonly struct FilterWithMask
         {
-            public CompletionFilter Filter;
-            public int Mask;
+            public readonly CompletionFilter Filter;
+            public readonly int Mask;
 
             public FilterWithMask(CompletionFilter filter, int mask)
             {
