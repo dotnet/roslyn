@@ -35,11 +35,6 @@ indent_size = 2
 end_of_line = lf
 indent_size = 2
 
-[Syntax.xml.Main.Generated.cs]
-# RS0027 does not work for types in a nullable context
-# Symbol '<name>' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
-dotnet_diagnostic.RS0027.severity = none
-
 # Dotnet code style settings:
 [*.{cs,vb}]
 # Sort using and Import directives with System.* appearing first
