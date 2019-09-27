@@ -3754,7 +3754,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.FilterSet.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
 
@@ -3787,7 +3787,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.FilterSet.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -3821,7 +3821,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.FilterSet.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -3855,7 +3855,7 @@ class C
                     newFilters.Add(f.WithSelected(False))
                 Next
 
-                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
+                newFilters.Add(New Data.CompletionFilterWithState(CompletionSource.FilterSet.GetOrCreateFilter(CompletionItemFilter.InterfaceFilter), isAvailable:=True, isSelected:=True))
 
                 state.RaiseFiltersChanged(newFilters.ToImmutableAndFree())
                 Await state.WaitForUIRenderedAsync()
@@ -4998,7 +4998,7 @@ namespace NS2
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' select expander
@@ -5014,7 +5014,7 @@ namespace NS2
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' select expander again
@@ -5064,7 +5064,7 @@ namespace NS2
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' select expander
@@ -5080,7 +5080,7 @@ namespace NS2
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
             End Using
         End Function
@@ -5116,7 +5116,7 @@ namespace NS2
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' select expander
@@ -5159,7 +5159,7 @@ namespace NS2
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' set timeout to 0 (always timeout)
@@ -5795,7 +5795,7 @@ namespace NS2
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ExpandedItemShouldBePreferred_IfIsOnlyCompleteMatch() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
-                  <Document><![CDATA[
+                <Document><![CDATA[
 namespace NS1
 {
     class C

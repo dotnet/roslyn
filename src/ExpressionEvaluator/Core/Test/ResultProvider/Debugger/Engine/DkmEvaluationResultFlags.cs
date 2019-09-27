@@ -28,5 +28,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         Visualized = 8192,
         ExpandableError = 16384,
         ExceptionThrown = 32768,
+        CanFavorite = 0x1000000,
+        IsFavorite = 0x2000000,
+        HasFavorites = 0x4000000,
     }
 }

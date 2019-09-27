@@ -107,6 +107,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
             EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
                 Single(Function(e As VSCommanding.ICommandHandler) e.GetType().Name = PredefinedCompletionNames.CompletionCommandHandler)
+
+            ' The current default timeout defined in the Editor may not work on slow virtual test machines.	
+            ' Need to use a safe timeout there to follow real code paths.	
+            MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionThresholdOptionId, editorTimeoutMs)
+
         End Sub
 
         Private Overloads Shared Function GetExportProvider(excludedTypes As List(Of Type),
@@ -396,6 +401,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Function
 
+        Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            If Not isAvailable Then
+                Assert.False(isSelected)
+                Assert.Null(expander)
+            Else
+                Assert.NotNull(expander)
+                Assert.Equal(expander.IsSelected, isSelected)
+            End If
+        End Sub
+
+        Public Sub SetCompletionItemExpanderState(isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            Assert.NotNull(expander)
+            presenter.SetExpander(isSelected)
+        End Sub
+
         Public Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
@@ -445,25 +469,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim computedItems = session.GetComputedItems(CancellationToken.None)
             Return computedItems.SuggestionItem IsNot Nothing
         End Function
-
-        Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
-            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
-            Dim expander = presenter.GetExpander()
-            If Not isAvailable Then
-                Assert.False(isSelected)
-                Assert.Null(expander)
-            Else
-                Assert.NotNull(expander)
-                Assert.Equal(expander.IsSelected, isSelected)
-            End If
-        End Sub
-
-        Public Sub SetCompletionItemExpanderState(isSelected As Boolean)
-            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
-            Dim expander = presenter.GetExpander()
-            Assert.NotNull(expander)
-            presenter.SetExpander(isSelected)
-        End Sub
 
         Public Function IsSoftSelected() As Boolean
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)

@@ -515,17 +515,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return current == questionPosition;
         }
 
-        // For test purpose only
-        internal static AsyncCompletionData.CompletionFilter GetOrCreateFilter(CompletionItemFilter filter)
-            => FilterSet.GetFilter(filter);
-
         /// <summary>
         /// Provides an efficient way to compute a set of completion filters associated with a collection of completion items.
         /// Presence of expander and filter in the set have different meanings. Set contains a filter means the filter is
         /// available but unselected, whereas it means available and selected for an expander. Note that even though VS supports 
         /// having multiple expanders, we only support one.
         /// </summary>
-        private class FilterSet
+        internal class FilterSet
         {
             // Cache all the VS completion filters which essentially make them singletons.
             // Because all items that should be filtered using the same filter button must 
@@ -598,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     var filter = Filters[i];
                     if (filter.Matches(item))
                     {
-                        listBuilder.Add(GetFilter(filter));
+                        listBuilder.Add(GetOrCreateFilter(filter));
 
                         var filterMask = s_filterMasks[i];
                         vectorForSingleItem[filterMask] = _vector[filterMask] = true;
@@ -631,7 +627,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     if (_vector[s_filterMasks[i]])
                     {
-                        var vsFilter = GetFilter(Filters[i]);
+                        var vsFilter = GetOrCreateFilter(Filters[i]);
                         listBuilder.Add(new AsyncCompletionData.CompletionFilterWithState(vsFilter, isAvailable: true, isSelected: false));
                     }
                 }
@@ -639,19 +635,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return listBuilder.ToImmutableAndFree();
             }
 
-            public static AsyncCompletionData.CompletionFilter GetFilter(CompletionItemFilter roslynFilter)
+            internal static AsyncCompletionData.CompletionFilter GetOrCreateFilter(CompletionItemFilter filter)
             {
-                if (!s_filterCache.TryGetValue(roslynFilter.DisplayText, out var vsFilter))
+                if (!s_filterCache.TryGetValue(filter.DisplayText, out var itemFilter))
                 {
-                    var imageId = roslynFilter.Tags.GetFirstGlyph().GetImageId();
-                    vsFilter = new AsyncCompletionData.CompletionFilter(
-                        roslynFilter.DisplayText,
-                        roslynFilter.AccessKey.ToString(),
+                    var imageId = filter.Tags.GetFirstGlyph().GetImageId();
+                    itemFilter = new AsyncCompletionData.CompletionFilter(
+                        filter.DisplayText,
+                        filter.AccessKey.ToString(),
                         new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
-                    s_filterCache[roslynFilter.DisplayText] = vsFilter;
+                    s_filterCache[filter.DisplayText] = itemFilter;
                 }
 
-                return vsFilter;
+                return itemFilter;
             }
         }
     }

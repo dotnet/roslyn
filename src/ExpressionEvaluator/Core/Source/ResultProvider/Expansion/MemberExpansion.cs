@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ExpansionFlags flags,
             Predicate<MemberInfo> predicate,
             ResultProvider resultProvider,
-            bool isProxyType)
+            bool isProxyType,
+            bool supportsFavorites)
         {
             // For members of type DynamicProperty (part of Dynamic View expansion), we want
             // to expand the underlying value (not the members of the DynamicProperty type).
@@ -70,11 +72,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var includeInherited = (flags & ExpansionFlags.IncludeBaseMembers) == ExpansionFlags.IncludeBaseMembers;
             var hideNonPublic = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.HideNonPublicMembers) == DkmEvaluationFlags.HideNonPublicMembers;
             var includeCompilerGenerated = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) == DkmEvaluationFlags.ShowValueRaw;
-            runtimeType.AppendTypeMembers(allMembers, predicate, declaredTypeAndInfo.Type, appDomain, includeInherited, hideNonPublic, isProxyType, includeCompilerGenerated);
+            var favoritesInfo = supportsFavorites ? type.GetFavorites() : null;
+            runtimeType.AppendTypeMembers(allMembers, predicate, declaredTypeAndInfo.Type, appDomain, includeInherited, hideNonPublic, isProxyType, includeCompilerGenerated, supportsFavorites, favoritesInfo);
+
+            var favoritesMembersByName = new Dictionary<string, MemberAndDeclarationInfo>();
 
             foreach (var member in allMembers)
             {
-                if (member.IsStatic)
+                if (member.IsFavorite)
+                {
+                    favoritesMembersByName.Add(member.Name, member);
+                }
+                else if (member.IsStatic)
                 {
                     staticMembers.Add(member);
                 }
@@ -85,6 +94,41 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             allMembers.Free();
+
+            // Favorites members.
+            Expansion favoritesExpansion = null;
+            if (favoritesMembersByName.Count > 0)
+            {
+                var favoritesMembers = ArrayBuilder<MemberAndDeclarationInfo>.GetInstance();
+
+                foreach (string name in favoritesInfo.Favorites)
+                {
+                    if (favoritesMembersByName.TryGetValue(name, out var memberAndDeclarationInfo))
+                    {
+                        favoritesMembers.Add(memberAndDeclarationInfo);
+                    }
+                }
+
+                if (favoritesMembers.Count > 0)
+                {
+                    favoritesExpansion = new MemberExpansion(favoritesMembers.ToArrayAndFree(), customTypeInfoMap, containsFavorites: true);
+                }
+            }
+
+            if (favoritesExpansion != null)
+            {
+                expansions.Add(favoritesExpansion);
+
+                // Check if we are only expanding favorites.
+                if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.FilterToFavorites) == DkmEvaluationFlags.FilterToFavorites)
+                {
+                    instanceMembers.Free();
+                    staticMembers.Free();
+                    expansions.Free();
+
+                    return favoritesExpansion;
+                }
+            }
 
             // Public and non-public instance members.
             Expansion publicInstanceExpansion;
@@ -223,8 +267,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private readonly MemberAndDeclarationInfo[] _members;
         private readonly CustomTypeInfoTypeArgumentMap _customTypeInfoMap;
+        private readonly bool _containsFavorites;
 
-        private MemberExpansion(MemberAndDeclarationInfo[] members, CustomTypeInfoTypeArgumentMap customTypeInfoMap)
+        private MemberExpansion(MemberAndDeclarationInfo[] members, CustomTypeInfoTypeArgumentMap customTypeInfoMap, bool containsFavorites = false)
         {
             Debug.Assert(members != null);
             Debug.Assert(members.Length > 0);
@@ -232,7 +277,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             _members = members;
             _customTypeInfoMap = customTypeInfoMap;
+            _containsFavorites = containsFavorites;
         }
+
+        internal override bool ContainsFavorites => _containsFavorites;
 
         internal override void GetRows(
             ResultProvider resultProvider,
@@ -274,7 +322,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 memberValue,
                 parent,
                 customTypeInfoMap,
-                ExpansionFlags.All);
+                ExpansionFlags.All,
+                supportsFavorites: true);
         }
 
         /// <summary>
@@ -414,7 +463,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrValue memberValue,
             EvalResultDataItem parent,
             CustomTypeInfoTypeArgumentMap customTypeInfoMap,
-            ExpansionFlags flags)
+            ExpansionFlags flags,
+            bool supportsFavorites)
         {
             var fullNameProvider = resultProvider.FullNameProvider;
             var declaredType = member.Type;
@@ -457,7 +507,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 formatSpecifiers: Formatter.NoFormatSpecifiers,
                 category: DkmEvaluationResultCategory.Other,
                 flags: memberValue.EvalFlags,
-                evalFlags: DkmEvaluationFlags.None);
+                evalFlags: DkmEvaluationFlags.None,
+                canFavorite: member.CanFavorite,
+                isFavorite: member.IsFavorite,
+                supportsFavorites: supportsFavorites);
         }
 
         private static string MakeFullName(

@@ -634,8 +634,8 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
-                             Visual C#-Compileroptionen
+        <target state="needs-review-translation">
+                             Visual C#-Compileroptionen 
 
                        – AUSGABEDATEIEN –
 -out:&lt;Datei&gt;                   Gibt den Namen der Ausgabedatei an (Standardeinstellung: Basisname der
