@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
     /// <remarks>This metric is based off of the Halstead metric.</remarks>
     internal sealed class ComputationalComplexityMetrics
     {
-        internal static readonly ComputationalComplexityMetrics Default = new ComputationalComplexityMetrics(0, 0, 0, 0, ImmutableHashSet<OperationKind>.Empty,
+        internal static readonly ComputationalComplexityMetrics Default = new ComputationalComplexityMetrics(0, 0, 0, 0, 0, ImmutableHashSet<OperationKind>.Empty,
             ImmutableHashSet<BinaryOperatorKind>.Empty, ImmutableHashSet<UnaryOperatorKind>.Empty, ImmutableHashSet<CaseKind>.Empty, ImmutableHashSet<ISymbol>.Empty, ImmutableHashSet<object>.Empty);
         private static readonly object s_nullConstantPlaceholder = new object();
 
@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         private readonly ImmutableHashSet<object> _distinctReferencedConstants;
 
         private ComputationalComplexityMetrics(
-            long effectiveLinesOfCode,
+            long executableLinesOfCode,
+            long effectiveLinesOfMaintainableCode,
             long operatorUsageCounts,
             long symbolUsageCounts,
             long constantUsageCounts,
@@ -48,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ImmutableHashSet<ISymbol> distinctReferencedSymbols,
             ImmutableHashSet<object> distinctReferencedConstants)
         {
-            EffectiveLinesOfCode = effectiveLinesOfCode;
+            ExecutableLines = executableLinesOfCode;
+            EffectiveLinesOfCode = effectiveLinesOfMaintainableCode;
             _operatorUsageCounts = operatorUsageCounts;
             _symbolUsageCounts = symbolUsageCounts;
             _constantUsageCounts = constantUsageCounts;
@@ -61,10 +63,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         }
 
         private static ComputationalComplexityMetrics Create(
-            long effectiveLinesOfCode,
+            long executableLinesOfCode,
             long operatorUsageCounts,
             long symbolUsageCounts,
             long constantUsageCounts,
+            bool hasSymbolInitializer,
             ImmutableHashSet<OperationKind> distinctOperatorKinds,
             ImmutableHashSet<BinaryOperatorKind> distinctBinaryOperatorKinds,
             ImmutableHashSet<UnaryOperatorKind> distinctUnaryOperatorKinds,
@@ -72,12 +75,15 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ImmutableHashSet<ISymbol> distinctReferencedSymbols,
             ImmutableHashSet<object> distinctReferencedConstants)
         {
-            if (effectiveLinesOfCode == 0 && operatorUsageCounts == 0 && symbolUsageCounts == 0 && constantUsageCounts == 0)
+            if (executableLinesOfCode == 0 && operatorUsageCounts == 0 && symbolUsageCounts == 0 && constantUsageCounts == 0 && !hasSymbolInitializer)
             {
                 return Default;
             }
 
-            return new ComputationalComplexityMetrics(effectiveLinesOfCode, operatorUsageCounts, symbolUsageCounts, constantUsageCounts,
+            // Use incremented count for maintainable code lines for symbol initializers. 
+            var effectiveLinesOfMaintainableCode = hasSymbolInitializer ? executableLinesOfCode + 1 : executableLinesOfCode;
+
+            return new ComputationalComplexityMetrics(executableLinesOfCode, effectiveLinesOfMaintainableCode, operatorUsageCounts, symbolUsageCounts, constantUsageCounts,
                 distinctOperatorKinds, distinctBinaryOperatorKinds, distinctUnaryOperatorKinds, distinctCaseKinds, distinctReferencedSymbols, distinctReferencedConstants);
         }
 
@@ -85,7 +91,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         {
             Debug.Assert(operationBlock != null);
 
-            long effectiveLinesOfCode = 0;
+            bool hasSymbolInitializer = false;
+            long executableLinesOfCode = 0;
             long operatorUsageCounts = 0;
             long symbolUsageCounts = 0;
             long constantUsageCounts = 0;
@@ -95,9 +102,17 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ImmutableHashSet<CaseKind>.Builder distinctCaseKindsBuilder = null;
             ImmutableHashSet<ISymbol>.Builder distinctReferencedSymbolsBuilder = null;
             ImmutableHashSet<object>.Builder distinctReferencedConstantsBuilder = null;
+
+            // Explicit user applied attribute.
+            if (operationBlock.Kind == OperationKind.None &&
+                hasAnyExplicitExpression(operationBlock))
+            {
+                executableLinesOfCode += 1;
+            }
+
             foreach (var operation in operationBlock.Descendants())
             {
-                effectiveLinesOfCode += getEffectiveLinesOfCode(operation);
+                executableLinesOfCode += getExecutableLinesOfCode(operation, ref hasSymbolInitializer);
 
                 if (operation.IsImplicit)
                 {
@@ -265,10 +280,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             return Create(
-                effectiveLinesOfCode,
+                executableLinesOfCode,
                 operatorUsageCounts,
                 symbolUsageCounts,
                 constantUsageCounts,
+                hasSymbolInitializer,
                 distinctOperatorKindsBuilder != null ? distinctOperatorKindsBuilder.ToImmutable() : ImmutableHashSet<OperationKind>.Empty,
                 distinctBinaryOperatorKindsBuilder != null ? distinctBinaryOperatorKindsBuilder.ToImmutable() : ImmutableHashSet<BinaryOperatorKind>.Empty,
                 distinctUnaryOperatorKindsBuilder != null ? distinctUnaryOperatorKindsBuilder.ToImmutable() : ImmutableHashSet<UnaryOperatorKind>.Empty,
@@ -276,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 distinctReferencedSymbolsBuilder != null ? distinctReferencedSymbolsBuilder.ToImmutable() : ImmutableHashSet<ISymbol>.Empty,
                 distinctReferencedConstantsBuilder != null ? distinctReferencedConstantsBuilder.ToImmutable() : ImmutableHashSet<object>.Empty);
 
-            static int getEffectiveLinesOfCode(IOperation operation)
+            static int getExecutableLinesOfCode(IOperation operation, ref bool hasSymbolInitializer)
             {
                 if (operation.Parent != null)
                 {
@@ -288,8 +304,17 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         case OperationKind.FieldInitializer:
                         case OperationKind.PropertyInitializer:
                         case OperationKind.ParameterInitializer:
-                            // Count declaration and initialization.
-                            return hasAnyExplicitExpression(operation) ? 2 : 0;
+                            if (hasAnyExplicitExpression(operation))
+                            {
+                                hasSymbolInitializer = true;
+                                return 1;
+                            }
+
+                            break;
+
+                        case OperationKind.Conditional:
+                            // Nested conditional
+                            return operation.Kind == OperationKind.Conditional && hasAnyExplicitExpression(operation) ? 1 : 0;
                     }
                 }
 
@@ -298,8 +323,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             static bool hasAnyExplicitExpression(IOperation operation)
             {
-                // Check if all descendants are either implicit or are explicit with no constant value or type, indicating it is not user written code.
-                return !operation.DescendantsAndSelf().All(o => o.IsImplicit || (!o.ConstantValue.HasValue && o.Type == null));
+                // Check if all descendants are either implicit or are explicit non-branch operations with no constant value or type, indicating it is not user written code.
+                return !operation.DescendantsAndSelf().All(o => o.IsImplicit || (!o.ConstantValue.HasValue && o.Type == null && o.Kind != OperationKind.Branch));
             }
 
             void countOperator(IOperation operation)
@@ -343,7 +368,8 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             return new ComputationalComplexityMetrics(
-                effectiveLinesOfCode: EffectiveLinesOfCode + other.EffectiveLinesOfCode,
+                executableLinesOfCode: ExecutableLines + other.ExecutableLines,
+                effectiveLinesOfMaintainableCode: EffectiveLinesOfCode + other.EffectiveLinesOfCode,
                 operatorUsageCounts: _operatorUsageCounts + other._operatorUsageCounts,
                 symbolUsageCounts: _symbolUsageCounts + other._symbolUsageCounts,
                 constantUsageCounts: _constantUsageCounts + other._constantUsageCounts,
@@ -422,6 +448,14 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             get { return (Length * Math.Max(0.0, Math.Log(Vocabulary, 2))); }
         }
 
+        /// <summary>
+        /// Count of executable lines of code, i.e. basically IOperations parented by IBlockOperation.
+        /// </summary>
+        public long ExecutableLines { get; }
+
+        /// <summary>
+        /// Count of effective lines of code for computation of maintainability index.
+        /// </summary>
         public long EffectiveLinesOfCode { get; }
     }
 }

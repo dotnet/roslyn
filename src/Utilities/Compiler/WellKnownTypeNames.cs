@@ -138,6 +138,17 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsIList = "System.Collections.IList";
         public const string SystemCollectionsGenericIList1 = "System.Collections.Generic.IList`1";
         public const string SystemCollectionsSpecializedNameValueCollection = "System.Collections.Specialized.NameValueCollection";
+        public const string SystemCollectionsImmutableImmutableArray = "System.Collections.Immutable.ImmutableArray`1";
+        public const string SystemCollectionsImmutableImmutableList = "System.Collections.Immutable.ImmutableList`1";
+        public const string SystemCollectionsImmutableImmutableHashSet = "System.Collections.Immutable.ImmutableHashSet`1";
+        public const string SystemCollectionsImmutableImmutableSortedSet = "System.Collections.Immutable.ImmutableSortedSet`1";
+        public const string SystemCollectionsImmutableImmutableDictionary = "System.Collections.Immutable.ImmutableDictionary`2";
+        public const string SystemCollectionsImmutableImmutableSortedDictionary = "System.Collections.Immutable.ImmutableSortedDictionary`2";
+        public const string SystemCollectionsImmutableIImmutableDictionary = "System.Collections.Immutable.IImmutableDictionary`2";
+        public const string SystemCollectionsImmutableIImmutableList = "System.Collections.Immutable.IImmutableList`1";
+        public const string SystemCollectionsImmutableIImmutableQueue = "System.Collections.Immutable.IImmutableQueue`1";
+        public const string SystemCollectionsImmutableIImmutableSet = "System.Collections.Immutable.IImmutableSet`1";
+        public const string SystemCollectionsImmutableIImmutableStack = "System.Collections.Immutable.IImmutableStack`1";
         public const string SystemRuntimeSerializationFormattersBinaryBinaryFormatter = "System.Runtime.Serialization.Formatters.Binary.BinaryFormatter";
         public const string SystemWebUILosFormatter = "System.Web.UI.LosFormatter";
         public const string SystemReflectionAssemblyFullName = "System.Reflection.Assembly";
