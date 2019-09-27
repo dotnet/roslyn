@@ -88,10 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 method.TryGetThisParameter(out var thisParameter);
                 thisSlot = VariableSlot(thisParameter);
-                if (thisSlot == -1)
-                {
-                    return;
-                }
+                Debug.Assert(thisSlot > 0);
             }
 
             var containingType = method.ContainingType;
@@ -113,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
-            int slot = VariableSlot(symbol, thisSlot);
+            int slot = VariableSlot(symbol, symbol.IsStatic ? 0 : thisSlot);
             return slot > 0 && this.State.IsAssigned(slot);
         }
 
