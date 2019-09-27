@@ -75,7 +75,7 @@ namespace Analyzer.Utilities
         public const string UnsafeDllImportSearchPathBits = "unsafe_DllImportSearchPath_bits";
 
         /// <summary>
-        /// Boolean option to configure if exclude aspnet core mvc ControllerBase when considering CSRF.
+        /// Boolean option to configure whether to exclude aspnet core mvc ControllerBase when considering CSRF.
         /// </summary>
         public const string ExcludeAspnetCoreMvcControllerBase = "exclude_aspnet_core_mvc_controller_base";
     }
