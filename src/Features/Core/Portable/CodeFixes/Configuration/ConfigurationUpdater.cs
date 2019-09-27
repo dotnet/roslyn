@@ -340,6 +340,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             Dictionary<string, TextLine> headers)
         {
             string mostRecentHeader = null;
+            var lastValidMatchingRule = new TextLine();
+            var test = lastValidMatchingRule.ToString();
 
             foreach (var curLine in result.Lines)
             {
@@ -371,6 +373,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     else if (mostRecentHeader.Length != 0 &&
                         !mostRecentHeader.Equals("*"))
                     {
+                        // TO DO: Deal with multiple headers case
+
                         // Finds the relative path between editorconfig directory and diagnostic filepath
                         var editorConfigDirectory = PathUtilities.GetDirectoryName(FindOrGenerateEditorConfig(_project.Solution).FilePath).ToLowerInvariant();
                         var diagnosticFilePath = _diagnostic.Location.SourceTree.FilePath.ToLowerInvariant();
