@@ -3077,6 +3077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool errors = false;
                     if (expressionSyntax == null || !IsValidExpressionBody(expressionSyntax, expression))
                     {
+                        expression = BindToTypeForErrorRecovery(expression);
                         Error(diagnostics, ErrorCode.ERR_IllegalStatement, syntax);
                         errors = true;
                     }
@@ -3090,11 +3091,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod())
                 {
                     Error(diagnostics, ErrorCode.ERR_ReturnInIterator, syntax);
+                    expression = BindToTypeForErrorRecovery(expression);
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
                 }
                 else
                 {
-                    expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
+                    expression = returnType.IsErrorType()
+                        ? BindToTypeForErrorRecovery(expression)
+                        : CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
                 }
             }

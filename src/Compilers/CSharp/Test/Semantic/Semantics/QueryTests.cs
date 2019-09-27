@@ -1868,14 +1868,11 @@ class Program
                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'null')
                       Children(1):
                           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: 'true')
-                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'true')
-                  IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'true')
+              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'true')
+                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'true')
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'true')
                     ReturnedValue: 
-                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: TKey, IsInvalid, IsImplicit) (Syntax: 'true')
-                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsInvalid) (Syntax: 'true')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
               IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'true')
                 IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'true')
                   IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'true')
@@ -1896,10 +1893,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "null").WithLocation(8, 66),
                 // file.cs(8,66): error CS1003: Syntax error, 'in' expected
                 //         var query = /*<bind>*/from int i in new int[] { 1 } join null on true equals true select i/*</bind>*/; //CS1031
-                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("in", "null").WithLocation(8, 66),
-                // file.cs(8,74): error CS0029: Cannot implicitly convert type 'bool' to 'TKey'
-                //         var query = /*<bind>*/from int i in new int[] { 1 } join null on true equals true select i/*</bind>*/; //CS1031
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true").WithArguments("bool", "TKey").WithLocation(8, 74)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments("in", "null").WithLocation(8, 66)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -2770,24 +2764,15 @@ class C
                 // file.cs(9,18): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "string.Empty.Cast<GC>").WithArguments("System.GC").WithLocation(9, 18),
-                // file.cs(9,54): error CS0029: Cannot implicitly convert type 'System.GC' to 'TResult'
-                //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.GC", "TResult").WithLocation(9, 54),
-                // file.cs(9,54): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-                //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "x").WithArguments("lambda expression").WithLocation(9, 54),
                 // file.cs(10,28): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28),
-                // file.cs(10,61): error CS0029: Cannot implicitly convert type 'System.GC' to 'TResult'
-                //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.GC", "TResult").WithLocation(10, 61)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, @"
     ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'from GC x i ... ty select x')
       Expression: 
-        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'select x')
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'select x')
           Children(2):
               IInvocationOperation (System.Collections.Generic.IEnumerable<System.GC> System.Linq.Enumerable.Cast<System.GC>(this System.Collections.IEnumerable source)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable<System.GC>, IsInvalid, IsImplicit) (Syntax: 'from GC x i ... tring.Empty')
                 Instance Receiver: 
@@ -2802,30 +2787,18 @@ class C
                               null
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
-                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
-                  IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
+              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
+                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
                     ReturnedValue: 
-                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: TResult, IsInvalid, IsImplicit) (Syntax: 'x')
-                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand: 
-                          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.GC, IsInvalid) (Syntax: 'x')
+                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.GC) (Syntax: 'x')
 ", new DiagnosticDescription[] {
                 // file.cs(9,18): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "string.Empty.Cast<GC>").WithArguments("System.GC").WithLocation(9, 18),
-                // file.cs(9,54): error CS0029: Cannot implicitly convert type 'System.GC' to 'TResult'
-                //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.GC", "TResult").WithLocation(9, 54),
-                // file.cs(9,54): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-                //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "x").WithArguments("lambda expression").WithLocation(9, 54),
                 // file.cs(10,28): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28),
-                // file.cs(10,61): error CS0029: Cannot implicitly convert type 'System.GC' to 'TResult'
-                //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.GC", "TResult").WithLocation(10, 61)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
             }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, @"
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'from GC x i ... ty select x')
