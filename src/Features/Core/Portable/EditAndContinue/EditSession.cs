@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// For each base active statement the exception regions around that statement. 
         /// </summary>
-        internal readonly AsyncLazy<ImmutableArray<ActiveStatementExceptionRegions>> BaseActiveExceptionRegions;
+        internal ImmutableArray<ActiveStatementExceptionRegions> _lazyBaseActiveExceptionRegions;
 
         /// <summary>
         /// Results of changed documents analysis. 
@@ -71,15 +71,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal EditSession(DebuggingSession debuggingSession, EditSessionTelemetry telemetry)
         {
-            Debug.Assert(debuggingSession != null);
-            Debug.Assert(telemetry != null);
-
             DebuggingSession = debuggingSession;
             Telemetry = telemetry;
             _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
             BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true);
-            BaseActiveExceptionRegions = new AsyncLazy<ImmutableArray<ActiveStatementExceptionRegions>>(GetBaseActiveExceptionRegionsAsync, cacheResult: true);
         }
 
         internal CancellationToken CancellationToken => _cancellationSource.Token;
@@ -128,15 +124,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return result;
         }
 
-        private Project GetLastCommittedProject(ProjectId id)
-            => DebuggingSession.LastCommittedSolution.GetProject(id);
-
         private async Task<ActiveStatementsMap> GetBaseActiveStatementsAsync(CancellationToken cancellationToken)
         {
             try
             {
                 // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
-                return CreateActiveStatementsMap(DebuggingSession.LastCommittedSolution, await DebuggingSession.ActiveStatementProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
+                return CreateActiveStatementsMap(await DebuggingSession.ActiveStatementProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -146,13 +139,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private ActiveStatementsMap CreateActiveStatementsMap(Solution solution, ImmutableArray<ActiveStatementDebugInfo> debugInfos)
+        private ActiveStatementsMap CreateActiveStatementsMap(ImmutableArray<ActiveStatementDebugInfo> debugInfos)
         {
             var byDocument = PooledDictionary<DocumentId, ArrayBuilder<ActiveStatement>>.GetInstance();
             var byInstruction = PooledDictionary<ActiveInstructionId, ActiveStatement>.GetInstance();
 
             bool supportsEditAndContinue(DocumentId documentId)
-                => EditAndContinueWorkspaceService.SupportsEditAndContinue(solution.GetProject(documentId.ProjectId));
+                => EditAndContinueWorkspaceService.SupportsEditAndContinue(DebuggingSession.LastCommittedSolution.GetProject(documentId.ProjectId));
 
             foreach (var debugInfo in debugInfos)
             {
@@ -163,7 +156,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                var documentIds = solution.GetDocumentIdsWithFilePath(documentName);
+                var documentIds = DebuggingSession.LastCommittedSolution.GetDocumentIdsWithFilePath(documentName);
                 var firstDocumentId = documentIds.FirstOrDefault(supportsEditAndContinue);
                 if (firstDocumentId == null)
                 {
@@ -244,30 +237,62 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return activeStatementInfo.LinePositionSpan;
         }
 
-        private async Task<ImmutableArray<ActiveStatementExceptionRegions>> GetBaseActiveExceptionRegionsAsync(CancellationToken cancellationToken)
+        /// <summary>
+        /// Calculates exception regions for all active statements.
+        /// If an active statement is in a document that's out-of-sync returns default(<see cref="ActiveStatementExceptionRegions"/>) for that statement.
+        /// </summary>
+        internal async Task<ImmutableArray<ActiveStatementExceptionRegions>> GetBaseActiveExceptionRegionsAsync(CancellationToken cancellationToken)
         {
             try
             {
+                if (!_lazyBaseActiveExceptionRegions.IsDefault)
+                {
+                    return _lazyBaseActiveExceptionRegions;
+                }
+
                 var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var solution = DebuggingSession.LastCommittedSolution;
                 var instructionMap = baseActiveStatements.InstructionMap;
                 using var builderDisposer = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count, out var builder);
                 builder.Count = instructionMap.Count;
 
+                bool hasOutOfSyncDocuments = false;
+
                 foreach (var activeStatement in instructionMap.Values)
                 {
-                    var document = solution.GetDocument(activeStatement.PrimaryDocumentId);
+                    bool isCovered;
+                    ImmutableArray<LinePositionSpan> exceptionRegions;
 
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    // Can't calculate exception regions for active statements in out-of-sync documents.
+                    var document = await DebuggingSession.LastCommittedSolution.GetDocumentAsync(activeStatement.PrimaryDocumentId, cancellationToken).ConfigureAwait(false);
+                    if (document != null)
+                    {
+                        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                    var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
-                    var exceptionRegions = analyzer.GetExceptionRegions(sourceText, syntaxRoot, activeStatement.Span, activeStatement.IsNonLeaf, out var isCovered);
+                        var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
+                        exceptionRegions = analyzer.GetExceptionRegions(sourceText, syntaxRoot, activeStatement.Span, activeStatement.IsNonLeaf, out isCovered);
+                    }
+                    else
+                    {
+                        // Document is either out-of-sync or missing from the baseline.
+                        // If it's missing from the baseline it can't have active statements.
+                        hasOutOfSyncDocuments = true;
+                        isCovered = false;
+                        exceptionRegions = default;
+                    }
 
                     builder[activeStatement.Ordinal] = new ActiveStatementExceptionRegions(exceptionRegions, isCovered);
                 }
 
-                return builder.ToImmutable();
+                var result = builder.ToImmutable();
+
+                // Only cache results if no active statements are in out-of-sync documents.
+                if (!hasOutOfSyncDocuments)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyBaseActiveExceptionRegions, result);
+                }
+
+                return result;
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
@@ -275,37 +300,76 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private ImmutableArray<(DocumentId DocumentId, AsyncLazy<DocumentAnalysisResults> Results)> GetChangedDocumentsAnalyses(Project baseProject, Project project)
+        private async Task<(ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)>, ImmutableArray<Diagnostic> Diagnostics)> GetChangedDocumentsAnalysesAsync(
+            Project baseProject, Project project, CancellationToken cancellationToken)
         {
+            var changedDocuments = ArrayBuilder<(Document Old, Document New)>.GetInstance();
+            var outOfSyncDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
+
             var changes = project.GetChanges(baseProject);
-
-            var changedDocuments =
-                changes.GetChangedDocuments().
-                Concat(changes.GetAddedDocuments()).
-                Select(id => project.GetDocument(id)).
-                Where(d => !EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(d)).
-                ToArray();
-
-            if (changedDocuments.Length == 0)
+            foreach (var documentId in changes.GetChangedDocuments())
             {
-                return ImmutableArray<(DocumentId, AsyncLazy<DocumentAnalysisResults>)>.Empty;
+                var document = project.GetDocument(documentId);
+                if (EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(document))
+                {
+                    continue;
+                }
+
+                if (!DebuggingSession.LastCommittedSolution.ContainsDocument(documentId))
+                {
+                    changedDocuments.Add((Old: null, New: document));
+                    continue;
+                }
+
+                var oldDocument = await DebuggingSession.LastCommittedSolution.GetDocumentAsync(documentId, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
+                if (oldDocument == null)
+                {
+                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee);
+                    outOfSyncDiagnostics.Add(Diagnostic.Create(descriptor, Location.None, new[] { document.FilePath }));
+                    continue;
+                }
+
+                changedDocuments.Add((oldDocument, document));
             }
 
-            lock (_analysesGuard)
+            foreach (var documentId in changes.GetAddedDocuments())
             {
-                return changedDocuments.SelectAsArray(d => (d.Id, GetDocumentAnalysisNoLock(d)));
+                var document = project.GetDocument(documentId);
+                if (EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(document))
+                {
+                    continue;
+                }
+
+                changedDocuments.Add((null, document));
             }
+
+            var result = ImmutableArray<(Document, AsyncLazy<DocumentAnalysisResults>)>.Empty;
+            if (changedDocuments.Count != 0)
+            {
+                lock (_analysesGuard)
+                {
+                    result = changedDocuments.SelectAsArray(change => (change.New, GetDocumentAnalysisNoLock(change.Old, change.New)));
+                }
+            }
+
+            changedDocuments.Free();
+            return (result, outOfSyncDiagnostics.ToImmutableAndFree());
         }
 
-        public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document document)
+        public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document baseDocument, Document document)
         {
             lock (_analysesGuard)
             {
-                return GetDocumentAnalysisNoLock(document);
+                return GetDocumentAnalysisNoLock(baseDocument, document);
             }
         }
 
-        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Document document)
+        /// <summary>
+        /// Returns a document analysis or kicks off a new one if one is not available for the specified document snapshot.
+        /// </summary>
+        /// <param name="baseDocumentOpt">Base document or null if the document did not exist in the baseline.</param>
+        /// <param name="document">Document snapshot to analyze.</param>
+        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Document baseDocumentOpt, Document document)
         {
             if (_analyses.TryGetValue(document.Id, out var analysis) && analysis.Document == document)
             {
@@ -327,8 +391,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         var trackingService = DebuggingSession.Workspace.Services.GetService<IActiveStatementTrackingService>();
 
-                        var baseProject = GetLastCommittedProject(document.Project.Id);
-                        return await analyzer.AnalyzeDocumentAsync(baseProject, documentBaseActiveStatements, document, trackingService, cancellationToken).ConfigureAwait(false);
+                        return await analyzer.AnalyzeDocumentAsync(baseDocumentOpt, documentBaseActiveStatements, document, trackingService, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
@@ -337,6 +400,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 },
                 cacheResult: true);
 
+            // TODO: this will replace potentially running analysis with another one.
+            // Consider cancelling the replaced one.
             _analyses[document.Id] = (document, lazyResults);
             return lazyResults;
         }
@@ -370,7 +435,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return SolutionUpdateStatus.None;
                 }
 
-                if (BaseSolution == solution)
+                if (DebuggingSession.LastCommittedSolution.HasNoChanges(solution))
                 {
                     return SolutionUpdateStatus.None;
                 }
@@ -387,7 +452,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var baseProject = GetLastCommittedProject(project.Id);
+                    var baseProject = DebuggingSession.LastCommittedSolution.GetProject(project.Id);
 
                     // When debugging session is started some projects might not have been loaded to the workspace yet. 
                     // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
@@ -402,7 +467,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var changedDocumentAnalyses = GetChangedDocumentsAnalyses(baseProject, project);
+                    var (changedDocumentAnalyses, diagnostics) = await GetChangedDocumentsAnalysesAsync(baseProject, project, cancellationToken).ConfigureAwait(false);
+                    if (diagnostics.Any())
+                    {
+                        EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: out-of-sync documents present (diagnostic: '{2}')",
+                            project.Id.DebugName, project.Id, diagnostics[0]);
+
+                        return SolutionUpdateStatus.Blocked;
+                    }
+
                     if (changedDocumentAnalyses.Length == 0)
                     {
                         continue;
@@ -456,7 +529,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private async Task<ProjectAnalysisSummary> GetProjectAnalysisSymmaryAsync(
-            ImmutableArray<(DocumentId DocumentId, AsyncLazy<DocumentAnalysisResults> Results)> documentAnalyses,
+            ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)> documentAnalyses,
             CancellationToken cancellationToken)
         {
             bool hasChanges = false;
@@ -502,7 +575,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return ProjectAnalysisSummary.ValidChanges;
         }
 
-        private static async Task<ProjectChanges> GetProjectChangesAsync(ImmutableArray<(DocumentId Document, AsyncLazy<DocumentAnalysisResults> Results)> changedDocumentAnalyses, CancellationToken cancellationToken)
+        private static async Task<ProjectChanges> GetProjectChangesAsync(ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)> changedDocumentAnalyses, CancellationToken cancellationToken)
         {
             try
             {
@@ -511,7 +584,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var activeStatementsInChangedDocuments = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)>.GetInstance();
                 var allAddedSymbols = ArrayBuilder<ISymbol>.GetInstance();
 
-                foreach (var (documentId, asyncResult) in changedDocumentAnalyses)
+                foreach (var (document, asyncResult) in changedDocumentAnalyses)
                 {
                     var result = await asyncResult.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
@@ -538,12 +611,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (result.LineEdits.Length > 0)
                     {
-                        allLineEdits.Add((documentId, result.LineEdits));
+                        allLineEdits.Add((document.Id, result.LineEdits));
                     }
 
                     if (result.ActiveStatements.Length > 0)
                     {
-                        activeStatementsInChangedDocuments.Add((documentId, result.ActiveStatements, result.ExceptionRegions));
+                        activeStatementsInChangedDocuments.Add((document.Id, result.ActiveStatements, result.ExceptionRegions));
                     }
                 }
 
@@ -573,6 +646,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var emitBaselines = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance();
             var readers = ArrayBuilder<IDisposable>.GetInstance();
             var diagnostics = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance();
+            var changedDocuments = ArrayBuilder<Document>.GetInstance();
 
             try
             {
@@ -585,7 +659,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var baseProject = GetLastCommittedProject(project.Id);
+                    var baseProject = DebuggingSession.LastCommittedSolution.GetProject(project.Id);
 
                     // TODO (https://github.com/dotnet/roslyn/issues/1204):
                     // When debugging session is started some projects might not have been loaded to the workspace yet. 
@@ -606,7 +680,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var changedDocumentAnalyses = GetChangedDocumentsAnalyses(baseProject, project);
+                    // Ensure that all changed documents are in-sync. Once a document is in-sync it can't get out-of-sync.
+                    // Therefore, results of further computations based on base snapshots of changed documents can't be invalidated by 
+                    // incoming events updating the content of out-of-sync documents.
+                    // 
+                    // If in past we concluded that a document is out-of-sync, attempt to check one more time before we block apply.
+                    // The source file content might have been updated since the last time we checked.
+                    //
+                    // TODO (investigate): https://github.com/dotnet/roslyn/issues/38866
+                    // It is possible that the result of Rude Edit semantic analysis of an unchanged document will change if there
+                    // another document is updated. If we encounter a significant case of this we should consider caching such a result per project,
+                    // rather then per document. Also, we might be observing an older semantics if the document that is causing the change is out-of-sync --
+                    // e.g. the binary was built with an overload C.M(object), but a generator updated class C to also contain C.M(string),
+                    // which change we have not observed yet. Then call-sites of C.M in a changed document observed by the analysis will be seen as C.M(object) 
+                    // instead of the true C.M(string).
+                    var (changedDocumentAnalyses, outOfSyncDiagnostics) = await GetChangedDocumentsAnalysesAsync(baseProject, project, cancellationToken).ConfigureAwait(false);
+                    if (outOfSyncDiagnostics.Any())
+                    {
+                        // The error hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
+                        // before the changes are attempted to be applied. If they are not the project changes can't be applied.
+                        diagnostics.Add((project.Id, outOfSyncDiagnostics));
+
+                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.RudeEdits, outOfSyncDiagnostics);
+                        isBlocked = true;
+                        continue;
+                    }
+
                     var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
 
                     if (projectSummary != ProjectAnalysisSummary.ValidChanges)
@@ -643,7 +742,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var projectChanges = await GetProjectChangesAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
                     var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                    var baseActiveExceptionRegions = await BaseActiveExceptionRegions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Exception regions of active statements in changed documents are calculated (non-default),
+                    // since we already checked that no changed document is out-of-sync above.
+                    var baseActiveExceptionRegions = await GetBaseActiveExceptionRegionsAsync(cancellationToken).ConfigureAwait(false);
+
                     var lineEdits = projectChanges.LineChanges.SelectAsArray((lineChange, p) => (p.GetDocument(lineChange.DocumentId).FilePath, lineChange.Changes), project);
 
                     // Dispatch to a background thread - the compiler reads symbols and ISymUnmanagedReader requires MTA thread.
@@ -655,6 +758,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     else
                     {
                         Emit();
+                    }
+
+                    if (!isBlocked)
+                    {
+                        changedDocuments.AddRange(changedDocumentAnalyses.Select(a => a.Document));
                     }
 
                     void Emit()
@@ -758,6 +866,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     readers.Free();
+                    changedDocuments.Free();
 
                     return SolutionUpdate.Blocked(diagnostics.ToImmutableAndFree());
                 }
@@ -767,6 +876,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     deltas.ToImmutableAndFree(),
                     readers.ToImmutableAndFree(),
                     emitBaselines.ToImmutableAndFree(),
+                    changedDocuments.ToImmutableAndFree(),
                     diagnostics.ToImmutableAndFree());
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
@@ -906,6 +1016,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     AddNonRemappableRegion(oldActiveStatement.Span, newActiveStatement.Span, isExceptionRegion: false);
+
+                    // The spans of the exception regions are known (non-default) for active statements in changed documents
+                    // as we ensured earlier that all changed documents are in-sync. The outer loop only enumerates active 
+                    // statements of changed documents, so the corresponding exception regions are initialized.
 
                     var j = 0;
                     foreach (var oldSpan in baseActiveExceptionRegions[oldActiveStatement.Ordinal].Spans)
