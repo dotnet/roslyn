@@ -12,7 +12,7 @@ using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompl
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal struct MatchResult
+    internal readonly struct MatchResult
     {
         public readonly RoslynCompletionItem RoslynCompletionItem;
         public readonly bool MatchedFilterText;
@@ -42,12 +42,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             HighlightedSpans = highlightedSpans;
         }
 
-        public static IComparer<MatchResult> Comparer => ExtendedFilterResultComparer.Instance;
+        public static IComparer<MatchResult> SortingComparer => FilterResultSortingComparer.Instance;
 
-        private class ExtendedFilterResultComparer : IComparer<MatchResult>
+        private class FilterResultSortingComparer : IComparer<MatchResult>
         {
-            public static ExtendedFilterResultComparer Instance { get; } = new ExtendedFilterResultComparer();
+            public static FilterResultSortingComparer Instance { get; } = new FilterResultSortingComparer();
 
+            // This comparison is used for sorting items in the completion list for the original sorting.
             public int Compare(MatchResult x, MatchResult y)
             {
                 var matchX = x.PatternMatch;
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
+        // This comparison is used in the deletion/backspace scenario for selecting best elements.
         public int CompareTo(MatchResult other, string filterText)
             => ComparerWithState.CompareTo(this, other, filterText, s_comparers);
 

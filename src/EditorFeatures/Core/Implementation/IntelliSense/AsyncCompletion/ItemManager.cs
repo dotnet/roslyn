@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // Note that we want to preserve the original alphabetical order for items with same pattern match score,
                 // but `ArrayBuilder.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
                 // to `MatchResult` to archieve this.
-                builder.Sort(MatchResult.Comparer);
+                builder.Sort(MatchResult.SortingComparer);
             }
 
             var initialListOfItemsToBeIncluded = builder.ToImmutableAndFree();
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// Given multiple possible chosen completion items, pick the one that has the
         /// best MRU index.
         /// </summary>
-        internal static RoslynCompletionItem GetBestCompletionItemBasedOnMRU(
+        private static RoslynCompletionItem GetBestCompletionItemBasedOnMRU(
             ImmutableArray<RoslynCompletionItem> chosenItems, ImmutableArray<string> recentItems)
         {
             // Try to find the chosen item has been most
@@ -537,13 +537,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return bestItem;
         }
 
-        internal static int GetRecentItemIndex(ImmutableArray<string> recentItems, RoslynCompletionItem item)
+        private static int GetRecentItemIndex(ImmutableArray<string> recentItems, RoslynCompletionItem item)
         {
             var index = recentItems.IndexOf(item.FilterText);
             return -index;
         }
 
-        internal static bool TryCreateMatchResult(
+        private static bool TryCreateMatchResult(
             CompletionHelper completionHelper,
             VSCompletionItem item,
             string filterText,
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal static bool MatchesFilterText(
+        private static bool MatchesFilterText(
             RoslynCompletionItem item,
             string filterText,
             CompletionTriggerKind initialTriggerKind,
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return patternMatch != null;
         }
 
-        internal static bool IsHardSelection(
+        private static bool IsHardSelection(
             string filterText,
             RoslynCompletionItem item,
             bool matchedFilterText,
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// A potential filter character is something that can filter a completion lists and is
         /// *guaranteed* to not be a commit character.
         /// </summary>
-        internal static bool IsPotentialFilterCharacter(char c)
+        private static bool IsPotentialFilterCharacter(char c)
         {
             // TODO(cyrusn): Actually use the right unicode categories here.
             return char.IsLetter(c)
