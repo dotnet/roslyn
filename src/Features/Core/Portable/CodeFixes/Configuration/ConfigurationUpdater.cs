@@ -156,12 +156,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             }
 
             solution = editorConfigDocument.Project.Solution;
-
-            var headers = new Dictionary<string, TextLine>();
             var originalText = await editorConfigDocument.GetTextAsync(_cancellationToken).ConfigureAwait(false);
 
             // Compute the updated text for analyzer config document.
-            var newText = GetNewAnalyzerConfigDocumentText(originalText, headers);
+            var newText = GetNewAnalyzerConfigDocumentText(originalText);
 
             return newText != null
                 ? solution.WithAnalyzerConfigDocumentText(editorConfigDocument.Id, newText)
@@ -318,30 +316,34 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             return ImmutableArray<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2)>.Empty;
         }
 
-        private SourceText GetNewAnalyzerConfigDocumentText(
-            SourceText originalText,
-            Dictionary<string, TextLine> headers)
+        private SourceText GetNewAnalyzerConfigDocumentText(SourceText originalText)
         {
             // Check if an entry to configure the rule severity already exists in the .editorconfig file.
             // If it does, we update the existing entry with the new severity.
-            var configureExistingRuleText = CheckIfRuleExistsAndReplaceInFile(originalText, headers);
-            if (configureExistingRuleText != null)
+            var configureExistingRuleTextAndValidHeader = CheckIfRuleExistsAndReplaceInFile(originalText);
+            if (configureExistingRuleTextAndValidHeader.Item1 != null)
             {
-                return configureExistingRuleText;
+                return configureExistingRuleTextAndValidHeader.Item1;
             }
 
             // We did not find any existing entry in the in the .editorconfig file to configure rule severity.
             // So we add a new configuration entry to the .editorconfig file.
-            return AddMissingRule(originalText, headers);
+            return AddMissingRule(originalText, configureExistingRuleTextAndValidHeader.Item2);
         }
 
-        private SourceText CheckIfRuleExistsAndReplaceInFile(
-            SourceText result,
-            Dictionary<string, TextLine> headers)
+        private Tuple<SourceText, TextLine?> CheckIfRuleExistsAndReplaceInFile(SourceText result)
         {
-            string mostRecentHeader = null;
-            var lastValidMatchingRule = new TextLine();
-            var test = lastValidMatchingRule.ToString();
+            // Finds the relative path between editorconfig directory and diagnostic filepath.
+            var editorConfigDirectory = PathUtilities.GetDirectoryName(FindOrGenerateEditorConfig(_project.Solution).FilePath).ToLowerInvariant();
+            var diagnosticFilePath = _diagnostic.Location.SourceTree.FilePath.ToLowerInvariant();
+            var relativePath = PathUtilities.GetRelativePath(editorConfigDirectory, diagnosticFilePath);
+            relativePath = PathUtilities.NormalizeWithForwardSlash(relativePath);
+
+            TextLine? mostRecentHeader = null;
+            TextLine? lastValidHeader = null;
+            TextLine? lastValidHeaderSpanEnd = null;
+
+            var textChange = new TextChange();
 
             foreach (var curLine in result.Lines)
             {
@@ -363,53 +365,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     var commentIndex = isOptionBasedMatch ? 4 : 3;
                     var commentValue = groups[commentIndex].Value.ToString();
 
-                    // Check if the rule configuration entry we found is under a valid file header
-                    // such as '[*]', '[*.cs]', '[*.vb]', etc.
-                    var validRule = true;
-                    if (mostRecentHeader == null)
-                    {
-                        validRule = false;
-                    }
-                    else if (mostRecentHeader.Length != 0 &&
-                        !mostRecentHeader.Equals("*"))
-                    {
-                        // TO DO: Deal with multiple headers case
-
-                        // Finds the relative path between editorconfig directory and diagnostic filepath
-                        var editorConfigDirectory = PathUtilities.GetDirectoryName(FindOrGenerateEditorConfig(_project.Solution).FilePath).ToLowerInvariant();
-                        var diagnosticFilePath = _diagnostic.Location.SourceTree.FilePath.ToLowerInvariant();
-                        var relativePath = PathUtilities.GetRelativePath(editorConfigDirectory, diagnosticFilePath);
-                        relativePath = PathUtilities.NormalizeWithForwardSlash(relativePath);
-
-                        // Verify that editorconfig header regex matches filename
-                        var brokenUpHeader = mostRecentHeader.Split(new[] { '.' }, 2);
-                        var brokenUpFileExtensions = brokenUpHeader[1].Split(',', ' ', '{', '}');
-
-                        brokenUpHeader[0] = brokenUpHeader[0].Replace("*", ".*");
-                        brokenUpHeader[0] = brokenUpHeader[0].Replace("/", @"\/");
-                        var headerRegexStr = brokenUpHeader[0] + @"((\." + brokenUpFileExtensions[0] + ")";
-                        for (var i = 1; i < brokenUpFileExtensions.Length; i++)
-                        {
-                            headerRegexStr += @"|(\." + brokenUpFileExtensions[i] + ")";
-                        }
-                        headerRegexStr += ")";
-
-                        var headerRegex = new Regex(headerRegexStr);
-                        if (!headerRegex.IsMatch(relativePath))
-                        {
-                            validRule = false;
-                        }
-                        else
-                        {
-                            var match = headerRegex.Match(relativePath).Value.Split('.');
-                            if (!match[0].Contains(PathUtilities.GetFileName(diagnosticFilePath, false)))
-                            {
-                                validRule = false;
-                            }
-                        }
-                    }
-
-                    if (validRule)
+                    // Verify the most recent header is a valid header
+                    if (mostRecentHeader != null &&
+                        lastValidHeader != null &&
+                        mostRecentHeader.Equals(lastValidHeader))
                     {
                         // We found the rule in the file -- replace it with updated option value/severity.
                         if (isOptionBasedMatch && key.Equals(_optionNameOpt))
@@ -421,8 +380,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                             var newOptionValue = _configurationKind == ConfigurationKind.OptionValue ? _newOptionValueOpt : currentOptionValue;
                             var newSeverityValue = _configurationKind == ConfigurationKind.Severity ? _newSeverity : currentSeverityValue;
 
-                            var textChange = new TextChange(curLine.Span, $"{key} = {newOptionValue}:{newSeverityValue}{commentValue}");
-                            return result.WithChanges(textChange);
+                            textChange = new TextChange(curLine.Span, $"{key} = {newOptionValue}:{newSeverityValue}{commentValue}");
                         }
                         else if (isSeverityBasedMatch)
                         {
@@ -442,8 +400,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                                     diagIdLength);
                                 if (string.Equals(diagId, _diagnostic.Id, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    var textChange = new TextChange(curLine.Span, $"{key} = {_newSeverity}{commentValue}");
-                                    return result.WithChanges(textChange);
+                                    textChange = new TextChange(curLine.Span, $"{key} = {_newSeverity}{commentValue}");
                                 }
                             }
                         }
@@ -452,23 +409,63 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 else if (s_headerPattern.IsMatch(curLineText.Trim()))
                 {
                     // We found a header entry such as '[*.cs]', '[*.vb]', etc.
-                    // Update the most recent header.
+                    // Verify that header is valid.
+                    mostRecentHeader = curLine;
                     var groups = s_headerPattern.Match(curLineText.Trim()).Groups;
-                    mostRecentHeader = groups[1].Value.ToString().ToLowerInvariant();
+                    var mostRecentHeaderText = groups[1].Value.ToString().ToLowerInvariant();
+
+                    if (mostRecentHeaderText.Equals("*"))
+                    {
+                        lastValidHeader = mostRecentHeader;
+                    }
+                    else
+                    {
+                        // Verify that editorconfig header regex matches filename
+                        var brokenUpHeader = mostRecentHeaderText.Split(new[] { '.' }, 2);
+                        var brokenUpFileExtensions = brokenUpHeader[1].Split(',', ' ', '{', '}');
+
+                        brokenUpHeader[0] = brokenUpHeader[0].Replace("*", ".*");
+                        brokenUpHeader[0] = brokenUpHeader[0].Replace("/", @"\/");
+                        var headerRegexStr = brokenUpHeader[0] + @"((\." + brokenUpFileExtensions[0] + ")";
+                        for (var i = 1; i < brokenUpFileExtensions.Length; i++)
+                        {
+                            headerRegexStr += @"|(\." + brokenUpFileExtensions[i] + ")";
+                        }
+                        headerRegexStr += ")";
+
+                        var headerRegex = new Regex(headerRegexStr);
+                        if (headerRegex.IsMatch(relativePath))
+                        {
+                            var match = headerRegex.Match(relativePath).Value.Split('.');
+                            if (match[0].Contains(PathUtilities.GetFileName(diagnosticFilePath, false)))
+                            {
+                                lastValidHeader = mostRecentHeader;
+                            }
+                        }
+                    }
                 }
 
-                if (mostRecentHeader != null)
+                // We want to keep track of how far this (valid) section spans.
+                if (mostRecentHeader != null &&
+                    lastValidHeader != null &&
+                    mostRecentHeader.Equals(lastValidHeader))
                 {
-                    headers[mostRecentHeader] = curLine;
+                    lastValidHeaderSpanEnd = curLine;
                 }
             }
 
-            return null;
+            // We return only the last text change in case of duplicate entries for the same rule.
+            if (!textChange.Equals(new TextChange()))
+            {
+                return new Tuple<SourceText, TextLine?>(result.WithChanges(textChange), lastValidHeaderSpanEnd);
+            }
+            return new Tuple<SourceText, TextLine?>(null, lastValidHeaderSpanEnd);
         }
 
+        // TO-DO: fix this method, especially the whitespace issue at the end that is breaking all the tests >:(
         private SourceText AddMissingRule(
             SourceText result,
-            Dictionary<string, TextLine> headers)
+            TextLine? lastValidHeaderSpanEnd)
         {
             // Create a new rule configuration entry for the given diagnostic ID.
             // If optionNameOpt and optionValueOpt are non-null, it indicates an option based diagnostic ID
@@ -485,30 +482,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
             // Check if have a correct existing header for the new entry.
             // If so, we don't need to generate a header guarding the new entry to specific langauge.
-            TextLine? existingHeaderOpt = null;
-            if (_language == LanguageNames.CSharp && headers.Any(header => header.Key.Contains(".cs")))
+            if (lastValidHeaderSpanEnd.HasValue)
             {
-                existingHeaderOpt = headers.FirstOrDefault(header => header.Key.Contains(".cs")).Value;
-            }
-            else if (_language == LanguageNames.VisualBasic && headers.Any(header => header.Key.Contains(".vb")))
-            {
-                existingHeaderOpt = headers.FirstOrDefault(header => header.Key.Contains(".vb")).Value;
-            }
-
-            if (existingHeaderOpt.HasValue)
-            {
-                if (existingHeaderOpt.Value.ToString().Trim().Length != 0)
+                if (lastValidHeaderSpanEnd.Value.ToString().Trim().Length != 0)
                 {
                     newEntry = "\r\n" + newEntry;
                 }
 
-                var textChange = new TextChange(new TextSpan(existingHeaderOpt.Value.Span.End, 0), newEntry);
+                var textChange = new TextChange(new TextSpan(lastValidHeaderSpanEnd.Value.Span.End, 0), newEntry);
                 return result.WithChanges(textChange);
             }
 
             if (_language == LanguageNames.CSharp || _language == LanguageNames.VisualBasic)
             {
-                // We need to generate a new header such as '[*.cs]' or '[*.vb]'
+                // We need to generate a new header such as '[*.cs]' or '[*.vb]':
+                //      - For compiler diagnostic entries and code style entries which have per-language option, generate only *.cs or *.vb
+                //      - For the remainder, generate [ *.cs, *.vb]
+
                 // Insert a newline if not already present
                 var lines = result.Lines;
                 var lastLine = lines.Count > 0 ? lines[lines.Count - 1] : default;
@@ -524,6 +514,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     prefix += "\r\n";
                 }
 
+                // note to self: ctrl-f perlanguage and pass option up so it can go to this method
                 if (_language == LanguageNames.CSharp)
                 {
                     prefix += "[*.cs]\r\n";
