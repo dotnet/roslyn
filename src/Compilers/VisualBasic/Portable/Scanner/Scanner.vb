@@ -1980,7 +1980,7 @@ FullWidthRepeat2:
             ' ####################################################
 
             Dim IntegralValue As UInt64
-            Dim FloatingValue As Double
+            Dim floatingValue As Double
             Dim decimalValue As Decimal
             Dim Overflows As Boolean = False
 
@@ -2086,11 +2086,11 @@ FullWidthRepeat2:
                         If Not RealParser.TryParseFloat(LiteralSpelling, SingleValue) Then
                             Overflows = True
                         Else
-                            FloatingValue = SingleValue
+                            floatingValue = SingleValue
                         End If
                     Else
                         ' // Attempt to convert to double.
-                        If Not RealParser.TryParseDouble(LiteralSpelling, FloatingValue) Then
+                        If Not RealParser.TryParseDouble(LiteralSpelling, floatingValue) Then
                             Overflows = True
                         End If
                     End If
@@ -2102,7 +2102,7 @@ FullWidthRepeat2:
                 Case NumericLiteralKind.Integral
                     result = MakeIntegerLiteralToken(precedingTrivia, base, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0UL, IntegralValue), here)
                 Case NumericLiteralKind.Float
-                    result = MakeFloatingLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0.0F, FloatingValue), here)
+                    result = MakeFloatingLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0.0F, floatingValue), here)
                 Case NumericLiteralKind.Decimal
                     result = MakeDecimalLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0D, decimalValue), here)
                 Case Else
