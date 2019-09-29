@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
             Return VBFeaturesResources.Convert_to_Select_Case
         End Function
 
-        Public Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFactsService) As Analyzer
-            Return New VisualBasicAnalyzer(syntaxFacts)
+        Public Overrides Function CreateAnalyzer(syntaxFacts As ISyntaxFactsService, options As ParseOptions) As Analyzer
+            Return New VisualBasicAnalyzer(syntaxFacts, Feature.RangePattern Or Feature.RelationalPattern)
         End Function
     End Class
 End Namespace

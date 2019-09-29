@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         TIfStatementSyntax, TExpressionSyntax, TIsExpressionSyntax, TPatternSyntax> : CodeRefactoringProvider
     {
         public abstract string GetTitle(bool forSwitchExpression);
-        public abstract Analyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts);
+        public abstract Analyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts, ParseOptions options);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             var operations = parentBlock.Operations;
             var index = operations.IndexOf(ifOperation);
-            var analyzer = CreateAnalyzer(document.GetLanguageService<ISyntaxFactsService>());
+            var analyzer = CreateAnalyzer(document.GetLanguageService<ISyntaxFactsService>(), ifStatement.SyntaxTree.Options);
             var (sections, target) = analyzer.AnalyzeIfStatementSequence(operations.AsSpan().Slice(index));
             if (sections.IsDefaultOrEmpty)
             {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     c => UpdateDocumentAsync(document, target, ifStatement, sections, convertToSwitchExpression: false, c)),
                 ifStatement.Span);
 
-            if (analyzer.SupportsSwitchExpression &&
+            if (analyzer.Supports(Feature.SwitchExpression) &&
                 CanConvertToSwitchExpression(sections))
             {
                 context.RegisterRefactoring(

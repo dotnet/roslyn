@@ -23,13 +23,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        [return: NotNull]
-        public static T NotNull<T>(T value, string? message = null) where T : class?
-        {
-            ThrowIfNull(value);
-            return value;
-        }
-
         /// <summary>
         /// Throws a non-accessible exception if the provided value is false.  This method executes
         /// in all builds

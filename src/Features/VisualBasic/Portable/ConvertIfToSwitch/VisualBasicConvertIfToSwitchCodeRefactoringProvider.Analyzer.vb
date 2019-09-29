@@ -8,15 +8,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
         Private NotInheritable Class VisualBasicAnalyzer
             Inherits Analyzer
 
-            Public Overrides ReadOnly Property SupportsCaseGuard As Boolean = False
-            Public Overrides ReadOnly Property SupportsRangePattern As Boolean = True
-            Public Overrides ReadOnly Property SupportsTypePattern As Boolean = False
-            Public Overrides ReadOnly Property SupportsSourcePattern As Boolean = False
-            Public Overrides ReadOnly Property SupportsRelationalPattern As Boolean = True
-            Public Overrides ReadOnly Property SupportsSwitchExpression As Boolean = False
-
-            Public Sub New(syntaxFacts As ISyntaxFactsService)
-                MyBase.New(syntaxFacts)
+            Public Sub New(syntaxFacts As ISyntaxFactsService, features As Feature)
+                MyBase.New(syntaxFacts, features)
             End Sub
 
             Public Overrides Function HasUnreachableEndPoint(operation As IOperation) As Boolean

@@ -50,21 +50,19 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             public abstract bool CanConvert(IConditionalOperation operation);
             public abstract bool HasUnreachableEndPoint(IOperation operation);
 
-            public abstract bool SupportsSwitchExpression { get; }
-            public abstract bool SupportsRelationalPattern { get; }
-            public abstract bool SupportsSourcePattern { get; }
-            public abstract bool SupportsRangePattern { get; }
-            public abstract bool SupportsTypePattern { get; }
-            public abstract bool SupportsCaseGuard { get; }
-
             // Holds the expression determined to be used as the target expression of the switch
             private SyntaxNode? _switchTargetExpression;
             private readonly ISyntaxFactsService _syntaxFacts;
+            private readonly Feature _features;
 
-            protected Analyzer(ISyntaxFactsService syntaxFacts)
+            protected Analyzer(ISyntaxFactsService syntaxFacts, Feature features)
             {
                 _syntaxFacts = syntaxFacts;
+                _features = features;
             }
+
+            public bool Supports(Feature feature)
+                => (_features & feature) != 0;
 
             public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
             {
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     sections.Add(new AnalyzedSwitchSection(labels: default, defaultBodyOpt, defaultBodyOpt.Syntax));
                 }
 
-                return (sections.ToImmutableAndFree(), Contract.NotNull(_switchTargetExpression));
+                return (sections.ToImmutableAndFree(), _switchTargetExpression!);
             }
 
             // Tree to parse:
@@ -251,12 +249,12 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 switch (operation)
                 {
                     case IBinaryOperation { OperatorKind: ConditionalAnd } op
-                        when SupportsCaseGuard && op.RightOperand.Syntax is TExpressionSyntax node:
+                        when Supports(Feature.CaseGuard) && op.RightOperand.Syntax is TExpressionSyntax node:
                         guards.Add(node);
                         return ParsePattern(op.LeftOperand, guards);
 
                     case IBinaryOperation { OperatorKind: ConditionalAnd } op
-                        when SupportsRangePattern && GetRangeBounds(op) is (TExpressionSyntax lower, TExpressionSyntax higher):
+                        when Supports(Feature.RangePattern) && GetRangeBounds(op) is (TExpressionSyntax lower, TExpressionSyntax higher):
                         return new AnalyzedPattern.Range(lower, higher);
 
                     case IBinaryOperation { OperatorKind: BinaryOperatorKind.Equals } op:
@@ -269,7 +267,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                             _ => null
                         };
 
-                    case IBinaryOperation op when SupportsRelationalPattern && IsComparisonOperator(op.OperatorKind):
+                    case IBinaryOperation op
+                        when Supports(Feature.RelationalPattern) && IsComparisonOperator(op.OperatorKind):
                         return DetermineConstant(op) switch
                         {
                             ConstantResult.Left when op.LeftOperand.Syntax is TExpressionSyntax left
@@ -280,11 +279,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         };
 
                     case IIsTypeOperation op
-                        when SupportsTypePattern && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
+                        when Supports(Feature.TypePattern) && CheckTargetExpression(op.ValueOperand) && op.Syntax is TIsExpressionSyntax node:
                         return new AnalyzedPattern.Type(node);
 
                     case IIsPatternOperation op
-                        when SupportsSourcePattern && CheckTargetExpression(op.Value) && op.Pattern.Syntax is TPatternSyntax pattern:
+                        when Supports(Feature.SourcePattern) && CheckTargetExpression(op.Value) && op.Pattern.Syntax is TPatternSyntax pattern:
                         return new AnalyzedPattern.Source(pattern);
 
                     case IParenthesizedOperation op:
@@ -392,6 +391,21 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
                 return _syntaxFacts.AreEquivalent(expression, _switchTargetExpression);
             }
+        }
+
+        [Flags]
+        internal enum Feature
+        {
+            None = 0,
+            // VB features
+            RelationalPattern = 1,
+            RangePattern = 1 << 1,
+            // C# 7.0 features
+            SourcePattern = 1 << 2,
+            TypePattern = 1 << 3,
+            CaseGuard = 1 << 4,
+            // C# 8.0 features
+            SwitchExpression = 1 << 5,
         }
     }
 }

@@ -10,15 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
     {
         private sealed class CSharpAnalyzer : Analyzer
         {
-            public override bool SupportsSwitchExpression => true;
-            public override bool SupportsCaseGuard => true;
-            public override bool SupportsRangePattern => false;
-            public override bool SupportsTypePattern => true;
-            public override bool SupportsSourcePattern => true;
-            public override bool SupportsRelationalPattern => false;
-
-            public CSharpAnalyzer(ISyntaxFactsService syntaxFacts)
-                : base(syntaxFacts)
+            public CSharpAnalyzer(ISyntaxFactsService syntaxFacts, Feature features)
+                : base(syntaxFacts, features)
             {
             }
 

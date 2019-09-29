@@ -24,7 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
                 ? CSharpFeaturesResources.Convert_to_switch_expression
                 : CSharpFeaturesResources.Convert_to_switch_statement;
 
-        public override Analyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts)
-            => new CSharpAnalyzer(syntaxFacts);
+        public override Analyzer CreateAnalyzer(ISyntaxFactsService syntaxFacts, ParseOptions options)
+        {
+            var version = ((CSharpParseOptions)options).LanguageVersion;
+            var features =
+                (version >= LanguageVersion.CSharp7 ? Feature.SourcePattern | Feature.TypePattern | Feature.CaseGuard : 0) |
+                (version >= LanguageVersion.CSharp8 ? Feature.SwitchExpression : 0);
+            return new CSharpAnalyzer(syntaxFacts, features);
+        }
     }
 }
