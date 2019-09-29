@@ -2194,7 +2194,7 @@ FullWidthRepeat2:
             Dim here As Integer = 1 'skip #
             Dim FirstValue As Integer
             Dim YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue As Integer
-            Dim HaveDateValue As Boolean = False
+            Dim haveDateValue As Boolean = False
             Dim HaveYearValue As Boolean = False
             Dim HaveTimeValue As Boolean = False
             Dim HaveMinuteValue As Boolean = False
@@ -2226,7 +2226,7 @@ FullWidthRepeat2:
                 Dim FirstDateSeparator As Integer = here
 
                 ' // We've got a date
-                HaveDateValue = True
+                haveDateValue = True
                 here += 1
 
                 ' Is the first value a year?
@@ -2297,7 +2297,7 @@ FullWidthRepeat2:
 
             ' // If we haven't seen a date, assume it's a time value
 
-            If Not HaveDateValue Then
+            If Not haveDateValue Then
                 HaveTimeValue = True
                 HourValue = FirstValue
             Else
@@ -2381,7 +2381,7 @@ FullWidthRepeat2:
             here += 1
 
             ' // OK, now we've got all the values, let's see if we've got a valid date
-            If HaveDateValue Then
+            If haveDateValue Then
                 If MonthValue < 1 OrElse MonthValue > 12 Then
                     DateIsInvalid = True
                 End If
