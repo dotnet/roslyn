@@ -2195,7 +2195,7 @@ FullWidthRepeat2:
             Dim FirstValue As Integer
             Dim YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue As Integer
             Dim haveDateValue As Boolean = False
-            Dim HaveYearValue As Boolean = False
+            Dim haveYearValue As Boolean = False
             Dim HaveTimeValue As Boolean = False
             Dim HaveMinuteValue As Boolean = False
             Dim HaveSecondValue As Boolean = False
@@ -2233,7 +2233,7 @@ FullWidthRepeat2:
                 ' It is a year if it consists of exactly 4 digits.
                 ' Condition below uses 5 because we already skipped the separator.
                 If here - FirstValueStart = 5 Then
-                    HaveYearValue = True
+                    haveYearValue = True
                     yearIsFirst = True
                     YearValue = FirstValue
 
@@ -2277,7 +2277,7 @@ FullWidthRepeat2:
                         End If
 
                         ' // Yes.
-                        HaveYearValue = True
+                        haveYearValue = True
                         here += 1
 
                         Dim YearStart As Integer = here
@@ -2388,7 +2388,7 @@ FullWidthRepeat2:
 
                 ' // We'll check Days in a moment...
 
-                If Not HaveYearValue Then
+                If Not haveYearValue Then
                     DateIsInvalid = True
                     YearValue = 1
                 End If
