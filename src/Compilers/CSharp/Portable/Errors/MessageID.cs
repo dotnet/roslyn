@@ -290,6 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                case MessageID.IDS_FeatureRefPartialModOrdering:
+                    return LanguageVersion.Preview;
+
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:
@@ -326,7 +329,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers: // semantic check
                 case MessageID.IDS_FeatureExtensibleFixedStatement:  // semantic check
                 case MessageID.IDS_FeatureIndexingMovableFixedBuffers: //semantic check
-                case MessageID.IDS_FeatureRefPartialModOrdering:
                     return LanguageVersion.CSharp7_3;
 
                 // C# 7.2 features.

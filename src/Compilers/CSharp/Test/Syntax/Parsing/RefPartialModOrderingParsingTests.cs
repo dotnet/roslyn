@@ -28,21 +28,21 @@ ref public partial struct S {}
                 // (2,1): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
                 // ref partial struct S {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(2, 1),
-                // (3,1): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
+                // (3,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // ref partial public struct S {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref and partial modifier ordering", "7.3").WithLocation(3, 1),
-                // (3,5): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref and partial modifier ordering").WithLocation(3, 1),
+                // (3,5): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // ref partial public struct S {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "partial").WithArguments("ref and partial modifier ordering", "7.3").WithLocation(3, 5),
-                // (4,1): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("ref and partial modifier ordering").WithLocation(3, 5),
+                // (4,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "partial").WithArguments("ref and partial modifier ordering", "7.3").WithLocation(4, 1),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("ref and partial modifier ordering").WithLocation(4, 1),
                 // (4,9): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
                 // partial ref struct S {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(4, 9),
-                // (5,1): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
-                // ref public partial struct S{}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref and partial modifier ordering", "7.3")
+                // (5,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // ref public partial struct S {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref").WithArguments("ref and partial modifier ordering").WithLocation(5, 1)
                 );
         }
 
@@ -57,15 +57,15 @@ partial public interface I {}
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular7);
             tree.GetDiagnostics().Verify(
-                // (2,1): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
+                // (2,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // partial public class C {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "partial").WithArguments("ref and partial modifier ordering", "7.3").WithLocation(2, 1),
-                // (3,1): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("ref and partial modifier ordering").WithLocation(2, 1),
+                // (3,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // partial public struct S {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "partial").WithArguments("ref and partial modifier ordering", "7.3").WithLocation(3, 1),
-                // (4,1): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("ref and partial modifier ordering").WithLocation(3, 1),
+                // (4,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // partial public interface I {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "partial").WithArguments("ref and partial modifier ordering", "7.3").WithLocation(4, 1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("ref and partial modifier ordering").WithLocation(4, 1)
                 );
         }
 
@@ -81,9 +81,10 @@ partial class C
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular7);
             tree.GetDiagnostics().Verify(
-                // (4,5): error CS8107: Feature 'ref and partial modifier ordering' is not available in C# 7.0. Please use language version 7.3 or greater.
+                // (4,5): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     partial static void M();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "partial").WithArguments("ref and partial modifier ordering", "7.3").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("ref and partial modifier ordering").WithLocation(4, 5)
+                );
         }
 
         [Fact]
@@ -161,7 +162,7 @@ partial readonly ref struct S {}
 partial public struct S {}
 ";
 
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             var s1 = comp.GetTypeByMetadataName("S");
@@ -180,7 +181,7 @@ partial public class C {}
 partial abstract class C {}
 ";
 
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
             var s1 = comp.GetTypeByMetadataName("C");
@@ -197,7 +198,7 @@ partial partial ref class C {}
 partial partial ref struct S {}
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_3);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (2,27): error CS0106: The modifier 'ref' is not valid for this item
                 // partial partial ref class C {}
@@ -219,7 +220,7 @@ partial ref ref class C {}
 partial ref ref struct S {}
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_3);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (2,23): error CS0106: The modifier 'ref' is not valid for this item
                 // partial ref ref class C {}
@@ -242,7 +243,7 @@ using System;
 partial class Test {}
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Regular7_3);
+            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.RegularPreview);
             tree.GetDiagnostics().Verify(
                 // (3,11): error CS1026: ) expected
                 // [Obsolete(
@@ -262,7 +263,7 @@ using System;
 partial public class Test {}
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Regular7_3);
+            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.RegularPreview);
             tree.GetDiagnostics().Verify(
                 // (3,11): error CS1026: ) expected
                 // [Obsolete(
@@ -283,7 +284,7 @@ class partial
 }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7_3);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
     }
