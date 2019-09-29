@@ -1574,7 +1574,7 @@ FullWidthRepeat:
             Dim contextualKind As SyntaxKind = SyntaxKind.IdentifierToken
             Dim spelling = GetText(len)
 
-            Dim BaseSpelling = If(TypeCharacter = TypeCharacter.None,
+            Dim baseSpelling = If(TypeCharacter = TypeCharacter.None,
                                    spelling,
                                    Intern(spelling, 0, len - 1))
 
@@ -1585,7 +1585,7 @@ FullWidthRepeat:
                     contextualKind = tokenType
                     tokenType = SyntaxKind.IdentifierToken
                 End If
-            ElseIf TokenOfStringCached(BaseSpelling) = SyntaxKind.MidKeyword Then
+            ElseIf TokenOfStringCached(baseSpelling) = SyntaxKind.MidKeyword Then
 
                 contextualKind = SyntaxKind.MidKeyword
                 tokenType = SyntaxKind.IdentifierToken
@@ -1596,7 +1596,7 @@ FullWidthRepeat:
                 Return MakeKeyword(tokenType, spelling, precedingTrivia)
             Else
                 ' IDENTIFIER or CONTEXTUAL
-                Dim id As SyntaxToken = MakeIdentifier(spelling, contextualKind, False, BaseSpelling, TypeCharacter, precedingTrivia)
+                Dim id As SyntaxToken = MakeIdentifier(spelling, contextualKind, False, baseSpelling, TypeCharacter, precedingTrivia)
                 Return id
             End If
         End Function
@@ -1691,7 +1691,7 @@ FullWidthRepeat:
             Dim UnderscoreUsed As Boolean = False
             Dim LeadingUnderscoreUsed = False
 
-            Dim Base As LiteralBase = LiteralBase.Decimal
+            Dim base As LiteralBase = LiteralBase.Decimal
             Dim literalKind As NumericLiteralKind = NumericLiteralKind.Integral
 
             ' ####################################################
@@ -1710,7 +1710,7 @@ FullWidthRepeat:
                     Case "H"c, "h"c
                         here += 1
                         IntegerLiteralStart = here
-                        Base = LiteralBase.Hexadecimal
+                        base = LiteralBase.Hexadecimal
 
                         If CanGet(here) AndAlso Peek(here) = "_"c Then
                             LeadingUnderscoreUsed = True
@@ -1731,7 +1731,7 @@ FullWidthRepeat:
                     Case "B"c, "b"c
                         here += 1
                         IntegerLiteralStart = here
-                        Base = LiteralBase.Binary
+                        base = LiteralBase.Binary
 
                         If CanGet(here) AndAlso Peek(here) = "_"c Then
                             LeadingUnderscoreUsed = True
@@ -1752,7 +1752,7 @@ FullWidthRepeat:
                     Case "O"c, "o"c
                         here += 1
                         IntegerLiteralStart = here
-                        Base = LiteralBase.Octal
+                        base = LiteralBase.Octal
 
                         If CanGet(here) AndAlso Peek(here) = "_"c Then
                             LeadingUnderscoreUsed = True
@@ -1802,7 +1802,7 @@ FullWidthRepeat:
 
             ' // Unless there was an explicit base specifier (which indicates an integer literal),
             ' // read the rest of a float literal.
-            If Base = LiteralBase.Decimal AndAlso CanGet(here) Then
+            If base = LiteralBase.Decimal AndAlso CanGet(here) Then
                 ' // First read a '.' followed by a sequence of one or more digits.
                 ch = Peek(here)
                 If (ch = "."c Or ch = FULLWIDTH_FULL_STOP) AndAlso
@@ -1868,28 +1868,28 @@ FullWidthRepeat:
 FullWidthRepeat2:
                 Select Case ch
                     Case "!"c
-                        If Base = LiteralBase.Decimal Then
+                        If base = LiteralBase.Decimal Then
                             TypeCharacter = TypeCharacter.Single
                             literalKind = NumericLiteralKind.Float
                             here += 1
                         End If
 
                     Case "F"c, "f"c
-                        If Base = LiteralBase.Decimal Then
+                        If base = LiteralBase.Decimal Then
                             TypeCharacter = TypeCharacter.SingleLiteral
                             literalKind = NumericLiteralKind.Float
                             here += 1
                         End If
 
                     Case "#"c
-                        If Base = LiteralBase.Decimal Then
+                        If base = LiteralBase.Decimal Then
                             TypeCharacter = TypeCharacter.Double
                             literalKind = NumericLiteralKind.Float
                             here += 1
                         End If
 
                     Case "R"c, "r"c
-                        If Base = LiteralBase.Decimal Then
+                        If base = LiteralBase.Decimal Then
                             TypeCharacter = TypeCharacter.DoubleLiteral
                             literalKind = NumericLiteralKind.Float
                             here += 1
@@ -1927,14 +1927,14 @@ FullWidthRepeat2:
                         End If
 
                     Case "@"c
-                        If Base = LiteralBase.Decimal Then
+                        If base = LiteralBase.Decimal Then
                             TypeCharacter = TypeCharacter.Decimal
                             literalKind = NumericLiteralKind.Decimal
                             here += 1
                         End If
 
                     Case "D"c, "d"c
-                        If Base = LiteralBase.Decimal Then
+                        If base = LiteralBase.Decimal Then
                             TypeCharacter = TypeCharacter.DecimalLiteral
                             literalKind = NumericLiteralKind.Decimal
 
@@ -1990,7 +1990,7 @@ FullWidthRepeat2:
                 Else
                     IntegralValue = 0
 
-                    If Base = LiteralBase.Decimal Then
+                    If base = LiteralBase.Decimal Then
                         ' Init For loop
                         For LiteralCharacter As Integer = IntegerLiteralStart To IntegerLiteralEnd - 1
                             Dim LiteralCharacterValue As Char = Peek(LiteralCharacter)
@@ -2013,8 +2013,8 @@ FullWidthRepeat2:
                             Overflows = True
                         End If
                     Else
-                        Dim Shift As Integer = If(Base = LiteralBase.Hexadecimal, 4, If(Base = LiteralBase.Octal, 3, 1))
-                        Dim OverflowMask As UInt64 = If(Base = LiteralBase.Hexadecimal, &HF000000000000000UL, If(Base = LiteralBase.Octal, &HE000000000000000UL, &H8000000000000000UL))
+                        Dim Shift As Integer = If(base = LiteralBase.Hexadecimal, 4, If(Base = LiteralBase.Octal, 3, 1))
+                        Dim OverflowMask As UInt64 = If(base = LiteralBase.Hexadecimal, &HF000000000000000UL, If(base = LiteralBase.Octal, &HE000000000000000UL, &H8000000000000000UL))
 
                         ' Init For loop
                         For LiteralCharacter As Integer = IntegerLiteralStart To IntegerLiteralEnd - 1
@@ -2034,7 +2034,7 @@ FullWidthRepeat2:
                     If TypeCharacter = TypeCharacter.None Then
                         ' nothing to do
                     ElseIf TypeCharacter = TypeCharacter.Integer OrElse TypeCharacter = TypeCharacter.IntegerLiteral Then
-                        If (Base = LiteralBase.Decimal AndAlso IntegralValue > &H7FFFFFFF) OrElse
+                        If (base = LiteralBase.Decimal AndAlso IntegralValue > &H7FFFFFFF) OrElse
                             IntegralValue > &HFFFFFFFFUI Then
 
                             Overflows = True
@@ -2046,7 +2046,7 @@ FullWidthRepeat2:
                         End If
 
                     ElseIf TypeCharacter = TypeCharacter.ShortLiteral Then
-                        If (Base = LiteralBase.Decimal AndAlso IntegralValue > &H7FFF) OrElse
+                        If (base = LiteralBase.Decimal AndAlso IntegralValue > &H7FFF) OrElse
                             IntegralValue > &HFFFF Then
 
                             Overflows = True
@@ -2100,7 +2100,7 @@ FullWidthRepeat2:
             Dim result As SyntaxToken
             Select Case literalKind
                 Case NumericLiteralKind.Integral
-                    result = MakeIntegerLiteralToken(precedingTrivia, Base, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0UL, IntegralValue), Here)
+                    result = MakeIntegerLiteralToken(precedingTrivia, base, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0UL, IntegralValue), Here)
                 Case NumericLiteralKind.Float
                     result = MakeFloatingLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0.0F, FloatingValue), Here)
                 Case NumericLiteralKind.Decimal
@@ -2121,7 +2121,7 @@ FullWidthRepeat2:
                 result = CheckFeatureAvailability(result, Feature.DigitSeparators)
             End If
 
-            If Base = LiteralBase.Binary Then
+            If base = LiteralBase.Binary Then
                 result = CheckFeatureAvailability(result, Feature.BinaryLiterals)
             End If
 
