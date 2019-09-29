@@ -25,7 +25,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="arguments"></param>
         /// <param name="pointsToAnalysisResult">If the method needs to do PointsToAnalysis, the PointsToAnalysis result will be produced by the passed value factory.</param>
         /// <param name="valueContentAnalysisResult">If the method needs to do ValueContentAnalysis, the ValueContentAnalysis result will be produced by the passed value factory.</param>
-        /// <param name="taintedTargets"></param>
+        /// <param name="allTaintedTargets"></param>
         /// <returns></returns>
         public static bool IsSourceMethod(
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
