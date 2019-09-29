@@ -1108,7 +1108,7 @@ tryAgain:
         // For instance, we return true for both of these:
         //
         //    partial partial<T>()
-        //    partial partail<T> partial()
+        //    partial partial<T> partial()
         //
         // While, in fact, 'partial' is only a modifier on the second method.
         private bool IsPossibleModifier()
@@ -1133,11 +1133,11 @@ tryAgain:
         private enum ScanRefStructFlags
         {
             /// <summary>
-            /// Definitly a ref struct.
+            /// Definitely a ref struct.
             /// </summary>
             RefStruct,
             /// <summary>
-            /// Definitly a ref struct (C# 8.0)
+            /// Definitely a ref struct (C# 8.0)
             /// </summary>
             RefStructV8,
             /// <summary>
@@ -1177,19 +1177,19 @@ tryAgain:
         private enum ScanPartialFlags
         {
             /// <summary>
-            /// Definitly a partial type.
+            /// Definitely a partial type.
             /// </summary>
             PartialType,
             /// <summary>
-            /// Definitly a partial type (C# 8.0)
+            /// Definitely a partial type (C# 8.0)
             /// </summary>
             PartialTypeV8,
             /// <summary>
-            /// Definitly a partial member.
+            /// Definitely a partial member.
             /// </summary>
             PartialMember,
             /// <summary>
-            /// Definitly a partial member (C# 8.0)
+            /// Definitely a partial member (C# 8.0)
             /// </summary>
             PartialMemberV8,
             /// <summary>
