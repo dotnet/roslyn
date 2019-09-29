@@ -169,7 +169,7 @@ partial public struct S {}
             Assert.True(s1.IsPartial());
             Assert.True(s1.IsReadOnly);
             Assert.True(s1.IsRefLikeType);
-            Assert.Equal(s1.DeclaredAccessibility, Accessibility.Public);
+            Assert.Equal(Accessibility.Public, s1.DeclaredAccessibility);
         }
 
         [Fact]
@@ -187,7 +187,7 @@ partial abstract class C {}
             var s1 = comp.GetTypeByMetadataName("C");
             Assert.True(s1.IsPartial());
             Assert.True(s1.IsAbstract);
-            Assert.Equal(s1.DeclaredAccessibility, Accessibility.Public);
+            Assert.Equal(Accessibility.Public, s1.DeclaredAccessibility);
         }
 
         [Fact]
