@@ -1593,7 +1593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int slot = GetOrCreateSlot(local);
 
             // We need visit the optional arguments so that we can return nullability information
-            // about them, but we don't want to communciate any information about anything underneath.
+            // about them, but we don't want to communicate any information about anything underneath.
             // Additionally, tests like Scope_DeclaratorArguments_06 can have conditional expressions
             // in the optional arguments that can leave us in a split state, so we want to make sure
             // we are not in a conditional state after.
@@ -6641,7 +6641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       In these cases, there will be an implicit conversion to IEnumerable<T>, but this will use types from
             //       initial binding. For this scenario, we need to look through the list of implemented interfaces on the type and
             //       find the version of IEnumerable<T> that it has after nullable analysis, as type substitution could have changed
-            //       nested nullability of type paramters. See ForEach_22 for a concrete example of this.
+            //       nested nullability of type parameters. See ForEach_22 for a concrete example of this.
             //    5. The collection type implements IEnumerable (non-generic). Because this version isn't generic, we don't need to
             //       do any reinference, and the existing conversion can stand as is.
             //    6. The target framework's System.String doesn't implement IEnumerable. This is a compat case: System.String normally
