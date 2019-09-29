@@ -1981,7 +1981,7 @@ FullWidthRepeat2:
 
             Dim IntegralValue As UInt64
             Dim FloatingValue As Double
-            Dim DecimalValue As Decimal
+            Dim decimalValue As Decimal
             Dim Overflows As Boolean = False
 
             If literalKind = NumericLiteralKind.Integral Then
@@ -2078,7 +2078,7 @@ FullWidthRepeat2:
 
                 If literalKind = NumericLiteralKind.Decimal Then
                     ' Attempt to convert to Decimal.
-                    Overflows = Not GetDecimalValue(LiteralSpelling, DecimalValue)
+                    Overflows = Not GetDecimalValue(LiteralSpelling, decimalValue)
                 Else
                     If TypeCharacter = TypeCharacter.Single OrElse TypeCharacter = TypeCharacter.SingleLiteral Then
                         ' // Attempt to convert to single
@@ -2100,11 +2100,11 @@ FullWidthRepeat2:
             Dim result As SyntaxToken
             Select Case literalKind
                 Case NumericLiteralKind.Integral
-                    result = MakeIntegerLiteralToken(precedingTrivia, base, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0UL, IntegralValue), Here)
+                    result = MakeIntegerLiteralToken(precedingTrivia, base, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0UL, IntegralValue), here)
                 Case NumericLiteralKind.Float
-                    result = MakeFloatingLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0.0F, FloatingValue), Here)
+                    result = MakeFloatingLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0.0F, FloatingValue), here)
                 Case NumericLiteralKind.Decimal
-                    result = MakeDecimalLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0D, DecimalValue), Here)
+                    result = MakeDecimalLiteralToken(precedingTrivia, TypeCharacter, If(Overflows Or UnderscoreInWrongPlace, 0D, decimalValue), here)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(literalKind)
             End Select
