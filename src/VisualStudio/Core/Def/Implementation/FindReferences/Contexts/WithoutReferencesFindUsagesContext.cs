@@ -5,10 +5,10 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
+using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithoutReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
-                ImmutableArray<AbstractCustomColumnDefinition> customColumns,
+                ImmutableArray<ITableColumnDefinition> customColumns,
                 bool includeContainingTypeAndMemberColumns,
                 bool includeKindColumn)
                 : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
@@ -66,8 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             definitionBucket,
                             sourceSpan,
                             HighlightSpanKind.Definition,
-                            propertiesWithMultipleValuesMapOpt: null,
-                            additionalProperties: ImmutableArray<FindUsageProperty>.Empty)
+                            symbolUsageInfo: SymbolUsageInfo.None,
+                            additionalProperties: definition.DisplayableProperties)
                                 .ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }
