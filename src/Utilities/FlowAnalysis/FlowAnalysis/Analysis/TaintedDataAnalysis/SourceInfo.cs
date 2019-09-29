@@ -26,6 +26,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         /// <param name="fullTypeName">Full type name of the...type (namespace + type).</param>
         /// <param name="taintedProperties">Properties that generate tainted data.</param>
+        /// <param name="taintedMethods">Methods that generate tainted data and whose arguments don't need extra analysis.</param>
         /// <param name="taintedMethodsNeedsPointsToAnalysis">Methods that generate tainted data and whose arguments don't need extra value content analysis.</param>
         /// <param name="taintedMethodsNeedsValueContentAnalysis">Methods that generate tainted data and whose arguments need extra value content analysis and points to analysis.</param>
         /// <param name="taintConstantArray"></param>
@@ -33,6 +34,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             string fullTypeName,
             bool isInterface,
             ImmutableHashSet<string> taintedProperties,
+            ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)> taintedMethods,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)> taintedMethodsNeedsPointsToAnalysis,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)> taintedMethodsNeedsValueContentAnalysis,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)> transferMethods,
@@ -41,6 +43,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
             TaintedProperties = taintedProperties ?? throw new ArgumentNullException(nameof(taintedProperties));
+            TaintedMethods = taintedMethods ?? throw new ArgumentNullException(nameof(taintedMethods));
             TaintedMethodsNeedsPointsToAnalysis = taintedMethodsNeedsPointsToAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsPointsToAnalysis));
             TaintedMethodsNeedsValueContentAnalysis = taintedMethodsNeedsValueContentAnalysis ?? throw new ArgumentNullException(nameof(taintedMethodsNeedsValueContentAnalysis));
             TransferMethods = transferMethods ?? throw new ArgumentNullException(nameof(transferMethods));
@@ -61,6 +64,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Properties that generate tainted data.
         /// </summary>
         public ImmutableHashSet<string> TaintedProperties { get; }
+
+        /// <summary>
+        /// Methods that generate tainted data.
+        /// TaintedTarget is the tainted target (arguments / return value).
+        /// </summary>
+        public ImmutableHashSet<(MethodMatcher MethodMatcher, ImmutableHashSet<string> TaintedTargets)> TaintedMethods { get; }
 
         /// <summary>
         /// Methods that generate tainted data and whose arguments don't need extra value content analysis.
@@ -141,11 +150,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         {
             return HashUtilities.Combine(this.TaintConstantArray.GetHashCode(),
                 HashUtilities.Combine(this.TaintedProperties,
+                HashUtilities.Combine(this.TaintedMethods,
                 HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis,
                 HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis,
                 HashUtilities.Combine(this.TransferMethods,
                 HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))))));
+                    StringComparer.Ordinal.GetHashCode(this.FullTypeName))))))));
         }
 
         public override bool Equals(object obj)
@@ -159,6 +169,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 && this.FullTypeName == other.FullTypeName
                 && this.IsInterface == other.IsInterface
                 && this.TaintedProperties == other.TaintedProperties
+                && this.TaintedMethods == other.TaintedMethods
                 && this.TaintedMethodsNeedsPointsToAnalysis == other.TaintedMethodsNeedsPointsToAnalysis
                 && this.TaintedMethodsNeedsValueContentAnalysis == other.TaintedMethodsNeedsValueContentAnalysis
                 && this.TransferMethods == other.TransferMethods

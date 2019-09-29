@@ -33,11 +33,24 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ImmutableArray<IArgumentOperation> arguments,
             Lazy<PointsToAnalysisResult> pointsToAnalysisResult,
             Lazy<ValueContentAnalysisResult> valueContentAnalysisResult,
-            out PooledHashSet<string> taintedTargets)
+            out PooledHashSet<string> allTaintedTargets)
         {
-            taintedTargets = null;
+            allTaintedTargets = null;
             foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(method.ContainingType))
             {
+                foreach ((MethodMatcher methodMatcher, ImmutableHashSet<string> taintedTargets) in sourceInfo.TaintedMethods)
+                {
+                    if (methodMatcher(method.Name, arguments))
+                    {
+                        if (allTaintedTargets == null)
+                        {
+                            allTaintedTargets = PooledHashSet<string>.GetInstance();
+                        }
+
+                        allTaintedTargets.UnionWith(taintedTargets);
+                    }
+                }
+
                 foreach ((MethodMatcher methodMatcher, ImmutableHashSet<(PointsToCheck pointsToCheck, string)> pointsToTaintedTargets) in sourceInfo.TaintedMethodsNeedsPointsToAnalysis)
                 {
                     if (methodMatcher(method.Name, arguments))
@@ -48,12 +61,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                     pointsToAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray()));
                         if (positivePointsToTaintedTargets != null)
                         {
-                            if (taintedTargets == null)
+                            if (allTaintedTargets == null)
                             {
-                                taintedTargets = PooledHashSet<string>.GetInstance();
+                                allTaintedTargets = PooledHashSet<string>.GetInstance();
                             }
 
-                            taintedTargets.UnionWith(positivePointsToTaintedTargets.Select(s => s.target));
+                            allTaintedTargets.UnionWith(positivePointsToTaintedTargets.Select(s => s.target));
                         }
                     }
                 }
@@ -69,18 +82,18 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                 arguments.Select(o => valueContentAnalysisResult.Value[o.Kind, o.Syntax]).ToImmutableArray()));
                         if (positiveValueContentTaintedTargets != null)
                         {
-                            if (taintedTargets == null)
+                            if (allTaintedTargets == null)
                             {
-                                taintedTargets = PooledHashSet<string>.GetInstance();
+                                allTaintedTargets = PooledHashSet<string>.GetInstance();
                             }
 
-                            taintedTargets.UnionWith(positiveValueContentTaintedTargets.Select(s => s.target));
+                            allTaintedTargets.UnionWith(positiveValueContentTaintedTargets.Select(s => s.target));
                         }
                     }
                 }
             }
 
-            return taintedTargets != null;
+            return allTaintedTargets != null;
         }
 
         /// <summary>
