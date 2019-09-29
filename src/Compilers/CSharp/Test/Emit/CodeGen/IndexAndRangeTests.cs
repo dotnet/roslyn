@@ -39,6 +39,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
 
         [Fact]
+        public void PatternIndexArray()
+        {
+            var src = @"
+class C
+{
+    static int M1(int[] arr) => arr[^1];
+    static char M2(string s) => s[^1];
+}
+";
+            var verifier = CompileAndVerifyWithIndexAndRange(src);
+            verifier.VerifyIL("C.M1", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  .locals init (int[] V_0,
+                System.Index V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.1
+  IL_0005:  newobj     ""System.Index..ctor(int, bool)""
+  IL_000a:  stloc.1
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldloc.0
+  IL_000e:  ldlen
+  IL_000f:  conv.i4
+  IL_0010:  call       ""int System.Index.GetOffset(int)""
+  IL_0015:  ldelem.i4
+  IL_0016:  ret
+}");
+            verifier.VerifyIL("C.M2", "");
+        }
+
+        [Fact]
         [WorkItem(37789, "https://github.com/dotnet/roslyn/issues/37789")]
         public void PatternIndexAndRangeCompoundOperatorRefIndexer()
         {
