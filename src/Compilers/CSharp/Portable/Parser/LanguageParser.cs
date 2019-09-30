@@ -8099,13 +8099,7 @@ tryAgain:
             }
             bool canParseAsLocalFunction = usingKeyword == null;
 
-            var attributes = _pool.Allocate<AttributeListSyntax>();
-            ParseAttributeDeclarations(attributes);
-
-            for (int i = 0; i < attributes.Count; i++)
-            {
-                attributes[i] = CheckFeatureAvailability(attributes[i], MessageID.IDS_FeatureLocalFunctionAttributes);
-            }
+            var attributes = ParseAttributeDeclarations();
 
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
@@ -8117,7 +8111,7 @@ tryAgain:
                 LocalFunctionStatementSyntax localFunction;
                 this.ParseLocalDeclaration(variables,
                     allowLocalFunctions: canParseAsLocalFunction,
-                    attributes: attributes.ToList(),
+                    attributes: attributes,
                     mods: mods.ToList(),
                     type: out type,
                     localFunction: out localFunction);
@@ -8164,7 +8158,6 @@ tryAgain:
             finally
             {
                 _pool.Free(variables);
-                _pool.Free(attributes);
                 _pool.Free(mods);
             }
         }
