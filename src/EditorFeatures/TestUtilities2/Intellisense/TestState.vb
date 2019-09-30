@@ -395,6 +395,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
         End Function
 
+        Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            If Not isAvailable Then
+                Assert.False(isSelected)
+                Assert.Null(expander)
+            Else
+                Assert.NotNull(expander)
+                Assert.Equal(expander.IsSelected, isSelected)
+            End If
+        End Sub
+
+        Public Sub SetCompletionItemExpanderState(isSelected As Boolean)
+            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
+            Dim expander = presenter.GetExpander()
+            Assert.NotNull(expander)
+            presenter.SetExpander(isSelected)
+        End Sub
+
         Public Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
@@ -444,25 +463,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim computedItems = session.GetComputedItems(CancellationToken.None)
             Return computedItems.SuggestionItem IsNot Nothing
         End Function
-
-        Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
-            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
-            Dim expander = presenter.GetExpander()
-            If Not isAvailable Then
-                Assert.False(isSelected)
-                Assert.Null(expander)
-            Else
-                Assert.NotNull(expander)
-                Assert.Equal(expander.IsSelected, isSelected)
-            End If
-        End Sub
-
-        Public Sub SetCompletionItemExpanderState(isSelected As Boolean)
-            Dim presenter = DirectCast(CompletionPresenterProvider.GetOrCreate(Me.TextView), MockCompletionPresenter)
-            Dim expander = presenter.GetExpander()
-            Assert.NotNull(expander)
-            presenter.SetExpander(isSelected)
-        End Sub
 
         Public Function IsSoftSelected() As Boolean
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)

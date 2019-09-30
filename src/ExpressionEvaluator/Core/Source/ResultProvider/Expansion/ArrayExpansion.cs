@@ -91,7 +91,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 formatSpecifiers: Formatter.NoFormatSpecifiers,
                 category: DkmEvaluationResultCategory.Other,
                 flags: element.EvalFlags,
-                evalFlags: inspectionContext.EvaluationFlags);
+                evalFlags: inspectionContext.EvaluationFlags,
+                canFavorite: false,
+                isFavorite: false,
+                supportsFavorites: true);
         }
 
         private int[] GetIndices(int index)
