@@ -203,7 +203,7 @@ namespace RunTests
                     var processOutput = await processInfo.Result;
 
                     // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
-                    // for succesful cases (possibly returning the count of dumps that were written).  Best 
+                    // for successful cases (possibly returning the count of dumps that were written).  Best 
                     // backup is to test for the dump file being present.
                     if (File.Exists(dumpFilePath))
                     {
