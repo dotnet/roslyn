@@ -112,6 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
 
+            if (containingSlot < 0)
+            {
+                // Error case. Diagnostics should already have been produced.
+                return -1;
+            }
+
             VariableIdentifier identifier = new VariableIdentifier(symbol, containingSlot);
             int slot;
 

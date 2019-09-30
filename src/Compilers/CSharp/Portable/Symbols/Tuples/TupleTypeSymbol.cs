@@ -98,6 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypesWithAnnotations, syntax, compilation, diagnostics);
 
+            if (numElements >= RestPosition && diagnostics != null && !underlyingType.IsErrorType())
+            {
+                WellKnownMember wellKnownTupleRest = GetTupleTypeMember(RestPosition, RestPosition);
+                _ = (FieldSymbol)GetWellKnownMemberInType(underlyingType.OriginalDefinition, wellKnownTupleRest, diagnostics, syntax);
+            }
+
             if (diagnostics != null && ((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
             {
                 // Complain about unembeddable types from linked assemblies.

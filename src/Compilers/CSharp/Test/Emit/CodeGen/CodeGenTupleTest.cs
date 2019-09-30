@@ -4466,6 +4466,7 @@ namespace System
 
     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
     {
+        public TRest Rest;
     }
 }
 ";
@@ -20696,9 +20697,40 @@ namespace System
 " + TestResources.NetFX.ValueTuple.tupleattributes_cs;
 
             var comp = CreateCompilation(source,
+                assemblyName: "comp",
                 parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
+                // (8,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             (string I1, 
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 13),
+                // (30,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             (string I1, 
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(30, 13),
+                // (52,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             (string I1, 
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(52, 13),
                 // (70,38): error CS0165: Use of unassigned local variable 'ss'
                 //             System.Console.WriteLine(ss); // should fail
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(70, 38)
@@ -21187,6 +21219,8 @@ namespace System
     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
     {
         public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest) { }
+
+        public TRest Rest;
     }
 }
 public class D
@@ -21267,7 +21301,9 @@ namespace System
     }
     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
     {
-        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest) { }
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest) { Rest = rest; }
+
+        public TRest Rest;
     }
 }
 ";
