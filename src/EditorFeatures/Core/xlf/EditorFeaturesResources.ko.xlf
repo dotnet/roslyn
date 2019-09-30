@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
-        <target state="new">An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</target>
+        <target state="translated">식별자 '{0}'의 인라인 이름 바꾸기 세션이 활성 상태입니다. 추가 옵션에 액세스하려면 인라인 이름 바꾸기를 다시 호출하세요. 언제든지 이름을 바꾸려는 식별자를 계속 편집할 수 있습니다.</target>
         <note>For screenreaders. {0} is the identifier being renamed.</note>
       </trans-unit>
       <trans-unit id="Applying_changes">
@@ -35,6 +35,16 @@
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
         <source>Do you still want to proceed? This may produce broken code.</source>
         <target state="translated">계속하시겠습니까? 계속하면 손상된 코드가 생성될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="translated">가져오지 않은 네임스페이스의 항목</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="translated">확장기</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_method_encountered_the_following_issues">
@@ -89,17 +99,17 @@
       </trans-unit>
       <trans-unit id="Rename_file">
         <source>Rename _file</source>
-        <target state="new">Rename _file</target>
+        <target state="translated">파일 이름 바꾸기(_F)</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
-        <target state="new">Rename _file (type does not match file name)</target>
+        <target state="translated">파일 이름 바꾸기(형식이 파일 이름과 일치하지 않음)(_F)</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_partial_type">
         <source>Rename _file (not allowed on partial types)</source>
-        <target state="new">Rename _file (not allowed on partial types)</target>
+        <target state="translated">파일 이름 바꾸기(부분 형식에서 허용되지 않음)(_F)</target>
         <note>Disabled text status for file rename</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -114,27 +124,27 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="new">The symbol has no base.</target>
+        <target state="translated">기호에 베이스가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggle_Block_Comment">
         <source>Toggle Block Comment</source>
-        <target state="new">Toggle Block Comment</target>
+        <target state="translated">블록 주석 토글</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggle_Line_Comment">
         <source>Toggle Line Comment</source>
-        <target state="new">Toggle Line Comment</target>
+        <target state="translated">줄 주석 토글</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggling_block_comment">
         <source>Toggling block comment...</source>
-        <target state="new">Toggling block comment...</target>
+        <target state="translated">블록 주석을 토글하는 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
-        <target state="new">Toggling line comment...</target>
+        <target state="translated">줄 주석을 토글하는 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -229,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Waiting_for_background_work_to_finish">
         <source>Waiting for background work to finish...</source>
-        <target state="new">Waiting for background work to finish...</target>
+        <target state="translated">백그라운드 작업이 완료될 때까지 대기 중...</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_image_element">
@@ -359,7 +369,7 @@
       </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="new">'{0}' bases</target>
+        <target state="translated">'{0}' 기본</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -939,7 +949,7 @@
       </trans-unit>
       <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
         <source>Can't compare positions from different text snapshots</source>
-        <target state="translated">다른 텍스트 스냅숏에서 위치를 비교할 수 없습니다.</target>
+        <target state="translated">다른 텍스트 스냅샷에서 위치를 비교할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_Doc_Comments_Entity_Reference">
@@ -1141,7 +1151,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="IntelliSense_Commit_Formatting">
         <source>IntelliSense Commit Formatting</source>
-        <target state="translated">Intellisense 커밋 서식</target>
+        <target state="translated">IntelliSense 커밋 서식</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Tracking">

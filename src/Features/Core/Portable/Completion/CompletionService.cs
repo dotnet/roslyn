@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the completions available at the caret position.
         /// </summary>
-        /// <param name="document">The document that completion is occuring within.</param>
+        /// <param name="document">The document that completion is occurring within.</param>
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The triggering action.</param>
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
@@ -90,6 +90,25 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableHashSet<string> roles = null,
             OptionSet options = null,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets the completions available at the caret position, with additional info indicates 
+        /// whether expander items are available.
+        /// </summary>
+        /// <remarks>
+        /// expandItemsAvailable is true when expanded items are returned or can be provided upon request.
+        /// </remarks>
+        internal virtual async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
+             Document document,
+             int caretPosition,
+             CompletionTrigger trigger = default,
+             ImmutableHashSet<string> roles = null,
+             OptionSet options = null,
+             CancellationToken cancellationToken = default)
+        {
+            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
+            return (completionList, false);
+        }
 
         /// <summary>
         /// Gets the description of the item.
