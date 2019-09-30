@@ -4,7 +4,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundAwaitableInfo
     {
-        // PROTOTYPE: Should be a bool field set explicitly in the constructor.
         public bool IsDynamic => GetResult is null;
     }
 }

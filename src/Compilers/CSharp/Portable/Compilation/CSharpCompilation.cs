@@ -1733,7 +1733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
             BoundExpression result;
-            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, syntax, diagnostics);
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
 
             return success &&
                 (result.Type.IsVoidType() || result.Type.SpecialType == SpecialType.System_Int32);

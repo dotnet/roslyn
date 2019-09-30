@@ -1650,8 +1650,6 @@ public class D
 ";
             var comp = CreateCompilation(source);
             var getAwaiter1 = (MethodSymbol)comp.GetMember("C.GetAwaiter");
-            var containingType = getAwaiter1.ContainingType;
-            var syntax = containingType.DeclaringSyntaxReferences[0].GetSyntax();
             var isCompleted1 = (PropertySymbol)comp.GetMember("C.IsCompleted");
             var getResult1 = (MethodSymbol)comp.GetMember("C.GetResult");
             var first = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult1);

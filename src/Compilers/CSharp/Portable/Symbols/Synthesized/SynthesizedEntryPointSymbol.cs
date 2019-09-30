@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // The diagnostics that would be produced here will already have been captured and returned.
                 var droppedBag = DiagnosticBag.GetInstance();
-                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, droppedBag);
+                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, droppedBag);
                 droppedBag.Free();
 
                 Debug.Assert(
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var initializeCall = CreateParameterlessCall(syntax, scriptLocal, initializer);
                 BoundExpression getAwaiterGetResultCall;
-                if (!binder.GetAwaitableExpressionInfo(initializeCall, out getAwaiterGetResultCall, syntax, diagnostics))
+                if (!binder.GetAwaitableExpressionInfo(initializeCall, out _, out _, out _, out getAwaiterGetResultCall, syntax, diagnostics))
                 {
                     return new BoundBlock(
                         syntax: syntax,
