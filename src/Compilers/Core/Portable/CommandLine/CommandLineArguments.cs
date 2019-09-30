@@ -130,6 +130,12 @@ namespace Microsoft.CodeAnalysis
 #nullable restore
 
         /// <summary>
+        /// Options controlling the generation of a SARIF log file containing compilation or
+        /// analysis diagnostics, or null if no log file is desired.
+        /// </summary>
+        public string ErrorLogPath => ErrorLogOptions?.Path;
+
+        /// <summary>
         /// An absolute path of the app.config file or null if not specified.
         /// </summary>
         public string AppConfigPath { get; internal set; }
