@@ -10449,7 +10449,7 @@ class C
         }
 
         [Fact]
-        public void SyntaxOffset_OutVarInSwitchExpresison()
+        public void SyntaxOffset_OutVarInSwitchExpression()
         {
             var source = @"class C { static object G() => N(out var x) switch { null => x switch {1 =>  1, _ => 2 }, _ => 1 }; static object N(out int x) { x = 1; return null; } }";
 

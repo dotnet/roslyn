@@ -6,7 +6,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis
 {
     [CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public class NullablilityInfoTests
+    public class NullabilityInfoTests
     {
         [Fact]
         public void Equality()

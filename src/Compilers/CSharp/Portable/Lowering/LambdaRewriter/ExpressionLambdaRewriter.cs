@@ -665,10 +665,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ExprFactory(isChecked ? "ConvertChecked" : "Convert", expr, _bound.Typeof(type));
         }
 
-        private BoundExpression DelegateCreation(BoundExpression receiver, MethodSymbol method, TypeSymbol delegateType, bool requiresInstanceReciever)
+        private BoundExpression DelegateCreation(BoundExpression receiver, MethodSymbol method, TypeSymbol delegateType, bool requiresInstanceReceiver)
         {
             var nullObject = _bound.Null(_objectType);
-            receiver = requiresInstanceReciever ? nullObject : receiver.Type.IsReferenceType ? receiver : _bound.Convert(_objectType, receiver);
+            receiver = requiresInstanceReceiver ? nullObject : receiver.Type.IsReferenceType ? receiver : _bound.Convert(_objectType, receiver);
 
             var createDelegate = _bound.WellKnownMethod(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, isOptional: true);
             BoundExpression unquoted;
