@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// The solution captured when the debugging session entered run mode (application debugging started),
-        /// or the solution which the last changes commited to the debuggee at the end of edit session were calculated from.
+        /// or the solution which the last changes committed to the debuggee at the end of edit session were calculated from.
         /// The solution reflecting the current state of the modules loaded in the debugee.
         /// </summary>
         internal Solution LastCommittedSolution { get; private set; }
