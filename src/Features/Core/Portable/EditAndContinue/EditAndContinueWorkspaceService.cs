@@ -180,29 +180,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                Document? oldDocument;
-                if (debuggingSession.LastCommittedSolution.ContainsDocument(document.Id))
-                {
-                    oldDocument = await debuggingSession.LastCommittedSolution.GetDocumentAsync(document.Id, cancellationToken).ConfigureAwait(false);
-
-                    // Do not report diagnostics for existing out-of-sync documents.
-                    if (oldDocument == null)
-                    {
-                        return ImmutableArray<Diagnostic>.Empty;
-                    }
-                }
-                else
-                {
-                    oldDocument = null;
-                }
-
-                // The document has not changed while the application is running since the last changes were committed:
-                var editSession = _editSession;
-                if (editSession == null && document == oldDocument)
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
                 // Not a C# or VB project.
                 var project = document.Project;
                 if (!SupportsEditAndContinue(project))
@@ -226,8 +203,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
+                var (oldDocument, oldDocumentState) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, cancellationToken).ConfigureAwait(false);
+                if (oldDocumentState == CommittedSolution.DocumentState.OutOfSync ||
+                    oldDocumentState == CommittedSolution.DocumentState.DesignTimeOnly)
+                {
+                    // Do not report diagnostics for existing out-of-sync documents or design-time-only documents.
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                // The document has not changed while the application is running since the last changes were committed:
+                var editSession = _editSession;
+
                 if (editSession == null)
                 {
+                    if (document == oldDocument)
+                    {
+                        return ImmutableArray<Diagnostic>.Empty;
+                    }
+
                     // Any changes made in loaded, built projects outside of edit session are rude edits (the application is running):
                     var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfNull(newSyntaxTree);
@@ -503,10 +496,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                // Can't determine position of an active statement since the document is out-of-sync with loaded module debug information.
-                var oldPrimaryDocument = await editSession.DebuggingSession.LastCommittedSolution.GetDocumentAsync(baseActiveStatement.PrimaryDocumentId, cancellationToken).ConfigureAwait(false);
+                var (oldPrimaryDocument, _) = await editSession.DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(baseActiveStatement.PrimaryDocumentId, cancellationToken).ConfigureAwait(false);
                 if (oldPrimaryDocument == null)
                 {
+                    // Can't determine position of an active statement if the document is out-of-sync with loaded module debug information.
                     return null;
                 }
 

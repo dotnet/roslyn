@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 if (syncDocuments)
                 {
-                    EditAndContinueWorkspaceServiceTests.MarkAllDocumentsInSync(debuggingSession, Workspace.CurrentSolution);
+                    EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, Workspace.CurrentSolution, CommittedSolution.DocumentState.MatchesDebuggee);
                 }
 
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, baseExceptionRegions.Select(r => r.Spans.IsDefault ? "out-of-sync" : "[" + string.Join(",", r.Spans) + "]"));
 
             // document got synchronized:
-            validator.EditSession.DebuggingSession.LastCommittedSolution.Test_SetDocumentSyncStatus(docs[0], inSync: true);
+            validator.EditSession.DebuggingSession.LastCommittedSolution.Test_SetDocumentState(docs[0], CommittedSolution.DocumentState.MatchesDebuggee);
 
             baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
 

@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 try
                 {
                     var baseActiveStatements = await _editSession.BaseActiveStatements.GetValueAsync(_editSession.CancellationToken).ConfigureAwait(false);
-                    var baseDocument = await _editSession.DebuggingSession.LastCommittedSolution.GetDocumentAsync(document.Id, _editSession.CancellationToken).ConfigureAwait(false);
+                    var (baseDocument, _) = await _editSession.DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, _editSession.CancellationToken).ConfigureAwait(false);
 
                     if (baseDocument != null &&
                         baseActiveStatements.DocumentMap.TryGetValue(document.Id, out var documentActiveStatements) &&
@@ -205,10 +205,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                             continue;
                         }
 
-                        var baseDocument = await lastCommittedSolution.GetDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+                        var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken).ConfigureAwait(false);
                         if (baseDocument == null)
                         {
-                            // Document is out-of-sync.
+                            // Document has been added, is out-of-sync or a design-time-only document.
                             continue;
                         }
 

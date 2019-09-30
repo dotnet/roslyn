@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     ImmutableArray<LinePositionSpan> exceptionRegions;
 
                     // Can't calculate exception regions for active statements in out-of-sync documents.
-                    var document = await DebuggingSession.LastCommittedSolution.GetDocumentAsync(activeStatement.PrimaryDocumentId, cancellationToken).ConfigureAwait(false);
+                    var (document, _) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(activeStatement.PrimaryDocumentId, cancellationToken).ConfigureAwait(false);
                     if (document != null)
                     {
                         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -274,8 +274,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        // Document is either out-of-sync or missing from the baseline.
-                        // If it's missing from the baseline it can't have active statements.
+                        // Document is either out-of-sync, design-time-only or missing from the baseline.
+                        // If it's missing or design-time-only it can't have active statements.
                         hasOutOfSyncDocuments = true;
                         isCovered = false;
                         exceptionRegions = default;
@@ -315,21 +315,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                if (!DebuggingSession.LastCommittedSolution.ContainsDocument(documentId))
+                var (oldDocument, oldDocumentState) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
+                switch (oldDocumentState)
                 {
-                    changedDocuments.Add((Old: null, New: document));
-                    continue;
-                }
+                    case CommittedSolution.DocumentState.DesignTimeOnly:
+                        continue;
 
-                var oldDocument = await DebuggingSession.LastCommittedSolution.GetDocumentAsync(documentId, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
-                if (oldDocument == null)
-                {
-                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee);
-                    outOfSyncDiagnostics.Add(Diagnostic.Create(descriptor, Location.None, new[] { document.FilePath }));
-                    continue;
-                }
+                    case CommittedSolution.DocumentState.OutOfSync:
+                        var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee);
+                        outOfSyncDiagnostics.Add(Diagnostic.Create(descriptor, Location.None, new[] { document.FilePath }));
+                        continue;
 
-                changedDocuments.Add((oldDocument, document));
+                    default:
+                        changedDocuments.Add((oldDocument, document));
+                        break;
+                }
             }
 
             foreach (var documentId in changes.GetAddedDocuments())
