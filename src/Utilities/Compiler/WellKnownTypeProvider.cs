@@ -3,13 +3,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using Analyzer.Utilities;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
+namespace Analyzer.Utilities
 {
     /// <summary>
-    /// Provides and caches well known types in a compilation for <see cref="DataFlowAnalysis"/>.
+    /// Provides and caches well known types in a compilation.
     /// </summary>
     public class WellKnownTypeProvider
     {
@@ -30,7 +30,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             GenericTask = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericTask);
             CollectionTypes = GetWellKnownCollectionTypes();
             SerializationInfo = GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
-            GenericIEquatable = GetTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
+            Array = GetTypeBySpecialType(SpecialType.System_Array);
+            String = GetTypeBySpecialType(SpecialType.System_String);
+            Object = GetTypeBySpecialType(SpecialType.System_Object);
+            IntPtr = GetTypeBySpecialType(SpecialType.System_IntPtr);
+            UIntPtr = GetTypeBySpecialType(SpecialType.System_UIntPtr);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation)
@@ -90,6 +94,31 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public INamedTypeSymbol GenericIEquatable { get; }
 
         /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_Array"/>
+        /// </summary>
+        public INamedTypeSymbol Array { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_String"/>
+        /// </summary>
+        public INamedTypeSymbol String { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_Object"/>
+        /// </summary>
+        public INamedTypeSymbol Object { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_IntPtr"/>
+        /// </summary>
+        public INamedTypeSymbol IntPtr { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_UIntPtr"/>
+        /// </summary>
+        public INamedTypeSymbol UIntPtr { get; }
+
+        /// <summary>
         /// Mapping of full name to <see cref="INamedTypeSymbol"/>.
         /// </summary>
         private readonly ConcurrentDictionary<string, INamedTypeSymbol> _fullNameToTypeMap;
@@ -108,9 +137,39 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return namedTypeSymbol != null;
         }
 
-        private INamedTypeSymbol GetTypeByMetadataName(string fullTypeName)
+        /// <summary>
+        /// Gets a type by its full type name.
+        /// </summary>
+        /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
+        /// <returns>The <see cref="INamedTypeSymbol"/> if found, null otherwise.</returns>
+        public INamedTypeSymbol GetTypeByMetadataName(string fullTypeName)
         {
             TryGetTypeByMetadataName(fullTypeName, out INamedTypeSymbol namedTypeSymbol);
+            return namedTypeSymbol;
+        }
+
+        /// <summary>
+        /// Attempts to get the type by its special type.
+        /// </summary>
+        /// <param name="specialType">ID of the special runtime type.</param>
+        /// <param name="namedTypeSymbol">Named type symbol, if any.</param>
+        /// <returns>True if found in the compilation, false otherwise.</returns>
+        private bool TryGetTypeBySpecialType(SpecialType specialType, out INamedTypeSymbol namedTypeSymbol)
+        {
+            namedTypeSymbol = _fullNameToTypeMap.GetOrAdd(
+                specialType.ToString(),
+                (string s) => Compilation.GetSpecialType((SpecialType)Enum.Parse(typeof(SpecialType), s)));
+            return namedTypeSymbol != null;
+        }
+
+        /// <summary>
+        /// Gets a type by its special type.
+        /// </summary>
+        /// <param name="specialType">ID of the special runtime type.</param>
+        /// <returns>The <see cref="INamedTypeSymbol"/> if found, null otherwise.</returns>
+        private INamedTypeSymbol GetTypeBySpecialType(SpecialType specialType)
+        {
+            TryGetTypeBySpecialType(specialType, out INamedTypeSymbol namedTypeSymbol);
             return namedTypeSymbol;
         }
 

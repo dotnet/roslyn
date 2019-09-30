@@ -13,7 +13,6 @@
     <HasIOperation>true</HasIOperation>
   </PropertyGroup>
   <ItemGroup Condition="'$(HasIOperation)' == 'true'">
-    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableHashSetExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PooledHashSetExtensions.cs" />
   </ItemGroup>
@@ -75,8 +74,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)FxCopWellKnownDiagnosticTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnusedValue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BoundedCache.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WordParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WordParserOptions.cs" />
   </ItemGroup>
