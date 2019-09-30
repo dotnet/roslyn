@@ -409,11 +409,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
+        private void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
         {
-            foreach (var attrList in attributes)
+            var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfoOpt(this.DeclaringCompilation);
+            if (diagnosticInfo is object)
             {
-                diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
+                foreach (var attrList in attributes)
+                {
+                    diagnostics.Add(diagnosticInfo, attrList.Location);
+                }
             }
         }
 

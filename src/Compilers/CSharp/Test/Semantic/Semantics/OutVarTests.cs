@@ -32629,9 +32629,8 @@ class Test : System.Attribute
     public bool p2 {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
-                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (18,19): error CS0103: The name 'x7' does not exist in the current context
                 //             Dummy(x7, p1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 19),
@@ -32728,9 +32727,8 @@ class Test : System.Attribute
     public Test(bool p1, bool p2) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
-                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (18,19): error CS0103: The name 'x7' does not exist in the current context
                 //             Dummy(x7, p1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 19),
@@ -32828,9 +32826,8 @@ class Test : System.Attribute
     public bool p2 {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
-                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (18,19): error CS0103: The name 'x7' does not exist in the current context
                 //             Dummy(x7, p1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 19),
@@ -32927,9 +32924,8 @@ class Test : System.Attribute
     public Test(bool p1, bool p2) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
-                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (18,19): error CS0103: The name 'x7' does not exist in the current context
                 //             Dummy(x7, p1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(18, 19),
@@ -33013,9 +33009,8 @@ class Test : System.Attribute
     public bool p {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
-                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (10,44): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             [Test(p = TakeOutParam(out int x2) && x1 > 0 && x2 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(10, 44)
@@ -33070,9 +33065,8 @@ class Test : System.Attribute
     public Test(bool p) {}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl &&
-                                                    d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_BadAttributeArgument).Verify(
                 // (10,40): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             [Test(TakeOutParam(out int x2) && x1 > 0 && x2 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(10, 40)

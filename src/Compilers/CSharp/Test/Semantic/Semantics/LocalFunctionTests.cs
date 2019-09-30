@@ -333,7 +333,7 @@ class C
         void local<[X]T>() {}
     }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
 
@@ -351,9 +351,6 @@ class C
             Assert.Null(info.Symbol);
 
             comp.VerifyDiagnostics(
-                // (6,20): error CS8205: Attributes are not allowed on local function parameters or type parameters
-                //         void local<[X]T>() {}
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[X]").WithLocation(6, 20),
                 // (6,21): error CS0246: The type or namespace name 'XAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //         void local<[X]T>() {}
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("XAttribute").WithLocation(6, 21),
@@ -508,10 +505,13 @@ class C
 
         [return: A]
         void local2() { }
+
+        void local3([A] int i) { }
+
+        void local4<[A] T>() { }
     }
 }
 ";
-            // PROTOTYPE: attributes on local function type parameters and parameters should give a similar error.
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -526,7 +526,19 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[return: A]").WithArguments("local function attributes").WithLocation(12, 9),
                 // (13,14): warning CS8321: The local function 'local2' is declared but never used
                 //         void local2() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(13, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(13, 14),
+                // (15,14): warning CS8321: The local function 'local3' is declared but never used
+                //         void local3([A] int i) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local3").WithArguments("local3").WithLocation(15, 14),
+                // (15,21): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         void local3([A] int i) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(15, 21),
+                // (17,14): warning CS8321: The local function 'local4' is declared but never used
+                //         void local4<[A] T>() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local4").WithArguments("local4").WithLocation(17, 14),
+                // (17,21): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         void local4<[A] T>() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(17, 21));
         }
 
         [Fact]
@@ -857,7 +869,7 @@ class C
     {
         void Local<[A]T, [CLSCompliant]U>() { }
     }
-}");
+}", parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A]T, [CLSCompliant]U>() { }
@@ -868,12 +880,6 @@ class C
                 // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27),
-                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local<[A]T, [CLSCompliant]U>() { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A]").WithLocation(7, 20),
-                // (7,26): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local<[A]T, [CLSCompliant]U>() { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 26),
                 // (7,14): warning CS8321: The local function 'Local' is declared but never used
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(7, 14));
@@ -938,14 +944,8 @@ class C
     {
         void Local([A]int x, [CLSCompliant]int y) { }
     }
-}");
+}", parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local([A]int x, [CLSCompliant]int y) { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A]").WithLocation(7, 20),
-                // (7,30): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local([A]int x, [CLSCompliant]int y) { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 30),
                 // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
@@ -1020,13 +1020,10 @@ class C
         void Local<[A, B, CLSCompliant, D]T>() { }
         Local<int>();
     }
-}");
+}", options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
-                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B, CLSCompliant, D]").WithLocation(7, 20),
                 // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
@@ -1080,16 +1077,10 @@ class C
         void Local([A, B]int x, [CLSCompliant]string s = """") { }
         Local(0);
     }
-}");
+}", options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
-                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B]").WithLocation(7, 20),
-                // (7,33): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 33),
                 // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
@@ -1665,11 +1656,8 @@ class C
         Console.Write(' ');
         CallerMemberName();
     }
-}");
-            comp.VerifyDiagnostics(
-                // (8,31): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void CallerMemberName([CallerMemberName] string s = null)
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CallerMemberName]").WithLocation(8, 31));
+}", parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1691,10 +1679,7 @@ class Program
     }
 }
 ";
-            VerifyDiagnostics(source,
-                // (9,31): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void CallerMemberName([CallerMemberName] int s = 2)
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CallerMemberName]").WithLocation(9, 31),
+            CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                 // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //         void CallerMemberName([CallerMemberName] int s = 2)
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32));
@@ -3793,8 +3778,8 @@ class Test : System.Attribute
     public bool p {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
-            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl).Verify(
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation.GetDiagnostics().Verify(
                 // (10,23): error CS0103: The name 'b2' does not exist in the current context
                 //             [Test(p = b2)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23),
