@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Next
         End Sub
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ValidTagsDuringSimpleRename() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -770,7 +770,7 @@ class C
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -909,7 +909,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_NeedsEscaping() As Task
             Using workspace = CreateWorkspaceWithWaiter(
