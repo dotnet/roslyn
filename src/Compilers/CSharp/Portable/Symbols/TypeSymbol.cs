@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///  - If no symbol is returned for <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> true. A subsequent call with
         ///    <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> might return a symbol, but that symbol guaranteed to be from an interface.
         ///  - If the first request is done with <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> false. A subsequent call
-        ///    is guaranted to return the same result regardless of <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> value.
+        ///    is guaranteed to return the same result regardless of <paramref name="ignoreImplementationInInterfacesIfResultIsNotReady"/> value.
         /// </param>
         protected SymbolAndDiagnostics FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(Symbol interfaceMember, bool ignoreImplementationInInterfacesIfResultIsNotReady = false)
         {

@@ -15,13 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal abstract partial class AbstractOleCommandTarget : IOleCommandTarget
     {
-        private const VSConstants.VSStd2KCmdID CmdidToggleConsumeFirstMode = (VSConstants.VSStd2KCmdID)2303;
-        private const VSConstants.VSStd2KCmdID CmdidNextHighlightedReference = (VSConstants.VSStd2KCmdID)2400;
-        private const VSConstants.VSStd2KCmdID CmdidPreviousHighlightedReference = (VSConstants.VSStd2KCmdID)2401;
-        private const VSConstants.VSStd2KCmdID CmdidContextMenuViewCallHierarchy = (VSConstants.VSStd2KCmdID)2301;
-
         private readonly IWpfTextView _wpfTextView;
-        private readonly ICommandHandlerServiceFactory _commandHandlerServiceFactory;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly System.IServiceProvider _serviceProvider;
 
@@ -33,17 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public AbstractOleCommandTarget(
             IWpfTextView wpfTextView,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
             System.IServiceProvider serviceProvider)
         {
             Contract.ThrowIfNull(wpfTextView);
-            Contract.ThrowIfNull(commandHandlerServiceFactory);
             Contract.ThrowIfNull(editorAdaptersFactory);
             Contract.ThrowIfNull(serviceProvider);
 
             _wpfTextView = wpfTextView;
-            _commandHandlerServiceFactory = commandHandlerServiceFactory;
             _editorAdaptersFactory = editorAdaptersFactory;
             _serviceProvider = serviceProvider;
         }
@@ -62,21 +53,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         /// <summary>
-        /// The command handler service to use for dispatching commands. This is set by
-        /// the derived classes to this class.
-        /// </summary>
-        protected ICommandHandlerService CurrentHandlers { get; set; }
-
-        /// <summary>
         /// The next command target in the chain. This is set by the derived implementation of this
         /// class.
         /// </summary>
         protected internal IOleCommandTarget NextCommandTarget { get; set; }
-
-        protected internal void RefreshCommandFilters()
-        {
-            this.CurrentHandlers = _commandHandlerServiceFactory.GetService(WpfTextView);
-        }
 
         internal AbstractOleCommandTarget AttachToVsTextView()
         {
@@ -86,7 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             Marshal.ThrowExceptionForHR(returnValue);
             Contract.ThrowIfNull(nextCommandTarget);
 
-            CurrentHandlers = _commandHandlerServiceFactory.GetService(WpfTextView);
             NextCommandTarget = nextCommandTarget;
 
             return this;

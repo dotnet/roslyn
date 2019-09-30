@@ -156,9 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
-                                diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
+                                if (!other.Equals(@interface, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                                {
+                                    diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, @interface, this);
+                                }
                             }
-                            else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames))
+                            else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
                             }
@@ -458,10 +461,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Interface:
                         foreach (var t in localInterfaces)
                         {
-                            if (TypeSymbol.Equals(t, baseType, TypeCompareKind.ConsiderEverything))
+                            if (t.Equals(baseType, TypeCompareKind.ConsiderEverything))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceInBaseList, location, baseType);
-                                continue;
+                            }
+                            else if (t.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                            {
+                                // duplicates with ?/! differences are reported later, we report local differences between oblivious and ?/! here
+                                diagnostics.Add(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, location, baseType, this);
                             }
                         }
 

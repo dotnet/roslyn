@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             else if (invocationExpression.Expression is SimpleNameSyntax &&
                 invocationExpression.IsInStaticContext())
             {
-                methodGroup = methodGroup.Where(m => m.IsStatic);
+                // We always need to include local functions regardless of whether they are static.
+                methodGroup = methodGroup.Where(m => m.IsStatic || m is IMethodSymbol { MethodKind: MethodKind.LocalFunction });
             }
 
             var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughType: throughType)).ToImmutableArrayOrEmpty();

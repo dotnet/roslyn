@@ -5167,7 +5167,7 @@ tryAgain:
                             //
                             //      X < Y ? Z : W
                             //
-                            // We'd see a nullable type here, but htis is definitely not a type arg list.
+                            // We'd see a nullable type here, but this is definitely not a type arg list.
 
                             break;
 

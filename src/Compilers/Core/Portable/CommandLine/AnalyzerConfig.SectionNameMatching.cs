@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis
             // Try to compile the nested <path-list>
             while (TryCompilePathList(ref lexer, sb, parsingChoice: true, numberRangePairs))
             {
-                // If we've succesfully compiled a <path-list> the last token should
+                // If we've successfully compiled a <path-list> the last token should
                 // have been a ',' or a '}'
                 char lastChar = lexer[lexer.Position - 1];
                 if (lastChar == ',')

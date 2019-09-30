@@ -39,13 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var diagnostics = await _diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(document, span, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            var diagnostic = diagnostics?.FirstOrDefault();
-            if (diagnostic != null)
-            {
-                span = diagnostic.TextSpan;
-            }
 
             var codeActionParams = new LSP.CodeActionParams
             {

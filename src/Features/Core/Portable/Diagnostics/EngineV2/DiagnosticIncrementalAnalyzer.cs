@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -115,14 +116,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 var handleActiveFile = true;
+                var documentSet = PooledHashSet<DocumentId>.GetInstance();
+
                 foreach (var stateSet in stateSets)
                 {
                     var projectIds = stateSet.GetProjectsWithDiagnostics();
                     foreach (var projectId in projectIds)
                     {
-                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, stateSet.GetDocumentsWithDiagnostics(projectId), handleActiveFile, raiseEvents);
+                        stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
+                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentSet, handleActiveFile, raiseEvents);
+                        documentSet.Clear();
                     }
                 }
+
+                documentSet.Free();
             });
         }
 
@@ -131,6 +138,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 var handleActiveFile = true;
+                var documentSet = PooledHashSet<DocumentId>.GetInstance();
+
                 foreach (var stateSet in stateSets)
                 {
                     // PERF: don't fire events for ones that we dont have any diagnostics on
@@ -139,8 +148,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    RaiseProjectDiagnosticsRemoved(stateSet, projectId, stateSet.GetDocumentsWithDiagnostics(projectId), handleActiveFile, raiseEvents);
+                    stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
+                    RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentSet, handleActiveFile, raiseEvents);
+                    documentSet.Clear();
                 }
+
+                documentSet.Free();
             });
         }
 

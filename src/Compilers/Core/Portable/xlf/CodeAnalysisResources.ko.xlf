@@ -21,7 +21,7 @@
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
-        <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
+        <target state="translated">표시되지 않는 진단 ID '{0}'이(가) 지정된 비표시 설명자의 표시하지 않을 수 있는 ID '{1}'과(와) 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -41,7 +41,7 @@
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
         <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
-        <target state="new">Non-reported diagnostic with ID '{0}' cannot be suppressed.</target>
+        <target state="translated">ID가 '{0}'인 보고되지 않는 진단은 표시되지 않도록 설정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -86,7 +86,7 @@
       </trans-unit>
       <trans-unit id="SupportedSuppressionsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</target>
+        <target state="translated">'{0}' 분석기의 'SupportedSuppressions'에 null 설명자가 포함되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
@@ -96,17 +96,17 @@
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">
         <source>Programmatic suppression of an analyzer diagnostic</source>
-        <target state="new">Programmatic suppression of an analyzer diagnostic</target>
+        <target state="translated">분석기 진단의 프로그래밍 방식 비표시</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
         <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
+        <target state="translated">SuppressionDescriptor에 null, 빈 문자열 및 공백만 포함된 문자열이 아닌 ID가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
-        <target state="new">If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</target>
+        <target state="translated">튜플 요소 nullable 주석이 지정된 경우, 주석 수는 튜플의 카디널리티와 일치해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -241,7 +241,7 @@
       </trans-unit>
       <trans-unit id="UnsupportedSuppressionReported">
         <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
-        <target state="new">Reported suppression with ID '{0}' is not supported by the suppressor.</target>
+        <target state="translated">ID가 '{0}'인 보고된 비표시가 억제 장치에서 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">

@@ -407,8 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // Ignore nullability when comparing constraints.
-            if (constraintTypes.Contains(c => type.Equals(c, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)))
+            if (constraintTypes.Contains(c => type.Equals(c, TypeCompareKind.AllIgnoreOptions)))
             {
                 // "Duplicate constraint '{0}' for type parameter '{1}'"
                 Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type.Type.SetUnknownNullabilityForReferenceTypes(), typeParameterName);

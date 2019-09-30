@@ -1,11 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -16,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
+
+            AddFormatSuppressOperations(list, node);
 
             AddInitializerSuppressOperations(list, node);
 
@@ -284,6 +290,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var lastToken = statementNode.GetLastToken(includeZeroWidth: true);
 
             AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
+        }
+
+        private void AddFormatSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        {
+            if (!node.ContainsDirectives)
+            {
+                return;
+            }
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (!child.IsToken)
+                {
+                    continue;
+                }
+
+                ProcessTriviaList(list, child.AsToken().LeadingTrivia);
+                ProcessTriviaList(list, child.AsToken().TrailingTrivia);
+            }
+
+            return;
+
+            // Local functions
+            static void ProcessTriviaList(List<SuppressOperation> list, SyntaxTriviaList triviaList)
+            {
+                foreach (var trivia in triviaList)
+                {
+                    ProcessTrivia(list, trivia);
+                }
+            }
+
+            static void ProcessTrivia(List<SuppressOperation> list, SyntaxTrivia trivia)
+            {
+                if (!(trivia.HasStructure))
+                {
+                    return;
+                }
+
+                ProcessStructuredTrivia(list, trivia.GetStructure());
+            }
+
+            static void ProcessStructuredTrivia(List<SuppressOperation> list, SyntaxNode structure)
+            {
+                if (!(structure is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
+                {
+                    return;
+                }
+
+                if (!IsFormatDirective(pragmaWarningDirectiveTrivia, SyntaxKind.DisableKeyword))
+                {
+                    return;
+                }
+
+                var startToken = pragmaWarningDirectiveTrivia.GetLastToken(includeZeroWidth: true, includeDirectives: true);
+
+                var endDirective = pragmaWarningDirectiveTrivia.GetNextDirective(trivia => IsFormatDirective(trivia, SyntaxKind.RestoreKeyword));
+                var endToken = endDirective is null
+                    ? ((CompilationUnitSyntax)structure.SyntaxTree.GetRoot(CancellationToken.None)).EndOfFileToken
+                    : endDirective.GetFirstToken(includeDirectives: true);
+
+                Debug.Assert(!startToken.IsKind(SyntaxKind.None) && !endToken.IsKind(SyntaxKind.None));
+                var textSpan = TextSpan.FromBounds(startToken.Span.End, endToken.SpanStart);
+                list.Add(new SuppressOperation(startToken, endToken, textSpan, SuppressOption.DisableFormatting));
+            }
+        }
+
+        private static bool IsFormatDirective(DirectiveTriviaSyntax trivia, SyntaxKind disableOrRestoreKeyword)
+        {
+            if (!(trivia is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
+            {
+                return false;
+            }
+
+            if (!pragmaWarningDirectiveTrivia.DisableOrRestoreKeyword.IsKind(disableOrRestoreKeyword))
+            {
+                return false;
+            }
+
+            foreach (var errorCode in pragmaWarningDirectiveTrivia.ErrorCodes)
+            {
+                if (!(errorCode is IdentifierNameSyntax identifierName))
+                {
+                    continue;
+                }
+
+                if (identifierName.Identifier.ValueText.Equals(FormattingDiagnosticIds.FormatDocumentControlDiagnosticId)
+                    || identifierName.Identifier.ValueText.Equals(FormattingDiagnosticIds.FormattingDiagnosticId))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
