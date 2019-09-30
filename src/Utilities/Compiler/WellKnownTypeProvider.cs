@@ -30,11 +30,11 @@ namespace Analyzer.Utilities
             GenericTask = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericTask);
             CollectionTypes = GetWellKnownCollectionTypes();
             SerializationInfo = GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
-            Array = GetTypeBySpecialType(SpecialType.System_Array);
-            String = GetTypeBySpecialType(SpecialType.System_String);
-            Object = GetTypeBySpecialType(SpecialType.System_Object);
-            IntPtr = GetTypeBySpecialType(SpecialType.System_IntPtr);
-            UIntPtr = GetTypeBySpecialType(SpecialType.System_UIntPtr);
+            SystemArray = GetTypeBySpecialType(SpecialType.System_Array);
+            SystemString = GetTypeBySpecialType(SpecialType.System_String);
+            SystemObject = GetTypeBySpecialType(SpecialType.System_Object);
+            SystemIntPtr = GetTypeBySpecialType(SpecialType.System_IntPtr);
+            SystemUIntPtr = GetTypeBySpecialType(SpecialType.System_UIntPtr);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation)
@@ -96,27 +96,27 @@ namespace Analyzer.Utilities
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_Array"/>
         /// </summary>
-        public INamedTypeSymbol Array { get; }
+        public INamedTypeSymbol SystemArray { get; }
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_String"/>
         /// </summary>
-        public INamedTypeSymbol String { get; }
+        public INamedTypeSymbol SystemString { get; }
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_Object"/>
         /// </summary>
-        public INamedTypeSymbol Object { get; }
+        public INamedTypeSymbol SystemObject { get; }
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_IntPtr"/>
         /// </summary>
-        public INamedTypeSymbol IntPtr { get; }
+        public INamedTypeSymbol SystemIntPtr { get; }
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_UIntPtr"/>
         /// </summary>
-        public INamedTypeSymbol UIntPtr { get; }
+        public INamedTypeSymbol SystemUIntPtr { get; }
 
         /// <summary>
         /// Mapping of full name to <see cref="INamedTypeSymbol"/>.
