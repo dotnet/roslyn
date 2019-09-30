@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
                 var optionSet = project.Solution.Workspace.Options;
                 var hasMultipleOptions = codeStyleOptions.Length > 1;
-                foreach (var (optionKey, codeStyleOption, editorConfigLocation) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
+                foreach (var (optionKey, codeStyleOption, editorConfigLocation, perLanguageOption) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
                 {
-                    var topLevelAction = GetCodeActionForCodeStyleOption(optionKey, codeStyleOption, editorConfigLocation, diagnostic, optionSet, hasMultipleOptions);
+                    var topLevelAction = GetCodeActionForCodeStyleOption(optionKey, codeStyleOption, editorConfigLocation, diagnostic, perLanguageOption, optionSet, hasMultipleOptions);
                     if (topLevelAction != null)
                     {
                         nestedActions.Add(topLevelAction);
@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 ICodeStyleOption codeStyleOption,
                 IEditorConfigStorageLocation2 editorConfigLocation,
                 Diagnostic diagnostic,
+                bool isPerLanguage,
                 OptionSet optionSet,
                 bool hasMultiplOptions)
             {
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                         nestedActions.Add(
                             new SolutionChangeAction(
                                 parts.optionValue,
-                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, parts.optionSeverity, diagnostic, project, cancellationToken)));
+                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, parts.optionSeverity, diagnostic, isPerLanguage, project, cancellationToken)));
                     }
                 }
             }
