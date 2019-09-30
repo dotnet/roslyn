@@ -5,12 +5,27 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
     internal static class ImmutableArrayExtensions
     {
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ImmutableArrayProxy<T>
+        {
+            internal T[]? MutableArray;
+        }
+
+        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>(ref T[]? array)
+        {
+            var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
+            array = null;
+            return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
+        }
+
         internal static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T>? equalityComparer)
             => items.IndexOf(item, 0, equalityComparer) >= 0;
 

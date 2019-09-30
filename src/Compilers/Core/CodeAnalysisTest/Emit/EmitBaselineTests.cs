@@ -20,17 +20,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var peReader = peModule.Module.PEReaderOpt;
 
             var mdBytes = peReader.GetMetadata().GetContent();
-            var mdBytesHandle = GCHandle.Alloc(mdBytes.DangerousGetUnderlyingArray(), GCHandleType.Pinned);
-            var mdModule = ModuleMetadata.CreateFromMetadata(mdBytesHandle.AddrOfPinnedObject(), mdBytes.Length);
+            unsafe
+            {
+                fixed (byte* ptr = mdBytes.AsSpan())
+                {
+                    var mdModule = ModuleMetadata.CreateFromMetadata((IntPtr)ptr, mdBytes.Length);
 
-            Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(null, debugInfoProvider));
-            Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(peModule, null));
-            Assert.Throws<ArgumentException>(() => EmitBaseline.CreateInitialBaseline(mdModule, debugInfoProvider));
+                    Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(null, debugInfoProvider));
+                    Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(peModule, null));
+                    Assert.Throws<ArgumentException>(() => EmitBaseline.CreateInitialBaseline(mdModule, debugInfoProvider));
 
-            Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(null, debugInfoProvider, localSigProvider, true));
-            Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(peModule, null, localSigProvider, true));
-            Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(mdModule, debugInfoProvider, null, true));
-            Assert.NotNull(EmitBaseline.CreateInitialBaseline(mdModule, debugInfoProvider, localSigProvider, true));
+                    Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(null, debugInfoProvider, localSigProvider, true));
+                    Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(peModule, null, localSigProvider, true));
+                    Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(mdModule, debugInfoProvider, null, true));
+                    Assert.NotNull(EmitBaseline.CreateInitialBaseline(mdModule, debugInfoProvider, localSigProvider, true));
+                }
+            }
         }
     }
 }
