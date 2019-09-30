@@ -162,11 +162,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         // User Types - * and User Members - * are ordered after Keyword
         // so that, in the case both classifications are applied to the same
-        // span, the styling for the identifier type would be choosen.
+        // span, the styling for the identifier type would be chosen.
 
         // User Types - * and User Members - * are ordered before Symbol - Static 
-        // so that the font styling choosen for static symbols would override the
-        // styling choosen for specific identifier types.
+        // so that the font styling chosen for static symbols would override the
+        // styling chosen for specific identifier types.
         #region User Types - Classes
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ClassName)]
