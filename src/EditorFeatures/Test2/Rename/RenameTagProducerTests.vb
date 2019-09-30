@@ -108,6 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Skip("https://github.com/dotnet/roslyn/issues/29483")>
         Public Async Function ValidTagsDuringSimpleRename() As Task
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
@@ -772,6 +773,7 @@ class C
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
+        <Skip("https://github.com/dotnet/roslyn/issues/29483")>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -910,6 +912,7 @@ End Class
         End Function
 
         <WpfFact>
+        <Skip("https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_NeedsEscaping() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1358,6 +1361,7 @@ namespace N
         <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38555")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
+        <Skip("https://github.com/dotnet/roslyn/issues/29483")>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans() As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
