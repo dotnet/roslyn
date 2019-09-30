@@ -7,11 +7,13 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10231,7 +10233,7 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter });
+                matchingFilters: new List<CompletionFilter> { FilterSet.FieldFilter, FilterSet.TargetTypedFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10250,7 +10252,7 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter });
+                matchingFilters: new List<CompletionFilter> { FilterSet.FieldFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10268,7 +10270,7 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "GetHashCode",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.MethodFilter });
+                matchingFilters: new List<CompletionFilter> { FilterSet.MethodFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
@@ -10286,11 +10288,11 @@ class AnotherBuilder
 }";
             await VerifyItemExistsAsync(
                 markup, "c",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.LocalAndParameterFilter, CompletionItemFilter.TargetTypedFilter });
+                matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter, FilterSet.TargetTypedFilter });
 
             await VerifyItemExistsAsync(
                 markup, "C",
-                matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.ClassFilter });
+                matchingFilters: new List<CompletionFilter> { FilterSet.ClassFilter });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

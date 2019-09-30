@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
@@ -17,11 +16,10 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
 {
-    internal abstract class AbstractExtractMethodCommandHandler : VSCommanding.ICommandHandler<ExtractMethodCommandArgs>
+    internal abstract class AbstractExtractMethodCommandHandler : ICommandHandler<ExtractMethodCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferUndoManagerProvider _undoManager;
@@ -42,22 +40,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         }
         public string DisplayName => EditorFeaturesResources.Extract_Method;
 
-        public VSCommanding.CommandState GetCommandState(ExtractMethodCommandArgs args)
+        public CommandState GetCommandState(ExtractMethodCommandArgs args)
         {
             var spans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
             if (spans.Count(s => s.Length > 0) != 1)
             {
-                return VSCommanding.CommandState.Unspecified;
+                return CommandState.Unspecified;
             }
 
             if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
                 !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
                 !args.SubjectBuffer.SupportsRefactorings())
             {
-                return VSCommanding.CommandState.Unspecified;
+                return CommandState.Unspecified;
             }
 
-            return VSCommanding.CommandState.Available;
+            return CommandState.Available;
         }
 
         public bool ExecuteCommand(ExtractMethodCommandArgs args, CommandExecutionContext context)

@@ -14,7 +14,6 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' <summary>
@@ -23,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' <remarks>This particular command filter acts as a "wrapper" around any other command, as it
     ''' wishes to invoke the commit after whatever processed the enter is done doing what it's
     ''' doing.</remarks>
-    <Export(GetType(VSCommanding.ICommandHandler))>
+    <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.Commit)>
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>
@@ -76,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Using
         End Sub
 
-        Public Function GetCommandState(args As FormatDocumentCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of FormatDocumentCommandArgs).GetCommandState
+        Public Function GetCommandState(args As FormatDocumentCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of FormatDocumentCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
@@ -108,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             'We don't call nextHandler, since we have handled this command.
         End Sub
 
-        Public Function GetCommandState(args As FormatSelectionCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of FormatSelectionCommandArgs).GetCommandState
+        Public Function GetCommandState(args As FormatSelectionCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of FormatSelectionCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
@@ -207,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return False
         End Function
 
-        Public Function GetCommandState(args As ReturnKeyCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).GetCommandState
+        Public Function GetCommandState(args As ReturnKeyCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of ReturnKeyCommandArgs).GetCommandState
             ' We don't make any decision if the enter key is allowed; we just forward onto the next handler
             Return nextHandler()
         End Function
@@ -252,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Using
         End Sub
 
-        Public Function GetCommandState(args As PasteCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of PasteCommandArgs).GetCommandState
+        Public Function GetCommandState(args As PasteCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of PasteCommandArgs).GetCommandState
             Return nextHandler()
         End Function
 
@@ -273,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             nextHandler()
         End Sub
 
-        Public Function GetCommandState(args As SaveCommandArgs, nextHandler As Func(Of VSCommanding.CommandState)) As VSCommanding.CommandState Implements IChainedCommandHandler(Of SaveCommandArgs).GetCommandState
+        Public Function GetCommandState(args As SaveCommandArgs, nextHandler As Func(Of CommandState)) As CommandState Implements IChainedCommandHandler(Of SaveCommandArgs).GetCommandState
             Return nextHandler()
         End Function
     End Class

@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
             new HashSet<AbstractTableDataSourceFindUsagesContext>();
-        private readonly ImmutableArray<AbstractCustomColumnDefinition> _customColumns;
+        private readonly ImmutableArray<ITableColumnDefinition> _customColumns;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                   exportProvider.GetExportedValue<ClassificationTypeMap>(),
                   exportProvider.GetExportedValue<IEditorFormatMapService>(),
                   exportProvider.GetExportedValue<IClassificationFormatMapService>(),
-                  exportProvider.GetExportedValues<ITableColumnDefinition>().OfType<AbstractCustomColumnDefinition>())
+                  exportProvider.GetExportedValues<ITableColumnDefinition>())
         {
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
-            IEnumerable<AbstractCustomColumnDefinition> columns)
+            IEnumerable<ITableColumnDefinition> columns)
             : base(threadingContext)
         {
             _workspace = workspace;
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             _customColumns = columns.ToImmutableArray();
         }
 
-        private static IEnumerable<AbstractCustomColumnDefinition> GetCustomColumns(IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
+        private static IEnumerable<ITableColumnDefinition> GetCustomColumns(IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
         {
             foreach (var column in columns)
             {
@@ -105,14 +105,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 //       that implements ITableColumnDefinition, which will cause unwanted assembly loads.
                 switch (column.Metadata.Name)
                 {
-                    case FindUsagesValueUsageInfoColumnDefinition.ColumnName:
+                    case StandardTableKeyNames2.SymbolKind:
                     case ContainingTypeColumnDefinition.ColumnName:
                     case ContainingMemberColumnDefinition.ColumnName:
-                        if (column.Value is AbstractCustomColumnDefinition customColumn)
-                        {
-                            yield return customColumn;
-                        }
-
+                        yield return column.Value;
                         break;
                 }
             }

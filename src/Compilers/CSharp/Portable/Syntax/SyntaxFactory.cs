@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a syntax node for a priliminary element within a xml documentation comment.
+        /// Creates a syntax node for a preliminary element within a xml documentation comment.
         /// </summary>
         public static XmlEmptyElementSyntax XmlPreliminaryElement()
         {

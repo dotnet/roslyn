@@ -11,11 +11,10 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 {
-    internal abstract class AbstractExtractInterfaceCommandHandler : VSCommanding.ICommandHandler<ExtractInterfaceCommandArgs>
+    internal abstract class AbstractExtractInterfaceCommandHandler : ICommandHandler<ExtractInterfaceCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
 
@@ -26,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
         public string DisplayName => EditorFeaturesResources.Extract_Interface;
 
-        public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args)
-            => IsAvailable(args.SubjectBuffer, out _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+        public CommandState GetCommandState(ExtractInterfaceCommandArgs args)
+            => IsAvailable(args.SubjectBuffer, out _) ? CommandState.Available : CommandState.Unspecified;
 
         public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
         {

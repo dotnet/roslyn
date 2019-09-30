@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 isEnabledByDefault:=True)
             Dim diagnosticItem = New LegacyDiagnosticItem(Nothing, descriptor, ReportDiagnostic.Error, Nothing)
 
-            Dim handler = New AnalyzersCommandHandler(Nothing, Nothing, Nothing)
+            Dim handler = New AnalyzersCommandHandler(Nothing, Nothing, Nothing, Nothing)
             Dim shown = handler.DiagnosticContextMenuController.ShowContextMenu({diagnosticItem}, Nothing)
             Debug.Assert(Not shown)
         End Sub

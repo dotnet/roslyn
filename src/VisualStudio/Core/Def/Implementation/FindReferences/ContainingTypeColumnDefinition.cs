@@ -3,26 +3,19 @@
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 {
     /// <summary>   
-    /// Custom column to display the containing type for the All References window.
+    /// Custom column to display the containing type for the Find All References window.
     /// </summary>
     [Export(typeof(ITableColumnDefinition))]
     [Name(ColumnName)]
-    internal class ContainingTypeColumnDefinition : AbstractCustomColumnDefinition
+    internal class ContainingTypeColumnDefinition : TableColumnDefinitionBase
     {
         public const string ColumnName = AbstractReferenceFinder.ContainingTypeInfoPropertyName;
-
-        [ImportingConstructor]
-        public ContainingTypeColumnDefinition()
-        {
-        }
-
         public override bool IsFilterable => true;
         public override string Name => ColumnName;
         public override string DisplayName => ServicesVSResources.Containing_type;
