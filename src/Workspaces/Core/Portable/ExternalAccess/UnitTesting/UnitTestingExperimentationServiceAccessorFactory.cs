@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
     [ExportWorkspaceServiceFactory(typeof(IUnitTestingExperimentationServiceAccessor))]
     [Shared]
-    internal class UnitTestingExperimentationServiceAccessorFactory
+    internal class UnitTestingExperimentationServiceAccessorFactory : IWorkspaceServiceFactory
     {
         private readonly IExperimentationService _experimentationService;
 
