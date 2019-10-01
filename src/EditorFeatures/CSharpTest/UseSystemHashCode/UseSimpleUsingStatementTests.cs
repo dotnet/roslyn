@@ -135,5 +135,290 @@ class C : B
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestFieldAndProp()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = -538000506;
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+        return hashCode;
+    }
+}",
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        return System.HashCode.Combine(i, S);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestUnchecked()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        unchecked
+        {
+            var hashCode = -538000506;
+            hashCode = hashCode * -1521134295 + i.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+            return hashCode;
+        }
+    }
+}",
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        return System.HashCode.Combine(i, S);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNotOnNonGetHashCode()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode1()
+    {
+        var hashCode = -538000506;
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+        return hashCode;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNotWithoutReturn()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = -538000506;
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNotWithoutLocal()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+        return hashCode;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNotWithMultipleLocals()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = -538000506, x;
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+        return hashCode;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNotWithoutInitializer()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        var hashCode;
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+        return hashCode;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestNotReturningAccumulator()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = -538000506;
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+        return 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestAcumulatorInitializedToField()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = i;
+        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+        return hashCode;
+    }
+}",
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int GetHashCode()
+    {
+        return System.HashCode.Combine(i, S);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestAcumulatorInitializedToHashedField()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = i.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(S);
+        return hashCode;
+    }
+}",
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int GetHashCode()
+    {
+        return System.HashCode.Combine(i, S);
+    }
+}");
+        }
     }
 }
