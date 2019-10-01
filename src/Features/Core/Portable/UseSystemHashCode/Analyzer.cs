@@ -79,20 +79,22 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 blockOperation = childBlock;
             }
 
-            return MatchAccumulatorPattern(method, blockOperation) ??
-                   MatchTuplePattern(method, blockOperation) ??
+            var statements = blockOperation.Operations.WhereAsArray(o => !o.IsImplicit);
+            return MatchAccumulatorPattern(method, statements) ??
+                   MatchTuplePattern(method, statements) ??
                    default;
         }
 
-        private (bool accessesBase, ImmutableArray<ISymbol> members)? MatchTuplePattern(IMethodSymbol method, IBlockOperation blockOperation)
+        private (bool accessesBase, ImmutableArray<ISymbol> members)? MatchTuplePattern(
+            IMethodSymbol method, ImmutableArray<IOperation> statements)
         {
             // look for code of the form `return (a, b, c).GetHashCode()`.
-            if (blockOperation.Operations.Length != 1)
+            if (statements.Length != 1)
             {
                 return default;
             }
 
-            if (!(blockOperation.Operations[0] is IReturnOperation returnOperation))
+            if (!(statements[0] is IReturnOperation returnOperation))
             {
                 return default;
             }
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         }
 
         private (bool accessesBase, ImmutableArray<ISymbol> members)? MatchAccumulatorPattern(
-            IMethodSymbol method, IBlockOperation blockOperation)
+            IMethodSymbol method, ImmutableArray<IOperation> statements)
         {
             // Needs to be of the form:
             //
@@ -120,8 +122,6 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             //
             //      // return of the value.
             //      return hashCode;
-
-            var statements = blockOperation.Operations.WhereAsArray(o => !o.IsImplicit);
             if (statements.Length < 3)
             {
                 return default;

@@ -161,6 +161,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
         private static bool TryGetFieldOrProperty(IOperation operation, out ISymbol symbol)
         {
+            operation = Unwrap(operation);
+
             if (operation is IFieldReferenceOperation fieldReference)
             {
                 symbol = fieldReference.Member;

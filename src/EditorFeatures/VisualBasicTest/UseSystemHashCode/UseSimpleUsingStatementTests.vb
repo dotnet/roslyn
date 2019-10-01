@@ -576,9 +576,7 @@ end class",
     end structure
 end namespace
 
-class C
-
-    dim j as integer
+class C    dim j as integer
 
     public overrides function GetHashCode() as integer
         Return System.HashCode.Combine(j)
