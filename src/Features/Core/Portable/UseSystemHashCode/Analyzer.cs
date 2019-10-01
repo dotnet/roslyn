@@ -52,12 +52,23 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             // Owning symbol has to be an override of Object.GetHashCode.
-            if (!(owningSymbol is IMethodSymbol method) ||
-                method.Name != nameof(GetHashCode) ||
-                method.Locations.Length != 1 ||
-                method.DeclaringSyntaxReferences.Length != 1 ||
-                !method.Locations[0].IsInSource ||
-                !OverridesSystemObject(method))
+            if (!(owningSymbol is IMethodSymbol { Name: nameof(GetHashCode) } method))
+            {
+                return default;
+            }
+
+            if (method.Locations.Length != 1 ||
+                method.DeclaringSyntaxReferences.Length != 1)
+            {
+                return default;
+            }
+
+            if (!method.Locations[0].IsInSource)
+            {
+                return default;
+            }
+
+            if (!OverridesSystemObject(method))
             {
                 return default;
             }
@@ -108,8 +119,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             var declarator = declaration.Declarators[0];
-            if (declarator.Initializer == null ||
-                declarator.Initializer.Value == null)
+            if (declarator.Initializer?.Value == null)
             {
                 return default;
             }
