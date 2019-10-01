@@ -40,8 +40,11 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         /// </summary>
         public ImmutableArray<ISymbol> GetHashedMembers(ISymbol owningSymbol, IOperation operation)
         {
-            var _this = this;
             Debug.Assert(CanAnalyze());
+
+            // Capture a copy of `this` as we're in a struct and need to access it from local
+            // functions in this method.
+            var _this = this;
 
             if (!(operation is IBlockOperation blockOperation))
             {
