@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -704,39 +702,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return false;
         }
 
-        internal static ImmutableArray<FindUsageProperty> GetAdditionalFindUsagesProperties(SyntaxNode node, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
+        internal static ImmutableDictionary<string, string> GetAdditionalFindUsagesProperties(SyntaxNode node, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts)
         {
-            var additionalProperties = new ArrayBuilder<FindUsageProperty>();
+            var additionalProperties = ImmutableDictionary.CreateBuilder<string, string>();
 
-            if (GetInfo(
-                syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart),
-                ContainingTypeInfoPropertyName,
-                semanticModel,
-                out var findUsagePropertyForContainingType))
+            if (TryGetAdditionalProperty(
+                    syntaxFacts.GetContainingTypeDeclaration(node, node.SpanStart),
+                    ContainingTypeInfoPropertyName,
+                    semanticModel,
+                    out var containingTypeProperty))
             {
-                additionalProperties.Add((FindUsageProperty)findUsagePropertyForContainingType);
+                additionalProperties.Add(containingTypeProperty);
             }
 
-            if (GetInfo(syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart),
-                ContainingMemberInfoPropertyName,
-                semanticModel,
-                out var findUsagePropertyForContainingMember))
+            if (TryGetAdditionalProperty(
+                    syntaxFacts.GetContainingMemberDeclaration(node, node.SpanStart),
+                    ContainingMemberInfoPropertyName,
+                    semanticModel,
+                    out var containingMemberProperty))
             {
-                additionalProperties.Add((FindUsageProperty)findUsagePropertyForContainingMember);
+                additionalProperties.Add(containingMemberProperty);
             }
 
-            return additionalProperties.ToImmutableAndFree();
+            return additionalProperties.ToImmutable();
         }
 
-        internal static ImmutableArray<FindUsageProperty> GetAdditionalFindUsagesProperties(ISymbol definition)
+        internal static ImmutableDictionary<string, string> GetAdditionalFindUsagesProperties(ISymbol definition)
         {
-            var additionalProperties = new ArrayBuilder<FindUsageProperty>();
+            var additionalProperties = ImmutableDictionary.CreateBuilder<string, string>();
 
             var containingType = definition.ContainingType;
             if (containingType != null &&
-                TryGetAdditionalProperty(ContainingTypeInfoPropertyName, containingType, out var findUsagePropertyForContainingType))
+                TryGetAdditionalProperty(ContainingTypeInfoPropertyName, containingType, out var containingTypeProperty))
             {
-                additionalProperties.Add((FindUsageProperty)findUsagePropertyForContainingType);
+                additionalProperties.Add(containingTypeProperty);
             }
 
             var containingSymbol = definition.ContainingSymbol;
@@ -744,44 +743,39 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // Containing member should only include fields, properties, methods, or events.  Since ContainingSymbol can return other types, use the return value of GetMemberType to restrict to members only.)
             if (containingSymbol != null &&
                 containingSymbol.GetMemberType() != null &&
-                TryGetAdditionalProperty(ContainingMemberInfoPropertyName, containingSymbol, out var findUsagePropertyForContainingMember))
+                TryGetAdditionalProperty(ContainingMemberInfoPropertyName, containingSymbol, out var containingMemberProperty))
             {
-                additionalProperties.Add((FindUsageProperty)findUsagePropertyForContainingMember);
+                additionalProperties.Add(containingMemberProperty);
             }
 
-            return additionalProperties.ToImmutableAndFree();
+            return additionalProperties.ToImmutable();
         }
 
-        protected static bool GetInfo(SyntaxNode node, string name, SemanticModel semanticModel, out FindUsageProperty? findUsageProperty)
+        protected static bool TryGetAdditionalProperty(SyntaxNode node, string name, SemanticModel semanticModel, out KeyValuePair<string, string> additionalProperty)
         {
-            findUsageProperty = null;
-
             if (node != null)
             {
                 var symbol = semanticModel.GetDeclaredSymbol(node);
-                if (symbol != null)
+                if (symbol != null &&
+                    TryGetAdditionalProperty(name, symbol, out additionalProperty))
                 {
-                    if (TryGetAdditionalProperty(name, symbol, out var property))
-                    {
-                        findUsageProperty = property;
-                        return true;
-                    }
+                    return true;
                 }
             }
 
+            additionalProperty = default;
             return false;
         }
 
-        private static bool TryGetAdditionalProperty(string propertyName, ISymbol symbol, out FindUsageProperty? findUsageProperty)
+        private static bool TryGetAdditionalProperty(string propertyName, ISymbol symbol, out KeyValuePair<string, string> additionalProperty)
         {
-            findUsageProperty = null;
-
             if (symbol == null)
             {
+                additionalProperty = default;
                 return false;
             }
 
-            findUsageProperty = new FindUsageProperty(propertyName, symbol.Name);
+            additionalProperty = new KeyValuePair<string, string>(propertyName, symbol.Name);
             return true;
         }
     }

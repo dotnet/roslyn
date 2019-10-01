@@ -23,7 +23,7 @@ namespace Roslyn.Test.Utilities
 
         /// <summary>
         /// Eventually this will be deleted and replaced with NetStandard20. Short term this creates the "standard"
-        /// API set across destkop and coreclr 
+        /// API set across desktop and coreclr 
         /// </summary>
         Standard,
         StandardLatest,
@@ -145,7 +145,7 @@ namespace Roslyn.Test.Utilities
 
             // Check to see if there are any duplicate references. This guards against tests inadvertently passing multiple copies of 
             // say System.Core to the tests and implicitly depending on the higher one to win. The few tests which actually mean to 
-            // pass multiple verisons of a DLL should manually construct the reference list and not use this helper.
+            // pass multiple versions of a DLL should manually construct the reference list and not use this helper.
             void checkForDuplicateReferences()
             {
                 var nameSet = new HashSet<string>(getNames(references), StringComparer.OrdinalIgnoreCase);

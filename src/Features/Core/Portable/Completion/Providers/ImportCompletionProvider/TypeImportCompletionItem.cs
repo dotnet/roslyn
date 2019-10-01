@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var item = CompletionItem.Create(
                  displayText: typeSymbol.Name,
-                 filterText: typeSymbol.Name,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: propertyBuilder?.ToImmutableDictionaryAndFree(),
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
@@ -62,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return CompletionItem.Create(
                  displayText: attributeNameWithoutSuffix,
-                 filterText: attributeNameWithoutSuffix,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: newProperties,
                  tags: attributeItem.Tags,

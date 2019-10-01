@@ -20,28 +20,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
     {
         internal ScriptingOleCommandTarget(
             IWpfTextView wpfTextView,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
             IServiceProvider serviceProvider)
-            : base(wpfTextView, commandHandlerServiceFactory, editorAdaptersFactory, serviceProvider)
+            : base(wpfTextView, editorAdaptersFactory, serviceProvider)
         {
-            wpfTextView.Closed += OnTextViewClosed;
-            wpfTextView.BufferGraph.GraphBufferContentTypeChanged += OnGraphBuffersChanged;
-            wpfTextView.BufferGraph.GraphBuffersChanged += OnGraphBuffersChanged;
-
-            RefreshCommandFilters();
-        }
-
-        private void OnGraphBuffersChanged(object sender, EventArgs e)
-        {
-            RefreshCommandFilters();
-        }
-
-        private void OnTextViewClosed(object sender, EventArgs e)
-        {
-            this.WpfTextView.Closed -= OnTextViewClosed;
-            this.WpfTextView.BufferGraph.GraphBufferContentTypeChanged -= OnGraphBuffersChanged;
-            this.WpfTextView.BufferGraph.GraphBuffersChanged -= OnGraphBuffersChanged;
         }
 
         protected override ITextBuffer GetSubjectBufferContainingCaret()

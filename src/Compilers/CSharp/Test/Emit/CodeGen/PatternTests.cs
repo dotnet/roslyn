@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class PatternTests : EmitMetadataTestBase
     {
-        #region Miscallaneous
+        #region Miscellaneous
 
         [Fact, WorkItem(18811, "https://github.com/dotnet/roslyn/issues/18811")]
         public void MissingNullable_01()

@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
@@ -48,12 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             HandleTabWorker(args.TextView, args.SubjectBuffer, nextHandler, CancellationToken.None);
         }
 
-        public VSCommanding.CommandState GetCommandState(TabKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
             if (EventHookupSessionManager.CurrentSession != null)
             {
-                return VSCommanding.CommandState.Available;
+                return CommandState.Available;
             }
             else
             {

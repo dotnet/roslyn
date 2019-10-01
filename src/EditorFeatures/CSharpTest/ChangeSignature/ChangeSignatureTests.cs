@@ -280,7 +280,7 @@ public class C3
                     }
                     else if (updatedDocument.Name == "C3.cs")
                     {
-                        // shouldn't change unchangable document
+                        // shouldn't change unchangeable document
                         Assert.Contains("bool _x = C1.M(1, 2);", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
                     }
                 }

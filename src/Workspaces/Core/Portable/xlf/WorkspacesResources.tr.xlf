@@ -1307,46 +1307,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Sembol belirtimleri</target>
         <note />
       </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
-        <source>Base Type</source>
-        <target state="translated">Temel Tür</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Construct">
-        <source>Construct</source>
-        <target state="translated">Oluştur</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Declare">
-        <source>Declare</source>
-        <target state="translated">Bildir</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Import">
-        <source>Import</source>
-        <target state="translated">İçeri aktar</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
-        <source>Qualify</source>
-        <target state="translated">Nitelikli hale getir</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
-        <source>Type Argument</source>
-        <target state="translated">Tür Bağımsız Değişkeni</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
-        <source>Type Constraint</source>
-        <target state="translated">Tür Kısıtlaması</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Name">
-        <source>Name</source>
-        <target state="translated">Ad</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Visual Basic dosyaları</target>
@@ -2241,21 +2201,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <source>Regex issue: {0}</source>
         <target state="translated">Regex sorunu: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Read">
-        <source>Read</source>
-        <target state="translated">Oku</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Reference">
-        <source>Reference</source>
-        <target state="translated">Başvuru</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Write">
-        <source>Write</source>
-        <target state="translated">Yaz</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Parameter_preferences">
         <source>Parameter preferences</source>

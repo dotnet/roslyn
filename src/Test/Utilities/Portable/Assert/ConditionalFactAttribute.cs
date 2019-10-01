@@ -51,8 +51,8 @@ namespace Roslyn.Test.Utilities
     public class ConditionalFactAttribute : FactAttribute
     {
         /// <summary>
-        /// This proprety exists to prevent users of ConditionalFact from accidentally putting documentation
-        /// in the Skip proprety instead of Reason. Putting it into Skip would cause the test to be unconditionally
+        /// This property exists to prevent users of ConditionalFact from accidentally putting documentation
+        /// in the Skip property instead of Reason. Putting it into Skip would cause the test to be unconditionally
         /// skipped vs. conditionally skipped which is the entire point of this attribute.
         /// </summary>
         [Obsolete("ConditionalFact should use Reason or AlwaysSkip", error: true)]
@@ -91,8 +91,8 @@ namespace Roslyn.Test.Utilities
     public class ConditionalTheoryAttribute : TheoryAttribute
     {
         /// <summary>
-        /// This proprety exists to prevent users of ConditionalFact from accidentally putting documentation
-        /// in the Skip proprety instead of Reason. Putting it into Skip would cause the test to be unconditionally
+        /// This property exists to prevent users of ConditionalFact from accidentally putting documentation
+        /// in the Skip property instead of Reason. Putting it into Skip would cause the test to be unconditionally
         /// skipped vs. conditionally skipped which is the entire point of this attribute.
         /// </summary>
         [Obsolete("ConditionalTheory should use Reason or AlwaysSkip")]

@@ -75,6 +75,45 @@ B
 ");
         }
 
+        [Fact, WorkItem(38858, "https://github.com/dotnet/roslyn/issues/38858")]
+        public void ConcatEnumWithToString()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write(M(Enum.A));
+    }
+    public static string M(Enum e)
+    {
+        return e + """";
+    }
+}
+public enum Enum { A = 0, ToString = 1 }
+";
+            var comp = CompileAndVerify(source, expectedOutput: "A");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(38858, "https://github.com/dotnet/roslyn/issues/38858")]
+        public void ConcatStructWithToString()
+        {
+            var source = @"
+public struct Bad
+{
+    public new int ToString;
+
+    string Crash()
+    {
+        return """" + this;
+    }
+}
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void ConcatDefaults()
         {

@@ -21,10 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         public AbstractVsTextViewFilter(
             IWpfTextView wpfTextView,
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IServiceProvider systemServiceProvider)
-            : base(wpfTextView, commandHandlerServiceFactory, editorAdaptersFactoryService, systemServiceProvider)
+            : base(wpfTextView, editorAdaptersFactoryService, systemServiceProvider)
         {
         }
 

@@ -58,6 +58,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\CodeStyle\UnusedValuePreference.cs" Link="Options\UnusedValuePreference.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Diagnostics\Extensions_SharedWithCodeStyle.cs" Link="Options\Extensions_SharedWithCodeStyle.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\NotificationOptionExtensions.cs" Link="Options\NotificationOptionExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Extensions\ReportDiagnosticExtensions.cs" Link="Options\ReportDiagnosticExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\AbstractSyntaxFormattingService.cs" Link="Formatting\AbstractSyntaxFormattingService.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\BottomUpBaseIndentationFinder.cs" Link="Formatting\BottomUpBaseIndentationFinder.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\ContextIntervalTree.cs" Link="Formatting\ContextIntervalTree.cs" />
@@ -91,6 +92,7 @@
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TreeData.StructuredTrivia.cs" Link="Formatting\Engine\TreeData.StructuredTrivia.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TriviaData.cs" Link="Formatting\Engine\TriviaData.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\Engine\TriviaDataWithList.cs" Link="Formatting\Engine\TriviaDataWithList.cs" />
+    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\FormattingDiagnosticIds.cs" Link="Formatting\FormattingDiagnosticIds.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\FormattingExtensions.cs" Link="Formatting\FormattingExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\FormattingOptions.cs" Link="Formatting\FormattingOptions.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\IFormattingResult.cs" Link="Formatting\IFormattingResult.cs" />

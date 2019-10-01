@@ -320,7 +320,7 @@ namespace Roslyn.Utilities
             // Given the edit distance rules we observe edit distance at any point (i,j) in the matrix will
             // always be greater than or equal to the value in (i-1, j-1).  i.e. the edit distance of
             // any two strings is going to be *at best* equal to the edit distance of those two strings
-            // without their final characters.  If their final characters are the same, they'll ahve the
+            // without their final characters.  If their final characters are the same, they'll have the
             // same edit distance.  If they are different, the edit distance will be greater.  Given 
             // that we know the final edit distance is in the lower right, we can discover something 
             // useful in the matrix.

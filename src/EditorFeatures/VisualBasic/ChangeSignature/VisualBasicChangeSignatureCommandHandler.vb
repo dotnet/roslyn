@@ -3,11 +3,11 @@
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Utilities
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
-    <Export(GetType(VSCommanding.ICommandHandler))>
+    <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.ChangeSignature)>
     Friend Class VisualBasicChangeSignatureCommandHandler

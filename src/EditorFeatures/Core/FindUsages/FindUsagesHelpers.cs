@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 var implementations = await SymbolFinder.FindImplementationsAsync(
                     symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                // It's important we use a HashSet here -- we may have cases in an inheritence hierarchy where more than one method
+                // It's important we use a HashSet here -- we may have cases in an inheritance hierarchy where more than one method
                 // in an overrides chain implements the same interface method, and we want to duplicate those. The easiest way to do it
                 // is to just use a HashSet.
                 var implementationsAndOverrides = new HashSet<ISymbol>();
