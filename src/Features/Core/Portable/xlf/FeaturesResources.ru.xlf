@@ -542,6 +542,11 @@
         <target state="needs-review-translation">Используйте рекомендуемый шаблон Dispose, чтобы убедиться, что все освобождаемые объекты в локальной области освобождены для всех путей. Если это возможно, заключите создание объекта в оператор "using" или в объявление "using". В противном случае используйте шаблон try-finally с выделенной локальной переменной, объявляемой до области try, и безусловным вызовом Dispose для отличного от NULL значения в области "finally", например "x?.Dispose()". Если объект явно освобождается в области try или если права владения для операции освобождения передаются другому объекту или методу, присвойте значение "null" локальной переменной сразу после такой операции, чтобы предотвратить двойное освобождение в области "finally".</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Использовать тело блока для лямбда-выражений</target>

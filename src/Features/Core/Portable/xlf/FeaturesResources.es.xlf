@@ -542,6 +542,11 @@
         <target state="needs-review-translation">Use el patrón Dispose recomendado para asegurarse de que los objetos descartables de ámbito local se desechan en todas las rutas de acceso. Si es posible, incluya la creación en una instrucción "using" o una declaración "using". En caso contrario, use un patrón try-finally, con la declaración de una variable local dedicada antes de la región "try" y una invocación de Dispose incondicional en un valor no nulo en la región "finally", por ejemplo, "x?.Dispose()". Si el objeto se desecha de forma explícita en la región "try" o la pertenencia de Dispose se transfiere a otro objeto o método, asigne "null" a la variable local justo después de tal operación para evitar un doble Dispose en "finally".</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Usar cuerpo de bloque de expresiones lambda</target>

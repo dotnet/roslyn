@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
-            bool justMemberReference,
-            CancellationToken cancellationToken)
+            bool justMemberReference)
         {
             var result = ArrayBuilder<SyntaxNode>.GetInstance();
 
@@ -46,11 +45,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
-            bool useInt64,
-            CancellationToken cancellationToken)
+            bool useInt64)
         {
             var components = GetGetHashCodeComponents(
-                factory, compilation, containingType, members, justMemberReference: false, cancellationToken);
+                factory, compilation, containingType, members, justMemberReference: false);
 
             if (components.Length == 0)
             {

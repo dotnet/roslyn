@@ -542,6 +542,11 @@
         <target state="needs-review-translation">Utilisez le modèle de suppression recommandé pour vérifier que les objets supprimables de l'étendue locale sont bien supprimés sur tous les chemins. Si possible, incluez la création dans un wrapper au sein d'une instruction 'using' ou d'une déclaration 'using'. Sinon, utilisez un modèle try-finally avec une variable locale dédiée déclarée avant la région try et un appel inconditionnel de Dispose sur une valeur non null dans la région 'finally', par exemple 'x?.Dispose()'. Si l'objet est explicitement supprimé dans la région try ou si la propriété de suppression est transférée vers un autre objet ou une autre méthode, affectez la valeur 'null' à la variable locale juste après cette opération pour éviter une double suppression dans 'finally'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Utiliser le corps de bloc pour les expressions lambda</target>

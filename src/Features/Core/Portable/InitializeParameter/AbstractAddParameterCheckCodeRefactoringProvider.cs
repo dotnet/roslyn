@@ -273,12 +273,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private bool IsNullCheck(IOperation operand1, IOperation operand2, IParameterSymbol parameter)
-            => IsNullLiteral(UnwrapImplicitConversion(operand1)) && IsParameterReference(operand2, parameter);
+            => UnwrapImplicitConversion(operand1).IsNullLiteral() && IsParameterReference(operand2, parameter);
 
-        private bool IsNullLiteral(IOperation operand)
-            => operand is ILiteralOperation literal &&
-               literal.ConstantValue.HasValue &&
-               literal.ConstantValue.Value == null;
 
         private async Task<Document> AddNullCheckAsync(
             Document document,

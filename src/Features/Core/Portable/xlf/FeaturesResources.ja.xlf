@@ -542,6 +542,11 @@
         <target state="needs-review-translation">推奨される dispose パターンを使用して、ローカル スコープの破棄可能なオブジェクトがすべてのパスで破棄されるようにします。可能なら、'using' ステートメントまたは 'using' 宣言内で作成をラップします。または、try-finally パターンを、try 領域の前で宣言された専用のローカル変数と、'finally' 領域の非 null 値での条件なしの Dispose の呼び出し (例: 'x?.Dispose()') とともに使用します。オブジェクトが try 領域内で明示的に破棄されるか、dispose の所有権が他のオブジェクトまたはメソッドに移される場合、その操作のすぐ後で 'null' をローカル変数に割り当てて、'finally' 内での dispose の重複を回避します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">ラムダ式にブロック本体を使用する</target>

@@ -542,6 +542,11 @@
         <target state="needs-review-translation">Użyj zalecanego wzorca dispose, aby upewnić się, że obiekty możliwe do likwidacji w lokalnym zakresie są likwidowane we wszystkich ścieżkach. Jeśli to możliwe, opakuj tworzenie w instrukcji „using” lub deklaracji „using”. W przeciwnym razie użyj wzorca try-finally, z dedykowaną zmienną lokalną zadeklarowaną przed regionem try i bezwarunkowym wywołaniem metody Dispose dla wartości innej niż null w regionie „finally”, na przykład „x?.Dispose()”. Jeśli obiekt jest jawnie likwidowany w regionie try lub własność dispose jest przenoszona do innego obiektu lub metody, przypisz wartość „null” do zmiennej lokalnej zaraz po takiej operacji, aby zapobiec podwójnemu wywołaniu dispose w regionie „finally”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Użyj treści bloku dla wyrażeń lambda</target>

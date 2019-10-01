@@ -4618,6 +4618,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use &apos;System.HashCode&apos;.
+        /// </summary>
+        internal static string Use_System_HashCode {
+            get {
+                return ResourceManager.GetString("Use_System_HashCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;throw&apos; expression.
         /// </summary>
         internal static string Use_throw_expression {
@@ -4636,7 +4645,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string UseRecommendedDisposePatternDescription {
             get {

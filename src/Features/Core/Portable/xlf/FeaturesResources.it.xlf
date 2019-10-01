@@ -542,6 +542,11 @@
         <target state="needs-review-translation">Usare il criterio dispose consigliato per garantire che gli oggetti eliminabili con ambito locale vengano eliminati in tutti i percorsi. Se possibile, eseguire il wrapping della creazione in un'istruzione 'using' o una dichiarazione 'using'. In caso contrario, usare un criterio try-finally, con una variabile locale dedicata dichiarata prima dell'area try e una chiamata Dispose non condizionale al valore non Null nell'area 'finally', ad esempio 'x?.Dispose()'. Se l'oggetto viene eliminato in modo esplicito nell'area try oppure la proprietà di dispose viene trasferita a un altro oggetto o metodo, assegnare 'null' alla variabile locale subito dopo una tale operazione per evitare di raddoppiare dispose in 'finally'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_HashCode">
+        <source>Use 'System.HashCode'</source>
+        <target state="new">Use 'System.HashCode'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Usa il corpo del blocco per le espressioni lambda</target>

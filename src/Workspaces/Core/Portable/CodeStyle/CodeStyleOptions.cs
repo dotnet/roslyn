@@ -358,6 +358,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
             });
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSystemHashCode = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferSystemHashCode),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode") });
+
         static CodeStyleOptions()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,

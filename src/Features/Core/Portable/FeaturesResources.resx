@@ -1711,4 +1711,7 @@ This version used in: {2}</value>
   <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
     <value>Add null checks for all parameters</value>
   </data>
+  <data name="Use_System_HashCode" xml:space="preserve">
+    <value>Use 'System.HashCode'</value>
+  </data>
 </root>
