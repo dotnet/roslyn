@@ -513,6 +513,7 @@ namespace Baz
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ValueTupleType(string tupleType, ReferenceType refType)
         {
+            // TODO2
             var file1 = $@"
 using System;
 

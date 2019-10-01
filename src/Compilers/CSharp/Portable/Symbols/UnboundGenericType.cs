@@ -66,6 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _errorInfo = errorInfo;
         }
 
+        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        {
+            Debug.Assert(false); // TODO2 untested
+            return new UnboundArgumentErrorTypeSymbol(_name, _errorInfo) { _lazyTupleData = newData };
+        }
+
         public override string Name
         {
             get

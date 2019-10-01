@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+                => throw ExceptionUtilities.Unreachable;
+
             public override ImmutableArray<Symbol> GetMembers()
             {
                 return _members;

@@ -4688,7 +4688,7 @@ class MyAttrAttribute : Attribute
 {
 }
 
-[MyAttr(123, [|Version|] = 1)]
+[MyAttr(123, [|Value|] = 1)]
 class D
 {
 }",
@@ -4697,10 +4697,10 @@ class D
 [AttributeUsage(AttributeTargets.Class)]
 class MyAttrAttribute : Attribute
 {
-    public int Version { get; set; }
+    public int Value { get; set; }
 }
 
-[MyAttr(123, Version = 1)]
+[MyAttr(123, Value = 1)]
 class D
 {
 }");
@@ -8798,7 +8798,8 @@ class C
     class Blah
     {
     }
-}",
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
 @"
 class C
 {
@@ -8814,7 +8815,8 @@ class C
     {
         public (int y, int z) X { get; internal set; }
     }
-}");
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]

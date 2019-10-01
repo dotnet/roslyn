@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -28,6 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _embeddingAssembly = embeddingAssembly;
             _firstCandidate = firstCandidate;
             _secondCandidate = secondCandidate;
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        {
+            Debug.Assert(false); // TODO2 untested
+            return new NoPiaAmbiguousCanonicalTypeSymbol(_embeddingAssembly, _firstCandidate, _secondCandidate) { _lazyTupleData = newData };
         }
 
         internal override bool MangleName

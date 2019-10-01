@@ -1995,7 +1995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return true;
             }
 
-            if (originalDef.ContainingType.Name == TupleTypeSymbol.TupleTypeName &&
+            if (originalDef.ContainingType.Name == NamedTypeSymbol.TupleTypeName &&
                     (originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T2__ctor) ||
                     originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T3__ctor) ||
                     originalDef == compilation.GetWellKnownTypeMember(WellKnownMember.System_ValueTuple_T4__ctor) ||

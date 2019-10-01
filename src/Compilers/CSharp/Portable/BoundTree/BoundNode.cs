@@ -143,7 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+#if DEBUG
             this.WasConverted = original.WasConverted;
+#endif
         }
 
         /// <remarks>
@@ -300,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                 return (_attributes & BoundNodeAttributes.WasConverted) != 0;
 #else
-                return true;
+                throw ExceptionUtilities.Unreachable;
 #endif
             }
             protected set

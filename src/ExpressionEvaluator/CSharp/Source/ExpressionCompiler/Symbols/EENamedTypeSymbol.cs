@@ -90,6 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _methods = getMethods(currentFrame, this);
         }
 
+        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+            => throw ExceptionUtilities.Unreachable;
+
         internal ImmutableArray<MethodSymbol> Methods
         {
             get { return _methods; }

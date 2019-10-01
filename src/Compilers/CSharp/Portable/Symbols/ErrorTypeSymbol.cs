@@ -137,6 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// returns an empty ImmutableArray. Never returns Null.</returns>
         public override ImmutableArray<Symbol> GetMembers()
         {
+            if (IsTupleType)
+            {
+                var result = AddOrWrapTupleMembers(ImmutableArray<Symbol>.Empty);
+                Debug.Assert(result is object);
+                return result.ToImmutableAndFree();
+            }
+
             return ImmutableArray<Symbol>.Empty;
         }
 
@@ -606,6 +613,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _map = new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArgumentsWithAnnotations);
         }
 
+        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        {
+            return new ConstructedErrorTypeSymbol(_constructedFrom, _typeArgumentsWithAnnotations) { _lazyTupleData = newData };
+        }
+
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return _constructedFrom.TypeParameters; }
@@ -669,5 +681,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _map; }
         }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+            => throw ExceptionUtilities.Unreachable;
     }
 }

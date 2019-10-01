@@ -284,11 +284,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: Either S0 or T0 is the class or struct type in which the operator
             // SPEC: declaration takes place.
 
-            if (!source0.TupleUnderlyingTypeOrSelf().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
-                !target0.TupleUnderlyingTypeOrSelf().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
+            if (!source0.Equals(this.ContainingType, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
+                !target0.Equals(this.ContainingType, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
                 // allow conversion between T and Nullable<T> in declaration of Nullable<T>
-                !source.Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
-                !target.Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                !source.Equals(this.ContainingType, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
+                !target.Equals(this.ContainingType, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 // CS0556: User-defined conversion must convert to or from the enclosing type
                 diagnostics.Add(ErrorCode.ERR_ConversionNotInvolvingContainedType, this.Locations[0]);
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: A unary + - ! ~ operator must take a single parameter of type
             // SPEC: T or T? and can return any type.
 
-            if (!this.GetParameterType(0).StrippedType().TupleUnderlyingTypeOrSelf().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            if (!this.GetParameterType(0).StrippedType().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 // The parameter of a unary operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_OpTFRetType, this.Locations[0]);
             }
 
-            if (!this.GetParameterType(0).StrippedType().TupleUnderlyingTypeOrSelf().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            if (!this.GetParameterType(0).StrippedType().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 // The parameter of a unary operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameterType = this.GetParameterType(0);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (!parameterType.StrippedType().TupleUnderlyingTypeOrSelf().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            if (!parameterType.StrippedType().Equals(this.ContainingType, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: of which must have type T or T? and the second of which must
             // SPEC: have type int or int?, and can return any type.
 
-            if (!this.GetParameterType(0).StrippedType().TupleUnderlyingTypeOrSelf().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
+            if (!this.GetParameterType(0).StrippedType().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
                 this.GetParameterType(1).StrippedType().SpecialType != SpecialType.System_Int32)
             {
                 // CS0546: The first operand of an overloaded shift operator must have the 
@@ -536,8 +536,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // SPEC: A binary nonshift operator must take two parameters, at least
             // SPEC: one of which must have the type T or T?, and can return any type.
-            if (!this.GetParameterType(0).StrippedType().TupleUnderlyingTypeOrSelf().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
-                !this.GetParameterType(1).StrippedType().TupleUnderlyingTypeOrSelf().Equals(this.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+            if (!this.GetParameterType(0).StrippedType().Equals(this.ContainingType, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) &&
+                !this.GetParameterType(1).StrippedType().Equals(this.ContainingType, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 // CS0563: One of the parameters of a binary operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);

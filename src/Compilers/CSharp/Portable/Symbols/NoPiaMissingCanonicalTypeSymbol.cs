@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -35,6 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _guid = guid;
             _scope = scope;
             _identifier = identifier;
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        {
+            Debug.Assert(false); // TODO2 untested
+            return new NoPiaMissingCanonicalTypeSymbol(_embeddingAssembly, _fullTypeName, _guid, _scope, _identifier) { _lazyTupleData = newData };
         }
 
         public AssemblySymbol EmbeddingAssembly

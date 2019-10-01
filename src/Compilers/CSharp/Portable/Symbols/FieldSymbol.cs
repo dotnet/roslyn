@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract int? TypeLayoutOffset { get; }
 
-        internal FieldSymbol AsMember(NamedTypeSymbol newOwner)
+        internal virtual FieldSymbol AsMember(NamedTypeSymbol newOwner)
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
@@ -382,11 +382,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Is this a field of a tuple type?
         /// </summary>
-        public virtual bool IsTupleField
+        public bool IsTupleField
         {
             get
             {
-                return false;
+                return ContainingType.IsTupleType;
             }
         }
 
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return null;
+                return IsTupleField ? this : null;
             }
         }
 

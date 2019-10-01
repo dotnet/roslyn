@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// they are also recorded in a pre-order depth-first traversal.
     /// <see cref="DecodeTupleTypesIfApplicable(TypeSymbol, EntityHandle, PEModuleSymbol)"/>
     /// can be used to extract tuple names and types from metadata and create
-    /// a <see cref="TupleTypeSymbol"/> with attached names.
+    /// a <see cref="NamedTypeSymbol"/> with attached names.
     /// 
     /// <example>
     /// For instance, a method returning a tuple
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // flow up a SubstituteWith/Without tuple unification to the top level
                     // of the type map and change DecodeOrThrow to call into the substitution
                     // without unification instead.
-                    return DecodeNamedType(type.IsTupleType ? type.TupleUnderlyingType : (NamedTypeSymbol)type);
+                    return DecodeNamedType((NamedTypeSymbol)type);
 
                 case SymbolKind.ArrayType:
                     return DecodeArrayType((ArrayTypeSymbol)type);
@@ -233,14 +233,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // Now decode into a tuple, if it is one
-            int tupleCardinality;
-            if (decodedType.IsTupleCompatible(out tupleCardinality))
+            if (decodedType.IsTupleType)
             {
+                int tupleCardinality = decodedType.TupleElementTypesWithAnnotations.Length;
                 var elementNames = EatElementNamesIfAvailable(tupleCardinality);
 
                 Debug.Assert(elementNames.IsDefault || elementNames.Length == tupleCardinality);
 
-                decodedType = TupleTypeSymbol.Create(decodedType, elementNames);
+                decodedType = NamedTypeSymbol.Create(decodedType, elementNames);
             }
 
             return decodedType;

@@ -4029,7 +4029,8 @@ class C
         (int a, string b) [||]x = (c: 1, d: ""hello"");
         x.a.ToString();
     }
-}";
+}
+";
 
             var expected = @"
 class C
@@ -4038,7 +4039,8 @@ class C
     {
         (((int a, string b))(c: 1, d: ""hello"")).a.ToString();
     }
-}";
+}
+";
 
             await TestInRegularAndScriptAsync(code, expected);
         }
@@ -4258,7 +4260,8 @@ class C
         int [||]i = C.y;
         var t = ((i, (i, _)) = (1, (i, 3)));
     }
-}";
+}
+";
             var expected = @"
 class C
 {
@@ -4268,7 +4271,8 @@ class C
         int i = C.y;
         var t = (({|Conflict:(int)C.y|}, ({|Conflict:(int)C.y|}, _)) = (1, (C.y, 3)));
     }
-}";
+}
+";
             await TestInRegularAndScriptAsync(code, expected);
         }
 
@@ -4285,7 +4289,8 @@ class C
         int [||]i = C.y;
         var t = ((i, _) = (1, 2));
     }
-}";
+}
+";
             var expected = @"
 class C
 {
@@ -4295,7 +4300,8 @@ class C
         int i = C.y;
         var t = (({|Conflict:(int)C.y|}, _) = (1, 2));
     }
-}";
+}
+";
             await TestInRegularAndScriptAsync(code, expected);
         }
 
@@ -4650,7 +4656,7 @@ class C
         var [|x|] = (X)(0, 0);
         var x2 = x;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+}",
 @"using X = System.ValueTuple<int, int>;
 
 class C
@@ -4659,7 +4665,7 @@ class C
     {
         var x2 = (X)(0, 0);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}");
         }
 
         [WorkItem(30903, "https://github.com/dotnet/roslyn/issues/30903")]
@@ -4676,7 +4682,7 @@ class C
         var [|x|] = (X)(0, (0, 0));
         var x2 = x;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+}",
 @"using X = System.ValueTuple<int, (int, int)>;
 
 class C
@@ -4685,7 +4691,7 @@ class C
     {
         var x2 = (X)(0, (0, 0));
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]

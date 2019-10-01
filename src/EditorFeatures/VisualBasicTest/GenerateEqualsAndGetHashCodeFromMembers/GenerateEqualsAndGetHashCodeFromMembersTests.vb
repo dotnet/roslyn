@@ -434,10 +434,7 @@ Class Z
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return CType(hashCode, Integer)
+        Return (a, b).GetHashCode()
     End Function
 End Class",
 index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow:=True))
@@ -484,10 +481,7 @@ End Class",
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 End Class",
 index:=1)

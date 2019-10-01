@@ -85,7 +85,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             //
             // This ensures that the type will both display properly to the user, as well as ensuring
             // that we can accurately resolve the type later on when we try to navigate to it.
-            definition = definition.OriginalDefinition;
+            if (!definition.IsTupleField())
+            {
+                definition = definition.OriginalDefinition;
+            }
 
             var displayParts = definition.ToDisplayParts(GetFormat(definition)).ToTaggedText();
             var nameDisplayParts = definition.ToDisplayParts(s_namePartsFormat).ToTaggedText();

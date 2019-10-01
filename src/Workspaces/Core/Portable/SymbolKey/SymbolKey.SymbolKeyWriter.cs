@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis
                     WriteType(SymbolKeyType.ErrorType);
                     ErrorTypeSymbolKey.Create(namedTypeSymbol, this);
                 }
-                else if (namedTypeSymbol.IsTupleType)
+                else if (namedTypeSymbol.IsTupleType && namedTypeSymbol.TupleUnderlyingType != namedTypeSymbol)
                 {
                     WriteType(SymbolKeyType.TupleType);
                     TupleTypeSymbolKey.Create(namedTypeSymbol, this);

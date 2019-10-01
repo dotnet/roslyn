@@ -1821,11 +1821,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (EmptyStructTypeCache.IsTrackableStructType(type))
                     {
-                        var tupleType = constructor?.ContainingType as TupleTypeSymbol;
-                        if (tupleType is object && !isDefaultValueTypeConstructor)
+                        var containingType = constructor?.ContainingType;
+                        if (containingType?.IsTupleType == true && !isDefaultValueTypeConstructor)
                         {
                             // new System.ValueTuple<T1, ..., TN>(e1, ..., eN)
-                            TrackNullableStateOfTupleElements(slot, tupleType, arguments, argumentTypes, useRestField: true);
+                            TrackNullableStateOfTupleElements(slot, containingType, arguments, argumentTypes, useRestField: true);
                         }
                         else
                         {
@@ -4513,9 +4513,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             var symbolDef = symbol.OriginalDefinition;
             var symbolContainer = symbol.ContainingType;
-            if (symbolContainer.IsTupleType)
+            if (symbol is TupleElementFieldSymbol)
             {
-                return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
+                return symbol.SymbolAsMember(containingType);
             }
             if (symbolContainer.IsAnonymousType)
             {
@@ -4531,7 +4531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(symbol.ContainingType.IsDefinition);
                 return symbol;
             }
-            if (!containingType.IsGenericType && !containingType.IsTupleType)
+            if (!containingType.IsGenericType)
             {
                 return symbol;
             }
@@ -4580,34 +4580,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = resultMethod.Construct(((MethodSymbol)symbol).TypeArgumentsWithAnnotations);
                 }
                 return true;
-            }
-        }
-
-        private static Symbol AsMemberOfTupleType(TupleTypeSymbol tupleType, Symbol symbol)
-        {
-            if (symbol.ContainingType.Equals(tupleType, SymbolEqualityComparer.ConsiderEverything.CompareKind))
-            {
-                return symbol;
-            }
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Field:
-                    {
-                        var index = ((FieldSymbol)symbol).TupleElementIndex;
-                        if (index >= 0)
-                        {
-                            return tupleType.TupleElements[index];
-                        }
-                        return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleFieldSymbol)symbol).UnderlyingField);
-                    }
-                case SymbolKind.Property:
-                    return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TuplePropertySymbol)symbol).UnderlyingProperty);
-                case SymbolKind.Event:
-                    return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleEventSymbol)symbol).UnderlyingEvent);
-                case SymbolKind.Method:
-                    return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleMethodSymbol)symbol).UnderlyingMethod);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
 
@@ -4719,7 +4691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = node.Arguments;
             ImmutableArray<TypeWithState> elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalueWithState(a), this);
             ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations = elementTypes.SelectAsArray(a => a.ToTypeWithAnnotations());
-            var tupleOpt = (TupleTypeSymbol)node.Type;
+            var tupleOpt = (NamedTypeSymbol)node.Type;
             if (tupleOpt is null)
             {
                 SetResultType(node, TypeWithState.Create(default, NullableFlowState.NotNull));
@@ -4734,10 +4706,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 tupleOpt = tupleOpt.WithElementTypes(elementTypesWithAnnotations);
-                var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.Locations.FirstOrDefault() ?? location, node.Syntax.Location);
                 if (!_disableDiagnostics)
                 {
-                    tupleOpt.CheckConstraints(_conversions, includeNullability: true, node.Syntax, locations, compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: Diagnostics);
+                    var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.Locations.FirstOrDefault() ?? location, node.Syntax.Location);
+                    tupleOpt.CheckConstraints(_conversions, includeNullability: true, typeSyntax: node.Syntax, locations, currentCompilation: compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: Diagnostics);
                 }
 
                 SetResultType(node, TypeWithState.Create(tupleOpt, NullableFlowState.NotNull));
@@ -4751,13 +4723,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void TrackNullableStateOfTupleElements(
             int slot,
-            TupleTypeSymbol tupleType,
+            NamedTypeSymbol tupleType,
             ImmutableArray<BoundExpression> values,
             ImmutableArray<TypeWithState> types,
             bool useRestField)
         {
+            Debug.Assert(tupleType.IsTupleType);
             Debug.Assert(values.Length == types.Length);
-            Debug.Assert(values.Length == (useRestField ? Math.Min(tupleType.TupleElements.Length, TupleTypeSymbol.RestPosition) : tupleType.TupleElements.Length));
+            Debug.Assert(values.Length == (useRestField ? Math.Min(tupleType.TupleElements.Length, NamedTypeSymbol.RestPosition) : tupleType.TupleElements.Length));
 
             if (slot > 0)
             {
@@ -4765,15 +4738,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int n = values.Length;
                 if (useRestField)
                 {
-                    n = Math.Min(n, TupleTypeSymbol.RestPosition - 1);
+                    n = Math.Min(n, NamedTypeSymbol.RestPosition - 1);
                 }
                 for (int i = 0; i < n; i++)
                 {
                     trackState(values[i], tupleElements[i], types[i]);
                 }
-                if (useRestField && values.Length == TupleTypeSymbol.RestPosition)
+                if (useRestField && values.Length == NamedTypeSymbol.RestPosition)
                 {
-                    var restField = tupleType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
+                    var restField = tupleType.GetMembers(NamedTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
                     if ((object)restField != null)
                     {
                         trackState(values.Last(), restField, types.Last());
@@ -4839,14 +4812,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(slot > 0);
             Debug.Assert(valueSlot > 0);
 
-            var valueTuple = operandType as TupleTypeSymbol;
-            if (valueTuple is null)
+            var valueTuple = operandType as NamedTypeSymbol;
+            if (valueTuple is object && !valueTuple.IsTupleType)
             {
                 return;
             }
 
             var conversions = conversion.UnderlyingConversions;
-            var targetElements = ((TupleTypeSymbol)targetType).TupleElements;
+            var targetElements = ((NamedTypeSymbol)targetType).TupleElements;
             var valueElements = valueTuple.TupleElements;
             int n = valueElements.Length;
             for (int i = 0; i < n; i++)
@@ -6358,7 +6331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (expr.Type is TupleTypeSymbol tupleType)
+            if (expr.Type is NamedTypeSymbol { IsTupleType: true } tupleType)
             {
                 // https://github.com/dotnet/roslyn/issues/33011: Should include conversion.UnderlyingConversions[i].
                 // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and

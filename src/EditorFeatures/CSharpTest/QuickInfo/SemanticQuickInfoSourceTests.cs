@@ -5775,7 +5775,7 @@ public class C
         var y$$ = ValueTuple.Create();
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription($"({ FeaturesResources.local_variable }) ValueTuple y"));
         }
 
@@ -5793,7 +5793,7 @@ public class C
         var$$ y = ValueTuple.Create();
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription("struct System.ValueTuple"));
         }
 
@@ -5811,7 +5811,7 @@ public class C
         var y$$ = ValueTuple.Create(1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription($"({ FeaturesResources.local_variable }) ValueTuple<int> y"));
         }
 
@@ -5829,8 +5829,8 @@ public class C
         var$$ y = ValueTuple.Create(1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("ValueTuple<System.Int32>"));
+",
+                MainDescription("struct System.ValueTuple<System.Int32>"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -5847,7 +5847,7 @@ public class C
         var y$$ = ValueTuple.Create(1, 1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription($"({ FeaturesResources.local_variable }) (int, int) y"));
         }
 
@@ -5865,7 +5865,7 @@ public class C
         var$$ y = ValueTuple.Create(1, 1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription("(System.Int32, System.Int32)"));
         }
 

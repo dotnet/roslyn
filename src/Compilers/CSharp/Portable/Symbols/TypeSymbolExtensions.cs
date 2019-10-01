@@ -144,11 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
         }
 
-        public static TypeSymbol TupleUnderlyingTypeOrSelf(this TypeSymbol type)
-        {
-            return type.TupleUnderlyingType ?? type;
-        }
-
         public static TypeSymbol EnumUnderlyingTypeOrSelf(this TypeSymbol type)
         {
             return type.IsEnumType() ? type.GetEnumUnderlyingType() : type;
@@ -422,58 +417,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return invokeMethod.Parameters;
         }
 
-        public static bool TryGetElementTypesWithAnnotationsIfTupleOrCompatible(this TypeSymbol type, out ImmutableArray<TypeWithAnnotations> elementTypes)
+        public static bool TryGetElementTypesWithAnnotationsIfTupleType(this TypeSymbol type, out ImmutableArray<TypeWithAnnotations> elementTypes)
         {
             if (type.IsTupleType)
             {
-                elementTypes = ((TupleTypeSymbol)type).TupleElementTypesWithAnnotations;
+                elementTypes = ((NamedTypeSymbol)type).TupleElementTypesWithAnnotations;
                 return true;
             }
 
-            // The following codepath should be very uncommon since it would be rare
-            // to see a tuple underlying type not represented as a tuple.
-            // It still might happen since tuple underlying types are creatable via public APIs 
-            // and it is also possible that they would be passed in.
-
-            // PERF: if allocations here become nuisance, consider caching the results
-            //       in the type symbols that can actually be tuple compatible
-            int cardinality;
-            if (!type.IsTupleCompatible(out cardinality))
-            {
-                // source not a tuple or compatible
-                elementTypes = default(ImmutableArray<TypeWithAnnotations>);
-                return false;
-            }
-
-            var elementTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(cardinality);
-            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
-
-            Debug.Assert(elementTypesBuilder.Count == cardinality);
-
-            elementTypes = elementTypesBuilder.ToImmutableAndFree();
-            return true;
-        }
-
-        public static ImmutableArray<TypeWithAnnotations> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
-        {
-            if (type.IsTupleType)
-            {
-                return ((TupleTypeSymbol)type).TupleElementTypesWithAnnotations;
-            }
-
-            // The following codepath should be very uncommon since it would be rare
-            // to see a tuple underlying type not represented as a tuple.
-            // It still might happen since tuple underlying types are creatable via public APIs 
-            // and it is also possible that they would be passed in.
-
-            Debug.Assert(type.IsTupleCompatible());
-
-            // PERF: if allocations here become nuisance, consider caching the results
-            //       in the type symbols that can actually be tuple compatible
-            var elementTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)type, elementTypesBuilder);
-
-            return elementTypesBuilder.ToImmutableAndFree();
+            // source not a tuple
+            elementTypes = default(ImmutableArray<TypeWithAnnotations>);
+            return false;
         }
 
         public static MethodSymbol DelegateInvokeMethod(this TypeSymbol type)
@@ -678,12 +632,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
-                        if (current.IsTupleType)
-                        {
-                            // turn tuple type elements into parameters
-                            current = current.TupleUnderlyingType;
-                        }
-
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                         {
                             // Let's try to avoid early resolution of nullable types
@@ -1566,9 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                     {
                         var namedType = (NamedTypeSymbol)type;
-                        var changed = type.IsTupleType ?
-                            NormalizeTaskTypesInTuple(compilation, ref namedType) :
-                            NormalizeTaskTypesInNamedType(compilation, ref namedType);
+                        var changed = NormalizeTaskTypesInNamedType(compilation, ref namedType);
                         type = namedType;
                         return changed;
                     }
@@ -1624,10 +1570,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 if (hasChanged)
                 {
-                    var originalDefinition = type.OriginalDefinition;
+                    var originalType = type;
+                    var originalDefinition = originalType.OriginalDefinition;
                     var typeParameters = originalDefinition.GetAllTypeParameters();
                     var typeMap = new TypeMap(typeParameters, typeArgumentsBuilder.ToImmutable(), allowAlpha: true);
-                    type = typeMap.SubstituteNamedType(originalDefinition);
+                    type = typeMap.SubstituteNamedType(originalDefinition).WithTupleDataFrom(originalType);
                 }
                 typeArgumentsBuilder.Free();
             }
@@ -1655,18 +1602,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return hasChanged;
-        }
-
-        private static bool NormalizeTaskTypesInTuple(CSharpCompilation compilation, ref NamedTypeSymbol type)
-        {
-            Debug.Assert(type.IsTupleType);
-            var underlyingType = type.TupleUnderlyingType;
-            if (!NormalizeTaskTypesInNamedType(compilation, ref underlyingType))
-            {
-                return false;
-            }
-            type = TupleTypeSymbol.Create(underlyingType, type.TupleElementNames);
-            return true;
         }
 
         private static bool NormalizeTaskTypesInArray(CSharpCompilation compilation, ref ArrayTypeSymbol arrayType)

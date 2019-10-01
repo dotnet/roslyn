@@ -172,6 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+            {
+                Debug.Assert(false); // TODO2 untested
+                return new TopLevel(_containingModule, _namespaceName, Name, Arity, MangleName) { _lazyTupleData = newData };
+            }
+
             /// <summary>
             /// This is the FULL namespace name (e.g., "System.Collections.Generic")
             /// of the type that couldn't be found.
@@ -405,6 +411,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return SpecialType.None; // do not have nested types among CORE types yet.
                 }
+            }
+
+            protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+            {
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override int GetHashCode()

@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             BoundFieldAccess oldNodeOpt = null)
         {
-
             if (fieldSymbol.IsTupleField)
             {
                 return MakeTupleFieldAccess(syntax, fieldSymbol, rewrittenReceiver, constantValueOpt, resultKind);
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var tupleType = tupleField.ContainingType;
 
-            NamedTypeSymbol currentLinkType = tupleType.TupleUnderlyingType;
+            NamedTypeSymbol currentLinkType = tupleType;
             FieldSymbol underlyingField = tupleField.TupleUnderlyingField;
 
             if ((object)underlyingField == null)
@@ -72,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2))
             {
-                WellKnownMember wellKnownTupleRest = TupleTypeSymbol.GetTupleTypeMember(TupleTypeSymbol.RestPosition, TupleTypeSymbol.RestPosition);
-                var tupleRestField = (FieldSymbol)TupleTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax);
+                WellKnownMember wellKnownTupleRest = NamedTypeSymbol.GetTupleTypeMember(NamedTypeSymbol.RestPosition, NamedTypeSymbol.RestPosition);
+                var tupleRestField = (FieldSymbol)NamedTypeSymbol.GetWellKnownMemberInType(currentLinkType.OriginalDefinition, wellKnownTupleRest, _diagnostics, syntax);
 
                 if ((object)tupleRestField == null)
                 {
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FieldSymbol nestedFieldSymbol = tupleRestField.AsMember(currentLinkType);
                     rewrittenReceiver = _factory.Field(rewrittenReceiver, nestedFieldSymbol);
 
-                    currentLinkType = currentLinkType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].Type.TupleUnderlyingType;
+                    currentLinkType = (NamedTypeSymbol)currentLinkType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[NamedTypeSymbol.RestPosition - 1].Type;
                 }
                 while (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2));
             }

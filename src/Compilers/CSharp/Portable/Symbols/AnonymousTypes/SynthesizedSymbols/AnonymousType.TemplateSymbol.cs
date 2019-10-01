@@ -120,6 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new AnonymousTypeToStringMethodSymbol(this));
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+                => throw ExceptionUtilities.Unreachable;
+
             internal AnonymousTypeKey GetAnonymousTypeKey()
             {
                 var properties = Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));

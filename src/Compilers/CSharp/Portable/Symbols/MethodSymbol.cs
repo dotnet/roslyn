@@ -1019,29 +1019,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Is this a method of a tuple type?
-        /// </summary>
-        public virtual bool IsTupleMethod
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// If this is a method of a tuple type, return corresponding underlying method from the
-        /// tuple underlying type. Otherwise, null.
-        /// </summary>
-        public virtual MethodSymbol TupleUnderlyingMethod
-        {
-            get
-            {
-                return null;
-            }
-        }
-
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;

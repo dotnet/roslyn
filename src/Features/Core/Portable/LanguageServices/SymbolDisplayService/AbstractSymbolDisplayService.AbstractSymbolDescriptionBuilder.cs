@@ -290,7 +290,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
                 else if (symbol is INamedTypeSymbol namedType)
                 {
-                    await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
+                    if (namedType.IsTupleType)
+                    {
+                        AddToGroup(SymbolDescriptionGroups.MainDescription,
+                            ToDisplayParts(symbol, s_descriptionStyle));
+                    }
+                    else
+                    {
+                        await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
+                    }
                 }
                 else if (symbol is INamespaceSymbol namespaceSymbol)
                 {

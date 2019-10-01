@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             _retargetingModule = retargetingModule;
         }
 
+        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        {
+            return new RetargetingNamedTypeSymbol(_retargetingModule, _underlyingType) { _lazyTupleData = newData };
+        }
+
         private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
         {
             get

@@ -164,7 +164,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _unbound ? new List<string>(GetTypeMembersUnordered().Select(s => s.Name).Distinct()) : OriginalDefinition.MemberNames;
+                if (_unbound)
+                {
+                    return new List<string>(GetTypeMembersUnordered().Select(s => s.Name).Distinct());
+                }
+                else
+                {
+                    if (IsTupleType)
+                    {
+                        return GetMembers().Select(s => s.Name).Distinct();
+                    }
+                    else
+                    {
+                        return OriginalDefinition.MemberNames;
+                    }
+                }
             }
         }
 
@@ -216,6 +230,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (IsTupleType)
+            {
+                builder = AddOrWrapTupleMembers(builder.ToImmutableAndFree());
+                Debug.Assert(builder is object);
+            }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -241,6 +261,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (IsTupleType)
+            {
+                builder = AddOrWrapTupleMembers(builder.ToImmutableAndFree());
+                Debug.Assert(builder is object);
+            }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -260,6 +286,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<Symbol> GetMembersWorker(string name)
         {
+            if (IsTupleType)
+            {
+                var result = GetMembers().Where(m => m.Name == name).AsImmutable();
+                cacheResult(result);
+                return result;
+            }
+
             var originalMembers = OriginalDefinition.GetMembers(name);
             if (originalMembers.IsDefaultOrEmpty)
             {
@@ -273,15 +306,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var substitutedMembers = builder.ToImmutableAndFree();
-
-            // cache of size 8 seems reasonable here.
-            // considering that substituted methods have about 10 reference fields,
-            // reusing just one may make the cache profitable.
-            var cache = _lazyMembersByNameCache ??
-                        (_lazyMembersByNameCache = new ConcurrentCache<string, ImmutableArray<Symbol>>(8));
-
-            cache.TryAdd(name, substitutedMembers);
+            cacheResult(substitutedMembers);
             return substitutedMembers;
+
+            void cacheResult(ImmutableArray<Symbol> result)
+            {
+                // cache of size 8 seems reasonable here.
+                // considering that substituted methods have about 10 reference fields,
+                // reusing just one may make the cache profitable.
+                var cache = _lazyMembersByNameCache ??
+                            (_lazyMembersByNameCache = new ConcurrentCache<string, ImmutableArray<Symbol>>(8));
+
+                cache.TryAdd(name, result);
+            }
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()

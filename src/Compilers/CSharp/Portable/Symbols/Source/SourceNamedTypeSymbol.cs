@@ -89,6 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        {
+            return new SourceNamedTypeSymbol(ContainingType, declaration, new DiagnosticBag()) { _lazyTupleData = newData };
+        }
+
         #region Syntax
 
         private static SyntaxToken GetName(CSharpSyntaxNode node)

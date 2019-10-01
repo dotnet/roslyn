@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -31,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return this; }
         }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 
     /// <summary>
@@ -52,6 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(constructedFrom.Arity == typeArgumentsWithAnnotations.Length);
             Debug.Assert(constructedFrom.Arity != 0);
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleUncommonData newData)
+        {
+            return new ConstructedNamedTypeSymbol(_constructedFrom, _typeArgumentsWithAnnotations, IsUnboundGenericType) { _lazyTupleData = newData };
         }
 
         public override NamedTypeSymbol ConstructedFrom

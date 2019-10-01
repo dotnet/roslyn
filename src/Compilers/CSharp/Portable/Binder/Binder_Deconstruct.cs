@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The tuple created here is not identical to the one created by
             // DeconstructionVariablesAsTuple. It represents a smaller
             // tree of types used for figuring out natural types in tuple literal.
-            return TupleTypeSymbol.Create(
+            return NamedTypeSymbol.Create(
                 locationOpt: null,
                 elementTypesWithAnnotations: typesWithAnnotationsBuilder.ToImmutableAndFree(),
                 elementLocations: locationsBuilder.ToImmutableAndFree(),
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<bool> inferredPositions = tupleNames.IsDefault ? default : tupleNames.SelectAsArray(n => n != null);
             bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
-            var type = TupleTypeSymbol.Create(
+            var type = NamedTypeSymbol.Create(
                 syntax.Location,
                 typesWithAnnotationsBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,

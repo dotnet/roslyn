@@ -1030,11 +1030,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (type.IsTupleType)
-            {
-                return IsCompliantType(type.TupleUnderlyingType, context);
-            }
-
             foreach (TypeWithAnnotations typeArg in type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
             {
                 if (!IsCompliantType(typeArg.Type, context))
