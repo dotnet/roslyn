@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var generator = SyntaxGenerator.GetGenerator(document);
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var analyzer = new Analyzer(semanticModel.Compilation);
             Debug.Assert(analyzer.CanAnalyze());
@@ -48,23 +50,21 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 var operation = semanticModel.GetOperation(operationLocation, cancellationToken);
 
                 var methodDecl = diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
-                var method = semanticModel.GetDeclaredSymbol(methodDecl, cancellationToken) as IMethodSymbol;
+                var method = semanticModel.GetDeclaredSymbol(methodDecl, cancellationToken);
 
-                if (analyzer.IsSuitableGetHashCodeMethodToAnalyze(method, operation))
+                var members = analyzer.GetHashedMembers(method, operation);
+                if (!members.IsDefaultOrEmpty)
                 {
-                    var members = analyzer.GetHashedMembers(method, operation);
-                    if (!members.IsDefaultOrEmpty)
-                    {
-                        var generator = SyntaxGenerator.GetGenerator(document);
-                        var components = generator.GetGetHashCodeComponents(
-                            semanticModel.Compilation, method.ContainingType, members, justMemberReference: true);
+                    // Produce the new statements for the GetHashCode method and replace the
+                    // existing ones with them.
+                    var components = generator.GetGetHashCodeComponents(
+                        semanticModel.Compilation, method.ContainingType, members, justMemberReference: true);
 
-                        var methodStatements = generator.CreateGetHashCodeStatementsUsingSystemHashCode(
-                            analyzer.SystemHashCodeType, components);
-
-                        var updatedDecl = generator.WithStatements(methodDecl, methodStatements);
-                        editor.ReplaceNode(methodDecl, updatedDecl);
-                    }
+                    var updatedDecl = generator.WithStatements(
+                        methodDecl,
+                        generator.CreateGetHashCodeStatementsUsingSystemHashCode(
+                            analyzer.SystemHashCodeType, components));
+                    editor.ReplaceNode(methodDecl, updatedDecl);
                 }
             }
         }

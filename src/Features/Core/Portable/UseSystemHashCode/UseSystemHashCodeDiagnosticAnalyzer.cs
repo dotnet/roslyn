@@ -34,15 +34,20 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
         private void AnalyzeOperationBlock(Analyzer analyzer, OperationBlockAnalysisContext context)
         {
-            var method = context.OwningSymbol as IMethodSymbol;
-            if (context.OperationBlocks.Length != 1 ||
-                !analyzer.IsSuitableGetHashCodeMethodToAnalyze(method, context.OperationBlocks[0]))
+            if (context.OperationBlocks.Length != 1)
+            {
+                return;
+            }
+
+            var owningSymbol = context.OwningSymbol;
+            var operation = context.OperationBlocks[0];
+            var hashedMembers = analyzer.GetHashedMembers(owningSymbol, operation);
+            if (!hashedMembers.IsDefaultOrEmpty)
             {
                 return;
             }
 
             var cancellationToken = context.CancellationToken;
-            var operation = context.OperationBlocks[0];
             var optionSet = context.Options.GetDocumentOptionSetAsync(operation.Syntax.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
@@ -55,18 +60,14 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return;
             }
 
-            var hashedMembers = analyzer.GetHashedMembers(method, operation);
-            if (!hashedMembers.IsDefaultOrEmpty)
-            {
-                var operationLocation = operation.Syntax.GetLocation();
-                var declarationLocation = method.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
-                context.ReportDiagnostic(DiagnosticHelper.Create(
-                    this.Descriptor,
-                    method.Locations[0],
-                    option.Notification.Severity,
-                    new[] { operationLocation, declarationLocation },
-                    ImmutableDictionary<string, string>.Empty));
-            }
+            var operationLocation = operation.Syntax.GetLocation();
+            var declarationLocation = context.OwningSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                this.Descriptor,
+                owningSymbol.Locations[0],
+                option.Notification.Severity,
+                new[] { operationLocation, declarationLocation },
+                ImmutableDictionary<string, string>.Empty));
         }
     }
 }

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -9,6 +10,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
+    /// <summary>
+    /// Helper code to support both <see cref="UseSystemHashCodeCodeFixProvider"/> and
+    /// <see cref="UseSystemHashCodeDiagnosticAnalyzer"/>.
+    /// </summary>
     internal struct Analyzer
     {
         private readonly Compilation _compilation;
@@ -29,25 +34,31 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         public bool CanAnalyze()
             => SystemHashCodeType != null && _objectGetHashCodeMethod != null;
 
-        public bool IsSuitableGetHashCodeMethodToAnalyze(IMethodSymbol method, IOperation operation)
-            => method != null &&
-               method.Name == nameof(GetHashCode) &&
-               method.IsOverride &&
-               method.Locations.Length == 1 &&
-               method.Locations[0].IsInSource &&
-               method.DeclaringSyntaxReferences.Length == 1 &&
-               operation is IBlockOperation blockOperation &&
-               OverridesSystemObject(_objectGetHashCodeMethod, method);
-
-        public ImmutableArray<ISymbol> GetHashedMembers(
-            IMethodSymbol containingMethod, IOperation operation)
+        /// <summary>
+        /// Analyzes the containing <c>GetHashCode</c> method to determine which fields and
+        /// properties were combined to form a hash code for this type.
+        /// </summary>
+        public ImmutableArray<ISymbol> GetHashedMembers(ISymbol owningSymbol, IOperation operation)
         {
+            Debug.Assert(CanAnalyze());
+
             if (!(operation is IBlockOperation blockOperation))
             {
                 return default;
             }
 
-            // Unwind through nested blocks.
+            // Owning symbol has to be an override of Object.GetHashCode.
+            if (!(owningSymbol is IMethodSymbol method) ||
+                method.Name != nameof(GetHashCode) ||
+                method.Locations.Length != 1 ||
+                method.DeclaringSyntaxReferences.Length != 1 ||
+                !method.Locations[0].IsInSource ||
+                !OverridesSystemObject(method))
+            {
+                return default;
+            }
+
+            // Unwind through nested blocks. This also handles if we're in an 'unchecked' block in C#
             while (blockOperation.Operations.Length == 1 &&
                    blockOperation.Operations[0] is IBlockOperation childBlock)
             {
@@ -57,10 +68,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             // Needs to be of the form:
             //
             //      // accumulator
-            //      var hashCode = <initializer>
+            //      var hashCode = <initializer_or_hash>
             //
             //      // 1-N member hashes mixed into the accumulator.
-            //      hashCode = (hashCode op constant) op member_hash
+            //      hashCode = (hashCode op constant) op Hash(member)
             //
             //      // return of the value.
             //      return hashCode;
@@ -71,6 +82,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return default;
             }
 
+            // First statement has to be the declaration of the accumulator.
+            // Last statement has to be the return of it.
             var firstStatement = statements.First();
             var lastStatement = statements.Last();
 
@@ -104,27 +117,47 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return default;
             }
 
-            var accumulatorVariable = declarator.Symbol;
-            if (!(IsLocalReference(returnStatement.ReturnedValue, accumulatorVariable)))
+            var hashCodeVariable = declarator.Symbol;
+            if (!(IsLocalReference(returnStatement.ReturnedValue, hashCodeVariable)))
             {
                 return default;
             }
 
+            // Local declaration can be of the form:
+            //
+            //      // VS code gen
+            //      var hashCode = number;
+            //
+            // or
+            //
+            //      // ReSharper code gen
+            //      var hashCode = Hash(firstSymbol);
             var initializerValue = declarator.Initializer.Value;
             var hashedSymbols = ArrayBuilder<ISymbol>.GetInstance();
             if (!IsLiteralNumber(initializerValue) &&
-                !TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, initializerValue))
+                !TryGetHashedSymbol(method, hashCodeVariable, hashedSymbols, initializerValue))
             {
                 return default;
             }
 
+            // Now check all the intermediary statements.  They all have to be of the form:
+            //
+            //      hashCode = (hashCode op constant) op Hash(member)
+            //
+            // Or recursively built out of that.  For example, in VB we sometimes generate:
+            //
+            //      hashCode = Hash((hashCode op constant) op Hash(member))
+            //
+            // So, after confirming we're assigning to our accumulator, we recursively break down
+            // the expression, looking for valid forms that only end up hashing a single field in
+            // some way.
             for (var i = 1; i < statements.Length - 1; i++)
             {
                 var statement = statements[i];
                 if (!(statement is IExpressionStatementOperation expressionStatement) ||
                     !(expressionStatement.Operation is ISimpleAssignmentOperation simpleAssignment) ||
-                    !IsLocalReference(simpleAssignment.Target, accumulatorVariable) ||
-                    !TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, simpleAssignment.Value))
+                    !IsLocalReference(simpleAssignment.Target, hashCodeVariable) ||
+                    !TryGetHashedSymbol(method, hashCodeVariable, hashedSymbols, simpleAssignment.Value))
                 {
                     return default;
                 }
@@ -133,6 +166,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             return hashedSymbols.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Recursive function that decomposes <paramref name="value"/>, looking for particular
+        /// forms that VS or ReSharper generate to hash fields in the containing type.
+        /// </summary>
         private bool TryGetHashedSymbol(
             IMethodSymbol containingMethod, ILocalSymbol accumulatorVariable,
             ArrayBuilder<ISymbol> hashedSymbols, IOperation value)
@@ -141,9 +178,16 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             if (value is IInvocationOperation invocation)
             {
                 var targetMethod = invocation.TargetMethod;
-                if (OverridesSystemObject(_objectGetHashCodeMethod, targetMethod))
+                if (OverridesSystemObject(targetMethod))
                 {
-                    // (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
+                    // Either:
+                    //
+                    //      a.GetHashCode()
+                    //
+                    // or
+                    //
+                    //      (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
+                    //
                     // recurse on the value we're calling GetHashCode on.
                     return TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, invocation.Instance);
                 }
@@ -153,11 +197,16 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                     invocation.Arguments.Length == 1)
                 {
                     // EqualityComparer<T>.Default.GetHashCode(i)
+                    //
+                    // VS codegen only.
                     return TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, invocation.Arguments[0].Value);
                 }
             }
 
             // (hashCode op1 constant) op1 hashed_value
+            //
+            // This is generated by both VS and ReSharper.  Though each use different mathematical
+            // ops to combine the values.
             if (value is IBinaryOperation topBinary)
             {
                 return topBinary.LeftOperand is IBinaryOperation leftBinary &&
@@ -169,9 +218,14 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             if (value is IInstanceReferenceOperation instanceReference)
             {
                 // reference to this/base.
+                //
+                // Happens with code like: `var hashCode = base.GetHashCode();`
                 return instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
             }
 
+            // (StringProperty != null ? StringProperty.GetHashCode() : 0)
+            //
+            // ReSharper codegen only.
             if (value is IConditionalOperation conditional &&
                 conditional.Condition is IBinaryOperation binary)
             {
@@ -191,12 +245,16 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 }
             }
 
+            // After decomposing all of the above patterns, we must end up with an operation that is
+            // a reference to an instance-field (or prop) in our type.  If so, and this is the only
+            // time we've seen that field/prop, then we're good.
             if (TryGetFieldOrProperty(value, out var fieldOrProp) &&
                 Equals(fieldOrProp.ContainingType.OriginalDefinition, containingMethod.ContainingType))
             {
                 return Add(hashedSymbols, fieldOrProp);
             }
 
+            // Anything else is not recognized.
             return false;
         }
 
@@ -205,13 +263,13 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             if (operation is IFieldReferenceOperation fieldReference)
             {
                 symbol = fieldReference.Member;
-                return true;
+                return !symbol.IsStatic;
             }
 
             if (operation is IPropertyReferenceOperation propertyReference)
             {
                 symbol = propertyReference.Member;
-                return true;
+                return !symbol.IsStatic;
             }
 
             symbol = null;
@@ -220,18 +278,19 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
         private bool Add(ArrayBuilder<ISymbol> hashedSymbols, ISymbol member)
         {
-            foreach (var symbol in hashedSymbols)
+            // Not a legal GetHashCode to convert if we refer to members multiple times.
+            if (hashedSymbols.Contains(member))
             {
-                if (Equals(symbol, member))
-                {
-                    return false;
-                }
+                return false;
             }
 
             hashedSymbols.Add(member);
             return true;
         }
 
+        /// <summary>
+        /// Matches positive and negative numeric literals.
+        /// </summary>
         private static bool IsLiteralNumber(IOperation value)
         {
             value = Unwrap(value);
@@ -245,6 +304,14 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
         private static IOperation Unwrap(IOperation value)
         {
+            // ReSharper and VS generate different patterns for parentheses (which also depends on
+            // the particular parentheses settings the user has enabled).  So just descend through
+            // any parentheses we see to create a uniform view of the code.
+            //
+            // Also, lots of operations in a GetHashCode impl will involve conversions all over the
+            // place (for example, some computations happen in 64bit, but convert to/from 32bit
+            // along the way).  So we descend through conversions as well to create a uniform view
+            // of things.
             while (true)
             {
                 if (value is IConversionOperation conversion)
@@ -262,11 +329,11 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
         }
 
-        public static bool OverridesSystemObject(IMethodSymbol objectGetHashCode, IMethodSymbol method)
+        public bool OverridesSystemObject(IMethodSymbol method)
         {
             for (var current = method; current != null; current = current.OverriddenMethod)
             {
-                if (objectGetHashCode.Equals(current))
+                if (_objectGetHashCodeMethod.Equals(current))
                 {
                     return true;
                 }
