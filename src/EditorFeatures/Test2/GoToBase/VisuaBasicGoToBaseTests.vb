@@ -517,6 +517,52 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOverloadsOverrdiesAndInterfaceImplementation_01() As Task
+            Await TestAsync(
+"Class C
+    Implements I
+    Public Overridable Sub [|N|]() Implements I.M
+    End Sub
+    Public Overridable Sub N(i As Integer) Implements I.M
+    End Sub
+End Class
+Class D
+    Inherits C
+    Public Overrides Sub $$N()
+    End Sub
+    Public Overrides Sub N(i As Integer)
+    End Sub
+End Class
+Interface I
+    Sub [|M|]()
+    Sub M(i As Integer)
+End Interface")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOverloadsOverrdiesAndInterfaceImplementation_02() As Task
+            Await TestAsync(
+"Class C
+    Implements I
+    Public Overridable Sub N() Implements I.M
+    End Sub
+    Public Overridable Sub [|N|](i As Integer) Implements I.M
+    End Sub
+End Class
+Class D
+    Inherits C
+    Public Overrides Sub N()
+    End Sub
+    Public Overrides Sub $$N(i As Integer)
+    End Sub
+End Class
+Interface I
+    Sub M()
+    Sub [|M|](i As Integer)
+End Interface")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestOverrideOfMethodFromMetadata() As Task
             Await TestAsync(
 "Imports System

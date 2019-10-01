@@ -388,6 +388,22 @@ sealed class C2 : A {
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOverloadsOverrdiesAndInterfaceImplementation_01() As Task
+            Await TestAsync(
+"abstract class C : I { public virtual void [|M|]() { } public virtual void M(int i) { }}
+class D : C { public override void $$M() { } public override void M(int i) { }}
+interface I { void [|M|](); void M(int i};")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOverloadsOverrdiesAndInterfaceImplementation_02() As Task
+            Await TestAsync(
+"abstract class C : I { public virtual void M() { } public virtual void [|M|](int i) { }}
+class D : C { public override void M() { } public override void $$M(int i) { }}
+interface I { void M(); void [|M|](int i};")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestOverrideOfMethodFromMetadata() As Task
             Await TestAsync(
 "using System;
