@@ -427,12 +427,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     }
                     else
                     {
-                        // Verify that editorconfig header regex matches filename
                         var brokenUpHeader = mostRecentHeaderText.Split(new[] { '.' }, 2);
                         var brokenUpFileExtensions = brokenUpHeader[1].Split(',', ' ', '{', '}');
 
+                        // Replacing characters in the header with the regex equivalent
                         brokenUpHeader[0] = brokenUpHeader[0].Replace("*", ".*");
                         brokenUpHeader[0] = brokenUpHeader[0].Replace("/", @"\/");
+
+                        // Creating the header regex string, ex. [*.{cs,vb}] => ((\.cs)|(\.vb))
                         var headerRegexStr = brokenUpHeader[0] + @"((\." + brokenUpFileExtensions[0] + ")";
                         for (var i = 1; i < brokenUpFileExtensions.Length; i++)
                         {
@@ -441,17 +443,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         headerRegexStr += ")";
 
                         var headerRegex = new Regex(headerRegexStr);
+
+                        // We check that the relative path of the .editorconfig file to the diagnostic file
+                        // matches the header regex pattern.
                         if (headerRegex.IsMatch(relativePath))
                         {
                             var match = headerRegex.Match(relativePath).Value.Split('.');
+
+                            // Edge case: The below statement checks that we correctly handle cases such as a header of [m.cs] and
+                            // a file name of Program.cs.
                             if (match[0].Contains(PathUtilities.GetFileName(diagnosticFilePath, false)))
                             {
-                                // If the diagnostic's isPerLanguage = true, it means the rule is valid for both C# and VB.
+                                // If the diagnostic's isPerLanguage = true, the rule is valid for both C# and VB.
                                 // For the purpose of adding missing rules later, we want to keep track of whether there is a
                                 // valid header that contains both [*.cs] and [*.vb]. 
-                                // Likewise, if isPerLanguage = false, it means the rule is only valid for
-                                // one of the languages. Thus, we want to keep track of whether there is an existing header that is
-                                // only [*.cs] or only [*.vb], depending on the language.
+                                // If isPerLanguage = false, the rule is only valid for one of the languages. Thus, we want to
+                                // keep track of whether there is an existing header that only contains [*.cs] or only [*.vb],
+                                // depending on the language.
                                 // We also keep track of the last valid header for the language.
                                 if (_isPerLanguage && (_language.Equals(LanguageNames.CSharp) || _language.Equals(LanguageNames.VisualBasic)))
                                 {
