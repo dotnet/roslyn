@@ -132,9 +132,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(arguments.IsDefaultOrEmpty || (object)receiverOpt != (object)arguments[0]);
 
-            return new BoundCall(node, binder.BindToTypeForErrorRecovery(receiverOpt), method, arguments.SelectAsArray(e => binder.BindToTypeForErrorRecovery(e)), namedArguments,
-                refKinds, isDelegateCall: isDelegateCall, expanded: false, invokedAsExtensionMethod: invokedAsExtensionMethod, argsToParamsOpt: default(ImmutableArray<int>),
-                resultKind: resultKind, originalMethods, binderOpt: binder, type: method.ReturnType, hasErrors: true);
+            return new BoundCall(
+                syntax: node,
+                receiverOpt: binder.BindToTypeForErrorRecovery(receiverOpt),
+                method: method,
+                arguments: arguments.SelectAsArray((e, binder) => binder.BindToTypeForErrorRecovery(e), binder),
+                argumentNamesOpt: namedArguments,
+                argumentRefKindsOpt: refKinds,
+                isDelegateCall: isDelegateCall,
+                expanded: false,
+                invokedAsExtensionMethod: invokedAsExtensionMethod,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                resultKind: resultKind,
+                originalMethodsOpt: originalMethods,
+                binderOpt: binder,
+                type: method.ReturnType,
+                hasErrors: true);
         }
 
         public BoundCall Update(ImmutableArray<BoundExpression> arguments)

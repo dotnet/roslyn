@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(syntax,
                 resultKind,
                 symbols,
-                childNodes.SelectAsArray(e => BindToTypeForErrorRecovery(e)),
+                childNodes.SelectAsArray((e, self) => self.BindToTypeForErrorRecovery(e), this),
                 CreateErrorType());
         }
 
