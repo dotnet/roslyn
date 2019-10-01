@@ -1527,48 +1527,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, AnalyzerOptions analyzerOptions)
         {
-            var filteredDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
-            return applyBulkConfiguration(filteredDiagnostic, compilation, analyzerOptions);
+            diagnostic = compilation.Options.FilterDiagnostic(diagnostic);
 
-            static Diagnostic applyBulkConfiguration(Diagnostic diagnostic, Compilation compilation, AnalyzerOptions analyzerOptions)
+            // Apply bulk configuration from analyzer options, if applicable.
+            var tree = diagnostic?.Location.SourceTree;
+            if (tree == null || analyzerOptions == null)
             {
-                // Check if diagnostic has a location in source.
-                if (diagnostic?.Location.SourceTree == null ||
-                    analyzerOptions == null)
-                {
-                    return diagnostic;
-                }
-
-                // If user has explicitly configured severity for this diagnostic ID, that should be respected and
-                // bulk configuration should not be applied.
-                // For example, 'dotnet_diagnostic.CA1000.severity = error'
-                if (compilation.Options.SpecificDiagnosticOptions.ContainsKey(diagnostic.Id) ||
-                    diagnostic.Location.SourceTree.DiagnosticOptions.ContainsKey(diagnostic.Id))
-                {
-                    return diagnostic;
-                }
-
-                var analyzerConfigOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(diagnostic.Location.SourceTree);
-
-                // Otherwise, if user has explicitly configured default severity for the diagnostic category, that should be respected.
-                // For example, 'dotnet_analyzer_diagnostic.category-security.severity = error'
-                var categoryBasedKey = AnalyzerConfigOptionNames.GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(diagnostic.Category);
-                if (analyzerConfigOptions.TryGetValue(categoryBasedKey, out var value) &&
-                    AnalyzerConfigSet.TryParseSeverity(value, out ReportDiagnostic severity))
-                {
-                    return diagnostic.WithReportDiagnostic(severity);
-                }
-
-                // Otherwise, if user has explicitly configured default severity for all analyzer diagnostics, that should be respected.
-                // For example, 'dotnet_analyzer_diagnostic.severity = error'
-                if (analyzerConfigOptions.TryGetValue(AnalyzerConfigOptionNames.DotnetAnalyzerDiagnosticSeverityKey, out value) &&
-                    AnalyzerConfigSet.TryParseSeverity(value, out severity))
-                {
-                    return diagnostic.WithReportDiagnostic(severity);
-                }
-
                 return diagnostic;
             }
+
+            // If user has explicitly configured severity for this diagnostic ID, that should be respected and
+            // bulk configuration should not be applied.
+            // For example, 'dotnet_diagnostic.CA1000.severity = error'
+            if (compilation.Options.SpecificDiagnosticOptions.ContainsKey(diagnostic.Id) ||
+                tree.DiagnosticOptions.ContainsKey(diagnostic.Id))
+            {
+                return diagnostic;
+            }
+
+            var analyzerConfigOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
+
+            // Otherwise, if user has explicitly configured default severity for the diagnostic category, that should be respected.
+            // For example, 'dotnet_analyzer_diagnostic.category-security.severity = error'
+            var categoryBasedKey = AnalyzerConfigOptionNames.GetCategoryBasedDotnetAnalyzerDiagnosticSeverityKey(diagnostic.Category);
+            if (analyzerConfigOptions.TryGetValue(categoryBasedKey, out var value) &&
+                AnalyzerConfigSet.TryParseSeverity(value, out ReportDiagnostic severity))
+            {
+                return diagnostic.WithReportDiagnostic(severity);
+            }
+
+            // Otherwise, if user has explicitly configured default severity for all analyzer diagnostics, that should be respected.
+            // For example, 'dotnet_analyzer_diagnostic.severity = error'
+            if (analyzerConfigOptions.TryGetValue(AnalyzerConfigOptionNames.DotnetAnalyzerDiagnosticSeverityKey, out value) &&
+                AnalyzerConfigSet.TryParseSeverity(value, out severity))
+            {
+                return diagnostic.WithReportDiagnostic(severity);
+            }
+
+            return diagnostic;
         }
 
         private static async Task<(AnalyzerActions actions, ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)> GetAnalyzerActionsAsync(
