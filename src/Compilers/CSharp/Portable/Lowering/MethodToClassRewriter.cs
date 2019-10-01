@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly DiagnosticBag Diagnostics;
         protected readonly VariableSlotAllocator slotAllocatorOpt;
 
+        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
+
         protected MethodToClassRewriter(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
             this.slotAllocatorOpt = slotAllocatorOpt;
+            this._placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
         }
 
         /// <summary>
@@ -356,13 +359,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.VisitLocal(node);
         }
 
-        public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
+        public override BoundNode VisitAwaitableInfo(BoundAwaitableInfo node)
         {
-            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            var awaitableInfo = (BoundAwaitableInfo)Visit(node.AwaitableInfo);
-            TypeSymbol type = this.VisitType(node.Type);
+            var awaitableInstancePlaceholder = node.AwaitableInstancePlaceholder;
+            awaitableInstancePlaceholder = awaitableInstancePlaceholder.Update(VisitType(awaitableInstancePlaceholder.Type));
 
-            return node.Update(expression, awaitableInfo, type);
+            _placeholderMap.Add(node.AwaitableInstancePlaceholder, awaitableInstancePlaceholder);
+
+            var getAwaiter = (BoundExpression)this.Visit(node.GetAwaiter);
+            var isCompleted = VisitPropertySymbol(node.IsCompleted);
+            var getResult = VisitMethodSymbol(node.GetResult);
+
+            _placeholderMap.Remove(node.AwaitableInstancePlaceholder);
+
+            return node.Update(awaitableInstancePlaceholder, getAwaiter, isCompleted, getResult);
+        }
+
+        public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return _placeholderMap[node];
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
