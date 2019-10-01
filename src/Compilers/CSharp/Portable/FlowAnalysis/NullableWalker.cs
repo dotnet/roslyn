@@ -1593,7 +1593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int slot = GetOrCreateSlot(local);
 
             // We need visit the optional arguments so that we can return nullability information
-            // about them, but we don't want to communciate any information about anything underneath.
+            // about them, but we don't want to communicate any information about anything underneath.
             // Additionally, tests like Scope_DeclaratorArguments_06 can have conditional expressions
             // in the optional arguments that can leave us in a split state, so we want to make sure
             // we are not in a conditional state after.
@@ -1819,11 +1819,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
         {
             TakeIncrementalSnapshot(node);
-            switch (node.Kind)
+            switch (node)
             {
-                case BoundKind.ObjectInitializerExpression:
+                case BoundObjectInitializerExpression objectInitializer:
                     checkImplicitReceiver();
-                    foreach (var initializer in ((BoundObjectInitializerExpression)node).Initializers)
+                    foreach (var initializer in objectInitializer.Initializers)
                     {
                         switch (initializer.Kind)
                         {
@@ -1835,10 +1835,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                         }
                     }
+                    SetNotNullResult(objectInitializer.Placeholder);
                     break;
-                case BoundKind.CollectionInitializerExpression:
+                case BoundCollectionInitializerExpression collectionInitializer:
                     checkImplicitReceiver();
-                    foreach (var initializer in ((BoundCollectionInitializerExpression)node).Initializers)
+                    foreach (var initializer in collectionInitializer.Initializers)
                     {
                         switch (initializer.Kind)
                         {
@@ -1850,6 +1851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                         }
                     }
+                    SetNotNullResult(collectionInitializer.Placeholder);
                     break;
                 default:
                     Debug.Assert((object)containingSymbol != null);
@@ -1915,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (var reinferredMethod, _, _) = VisitArguments(node, node.Arguments, refKindsOpt: default, node.AddMethod, node.ArgsToParamsOpt, node.Expanded, node.InvokedAsExtensionMethod);
             if (node.ImplicitReceiverOpt != null)
             {
-                Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ImplicitReceiver);
+                Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ObjectOrCollectionValuePlaceholder);
                 SetAnalyzedNullability(node.ImplicitReceiverOpt, new VisitResult(node.ImplicitReceiverOpt.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
             }
             SetUnknownResultNullability(node);
@@ -5784,6 +5786,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var left = node.Left;
             var right = node.Right;
             VisitLValue(left);
+            // we may enter a conditional state for error scenarios on the LHS.
+            Unsplit();
+
             FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(left);
             TypeWithAnnotations declaredType = LvalueResultType;
             TypeWithAnnotations leftLValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);
@@ -6636,7 +6641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       In these cases, there will be an implicit conversion to IEnumerable<T>, but this will use types from
             //       initial binding. For this scenario, we need to look through the list of implemented interfaces on the type and
             //       find the version of IEnumerable<T> that it has after nullable analysis, as type substitution could have changed
-            //       nested nullability of type paramters. See ForEach_22 for a concrete example of this.
+            //       nested nullability of type parameters. See ForEach_22 for a concrete example of this.
             //    5. The collection type implements IEnumerable (non-generic). Because this version isn't generic, we don't need to
             //       do any reinference, and the existing conversion can stand as is.
             //    6. The target framework's System.String doesn't implement IEnumerable. This is a compat case: System.String normally
@@ -7683,6 +7688,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
+            SetNotNullResult(node);
+            return null;
+        }
+
+        public override BoundNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
         {
             SetNotNullResult(node);
             return null;

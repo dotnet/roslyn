@@ -5518,5 +5518,28 @@ class Driver
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(38543, "https://github.com/dotnet/roslyn/issues/38543")]
+        public void AsyncLambdaWithAwaitedTasksInTernary()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static Task M(bool b) => M2(async () =>
+        b ? await Task.Delay(1) : await Task.Delay(2));
+
+    static T M2<T>(Func<T> f) => f();
+}";
+            // The diagnostic message isn't great, but it is correct that we report an error
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            c.VerifyDiagnostics(
+                // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         b ? await Task.Delay(1) : await Task.Delay(2));
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "b ? await Task.Delay(1) : await Task.Delay(2)").WithLocation(8, 9)
+                );
+        }
     }
 }

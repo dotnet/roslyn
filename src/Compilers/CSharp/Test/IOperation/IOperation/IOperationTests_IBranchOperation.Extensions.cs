@@ -36,7 +36,7 @@ class C
         }/*</bind>*/
     }
 }");
-            Assert.IsAssignableFrom(typeof(ILabeledOperation), result.outer);
+            Assert.IsAssignableFrom<ILabeledOperation>(result.outer);
             Assert.Null(result.corresponding);
         }
 

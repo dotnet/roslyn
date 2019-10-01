@@ -16144,7 +16144,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch expression does not handle all possible inputs (it is not exhaustive)..
+        ///   Looks up a localized string similar to The switch expression does not handle all possible values of its input type (it is not exhaustive)..
         /// </summary>
         internal static string WRN_SwitchExpressionNotExhaustive {
             get {
@@ -16153,7 +16153,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch expression does not handle all possible inputs (it is not exhaustive)..
+        ///   Looks up a localized string similar to The switch expression does not handle all possible values of its input type (it is not exhaustive)..
         /// </summary>
         internal static string WRN_SwitchExpressionNotExhaustive_Title {
             get {

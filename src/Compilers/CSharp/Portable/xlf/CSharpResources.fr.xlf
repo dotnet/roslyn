@@ -37,6 +37,11 @@
         <target state="translated">Il n'est pas correct d'utiliser le type de référence Nullable '{0}?' dans une expression as. Utilisez le type sous-jacent '{0}' à la place.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">L'attribut '{0}' est non valide sur les accesseurs d'événement. Il est valide uniquement sur les déclarations '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">La propriété implémentée automatiquement '{0}' ne peut pas être marquée 'readonly', car elle a un accesseur 'set'.</target>
@@ -45,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">L'accesseur 'set' '{0}' implémenté automatiquement ne peut pas être marqué 'readonly'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="translated">L'attribut '{0}' est non valide sur les accesseurs d'événement. Il est valide uniquement sur les déclarations '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
+        <target state="translated">Option '{0}' non valide pour /nullable ; utilisez 'disable', 'enable', 'warnings' ou 'annotations'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
-        <target state="new">Duplicate null suppression operator ('!')</target>
+        <target state="translated">Opérateur de suppression de valeur null dupliqué ('!')</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">'warnings', 'annotations' ou fin de directive attendu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -661,20 +661,20 @@
 -recurse:&lt;générique&gt;          Inclure tous les fichiers dans le répertoire et
                               les sous-répertoires actifs en fonction des
                               spécifications de caractères génériques
--reference:&lt;alias&gt;=&lt;fichier&gt;     Référencer les métadonnées à partir du
-                              fichier d'assembly spécifié à l'aide de l'alias indiqué (forme abrégée : -r)
--reference:&lt;liste_fichiers&gt;        Référencer les métadonnées à partir
+-reference:&lt;alias&gt;=&lt;fichier&gt;  Référencer les métadonnées à partir du
+                              fichier d'assembly spécifié via l'alias indiqué (forme abrégée : -r)
+-reference:&lt;liste_fichiers&gt;   Référencer les métadonnées à partir
                               des fichiers d'assembly spécifiés (forme abrégée : -r)
--addmodule:&lt;liste_fichiers&gt;        Lier les modules spécifiés dans cet assembly
--link:&lt;liste_fichiers&gt;             Incorporer les métadonnées à partir des
+-addmodule:&lt;liste_fichiers&gt;   Lier les modules spécifiés dans cet assembly
+-link:&lt;liste_fichiers&gt;        Incorporer les métadonnées à partir des
                               fichiers d'assembly d'interopérabilité spécifiés (forme abrégée : -l)
--analyzer:&lt;liste_fichiers&gt;         Exécuter les analyseurs à partir de cet assembly
+-analyzer:&lt;liste_fichiers&gt;    Exécuter les analyseurs à partir de cet assembly
                               (Forme abrégée : -a)
--additionalfile:&lt;liste_fichiers&gt;   Fichiers supplémentaires qui n'affectent pas directement
+-additionalfile:&lt;liste_fich.&gt; Fichiers supplémentaires qui n'affectent pas directement
                               la génération de code mais qui peuvent être utilisés par les analyseurs pour produire
                               des erreurs ou des avertissements.
 -embed                        Incorporer tous les fichiers sources dans le fichier PDB.
--embed:&lt;liste_fichiers&gt;            Incorporer des fichiers spécifiques dans le fichier PDB.
+-embed:&lt;liste_fichiers&gt;       Incorporer des fichiers spécifiques dans le fichier PDB.
 
                        - RESSOURCES -
 -win32res:&lt;fichier&gt;           Spécifier un fichier de ressources Win32 (.res)
@@ -710,7 +710,7 @@
                               diagnostics spécifiques.
 -errorlog:&lt;fichier&gt;           Spécifier un fichier pour journaliser tous les diagnostics du compilateur
                               et de l'analyseur.
--reportanalyzer               Signaler des informations supplémentaires sur l'analyseur, comme
+-reportanalyzer               Signaler des informations supplémentaires sur l'analyseur, par exemple
                               la durée d'exécution.
 
                        - LANGAGE -
@@ -720,12 +720,14 @@
                               abrégée : -d)
 -langversion:?                Afficher les valeurs autorisées pour la version du langage
 -langversion:&lt;chaîne&gt;         Spécifier la version du langage, par exemple
-                              'default' (dernière version principale) ou
                               'latest' (dernière version, en incluant les versions mineures),
+                              'default' (identique à 'latest'),
+                              'latestmajor' (dernière version, en excluant les versions mineures),
+                              'preview' (dernière version, en incluant les fonctionnalités de la préversion non prise en charge),
                               ou des versions spécifiques comme '6' ou '7.1'
 -nullable[+|-]                Spécifiez l'option de contexte Nullable enable|disable.
--nullable:{enable|disable|warnings}
-                              Spécifiez l'option de contexte Nullable enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Spécifiez l'option de contexte Nullable enable|disable|warnings|annotations.
 
                        - SÉCURITÉ -
 -delaysign[+|-]               Différer la signature de l'assembly en utilisant uniquement
@@ -755,7 +757,7 @@
 -main:&lt;type&gt;                  Spécifier le type qui contient le point d'entrée
                               (ignorer tous les autres points d'entrée possibles) (forme
                               abrégée : -m)
--fullpaths                    Le compilateur génère des chemins qualifiés complets
+-fullpaths                    Le compilateur génère des chemins complets
 -filealign:&lt;n&gt;                Spécifier l'alignement utilisé pour les
                               sections du fichier de sortie
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
@@ -784,7 +786,7 @@
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">implémentation d'interface par défaut</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -909,7 +911,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;expression switch&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1444,7 +1446,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">L'annotation pour les types référence Nullable doit être utilisée uniquement dans le code au sein d'un contexte d'annotations '#nullable'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
@@ -1459,7 +1461,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">L'annotation pour les types référence Nullable doit être utilisée uniquement dans le code au sein d'un contexte d'annotations '#nullable'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1634,7 +1636,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <target state="translated">La nullabilité des types référence dans le type de paramètre '{0}' de '{1}' ne correspond pas au membre implémenté implicitement '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1684,7 +1686,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">La nullabilité des types référence dans le type de retour de '{0}' ne correspond pas au membre implémenté implicitement '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1714,7 +1716,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">La nullabilité des types référence dans le type de '{0}' ne correspond pas au membre implémenté implicitement '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
@@ -1724,12 +1726,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">La nullabilité des types référence dans le type ne correspond pas au membre substitué.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">La nullabilité des types référence dans le type ne correspond pas au membre substitué.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1773,8 +1775,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">L'expression switch ne prend pas en charge toutes les entrées possibles (elle n'est pas exhaustive).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">L'expression switch ne prend pas en charge toutes les entrées possibles (elle n'est pas exhaustive).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1788,8 +1790,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">L'expression switch ne prend pas en charge toutes les entrées possibles (elle n'est pas exhaustive).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">L'expression switch ne prend pas en charge toutes les entrées possibles (elle n'est pas exhaustive).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1854,12 +1856,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Le {0} '{1}' non Nullable n'est pas initialisé.</target>
+        <target state="translated">Initialisation annulée du {0} '{1}' non Nullable. Déclarez {0} comme étant Nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="needs-review-translation">Le champ non Nullable n'est pas initialisé.</target>
+        <target state="translated">Le champ non Nullable n'est pas initialisé. Déclarez-le comme étant Nullable.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5882,12 +5884,12 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected 'disable' or 'restore'</source>
-        <target state="needs-review-translation">Disable, restore, enable ou safeonly attendu</target>
+        <target state="translated">'disable' ou 'restore' attendu</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected 'disable' or 'restore' after #pragma warning</source>
-        <target state="needs-review-translation">Disable, restore, enable ou safeonly attendu après un avertissement #pragma</target>
+        <target state="translated">'disable' ou 'restore' attendu après l'avertissement #pragma</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">

@@ -5,13 +5,13 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 Imports Microsoft.CodeAnalysis.ImplementAbstractClass
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
-    <Export(GetType(VSCommanding.ICommandHandler))>
+    <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name("ImplementAbstractClassCommandHandler")>
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>

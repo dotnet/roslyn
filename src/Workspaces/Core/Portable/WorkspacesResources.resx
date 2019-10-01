@@ -951,7 +951,7 @@ If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</value>
     <value>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</value>
   </data>
   <data name="Regex_hexadecimal_escape_short" xml:space="preserve">
-    <value>hexidecimal escape</value>
+    <value>hexadecimal escape</value>
   </data>
   <data name="Regex_letter_uppercase" xml:space="preserve">
     <value>letter, uppercase</value>
@@ -1451,50 +1451,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Changing_document_0_is_not_supported" xml:space="preserve">
     <value>Changing document '{0}' is not supported.</value>
-  </data>
-  <data name="ValueUsageInfo_Name" xml:space="preserve">
-    <value>Name</value>
-    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
-  </data>
-  <data name="ValueUsageInfo_Read" xml:space="preserve">
-    <value>Read</value>
-    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
-  </data>
-  <data name="ValueUsageInfo_Reference" xml:space="preserve">
-    <value>Reference</value>
-    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
-  </data>
-  <data name="ValueUsageInfo_Write" xml:space="preserve">
-    <value>Write</value>
-    <comment>See xml doc comments on 'ValueUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_Qualify" xml:space="preserve">
-    <value>Qualify</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_TypeArgument" xml:space="preserve">
-    <value>Type Argument</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_TypeConstraint" xml:space="preserve">
-    <value>Type Constraint</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_BaseType" xml:space="preserve">
-    <value>Base Type</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_Construct" xml:space="preserve">
-    <value>Construct</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_Import" xml:space="preserve">
-    <value>Import</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
-  </data>
-  <data name="TypeOrNamespaceUsageInfo_Declare" xml:space="preserve">
-    <value>Declare</value>
-    <comment>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</comment>
   </data>
   <data name="Parameter_preferences" xml:space="preserve">
     <value>Parameter preferences</value>

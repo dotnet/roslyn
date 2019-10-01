@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
     // Reproduces logic in IProjectionBufferFactoryServiceExtensions (editor layer) 
-    // Used for tests currenty, but probably needed for other non-vs-editor API consumers.
+    // Used for tests currently, but probably needed for other non-vs-editor API consumers.
     internal static class IndentationHelper
     {
         /// <summary>

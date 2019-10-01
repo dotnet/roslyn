@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -46,9 +47,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         internal SymbolUsageInfo SymbolUsageInfo { get; }
 
+        /// <summary>
+        /// Additional properties for this reference
+        /// </summary>
+        internal ImmutableDictionary<string, string> AdditionalProperties { get; }
+
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, CandidateReason candidateReason)
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason)
             : this()
         {
             this.Document = document;
@@ -56,6 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Location = location;
             this.IsImplicit = isImplicit;
             this.SymbolUsageInfo = symbolUsageInfo;
+            this.AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
             this.CandidateReason = candidateReason;
         }
 

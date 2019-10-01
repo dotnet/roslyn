@@ -122,11 +122,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            if (!session.Properties.TryGetProperty(CompletionSource.TriggerSnapshot, out ITextSnapshot triggerSnapshot))
+            if (!Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation))
             {
                 // Need the trigger snapshot to calculate the span when the commit changes to be applied.
-                // It should be inserted into a property bag within GetCompletionContextAsync for each item created by Roslyn.
-                // If not found here, Roslyn should not make a commit.
+                // They should always be available from VS. Just to be defensive, if it's not found here, Roslyn should not make a commit.
                 return CommitResultUnhandled;
             }
 
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            var triggerDocument = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var triggerDocument = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (triggerDocument == null)
             {
                 return CommitResultUnhandled;
@@ -146,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 AsyncCompletionLogger.LogCommitWithTypeImportCompletionEnabled();
 
-                if (roslynItem.IsCached)
+                if (roslynItem.Flags.IsCached())
                 {
                     AsyncCompletionLogger.LogCommitOfTypeImportCompletionItem();
                 }
@@ -165,16 +164,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             var commitChar = typeChar == '\0' ? null : (char?)typeChar;
-            var commitBehavior = Commit(
+            return Commit(
                 triggerDocument, completionService, session.TextView, subjectBuffer,
-                roslynItem, completionListSpan, commitChar, triggerSnapshot, serviceRules,
+                roslynItem, completionListSpan, commitChar, triggerLocation.Snapshot, serviceRules,
                 filterText, cancellationToken);
-
-            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
-            return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
         }
 
-        private AsyncCompletionData.CommitBehavior Commit(
+        private AsyncCompletionData.CommitResult Commit(
             Document document,
             CompletionService completionService,
             ITextView view,
@@ -194,22 +190,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 // We are on the wrong thread.
                 FatalError.ReportWithoutCrash(new InvalidOperationException("Subject buffer did not provide Edit Access"));
-                return AsyncCompletionData.CommitBehavior.None;
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
             if (subjectBuffer.EditInProgress)
             {
                 FatalError.ReportWithoutCrash(new InvalidOperationException("Subject buffer is editing by someone else."));
-                return AsyncCompletionData.CommitBehavior.None;
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
+
+            CompletionChange change;
+
+            // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not cancelled.
+            // Catching this scenario for further investigations.
+            // See https://github.com/dotnet/roslyn/issues/38455.
+            try
+            {
+                change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
+            }
+            catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportWithoutCrash(e))
+            {
+                return CommitResultUnhandled;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (GetCompletionProvider(completionService, roslynItem) is ICustomCommitCompletionProvider provider)
             {
                 provider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
-                return AsyncCompletionData.CommitBehavior.None;
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            var change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             var textChange = change.TextChange;
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
@@ -268,17 +279,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
+            _recentItemsManager.MakeMostRecentItem(roslynItem.FilterText);
+
             if (includesCommitCharacter)
             {
-                return AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
             }
 
             if (commitCharacter == '\n' && SendEnterThroughToEditor(rules, roslynItem, filterText))
             {
-                return AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers;
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.RaiseFurtherReturnKeyAndTabKeyCommandHandlers);
             }
 
-            return AsyncCompletionData.CommitBehavior.None;
+            return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
         }
 
         internal static bool IsCommitCharacter(CompletionRules completionRules, CompletionItem item, char ch, string textTypedSoFar)

@@ -118,6 +118,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal string FormatValue(object value, Type type, bool useHexadecimal = false)
         {
             var clrValue = CreateDkmClrValue(value, type);
+            return FormatValue(clrValue, useHexadecimal);
+        }
+
+        internal string FormatValue(DkmClrValue clrValue, bool useHexadecimal = false)
+        {
             var inspectionContext = CreateDkmInspectionContext(_inspectionSession, DkmEvaluationFlags.None, radix: useHexadecimal ? 16u : 10u);
             return clrValue.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
         }

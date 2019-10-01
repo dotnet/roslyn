@@ -15,14 +15,13 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.FindReferences
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.FindReferences)]
-    internal class FindReferencesCommandHandler : VSCommanding.ICommandHandler<FindReferencesCommandArgs>
+    internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
@@ -41,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
-        public VSCommanding.CommandState GetCommandState(FindReferencesCommandArgs args)
+        public CommandState GetCommandState(FindReferencesCommandArgs args)
         {
-            return VSCommanding.CommandState.Unspecified;
+            return CommandState.Unspecified;
         }
 
         public bool ExecuteCommand(FindReferencesCommandArgs args, CommandExecutionContext context)
@@ -101,8 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
                 // Let the presented know we're starting a search.  It will give us back
                 // the context object that the FAR service will push results into.
-                var context = presenter.StartSearch(
-                    EditorFeaturesResources.Find_References, supportsReferences: true);
+                var context = presenter.StartSearchWithCustomColumns(
+                    EditorFeaturesResources.Find_References,
+                    supportsReferences: true,
+                    includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
+                    includeKindColumn: document.Project.Language != LanguageNames.FSharp);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

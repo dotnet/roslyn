@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var queue = new AsyncQueue<int>();
             queue.Complete();
-            Assert.Throws(typeof(InvalidOperationException), () => queue.Enqueue(42));
+            Assert.Throws<InvalidOperationException>(() => queue.Enqueue(42));
         }
 
         [Fact]
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var queue = new AsyncQueue<int>();
             Assert.True(queue.TryEnqueue(42));
             queue.PromiseNotToEnqueue();
-            Assert.Throws(typeof(InvalidOperationException), () =>
+            Assert.Throws<InvalidOperationException>(() =>
             {
                 queue.TryEnqueue(42);
             });

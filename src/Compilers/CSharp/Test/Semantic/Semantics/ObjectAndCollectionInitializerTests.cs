@@ -385,7 +385,6 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
             string source = @"
 using System;
 using System.Collections.Generic;
-using System.Collections;
 
 class Test
 {
@@ -436,13 +435,8 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-            // TODO: This should produce no diagnostics.
-            // The 'info' message is ONLY used for IDE (NOT show up in console)
             CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }).
-                VerifyDiagnostics(
-                // (4,1): info CS8019: Unnecessary using directive.
-                // using System.Collections;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections;"));
+                VerifyDiagnostics();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

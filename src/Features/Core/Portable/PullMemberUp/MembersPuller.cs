@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     modifiers: modifiers);
                 var options = new CodeGenerationOptions(generateMethodBodies: false);
                 var publicAndNonStaticSyntax = codeGenerationService.CreateEventDeclaration(publicAndNonStaticSymbol, destination: CodeGenerationDestination.ClassType, options: options);
-                // Insert a new declaration and remove the orginal declaration
+                // Insert a new declaration and remove the original declaration
                 editor.InsertAfter(declaration, publicAndNonStaticSyntax);
                 editor.RemoveNode(eventDeclaration);
             }
