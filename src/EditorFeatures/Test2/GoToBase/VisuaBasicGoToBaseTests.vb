@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
         Public Async Function TestWithSingleClass() As Task
             Await TestAsync(
 "class $$C
-end class")
+end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -31,7 +31,7 @@ end class
 
 class $$D 
     inherits C
-end class")
+end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -44,7 +44,7 @@ mustinherit class [|C|]
 end class
 class $$D 
     inherits C
-end class")
+end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -54,7 +54,7 @@ end class")
 end class
 NotInheritable class $$C 
     inherits D
-end class")
+end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -72,7 +72,7 @@ end class
 
 class $$D 
     inherits C
-end class")
+end class", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -82,7 +82,7 @@ end class")
     implements I
 end class
 interface [|I|]
-end interface")
+end interface", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -95,7 +95,7 @@ class D
     implements I
 end class
 interface [|I|]
-end interface")
+end interface", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -128,7 +128,7 @@ end interface
 interface [|J1|]
 end interface
 interface [|J2|]
-end interface")
+end interface", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
 #End Region
@@ -139,7 +139,7 @@ end interface")
         Public Async Function TestWithStruct() As Task
             Await TestAsync(
 "structure $$S
-end structure")
+end structure", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -149,7 +149,7 @@ end structure")
     implements I
 end structure
 interface [|I|]
-end interface")
+end interface", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -170,7 +170,7 @@ end interface
 interface [|J1|]
 end interface
 interface [|J2|]
-end interface")
+end interface", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
 #End Region

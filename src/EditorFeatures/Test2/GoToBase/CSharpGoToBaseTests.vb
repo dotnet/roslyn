@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithSingleClass() As Task
-            Await TestAsync("class $$C { }")
+            Await TestAsync("class $$C { }", , metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
 
 class $$D : C
 {
-}")
+}", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -38,7 +38,7 @@ class $$D : C
             Await TestAsync(
 "interface [|I|] { }
 abstract class [|C|] : I { }
-class $$D : C { }")
+class $$D : C { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -47,7 +47,7 @@ class $$D : C { }")
 "class [|D|] { }
 sealed class $$C : D
 {
-}")
+}", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -67,14 +67,14 @@ sealed class $$C : D
 
 class $$D : C
 {
-}")
+}", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithSingleClassImplementation() As Task
             Await TestAsync(
 "class $$C : I { }
-interface [|I|] { }")
+interface [|I|] { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -82,7 +82,7 @@ interface [|I|] { }")
             Await TestAsync(
 "class $$C : I { }
 class D : I { }
-interface [|I|] { }")
+interface [|I|] { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -97,7 +97,7 @@ interface [|I2|] : I { }
 interface I1 : I { }
 interface [|I|] : J1, J2 { }
 interface [|J1|] { }
-interface [|J2|] { }")
+interface [|J2|] { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
 #End Region
@@ -109,14 +109,14 @@ interface [|J2|] { }")
             Await TestAsync(
 "struct $$C
 {
-}")
+}", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithSingleStructImplementation() As Task
             Await TestAsync(
 "struct $$C : I { }
-interface [|I|] { }")
+interface [|I|] { }", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -127,7 +127,7 @@ interface [|I2|] : I { }
 interface I1 : I { }
 interface [|I|] : J1, J2 { }
 interface [|J1|] { }
-interface [|J2|] { }")
+interface [|J2|] { }", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
 #End Region
