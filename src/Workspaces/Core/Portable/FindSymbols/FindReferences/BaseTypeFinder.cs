@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -32,23 +33,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
             {
                 foreach (var member in type.GetMembers(symbol.Name))
                 {
-                    var sourceMember = await SymbolFinder.FindSourceDefinitionAsync(
-                        SymbolAndProjectId.Create(member, project.Id),
-                        solution,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (sourceMember.Symbol != null)
+                    // Add to results overridden members only. Do not add hidden members.
+                    if (SymbolFinder.IsOverride(solution, symbol, member, cancellationToken))
                     {
-                        // Add to results overridden members only. Do not add hidden members.
-                        if (SymbolFinder.IsOverride(solution, symbol, sourceMember.Symbol, cancellationToken))
+                        var sourceMember = await SymbolFinder.FindSourceDefinitionAsync(
+                            SymbolAndProjectId.Create(member, project.Id),
+                            solution,
+                            cancellationToken).ConfigureAwait(false);
+
+                        if (sourceMember.Symbol != null)
                         {
                             results.Add(sourceMember);
                         }
+                        else
+                        {
+                            if (member.Locations.Any(l => l.IsInMetadata))
+                            {
+                                results.Add(new SymbolAndProjectId(member, null));
+                            }
+                        }
 
-                        // For both overridden and inherited members, 
-                        // find all explicit and implicit interface implementations.
-                        // We need to start from each base class for cases like N() Implements I.M() 
-                        // where N() can be hidden or overwritted in a nested class later on.
+                        // We should add implementations only for overridden members but not for hidden ones.
+                        // In the following example:
+                        // interface I { void M(); }
+                        // class A : I { public void M(); }
+                        // class B : A { public new void M(); }
+                        // we should not find anything for B.M() because it does not implement the interface:
+                        // I i = new B(); i.M(); 
+                        // will call the method from A.
+                        // However, if we change the code to 
+                        // class B : A, I { public new void M(); }
+                        // then
+                        // I i = new B(); i.M(); 
+                        // will call the method from B. We should find the base for B.M in this case.
+                        // And if we change 'new' to 'override' in the original code and add 'virtual' where needed, 
+                        // we should find I.M as a base for B.M(). And the next line helps with this scenario.
                         interfaceImplementations.AddRange(member.ExplicitOrImplicitInterfaceImplementations());
                     }
                 }

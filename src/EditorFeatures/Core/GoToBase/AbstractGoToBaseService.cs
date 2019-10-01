@@ -36,9 +36,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
             foreach (var implementation in implementations)
             {
-                var definitionItem = await implementation.Symbol.ToClassifiedDefinitionItemAsync(
-                    solution.GetProject(implementation.ProjectId), includeHiddenLocations: false,
-                    FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+                DefinitionItem definitionItem;
+                if (implementation.ProjectId == null)
+                {
+                    definitionItem = implementation.Symbol.ToNonClassifiedDefinitionItem(document.Project, includeHiddenLocations: true);
+                }
+                else
+                {
+                    definitionItem = await implementation.Symbol.ToClassifiedDefinitionItemAsync(
+                       solution.GetProject(implementation.ProjectId), includeHiddenLocations: false,
+                       FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+                }
+
                 await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
         }

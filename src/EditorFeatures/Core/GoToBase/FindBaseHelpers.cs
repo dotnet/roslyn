@@ -25,11 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             var project = symbolAndProject.Value.project;
 
             var bases = await FindBasesWorkerAsync(symbol, project, cancellationToken).ConfigureAwait(false);
-            var filteredSymbols = bases.WhereAsArray(s => s.Symbol.Locations.Any(l => l.IsInSource));
+            var filteredSymbols = bases.WhereAsArray(s => s.Symbol.Locations.Any(l => l.IsInSource) || s.ProjectId is null);
+            var message = filteredSymbols.Length == 0 ? EditorFeaturesResources.The_symbol_has_no_base : null;
 
-            return filteredSymbols.Length == 0
-                ? (symbol, filteredSymbols, EditorFeaturesResources.The_symbol_has_no_base)
-                : (symbol, filteredSymbols, null);
+            return (symbol, filteredSymbols, message);
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> FindBasesWorkerAsync(
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             if (symbol is INamedTypeSymbol namedTypeSymbol &&
                 (namedTypeSymbol.TypeKind == TypeKind.Class || namedTypeSymbol.TypeKind == TypeKind.Interface || namedTypeSymbol.TypeKind == TypeKind.Struct))
             {
-                return await BaseTypeFinder.FindBaseTypesAndInterfacesAsync(namedTypeSymbol, project, cancellationToken).ConfigureAwait(false);
+                return (await BaseTypeFinder.FindBaseTypesAndInterfacesAsync(namedTypeSymbol, project, cancellationToken).ConfigureAwait(false));
             }
             else if (symbol.Kind == SymbolKind.Property || symbol.Kind == SymbolKind.Method || symbol.Kind == SymbolKind.Event)
             {
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             }
             else
             {
-                return ImmutableArray.Create<SymbolAndProjectId>();
+                return (ImmutableArray<SymbolAndProjectId>.Empty);
             }
         }
     }
