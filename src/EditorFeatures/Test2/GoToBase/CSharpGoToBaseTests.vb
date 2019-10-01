@@ -284,11 +284,12 @@ interface I { void [|M|](); }")
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithVirtualMethodHiddenWithInterfaceOnBaseClass() As Task
-            ' We should not find a hidden method.
+            ' We should not find hidden methods 
+            ' and methods in interfaces if hidden below but the nested class does not implement the interface.
             Await TestAsync(
 "class C : I { public virtual void M() { } }
 class D : C { public new void $$M() { } }
-interface I { void [|M|](); }")
+interface I { void M(); }")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -318,7 +319,8 @@ interface I { void [|M|](); }")
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithVirtualMethodHiddenAndInterfaceImplementedOnDerivedType() As Task
-            ' We should not find a hidden method.
+            ' We should not find hidden methods 
+            ' but should find methods in interfaces if hidden below but the nested class implements the interface.
             Await TestAsync(
 "class C : I { public virtual void M() { } }
 class D : C, I { public new void $$M() { } }
@@ -329,7 +331,7 @@ interface I { void [|M|](); }")
         Public Async Function TestWithAbstractMethodImplementation() As Task
             Await TestAsync(
 "abstract class C : I { public abstract void [|M|]() { } }
-class D : C { public override void $$M() { } }}
+class D : C { public override void $$M() { } }
 interface I { void [|M|](); }")
         End Function
 

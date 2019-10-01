@@ -343,7 +343,8 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithVirtualMethodHiddenWithInterfaceOnBaseClass() As Task
-            ' We should not find a hidden method.
+            ' We should not find hidden methods 
+            ' and methods in interfaces if hidden below but the nested class does not implement the interface.
             Await TestAsync(
 "Class C
     Implements I
@@ -356,7 +357,7 @@ Class D
     End Sub
 End Class
 Interface I
-    Sub [|M|]()
+    Sub M()
 End Interface")
         End Function
 
@@ -418,7 +419,12 @@ End Interface")
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithVirtualMethodHiddenAndInterfaceImplementedOnDerivedType() As Task
-            ' We should not find a hidden method.
+            ' We should not find hidden methods.
+            ' We should not find methods of interfaces no implemented by the method symbol.
+            ' In this example, 
+            ' Dim i As I = New D()
+            ' i.M()
+            ' calls the method from C not from D.
             Await TestAsync(
 "Class C
     Implements I
@@ -429,6 +435,26 @@ Class D
     Inherits C
     Implements I
     Public Shadows Sub $$M()
+    End Sub
+End Class
+Interface I
+    Sub M()
+End Interface")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithVirtualMethodHiddenAndInterfaceAndMethodImplementedOnDerivedType() As Task
+            ' We should not find hidden methods but should find the interface method.
+            Await TestAsync(
+"Class C
+    Implements I
+    Public Overridable Sub M() Implements I.M
+    End Sub
+End Class
+Class D
+    Inherits C
+    Implements I
+    Public Shadows Sub $$M() Implements I.M
     End Sub
 End Class
 Interface I
