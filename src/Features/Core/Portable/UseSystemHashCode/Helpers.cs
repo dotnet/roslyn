@@ -10,20 +10,6 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         public static bool IsLocalReference(IOperation value, ILocalSymbol accumulatorVariable)
            => Helpers.Unwrap(value) is ILocalReferenceOperation localReference && accumulatorVariable.Equals(localReference.Local);
 
-
-        public static bool OverridesSystemObject(IMethodSymbol objectGetHashCodeMethod, IMethodSymbol method)
-        {
-            for (var current = method; current != null; current = current.OverriddenMethod)
-            {
-                if (Equals(objectGetHashCodeMethod, current))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Matches positive and negative numeric literals.
         /// </summary>

@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -16,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
     /// Helper code to support both <see cref="UseSystemHashCodeCodeFixProvider"/> and
     /// <see cref="UseSystemHashCodeDiagnosticAnalyzer"/>.
     /// </summary>
-    internal struct Analyzer
+    internal partial struct Analyzer
     {
         private readonly Compilation _compilation;
         private readonly IMethodSymbol _objectGetHashCodeMethod;
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return default;
             }
 
-            if (!OverridesSystemObject(_objectGetHashCodeMethod, method))
+            if (!OverridesSystemObject(method))
             {
                 return default;
             }
@@ -99,8 +98,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return default;
             }
 
-            using var analyzer = new ValueAnalyzer(
-                _objectGetHashCodeMethod, _equalityComparerTypeOpt, method, hashCodeVariableOpt: null);
+            using var analyzer = new OperationDeconstructor(this, method, hashCodeVariableOpt: null);
             if (!analyzer.TryAddHashedSymbol(returnOperation.ReturnedValue, seenHash: false))
             {
                 return default;
@@ -161,8 +159,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return default;
             }
 
-            using var valueAnalyzer = new ValueAnalyzer(
-                _objectGetHashCodeMethod, _equalityComparerTypeOpt, method, hashCodeVariable);
+            using var valueAnalyzer = new OperationDeconstructor(this, method, hashCodeVariable);
 
             // Local declaration can be of the form:
             //
@@ -207,6 +204,19 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             return valueAnalyzer.GetResult();
+        }
+
+        private bool OverridesSystemObject(IMethodSymbol method)
+        {
+            for (var current = method; current != null; current = current.OverriddenMethod)
+            {
+                if (Equals(_objectGetHashCodeMethod, current))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
