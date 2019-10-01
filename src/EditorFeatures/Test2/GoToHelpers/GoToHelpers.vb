@@ -61,9 +61,9 @@ Friend Class GoToHelpers
 
                 Assert.Equal(actualDefintionsWithoutSpans.Count, metadataDefinitions.Count)
 
-                For i = 0 To actualDefinitions.Count - 1
-                    Dim actual = actualDefinitions(i)
-                    Dim expected = expectedDefinitions(i)
+                For i = 0 To actualDefintionsWithoutSpans.Count - 1
+                    Dim actual = actualDefintionsWithoutSpans(i)
+                    Dim expected = metadataDefinitions(i)
 
                     Assert.True(actual.CompareTo(expected) = 0,
                                 $"Expected: ({expected}) but got: ({actual})")
