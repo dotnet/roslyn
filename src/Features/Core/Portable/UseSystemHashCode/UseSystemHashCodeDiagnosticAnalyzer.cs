@@ -1,16 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Net.Mime;
-using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
@@ -32,67 +24,26 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             context.RegisterCompilationStartAction(c =>
             {
                 // var hashCodeType = c.Compilation.GetTypeByMetadataName("System.HashCode");
-                var objectType = c.Compilation.GetSpecialType(SpecialType.System_Object);
-                var objectGetHashCode = objectType?.GetMembers(nameof(GetHashCode)).FirstOrDefault() as IMethodSymbol;
-                var equalityComparerTypeOpt = c.Compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName);
-
-                if (// hashCodeType != null &&
-                    objectGetHashCode != null)
+                var analyzer = new Analyzer(c.Compilation);
+                if (analyzer.CanAnalyze())
                 {
-                    c.RegisterOperationBlockAction(c2 =>
-                        AnalyzeOperationBlock(c2, objectGetHashCode, equalityComparerTypeOpt));
+                    c.RegisterOperationBlockAction(ctx => AnalyzeOperationBlock(analyzer, ctx));
                 }
             });
         }
 
-        private void AnalyzeOperationBlock(
-            OperationBlockAnalysisContext context, IMethodSymbol objectGetHashCode, INamedTypeSymbol equalityComparerTypeOpt)
+        private void AnalyzeOperationBlock(Analyzer analyzer, OperationBlockAnalysisContext context)
         {
-            if (!(context.OwningSymbol is IMethodSymbol method))
-            {
-                return;
-            }
-
-            if (method.Name != nameof(GetHashCode))
-            {
-                return;
-            }
-
-            if (!method.IsOverride)
-            {
-                return;
-            }
-
-            if (method.Locations.Length != 1 || method.DeclaringSyntaxReferences.Length != 1)
-            {
-                return;
-            }
-
-            var location = method.Locations[0];
-            if (!location.IsInSource)
-            {
-                return;
-            }
-
-            if (context.OperationBlocks.Length != 1)
-            {
-                return;
-            }
-
-            var operation = context.OperationBlocks[0];
-            if (!(operation is IBlockOperation blockOperation))
-            {
-                return;
-            }
-
-            if (!Analyzer.OverridesSystemObject(objectGetHashCode, method))
+            var method = context.OwningSymbol as IMethodSymbol;
+            if (context.OperationBlocks.Length != 1 ||
+                !analyzer.IsSuitableGetHashCodeMethodToAnalyze(method, context.OperationBlocks[0]))
             {
                 return;
             }
 
             var cancellationToken = context.CancellationToken;
-
-            var optionSet = context.Options.GetDocumentOptionSetAsync(location.SourceTree, cancellationToken).GetAwaiter().GetResult();
+            var operation = context.OperationBlocks[0];
+            var optionSet = context.Options.GetDocumentOptionSetAsync(operation.Syntax.SyntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
@@ -104,14 +55,17 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return;
             }
 
-            var analyzer = new Analyzer(method, objectGetHashCode, equalityComparerTypeOpt);
-            var hashedMembers = analyzer.GetHashedMembers(blockOperation);
-
+            var hashedMembers = analyzer.GetHashedMembers(method, operation);
             if (!hashedMembers.IsDefaultOrEmpty)
             {
+                var operationLocation = operation.Syntax.GetLocation();
+                var declarationLocation = method.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).GetLocation();
                 context.ReportDiagnostic(DiagnosticHelper.Create(
-                    this.Descriptor, location, option.Notification.Severity,
-                    new[] { operation.Syntax.GetLocation() }, ImmutableDictionary<string, string>.Empty));
+                    this.Descriptor,
+                    method.Locations[0],
+                    option.Notification.Severity,
+                    new[] { operationLocation, declarationLocation },
+                    ImmutableDictionary<string, string>.Empty));
             }
         }
     }

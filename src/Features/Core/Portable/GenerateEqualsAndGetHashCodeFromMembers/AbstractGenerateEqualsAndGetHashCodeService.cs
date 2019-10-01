@@ -154,8 +154,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             if (components.Length > 0 && hashCodeType != null)
             {
-                return CreateGetHashCodeStatementsUsingSystemHashCode(
-                    factory, compilation, hashCodeType, components);
+                return factory.CreateGetHashCodeStatementsUsingSystemHashCode(hashCodeType, components);
             }
 
             // Otherwise, try to just spit out a reasonable hash code for these members.
@@ -195,40 +194,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             // This does mean all hashcodes will be positive.  But it will avoid the overflow problem.
             return factory.CreateGetHashCodeMethodStatements(
                 compilation, namedType, members, useInt64: true);
-        }
-
-        private ImmutableArray<SyntaxNode> CreateGetHashCodeStatementsUsingSystemHashCode(
-            SyntaxGenerator factory, Compilation compilation, INamedTypeSymbol hashCodeType,
-            ImmutableArray<SyntaxNode> memberReferences)
-        {
-            if (memberReferences.Length <= 8)
-            {
-                var statement = factory.ReturnStatement(
-                    factory.InvocationExpression(
-                        factory.MemberAccessExpression(factory.TypeExpression(hashCodeType), "Combine"),
-                        memberReferences));
-                return ImmutableArray.Create(statement);
-            }
-
-            const string hashName = "hash";
-            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
-            statements.Add(factory.LocalDeclarationStatement(hashName,
-                factory.ObjectCreationExpression(hashCodeType)));
-
-            var localReference = factory.IdentifierName(hashName);
-            foreach (var member in memberReferences)
-            {
-                statements.Add(factory.ExpressionStatement(
-                    factory.InvocationExpression(
-                        factory.MemberAccessExpression(localReference, "Add"),
-                        member)));
-            }
-
-            statements.Add(factory.ReturnStatement(
-                factory.InvocationExpression(
-                    factory.MemberAccessExpression(localReference, "ToHashCode"))));
-
-            return statements.ToImmutableAndFree();
         }
     }
 }

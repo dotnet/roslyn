@@ -36,6 +36,40 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return result.ToImmutableAndFree();
         }
 
+        public static ImmutableArray<SyntaxNode> CreateGetHashCodeStatementsUsingSystemHashCode(
+            this SyntaxGenerator factory, INamedTypeSymbol hashCodeType, ImmutableArray<SyntaxNode> memberReferences)
+        {
+            if (memberReferences.Length <= 8)
+            {
+                var statement = factory.ReturnStatement(
+                    factory.InvocationExpression(
+                        factory.MemberAccessExpression(factory.TypeExpression(hashCodeType), "Combine"),
+                        memberReferences));
+                return ImmutableArray.Create(statement);
+            }
+
+            const string hashName = "hash";
+            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
+            statements.Add(factory.LocalDeclarationStatement(hashName,
+                factory.ObjectCreationExpression(hashCodeType)));
+
+            var localReference = factory.IdentifierName(hashName);
+            foreach (var member in memberReferences)
+            {
+                statements.Add(factory.ExpressionStatement(
+                    factory.InvocationExpression(
+                        factory.MemberAccessExpression(localReference, "Add"),
+                        member)));
+            }
+
+            statements.Add(factory.ReturnStatement(
+                factory.InvocationExpression(
+                    factory.MemberAccessExpression(localReference, "ToHashCode"))));
+
+            return statements.ToImmutableAndFree();
+        }
+
+
         /// <summary>
         /// Generates an override of <see cref="object.GetHashCode()"/> similar to the one
         /// generated for anonymous types.

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
@@ -11,21 +11,42 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
     internal struct Analyzer
     {
-        private readonly IMethodSymbol _getHashCodeMethod;
+        private readonly Compilation _compilation;
         private readonly IMethodSymbol _objectGetHashCodeMethod;
-        private readonly INamedTypeSymbol _containingType;
         private readonly INamedTypeSymbol _equalityComparerTypeOpt;
+        public readonly INamedTypeSymbol SystemHashCodeType;
 
-        public Analyzer(IMethodSymbol getHashCodeMethod, IMethodSymbol objectGetHashCode, INamedTypeSymbol equalityComparerTypeOpt)
+        public Analyzer(Compilation compilation)
         {
-            _getHashCodeMethod = getHashCodeMethod;
-            _containingType = _getHashCodeMethod.ContainingType.OriginalDefinition;
-            _objectGetHashCodeMethod = objectGetHashCode;
-            _equalityComparerTypeOpt = equalityComparerTypeOpt;
+            _compilation = compilation;
+
+            var objectType = compilation.GetSpecialType(SpecialType.System_Object);
+            _objectGetHashCodeMethod = objectType?.GetMembers(nameof(GetHashCode)).FirstOrDefault() as IMethodSymbol;
+            _equalityComparerTypeOpt = compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName);
+            SystemHashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
         }
 
-        public ImmutableArray<ISymbol> GetHashedMembers(IBlockOperation blockOperation)
+        public bool CanAnalyze()
+            => SystemHashCodeType != null && _objectGetHashCodeMethod != null;
+
+        public bool IsSuitableGetHashCodeMethodToAnalyze(IMethodSymbol method, IOperation operation)
+            => method != null &&
+               method.Name == nameof(GetHashCode) &&
+               method.IsOverride &&
+               method.Locations.Length == 1 &&
+               method.Locations[0].IsInSource &&
+               method.DeclaringSyntaxReferences.Length == 1 &&
+               operation is IBlockOperation blockOperation &&
+               OverridesSystemObject(_objectGetHashCodeMethod, method);
+
+        public ImmutableArray<ISymbol> GetHashedMembers(
+            IMethodSymbol containingMethod, IOperation operation)
         {
+            if (!(operation is IBlockOperation blockOperation))
+            {
+                return default;
+            }
+
             // Unwind through nested blocks.
             while (blockOperation.Operations.Length == 1 &&
                    blockOperation.Operations[0] is IBlockOperation childBlock)
@@ -92,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             var initializerValue = declarator.Initializer.Value;
             var hashedSymbols = ArrayBuilder<ISymbol>.GetInstance();
             if (!IsLiteralNumber(initializerValue) &&
-                !TryGetHashedSymbol(accumulatorVariable, hashedSymbols, initializerValue))
+                !TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, initializerValue))
             {
                 return default;
             }
@@ -103,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 if (!(statement is IExpressionStatementOperation expressionStatement) ||
                     !(expressionStatement.Operation is ISimpleAssignmentOperation simpleAssignment) ||
                     !IsLocalReference(simpleAssignment.Target, accumulatorVariable) ||
-                    !TryGetHashedSymbol(accumulatorVariable, hashedSymbols, simpleAssignment.Value))
+                    !TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, simpleAssignment.Value))
                 {
                     return default;
                 }
@@ -113,7 +134,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         }
 
         private bool TryGetHashedSymbol(
-            ILocalSymbol accumulatorVariable, ArrayBuilder<ISymbol> hashedSymbols, IOperation value)
+            IMethodSymbol containingMethod, ILocalSymbol accumulatorVariable,
+            ArrayBuilder<ISymbol> hashedSymbols, IOperation value)
         {
             value = Unwrap(value);
             if (value is IInvocationOperation invocation)
@@ -123,7 +145,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 {
                     // (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
                     // recurse on the value we're calling GetHashCode on.
-                    return TryGetHashedSymbol(accumulatorVariable, hashedSymbols, invocation.Instance);
+                    return TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, invocation.Instance);
                 }
 
                 if (targetMethod.Name == nameof(GetHashCode) &&
@@ -131,7 +153,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                     invocation.Arguments.Length == 1)
                 {
                     // EqualityComparer<T>.Default.GetHashCode(i)
-                    return TryGetHashedSymbol(accumulatorVariable, hashedSymbols, invocation.Arguments[0].Value);
+                    return TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, invocation.Arguments[0].Value);
                 }
             }
 
@@ -141,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return topBinary.LeftOperand is IBinaryOperation leftBinary &&
                        IsLocalReference(leftBinary.LeftOperand, accumulatorVariable) &&
                        IsLiteralNumber(leftBinary.RightOperand) &&
-                       TryGetHashedSymbol(accumulatorVariable, hashedSymbols, topBinary.RightOperand);
+                       TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, topBinary.RightOperand);
             }
 
             if (value is IInstanceReferenceOperation instanceReference)
@@ -159,18 +181,18 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                     if (binary.OperatorKind == BinaryOperatorKind.Equals)
                     {
                         // (StringProperty == null ? 0 : StringProperty.GetHashCode())
-                        return TryGetHashedSymbol(accumulatorVariable, hashedSymbols, conditional.WhenFalse);
+                        return TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, conditional.WhenFalse);
                     }
                     else if (binary.OperatorKind == BinaryOperatorKind.NotEquals)
                     {
                         // (StringProperty != null ? StringProperty.GetHashCode() : 0)
-                        return TryGetHashedSymbol(accumulatorVariable, hashedSymbols, conditional.WhenTrue);
+                        return TryGetHashedSymbol(containingMethod, accumulatorVariable, hashedSymbols, conditional.WhenTrue);
                     }
                 }
             }
 
             if (TryGetFieldOrProperty(value, out var fieldOrProp) &&
-                Equals(fieldOrProp.ContainingType.OriginalDefinition, _containingType))
+                Equals(fieldOrProp.ContainingType.OriginalDefinition, containingMethod.ContainingType))
             {
                 return Add(hashedSymbols, fieldOrProp);
             }
