@@ -557,7 +557,7 @@ end class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
         Public Async Function TestInt64Pattern2() As Task
             Await TestInRegularAndScriptAsync(
-" namespace System
+"namespace System
     public structure HashCode
     end structure
 end namespace
@@ -571,12 +571,13 @@ class C
         Return ctype(hashCode, integer)
     end function
 end class",
-" namespace System
+"namespace System
     public structure HashCode
     end structure
 end namespace
 
-class C    dim j as integer
+class C
+    dim j as integer
 
     public overrides function GetHashCode() as integer
         Return System.HashCode.Combine(j)
@@ -591,10 +592,11 @@ end class")
 namespace System
     public structure HashCode
     end structure
+    public structure ValueTuple(Of T1, T2)
+    end structure
 end namespace
 
-class C 
-
+class C
     dim i as integer
 
     readonly property S as string
@@ -605,9 +607,13 @@ class C
 end class",
 "imports System.Collections.Generic
 namespace System
+    public structure HashCode
+    end structure
+    public structure ValueTuple(Of T1, T2)
+    end structure
+end namespace
 
-class C 
-
+class C
     dim i as integer
 
     readonly property S as string
