@@ -94,7 +94,7 @@ namespace Analyzer.Utilities
         {
             return ImmutableHashSet.CreateRange(
                 new[] {
-                    WellKnownTypeProvider.GetOrCreate(compilation).SystemObject,
+                    compilation.GetSpecialType(SpecialType.System_Object),
                     compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException),
                     compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemSystemException)
                 }.Where(x => x != null));

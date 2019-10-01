@@ -22,11 +22,6 @@ namespace Analyzer.Utilities
             _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
 
             CollectionTypes = GetWellKnownCollectionTypes();
-            SystemArray = GetTypeBySpecialType(SpecialType.System_Array);
-            SystemString = GetTypeBySpecialType(SpecialType.System_String);
-            SystemObject = GetTypeBySpecialType(SpecialType.System_Object);
-            SystemIntPtr = GetTypeBySpecialType(SpecialType.System_IntPtr);
-            SystemUIntPtr = GetTypeBySpecialType(SpecialType.System_UIntPtr);
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation)
@@ -39,31 +34,6 @@ namespace Analyzer.Utilities
         }
 
         public Compilation Compilation { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_Array"/>
-        /// </summary>
-        public INamedTypeSymbol SystemArray { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_String"/>
-        /// </summary>
-        public INamedTypeSymbol SystemString { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_Object"/>
-        /// </summary>
-        public INamedTypeSymbol SystemObject { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_IntPtr"/>
-        /// </summary>
-        public INamedTypeSymbol SystemIntPtr { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_UIntPtr"/>
-        /// </summary>
-        public INamedTypeSymbol SystemUIntPtr { get; }
 
         /// <summary>
         /// Mapping of full name to <see cref="INamedTypeSymbol"/>.
@@ -92,31 +62,6 @@ namespace Analyzer.Utilities
         public INamedTypeSymbol GetOrCreateTypeByMetadataName(string fullTypeName)
         {
             TryGetOrCreateTypeByMetadataName(fullTypeName, out INamedTypeSymbol namedTypeSymbol);
-            return namedTypeSymbol;
-        }
-
-        /// <summary>
-        /// Attempts to get the type by its special type.
-        /// </summary>
-        /// <param name="specialType">ID of the special runtime type.</param>
-        /// <param name="namedTypeSymbol">Named type symbol, if any.</param>
-        /// <returns>True if found in the compilation, false otherwise.</returns>
-        private bool TryGetTypeBySpecialType(SpecialType specialType, out INamedTypeSymbol namedTypeSymbol)
-        {
-            namedTypeSymbol = _fullNameToTypeMap.GetOrAdd(
-                specialType.ToString(),
-                (string s) => Compilation.GetSpecialType((SpecialType)Enum.Parse(typeof(SpecialType), s)));
-            return namedTypeSymbol != null;
-        }
-
-        /// <summary>
-        /// Gets a type by its special type.
-        /// </summary>
-        /// <param name="specialType">ID of the special runtime type.</param>
-        /// <returns>The <see cref="INamedTypeSymbol"/> if found, null otherwise.</returns>
-        private INamedTypeSymbol GetTypeBySpecialType(SpecialType specialType)
-        {
-            TryGetTypeBySpecialType(specialType, out INamedTypeSymbol namedTypeSymbol);
             return namedTypeSymbol;
         }
 
