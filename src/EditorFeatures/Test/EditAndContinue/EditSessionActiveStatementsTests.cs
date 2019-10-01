@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 ImmutableArray<ActiveStatementDebugInfo> activeStatements,
                 ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
                 Func<Solution, Solution> adjustSolution = null,
-                bool syncDocuments = true)
+                CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesDebuggee)
             {
                 var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
@@ -117,9 +117,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 var debuggingSession = new DebuggingSession(Workspace, mockDebuggeModuleProvider.Object, activeStatementProvider, mockCompilationOutputsProvider);
 
-                if (syncDocuments)
+                if (initialState != CommittedSolution.DocumentState.None)
                 {
-                    EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, Workspace.CurrentSolution, CommittedSolution.DocumentState.MatchesDebuggee);
+                    EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, Workspace.CurrentSolution, initialState);
                 }
 
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 },
                 threads: new[] { ImmutableArray.Create(thread1) });
 
-            var validator = new Validator(markedSource, activeStatements, syncDocuments: false);
+            var validator = new Validator(markedSource, activeStatements, initialState: CommittedSolution.DocumentState.OutOfSync);
             var baseActiveStatementMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
             var docs = validator.GetDocumentIds();
 

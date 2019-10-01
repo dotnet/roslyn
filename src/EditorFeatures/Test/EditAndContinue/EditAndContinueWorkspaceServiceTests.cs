@@ -88,13 +88,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 _mockDebugeeModuleMetadataProvider,
                 reportTelemetry: data => EditAndContinueWorkspaceService.LogDebuggingSessionTelemetry(data, (id, message) => _telemetryLog.Add($"{id}: {message.GetMessage()}"), () => ++_telemetryId));
 
-        private DebuggingSession StartDebuggingSession(EditAndContinueWorkspaceService service, bool documentsMatchDebugee = true)
+        private DebuggingSession StartDebuggingSession(EditAndContinueWorkspaceService service, CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesDebuggee)
         {
             service.StartDebuggingSession();
             var session = service.Test_GetDebuggingSession();
-            if (documentsMatchDebugee)
+            if (initialState != CommittedSolution.DocumentState.None)
             {
-                SetDocumentsState(session, session.Workspace.CurrentSolution, CommittedSolution.DocumentState.MatchesDebuggee);
+                SetDocumentsState(session, session.Workspace.CurrentSolution, initialState);
             }
 
             return session;
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var service = CreateEditAndContinueService(workspace);
 
-            var debuggingSession = StartDebuggingSession(service, documentsMatchDebugee: false);
+            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             service.StartEditSession();
 
@@ -985,7 +985,7 @@ class C1
 
             var service = CreateEditAndContinueService(workspace);
 
-            var debuggingSession = StartDebuggingSession(service, documentsMatchDebugee: false);
+            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             service.StartEditSession();
 
@@ -1006,10 +1006,6 @@ class C1
             var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
             Assert.Empty(deltas);
-
-            AssertEx.Equal(
-                new[] { "ENC0023: " + string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing, FeaturesResources.method) },
-                _emitDiagnosticsUpdated.Single().Diagnostics.Select(d => $"{d.Id}: {d.Message}"));
 
             service.EndEditSession();
             service.EndDebuggingSession();
@@ -1278,7 +1274,7 @@ class C1
             var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service, documentsMatchDebugee: false);
+            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             service.StartEditSession();
 
@@ -1359,7 +1355,7 @@ class C1
             var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, project.Id, sourceFilePath: sourceFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service, documentsMatchDebugee: false);
+            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             service.StartEditSession();
 
@@ -1430,7 +1426,7 @@ class C1
 
             var service = CreateEditAndContinueService(workspace);
 
-            var debuggingSession = StartDebuggingSession(service, documentsMatchDebugee: false);
+            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             service.StartEditSession();
             VerifyReanalyzeInvocation(workspace, null, ImmutableArray<DocumentId>.Empty, false);
