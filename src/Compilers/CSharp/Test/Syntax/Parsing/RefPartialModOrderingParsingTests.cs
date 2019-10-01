@@ -13,6 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
     {
         public RefPartialModOrderingParsingTests(ITestOutputHelper output) : base(output) { }
 
+        private static CSharpCompilation CreateCompilation(string source, CSharpParseOptions parseOptions = null)
+            => ParsingTests.CreateCompilation(source, parseOptions: parseOptions ?? TestOptions.RegularPreview);
+
+        private new static SyntaxTree ParseTree(string text, CSharpParseOptions options = null)
+            => SyntaxFactory.ParseSyntaxTree(text, options ?? TestOptions.RegularPreview);
+
         [Fact]
         public void TestLangVersion_PartialRef()
         {
@@ -23,7 +29,7 @@ partial ref struct S {}
 ref public partial struct S {}
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular7);
+            var tree = ParseTree(text, options: TestOptions.Regular7);
             tree.GetDiagnostics().Verify(
                 // (2,1): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
                 // ref partial struct S {}
@@ -55,7 +61,7 @@ partial public struct S {}
 partial public interface I {}
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular7);
+            var tree = ParseTree(text, options: TestOptions.Regular7);
             tree.GetDiagnostics().Verify(
                 // (2,1): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // partial public class C {}
@@ -79,7 +85,7 @@ partial class C
 }
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular7);
+            var tree = ParseTree(text, options: TestOptions.Regular7);
             tree.GetDiagnostics().Verify(
                 // (4,5): error CS8652: The feature 'ref and partial modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     partial static void M();
@@ -162,7 +168,7 @@ partial readonly ref struct S {}
 partial public struct S {}
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var s1 = comp.GetTypeByMetadataName("S");
@@ -181,7 +187,7 @@ partial public class C {}
 partial abstract class C {}
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var s1 = comp.GetTypeByMetadataName("C");
@@ -198,7 +204,7 @@ partial partial ref class C {}
 partial partial ref struct S {}
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (2,27): error CS0106: The modifier 'ref' is not valid for this item
                 // partial partial ref class C {}
@@ -220,7 +226,7 @@ partial ref ref class C {}
 partial ref ref struct S {}
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (2,23): error CS0106: The modifier 'ref' is not valid for this item
                 // partial ref ref class C {}
@@ -243,7 +249,7 @@ using System;
 partial class Test {}
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.RegularPreview);
+            var tree = ParseTree(test);
             tree.GetDiagnostics().Verify(
                 // (3,11): error CS1026: ) expected
                 // [Obsolete(
@@ -263,7 +269,7 @@ using System;
 partial public class Test {}
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.RegularPreview);
+            var tree = ParseTree(test);
             tree.GetDiagnostics().Verify(
                 // (3,11): error CS1026: ) expected
                 // [Obsolete(
@@ -284,7 +290,7 @@ class partial
 }
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
         }
     }

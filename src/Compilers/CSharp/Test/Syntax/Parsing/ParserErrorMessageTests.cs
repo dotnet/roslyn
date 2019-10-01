@@ -607,7 +607,7 @@ public class Test
 }
 ";
 
-            CreateCompilation(test).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]

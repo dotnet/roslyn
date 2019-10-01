@@ -974,7 +974,7 @@ namespace System.Runtime.CompilerServices
                 allReferences = allReferences.Concat(references);
             }
 
-            return CreateCompilation(source, allReferences, options, parseOptions, TargetFramework.Empty, assemblyName, sourceFileName);
+            return CreateCompilation(source, allReferences, options, parseOptions ?? TestOptions.RegularPreview, TargetFramework.Empty, assemblyName, sourceFileName);
         }
 
         public static CSharpCompilation CreateCompilation(

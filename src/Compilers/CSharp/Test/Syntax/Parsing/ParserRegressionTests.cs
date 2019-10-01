@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
     public class ParserRegressionTests : CSharpTestBase
     {
+        private static CSharpCompilation CreateCompilation(string source, CSharpParseOptions parseOptions = null)
+            => ParsingTests.CreateCompilation(source, parseOptions: parseOptions ?? TestOptions.RegularPreview);
+
         [Fact]
         public void PartialLocationInModifierList()
         {

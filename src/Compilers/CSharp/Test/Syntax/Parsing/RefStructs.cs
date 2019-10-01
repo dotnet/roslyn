@@ -14,10 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
     {
         public RefStructs(ITestOutputHelper output) : base(output) { }
 
-        protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
-        {
-            return SyntaxFactory.ParseSyntaxTree(text, options: options);
-        }
+        private static CSharpCompilation CreateCompilation(string source, CSharpParseOptions parseOptions = null)
+            => ParsingTests.CreateCompilation(source, parseOptions: parseOptions ?? TestOptions.RegularPreview);
 
         [Fact]
         public void RefStructSimple()
@@ -74,7 +72,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (4,15): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref class S1{}

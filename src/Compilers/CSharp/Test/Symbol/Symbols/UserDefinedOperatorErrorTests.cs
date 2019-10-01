@@ -1,11 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class CompilationErrorTests : CompilingTestBase
     {
+        private static CSharpCompilation CreateCompilation(string source, CSharpParseOptions parseOptions = null)
+            => CompilingTestBase.CreateCompilation(source, parseOptions: parseOptions ?? TestOptions.RegularPreview);
+
         [Fact]
         public void UserDefinedOperatorCollisionErrors()
         {
