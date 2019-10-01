@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -12,43 +13,57 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
         public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var tuple = await FindBaseHelpers.FindBasesAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (tuple == null)
+            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
+
+            if (symbolAndProject == default)
             {
                 await context.ReportMessageAsync(
                     EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
-            var (symbol, implementations, message) = tuple.Value;
-
-            if (message != null)
-            {
-                await context.ReportMessageAsync(message).ConfigureAwait(false);
-                return;
-            }
+            var symbol = symbolAndProject.Value.symbol;
+            var bases = FindBaseHelpers.FindBases(
+                symbol, symbolAndProject.Value.project, cancellationToken);
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_bases,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
-            var solution = document.Project.Solution;
+            var project = document.Project;
+            var solution = project.Solution;
+            var projectId = project.Id;
 
-            foreach (var implementation in implementations)
+            var found = false;
+
+            foreach (var baseSymbol in bases)
             {
-                DefinitionItem definitionItem;
-                if (implementation.ProjectId == null)
+                var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
+                   SymbolAndProjectId.Create(baseSymbol, projectId), project.Solution, cancellationToken).ConfigureAwait(false);
+                if (sourceDefinition.Symbol != null &&
+                    sourceDefinition.Symbol.Locations.Any(l => l.IsInSource))
                 {
-                    definitionItem = implementation.Symbol.ToNonClassifiedDefinitionItem(document.Project, includeHiddenLocations: true);
+                    var definitionItem = await sourceDefinition.Symbol.ToClassifiedDefinitionItemAsync(
+                        solution.GetProject(sourceDefinition.ProjectId), includeHiddenLocations: false,
+                        FindReferencesSearchOptions.Default, cancellationToken: cancellationToken)
+                        .ConfigureAwait(false);
+                    await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
+                    found = true;
                 }
-                else
+                else if (baseSymbol.Locations.Any(l => l.IsInMetadata))
                 {
-                    definitionItem = await implementation.Symbol.ToClassifiedDefinitionItemAsync(
-                       solution.GetProject(implementation.ProjectId), includeHiddenLocations: false,
-                       FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var definitionItem = baseSymbol.ToNonClassifiedDefinitionItem(
+                        project, includeHiddenLocations: true);
+                    await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
+                    found = true;
                 }
+            }
 
-                await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
+            if (!found)
+            {
+                await context.ReportMessageAsync(EditorFeaturesResources.The_symbol_has_no_base)
+                    .ConfigureAwait(false);
             }
         }
     }
