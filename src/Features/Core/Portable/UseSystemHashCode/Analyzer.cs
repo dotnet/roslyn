@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return default;
             }
 
-            using var disposer = ArrayBuilder<ISymbol>.GetInstance(out var hashedSymbols);
+            var hashedSymbols = ArrayBuilder<ISymbol>.GetInstance();
 
             // Local declaration can be of the form:
             //
