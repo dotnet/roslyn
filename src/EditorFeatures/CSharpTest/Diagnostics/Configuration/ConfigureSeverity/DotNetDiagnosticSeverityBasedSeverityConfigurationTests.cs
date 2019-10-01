@@ -191,8 +191,6 @@ dotnet_diagnostic.XYZ1111.severity = none
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
 dotnet_diagnostic.XYZ1111.severity = none
 
-[*.cs]
-
 # XYZ0001: Title
 dotnet_diagnostic.XYZ0001.severity = none
 </AnalyzerConfigDocument>
