@@ -4,12 +4,14 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
@@ -39,6 +41,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
+            var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var analyzer = new Analyzer(semanticModel.Compilation);
@@ -51,6 +54,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
                 var methodDecl = diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
                 var method = semanticModel.GetDeclaredSymbol(methodDecl, cancellationToken);
+                var methodBlock = declarationService.GetDeclarations(method)[0].GetSyntax(cancellationToken);
 
                 var (accessesBase, members) = analyzer.GetHashedMembers(method, operation);
                 if (accessesBase || !members.IsDefaultOrEmpty)
@@ -65,10 +69,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                         semanticModel.Compilation, containingType, members, justMemberReference: true);
 
                     var updatedDecl = generator.WithStatements(
-                        methodDecl,
+                        methodBlock,
                         generator.CreateGetHashCodeStatementsUsingSystemHashCode(
                             analyzer.SystemHashCodeType, components));
-                    editor.ReplaceNode(methodDecl, updatedDecl);
+                    editor.ReplaceNode(methodBlock, updatedDecl);
                 }
             }
         }

@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             //      // return of the value.
             //      return hashCode;
 
-            var statements = blockOperation.Operations;
+            var statements = blockOperation.Operations.WhereAsArray(o => !o.IsImplicit);
             if (statements.Length < 3)
             {
                 return default;
@@ -149,7 +149,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             var declarator = declaration.Declarators[0];
-            if (declarator.Initializer?.Value == null)
+            var initializerValue = declaration.Initializer?.Value ?? declarator.Initializer?.Value;
+            if (initializerValue == null)
             {
                 return default;
             }
@@ -176,7 +177,6 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             // Note: we pass in `seenHash: true` here because ReSharper may just initialize things
             // like `var hashCode = intField`.  In this case, there won't be any specific hashing
             // operations in the value that we have to look for.
-            var initializerValue = declarator.Initializer.Value;
             if (!IsLiteralNumber(initializerValue) &&
                 !valueAnalyzer.TryAddHashedSymbol(initializerValue, seenHash: true))
             {
