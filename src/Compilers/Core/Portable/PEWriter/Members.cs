@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
@@ -85,7 +88,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The method used to call the event handlers when the event occurs. May be null.
         /// </summary>
-        IMethodReference/*?*/ Caller { get; }
+        IMethodReference? Caller { get; }
 
         /// <summary>
         /// True if the event gets special treatment from the runtime.
@@ -118,7 +121,7 @@ namespace Microsoft.Cci
         /// The compile time value of the field. This value should be used directly in IL, rather than a reference to the field.
         /// If the field does not have a valid compile time value, Dummy.Constant is returned.
         /// </summary>
-        MetadataConstant GetCompileTimeValue(EmitContext context);
+        MetadataConstant? GetCompileTimeValue(EmitContext context);
 
         /// <summary>
         /// Mapped field data, or null if the field is not mapped.
@@ -166,7 +169,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Specifies how this field is marshalled when it is accessed from unmanaged code.
         /// </summary>
-        IMarshallingInformation MarshallingInformation
+        IMarshallingInformation? MarshallingInformation
         {
             get;
             // ^ requires this.IsMarshalledExplicitly;
@@ -204,10 +207,10 @@ namespace Microsoft.Cci
         /// <summary>
         /// The Field being referred to.
         /// </summary>
-        IFieldDefinition GetResolvedField(EmitContext context);
+        IFieldDefinition? GetResolvedField(EmitContext context);
 
 
-        ISpecializedFieldReference AsSpecializedFieldReference { get; }
+        ISpecializedFieldReference? AsSpecializedFieldReference { get; }
 
 
         /// <summary>
@@ -300,7 +303,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Optional serialized local signature.
         /// </summary>
-        byte[] Signature { get; }
+        byte[]? Signature { get; }
 
         /// <summary>
         /// Local id, or <see cref="LocalDebugId.None"/> if this is a local constant, short-lived temp variable, 
@@ -582,6 +585,9 @@ namespace Microsoft.Cci
         /// TODO: Ideally we would expose INamespace on INamespaceTypeDefinition. Right now we can only get the qualified namespace name.
         /// </summary>
         INamespace ContainingNamespace { get; }
+
+        /// <inheritdoc cref="INamedEntity.Name"/>
+        new string Name { get; }
     }
 
     /// <summary>
@@ -593,7 +599,7 @@ namespace Microsoft.Cci
         /// A compile time constant value that should be supplied as the corresponding argument value by callers that do not explicitly specify an argument value for this parameter.
         /// Null if the parameter doesn't have default value.
         /// </summary>
-        MetadataConstant GetDefaultValue(EmitContext context);
+        MetadataConstant? GetDefaultValue(EmitContext context);
 
         /// <summary>
         /// True if the parameter has a default value that should be supplied as the argument value by a caller for which the argument value has not been explicitly specified.
@@ -627,7 +633,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Specifies how this parameter is marshalled when it is accessed from unmanaged code.
         /// </summary>
-        IMarshallingInformation MarshallingInformation
+        IMarshallingInformation? MarshallingInformation
         {
             get;
             // ^ requires this.IsMarshalledExplicitly;
@@ -657,7 +663,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A compile time constant value that provides the default value for the property. (Who uses this and why?)
         /// </summary>
-        MetadataConstant DefaultValue
+        MetadataConstant? DefaultValue
         {
             get;
             // ^ requires this.HasDefaultValue;
@@ -666,7 +672,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The method used to get the value of this property. May be absent (null).
         /// </summary>
-        IMethodReference/*?*/ Getter { get; }
+        IMethodReference? Getter { get; }
 
         /// <summary>
         /// True if this property has a compile time constant associated with that serves as a default value for the property. (Who uses this and why?)
@@ -691,7 +697,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The method used to set the value of this property. May be absent (null).
         /// </summary>
-        IMethodReference/*?*/ Setter { get; }
+        IMethodReference? Setter { get; }
     }
 
     /// <summary>
@@ -781,7 +787,8 @@ namespace Microsoft.Cci
         /// type of a generic type instance), then the unspecialized member refers to a member from the unspecialized containing type. (I.e. the unspecialized member always
         /// corresponds to a definition that is not obtained via specialization.)
         /// </summary>
-        IEventDefinition/*!*/ UnspecializedVersion
+        [NotNull]
+        IEventDefinition UnspecializedVersion
         {
             get;
         }
@@ -825,7 +832,8 @@ namespace Microsoft.Cci
         /// type of a generic type instance), then the unspecialized member refers to a member from the unspecialized containing type. (I.e. the unspecialized member always
         /// corresponds to a definition that is not obtained via specialization.)
         /// </summary>
-        IPropertyDefinition/*!*/ UnspecializedVersion
+        [NotNull]
+        IPropertyDefinition UnspecializedVersion
         {
             get;
         }
@@ -859,7 +867,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The method being referred to.
         /// </summary>
-        IMethodDefinition GetResolvedMethod(EmitContext context);
+        IMethodDefinition? GetResolvedMethod(EmitContext context);
         // ^ ensures this is IMethodDefinition ==> result == this;
 
         /// <summary>
@@ -867,8 +875,8 @@ namespace Microsoft.Cci
         /// </summary>
         ImmutableArray<IParameterTypeInformation> ExtraParameters { get; }
 
-        IGenericMethodInstanceReference AsGenericMethodInstanceReference { get; }
-        ISpecializedMethodReference AsSpecializedMethodReference { get; }
+        IGenericMethodInstanceReference? AsGenericMethodInstanceReference { get; }
+        ISpecializedMethodReference? AsSpecializedMethodReference { get; }
     }
 
     /// <summary>
@@ -901,10 +909,6 @@ namespace Microsoft.Cci
     /// </summary>
     internal interface IGlobalMethodDefinition : IMethodDefinition
     {
-        /// <summary>
-        /// The name of the method.
-        /// </summary>
-        new string Name { get; }
     }
 
     internal static class Extensions

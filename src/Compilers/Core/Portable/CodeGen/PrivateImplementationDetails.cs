@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ConcurrentDictionary<ImmutableArray<byte>, MappedField> _mappedFields =
             new ConcurrentDictionary<ImmutableArray<byte>, MappedField>(ByteSequenceComparer.Instance);
 
-        private ModuleVersionIdField _mvidField;
+        private ModuleVersionIdField? _mvidField;
         // Dictionary that maps from analysis kind to instrumentation payload field.
         private readonly ConcurrentDictionary<int, InstrumentationPayloadRootField> _instrumentationPayloadRootFields = new ConcurrentDictionary<int, InstrumentationPayloadRootField>();
 
@@ -72,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.ITypeReference systemInt64Type,
             Cci.ICustomAttribute compilerGeneratedAttribute)
         {
-            Debug.Assert(systemObject != null);
-            Debug.Assert(systemValueType != null);
+            RoslynDebug.Assert(systemObject != null);
+            RoslynDebug.Assert(systemValueType != null);
 
             _moduleBuilder = moduleBuilder;
             _systemObject = systemObject;
@@ -292,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             public int Compare(SynthesizedStaticField x, SynthesizedStaticField y)
             {
                 // Fields are always synthesized with non-null names.
-                Debug.Assert(x.Name != null && y.Name != null);
+                RoslynDebug.Assert(x.Name != null && y.Name != null);
                 return x.Name.CompareTo(y.Name);
             }
         }
@@ -353,9 +355,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal SynthesizedStaticField(string name, Cci.INamedTypeDefinition containingType, Cci.ITypeReference type)
         {
-            Debug.Assert(name != null);
-            Debug.Assert(containingType != null);
-            Debug.Assert(type != null);
+            RoslynDebug.Assert(name != null);
+            RoslynDebug.Assert(containingType != null);
+            RoslynDebug.Assert(type != null);
 
             _containingType = containingType;
             _type = type;
@@ -364,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override string ToString() => $"{_type} {_containingType}.{this.Name}";
 
-        public MetadataConstant GetCompileTimeValue(EmitContext context) => null;
+        public MetadataConstant? GetCompileTimeValue(EmitContext context) => null;
 
         public abstract ImmutableArray<byte> MappedData { get; }
 
@@ -382,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsMarshalledExplicitly => false;
 
-        public Cci.IMarshallingInformation MarshallingInformation => null;
+        public Cci.IMarshallingInformation? MarshallingInformation => null;
 
         public ImmutableArray<byte> MarshallingDescriptor => default(ImmutableArray<byte>);
 
@@ -420,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.IFieldDefinition GetResolvedField(EmitContext context) => this;
 
-        public Cci.ISpecializedFieldReference AsSpecializedFieldReference => null;
+        public Cci.ISpecializedFieldReference? AsSpecializedFieldReference => null;
 
         public MetadataConstant Constant
         {
@@ -540,21 +542,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public Cci.IGenericMethodParameterReference AsGenericMethodParameterReference => null;
+        public Cci.IGenericMethodParameterReference? AsGenericMethodParameterReference => null;
 
-        public Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference => null;
+        public Cci.IGenericTypeInstanceReference? AsGenericTypeInstanceReference => null;
 
-        public Cci.IGenericTypeParameterReference AsGenericTypeParameterReference => null;
+        public Cci.IGenericTypeParameterReference? AsGenericTypeParameterReference => null;
 
-        public virtual Cci.INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context) => null;
+        public virtual Cci.INamespaceTypeDefinition? AsNamespaceTypeDefinition(EmitContext context) => null;
 
-        public virtual Cci.INamespaceTypeReference AsNamespaceTypeReference => null;
+        public virtual Cci.INamespaceTypeReference? AsNamespaceTypeReference => null;
 
-        public Cci.ISpecializedNestedTypeReference AsSpecializedNestedTypeReference => null;
+        public Cci.ISpecializedNestedTypeReference? AsSpecializedNestedTypeReference => null;
 
-        public virtual Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => null;
+        public virtual Cci.INestedTypeDefinition? AsNestedTypeDefinition(EmitContext context) => null;
 
-        public virtual Cci.INestedTypeReference AsNestedTypeReference => null;
+        public virtual Cci.INestedTypeReference? AsNestedTypeReference => null;
 
         public Cci.ITypeDefinition AsTypeDefinition(EmitContext context) => this;
 

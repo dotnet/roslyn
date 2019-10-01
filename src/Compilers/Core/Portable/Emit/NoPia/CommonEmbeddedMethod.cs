@@ -240,6 +240,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return this;
             }
 
+            string Cci.IMethodDefinition.Name => Name;
+
             string Cci.INamedEntity.Name => Name;
 
             bool Cci.IMethodReference.AcceptsExtraArguments => AcceptsExtraArguments;
