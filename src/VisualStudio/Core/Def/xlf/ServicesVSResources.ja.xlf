@@ -482,6 +482,11 @@
         <target state="translated">未使用の値が discard に明示的に割り当てられます</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="new">Updating severity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
         <source>Use .editorconfig compatibility mode (requires restart)</source>
         <target state="translated">.editorconfig 互換性モードを使用する (再起動が必要)</target>

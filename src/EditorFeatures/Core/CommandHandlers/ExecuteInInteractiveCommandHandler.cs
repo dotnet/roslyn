@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -18,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// in order to ensure that the interactive command can be exposed without the necessity
     /// to load any of the interactive dll files just to get the command's status.
     /// </summary>
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name("Interactive Command Handler")]
     internal class ExecuteInInteractiveCommandHandler
-        : VSCommanding.ICommandHandler<ExecuteInInteractiveCommandArgs>
+        : ICommandHandler<ExecuteInInteractiveCommandArgs>
     {
         private readonly IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> _executeInInteractiveHandlers;
 
@@ -42,16 +41,16 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 .SingleOrDefault();
         }
 
-        bool VSCommanding.ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, CommandExecutionContext context)
+        bool ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, CommandExecutionContext context)
         {
             return GetCommandHandler(args.SubjectBuffer)?.Value.ExecuteCommand(args, context) ?? false;
         }
 
-        VSCommanding.CommandState VSCommanding.ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args)
+        CommandState ICommandHandler<ExecuteInInteractiveCommandArgs>.GetCommandState(ExecuteInInteractiveCommandArgs args)
         {
             return GetCommandHandler(args.SubjectBuffer) == null
-                ? VSCommanding.CommandState.Unavailable
-                : VSCommanding.CommandState.Available;
+                ? CommandState.Unavailable
+                : CommandState.Available;
         }
     }
 }

@@ -12,6 +12,8 @@
     <IsSourcePackage>true</IsSourcePackage>
     <PackageId>Microsoft.CodeAnalysis.Debugging</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- https://github.com/NuGet/Home/issues/8583 -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <PackageDescription>
       Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") debug information encoders and decoders.
     </PackageDescription>

@@ -16,7 +16,6 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Utilities
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestState
@@ -25,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Const timeoutMs = 10000
         Private Const editorTimeoutMs = 20000
         Friend Const RoslynItem = "RoslynItem"
-        Friend ReadOnly EditorCompletionCommandHandler As VSCommanding.ICommandHandler
+        Friend ReadOnly EditorCompletionCommandHandler As ICommandHandler
         Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
 
         Protected ReadOnly SessionTestState As IIntelliSenseTestState
@@ -105,13 +104,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             CompletionPresenterProvider = GetExportedValues(Of ICompletionPresenterProvider)().
                 Single(Function(e As ICompletionPresenterProvider) e.GetType().FullName = "Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense.MockCompletionPresenterProvider")
-            EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().
-                Single(Function(e As VSCommanding.ICommandHandler) e.GetType().Name = PredefinedCompletionNames.CompletionCommandHandler)
-
-            ' The current default timeout defined in the Editor may not work on slow virtual test machines.	
-            ' Need to use a safe timeout there to follow real code paths.	
-            MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionThresholdOptionId, editorTimeoutMs)
-
+            EditorCompletionCommandHandler = GetExportedValues(Of ICommandHandler)().
+                Single(Function(e As ICommandHandler) e.GetType().Name = PredefinedCompletionNames.CompletionCommandHandler)
         End Sub
 
         Private Overloads Shared Function GetExportProvider(excludedTypes As List(Of Type),
@@ -130,9 +124,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 #Region "Editor Related Operations"
 
-        Protected Overloads Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext, completionCommandHandler As VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
-            Dim sigHelpHandler = DirectCast(SignatureHelpBeforeCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
-            Dim formatHandler = DirectCast(FormatCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+        Protected Overloads Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext, completionCommandHandler As IChainedCommandHandler(Of TypeCharCommandArgs))
+            Dim sigHelpHandler = DirectCast(SignatureHelpBeforeCompletionCommandHandler, IChainedCommandHandler(Of TypeCharCommandArgs))
+            Dim formatHandler = DirectCast(FormatCommandHandler, IChainedCommandHandler(Of TypeCharCommandArgs))
 
             If formatHandler Is Nothing Then
                 sigHelpHandler.ExecuteCommand(
@@ -147,32 +141,32 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overloads Sub SendTab()
-            Dim handler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of TabKeyCommandArgs))()
+            Dim handler = GetHandler(Of IChainedCommandHandler(Of TabKeyCommandArgs))()
             MyBase.SendTab(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertText(vbTab))
         End Sub
 
         Public Overloads Sub SendReturn()
-            Dim handler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of ReturnKeyCommandArgs))()
+            Dim handler = GetHandler(Of IChainedCommandHandler(Of ReturnKeyCommandArgs))()
             MyBase.SendReturn(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertNewLine())
         End Sub
 
         Public Overrides Sub SendBackspace()
-            Dim compHandler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of BackspaceKeyCommandArgs))()
+            Dim compHandler = GetHandler(Of IChainedCommandHandler(Of BackspaceKeyCommandArgs))()
             MyBase.SendBackspace(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendBackspace)
         End Sub
 
         Public Overrides Sub SendDelete()
-            Dim compHandler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))()
+            Dim compHandler = GetHandler(Of IChainedCommandHandler(Of DeleteKeyCommandArgs))()
             MyBase.SendDelete(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDelete)
         End Sub
 
         Public Sub SendDeleteToSpecificViewAndBuffer(view As IWpfTextView, buffer As ITextBuffer)
-            Dim compHandler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))()
+            Dim compHandler = GetHandler(Of IChainedCommandHandler(Of DeleteKeyCommandArgs))()
             compHandler.ExecuteCommand(New DeleteKeyCommandArgs(view, buffer), AddressOf MyBase.SendDelete, TestCommandExecutionContext.Create())
         End Sub
 
         Private Overloads Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext)
-            Dim compHandler = GetHandler(Of VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))()
+            Dim compHandler = GetHandler(Of IChainedCommandHandler(Of TypeCharCommandArgs))()
             ExecuteTypeCharCommand(args, finalHandler, context, compHandler)
         End Sub
 
@@ -201,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overloads Sub SendPageUp()
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of PageUpKeyCommandArgs))
+            Dim handler = DirectCast(EditorCompletionCommandHandler, ICommandHandler(Of PageUpKeyCommandArgs))
             MyBase.SendPageUp(Sub(a, n, c) EditorCompletionCommandHandler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
@@ -235,16 +229,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overrides Sub SendDeleteWordToLeft()
-            Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of WordDeleteToStartCommandArgs))
+            Dim compHandler = DirectCast(EditorCompletionCommandHandler, ICommandHandler(Of WordDeleteToStartCommandArgs))
             MyBase.SendWordDeleteToStart(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDeleteWordToLeft)
         End Sub
 
         Public Overloads Sub SendToggleCompletionMode()
-            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of ToggleCompletionModeCommandArgs))
+            Dim handler = DirectCast(EditorCompletionCommandHandler, ICommandHandler(Of ToggleCompletionModeCommandArgs))
             MyBase.SendToggleCompletionMode(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
-        Protected Function GetHandler(Of T As VSCommanding.ICommandHandler)() As T
+        Protected Function GetHandler(Of T As ICommandHandler)() As T
             Return DirectCast(EditorCompletionCommandHandler, T)
         End Function
 
@@ -547,7 +541,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #Region "Signature Help Operations"
 
         Public Overloads Sub SendInvokeSignatureHelp()
-            Dim handler = DirectCast(SignatureHelpBeforeCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs))
+            Dim handler = DirectCast(SignatureHelpBeforeCompletionCommandHandler, IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs))
             MyBase.SendInvokeSignatureHelp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 

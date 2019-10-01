@@ -215,7 +215,7 @@ public partial class B : I
 
         public WinMdEventTests()
         {
-            // The following two libraries are shrinked code pulled from
+            // The following two libraries are shrunk code pulled from
             // corresponding files in the csharp5 legacy tests
             const string eventLibSrc =
 @"namespace EventLibrary

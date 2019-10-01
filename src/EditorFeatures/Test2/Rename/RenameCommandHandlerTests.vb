@@ -1,7 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
@@ -13,7 +11,6 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
-Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
@@ -75,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim nextHandler =
                     Function()
                         delegatedToNext = True
-                        Return VSCommanding.CommandState.Unavailable
+                        Return CommandState.Unavailable
                     End Function
 
                 Dim state = handler.GetCommandState(New RenameCommandArgs(textView, textView.TextBuffer), nextHandler)
@@ -188,7 +185,7 @@ End Class
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
                 Dim commandHandler = CreateCommandHandler(workspace)
-                Dim commandState = commandHandler.GetCommandState(New RenameCommandArgs(view, view.TextBuffer), Function() New VSCommanding.CommandState())
+                Dim commandState = commandHandler.GetCommandState(New RenameCommandArgs(view, view.TextBuffer), Function() New CommandState())
 
                 Assert.True(commandState.IsAvailable)
             End Using

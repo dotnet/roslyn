@@ -1320,4 +1320,7 @@ I agree to all of the foregoing:</value>
   <data name="Naming_rules" xml:space="preserve">
     <value>Naming rules</value>
   </data>
+  <data name="Updating_severity" xml:space="preserve">
+    <value>Updating severity</value>
+  </data>
 </root>
