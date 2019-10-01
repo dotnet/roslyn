@@ -295,7 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var awaitablePlaceholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
             _placeholderMap.Add(awaitablePlaceholder, expression);
 
-            var getAwaiter = (BoundExpression)Visit(node.AwaitableInfo.GetAwaiter);
+            var getAwaiter = node.AwaitableInfo.GetAwaiter is null ?
+                MakeCallMaybeDynamic(expression, null, WellKnownMemberNames.GetAwaiter) :
+                (BoundExpression)Visit(node.AwaitableInfo.GetAwaiter);
 
             resultPlace = (BoundExpression)Visit(resultPlace);
             MethodSymbol getResult = VisitMethodSymbol(node.AwaitableInfo.GetResult);
@@ -307,8 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The awaiter temp facilitates EnC method remapping and thus have to be long-lived.
             // It transfers the awaiter objects from the old version of the MoveNext method to the new one.
             Debug.Assert(node.Syntax.IsKind(SyntaxKind.AwaitExpression) || node.WasCompilerGenerated);
-            TypeSymbol awaiterType = node.AwaitableInfo.IsDynamic ? DynamicTypeSymbol.Instance : getAwaiter.Type;
-            var awaiterTemp = F.SynthesizedLocal(awaiterType, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
+
+            var awaiterTemp = F.SynthesizedLocal(getAwaiter.Type, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
             var awaitIfIncomplete = F.Block(
                     // temp $awaiterTemp = <expr>.GetAwaiter();
                     F.Assignment(
