@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
-    using static Helpers;
-
     /// <summary>
     /// Helper code to support both <see cref="UseSystemHashCodeCodeFixProvider"/> and
     /// <see cref="UseSystemHashCodeDiagnosticAnalyzer"/>.
@@ -217,6 +215,47 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             return false;
+        }
+
+        private static bool IsLocalReference(IOperation value, ILocalSymbol accumulatorVariable)
+            => Unwrap(value) is ILocalReferenceOperation localReference && accumulatorVariable.Equals(localReference.Local);
+
+        /// <summary>
+        /// Matches positive and negative numeric literals.
+        /// </summary>
+        private static bool IsLiteralNumber(IOperation value)
+        {
+            value = Unwrap(value);
+            return value is IUnaryOperation unary
+                ? unary.OperatorKind == UnaryOperatorKind.Minus && IsLiteralNumber(unary.Operand)
+                : value.IsNumericLiteral();
+        }
+
+        private static IOperation Unwrap(IOperation value)
+        {
+            // ReSharper and VS generate different patterns for parentheses (which also depends on
+            // the particular parentheses settings the user has enabled).  So just descend through
+            // any parentheses we see to create a uniform view of the code.
+            //
+            // Also, lots of operations in a GetHashCode impl will involve conversions all over the
+            // place (for example, some computations happen in 64bit, but convert to/from 32bit
+            // along the way).  So we descend through conversions as well to create a uniform view
+            // of things.
+            while (true)
+            {
+                if (value is IConversionOperation conversion)
+                {
+                    value = conversion.Operand;
+                }
+                else if (value is IParenthesizedOperation parenthesized)
+                {
+                    value = parenthesized.Operand;
+                }
+                else
+                {
+                    return value;
+                }
+            }
         }
     }
 }
