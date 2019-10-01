@@ -1941,6 +1941,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;GetHashCode&apos; implementation can be simplified.
+        /// </summary>
+        internal static string GetHashCode_implementation_can_be_simplified {
+            get {
+                return ResourceManager.GetString("GetHashCode_implementation_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Global Namespace.
         /// </summary>
         internal static string Global_Namespace {

@@ -242,6 +242,11 @@
         <target state="translated">Generare il parametro '{0}' (e override/implementazioni)</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Imposta rientro per tutti gli argomenti</target>

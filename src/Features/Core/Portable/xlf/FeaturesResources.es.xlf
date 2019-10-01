@@ -242,6 +242,11 @@
         <target state="translated">Generar el parámetro "{0}" (y reemplazos/implementaciones)</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Aplicar sangría a todos los argumentos</target>

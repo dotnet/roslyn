@@ -242,6 +242,11 @@
         <target state="translated">Gerar o parâmetro '{0}' (e as substituições/implementações)</target>
         <note />
       </trans-unit>
+      <trans-unit id="GetHashCode_implementation_can_be_simplified">
+        <source>'GetHashCode' implementation can be simplified</source>
+        <target state="new">'GetHashCode' implementation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">Recuar todos os argumentos</target>

@@ -1714,4 +1714,7 @@ This version used in: {2}</value>
   <data name="Use_System_HashCode" xml:space="preserve">
     <value>Use 'System.HashCode'</value>
   </data>
+  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
+    <value>'GetHashCode' implementation can be simplified</value>
+  </data>
 </root>
