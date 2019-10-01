@@ -99,7 +99,6 @@
 
   <!--
   This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.
-  It does not survive past initial binding.
   -->
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
   </Node>

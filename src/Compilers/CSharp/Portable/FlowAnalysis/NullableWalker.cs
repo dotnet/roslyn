@@ -7136,6 +7136,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
+            Visit(node.AwaitableInfo);
+
             var result = base.VisitAwaitExpression(node);
             _ = CheckPossibleNullReceiver(node.Expression);
             if (node.Type.IsValueType || node.HasErrors || node.AwaitableInfo.GetResult is null)
@@ -7740,6 +7742,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
         {
             SetUnknownResultNullability(node);
+            return null;
+        }
+
+        public override BoundNode VisitAwaitableInfo(BoundAwaitableInfo node)
+        {
+            Visit(node.AwaitableInstancePlaceholder);
+            Visit(node.GetAwaiter);
             return null;
         }
 

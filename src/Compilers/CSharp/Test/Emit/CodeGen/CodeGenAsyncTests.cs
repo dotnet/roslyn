@@ -5559,6 +5559,7 @@ static class Extensions
     public static TaskAwaiter GetAwaiter(this IAwaitable x)
     {
         if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
         return Task.CompletedTask.GetAwaiter();
     }
 }
@@ -5571,7 +5572,7 @@ class Program
     }
 }";
             var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "");
+            CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
 
         [Fact]
@@ -5590,6 +5591,7 @@ static class Extensions
     public static TaskAwaiter GetAwaiter(this object x)
     {
         if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
         return Task.CompletedTask.GetAwaiter();
     }
 }
@@ -5603,7 +5605,7 @@ class Program
     }
 }";
             var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "");
+            CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
     }
 }

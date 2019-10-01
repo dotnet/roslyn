@@ -9203,6 +9203,7 @@ Module Program
     <Extension>
     Function GetAwaiter(x As IAwaitable) As TaskAwaiter
         If x Is Nothing Then Throw New ArgumentNullException(Nameof(x))
+        Console.Write(x)
         Return Task.CompletedTask.GetAwaiter()        
     End Function
 
@@ -9215,7 +9216,7 @@ Module Program
     End Sub
 End Module"
             Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="")
+            CompileAndVerify(compilation, expectedOutput:="StructAwaitable")
         End Sub
 
         <Fact>
@@ -9232,6 +9233,7 @@ Module Program
     <Extension>
     Function GetAwaiter(x As Object) As TaskAwaiter
         If x Is Nothing Then Throw New ArgumentNullException(Nameof(x))
+        Console.Write(x)
         Return Task.CompletedTask.GetAwaiter()        
     End Function
 
@@ -9245,7 +9247,7 @@ Module Program
     End Sub
 End Module"
             Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
-            CompileAndVerify(compilation, expectedOutput:="")
+            CompileAndVerify(compilation, expectedOutput:="StructAwaitable")
         End Sub
     End Class
 End Namespace

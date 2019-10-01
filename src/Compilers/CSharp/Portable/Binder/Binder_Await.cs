@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
-            var placeholder = new BoundAwaitableValuePlaceholder(node, expression.Type);
+            var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
             var info = BindAwaitInfo(placeholder, node, node.Location, diagnostics, ref hasErrors);
 
             // Spec 7.7.7.2:

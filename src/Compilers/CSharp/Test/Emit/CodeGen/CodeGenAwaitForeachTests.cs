@@ -4948,11 +4948,13 @@ static class Extensions
     internal static TaskAwaiter<bool> GetAwaiter(this I1 x)
     {
         if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
         return Task.FromResult(false).GetAwaiter();
     }
     internal static TaskAwaiter GetAwaiter(this I2 x)
     {
         if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
         return Task.CompletedTask.GetAwaiter();
     }
 }
@@ -4967,7 +4969,7 @@ class Program
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "");
+            CompileAndVerify(comp, expectedOutput: "StructAwaitable1StructAwaitable2");
         }
     }
 }
