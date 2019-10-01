@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
         <source>Symbols should be compared for equality, not identity.</source>
-        <target state="translated">La comparaison des symboles doit porter sur l'égalité, pas sur l'identité.</target>
+        <target state="needs-review-translation">La comparaison des symboles doit porter sur l'égalité, pas sur l'identité.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
