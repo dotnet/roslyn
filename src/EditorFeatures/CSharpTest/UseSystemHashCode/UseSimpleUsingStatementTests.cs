@@ -420,5 +420,128 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestMissingOnThisGetHashCode()
+        {
+            await TestMissingAsync(
+@"namespace System { public struct HashCode { } }
+
+class B
+{
+    public override int GetHashCode() => 0;
+}
+
+class C : B
+{
+    int j;
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = 339610899;
+        hashCode = hashCode * -1521134295 + this.GetHashCode();
+        hashCode = hashCode * -1521134295 + j.GetHashCode();
+        return hashCode;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestMissingWithNoSystemHashCode()
+        {
+            await TestMissingAsync(
+@"
+class B
+{
+    public override int GetHashCode() => 0;
+}
+
+class C : B
+{
+    int j;
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = 339610899;
+        hashCode = hashCode * -1521134295 + base.GetHashCode();
+        hashCode = hashCode * -1521134295 + j.GetHashCode();
+        return hashCode;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestDirectNullCheck1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = -538000506;
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        hashCode = hashCode * -1521134295 + (S != null ? S.GetHashCode() : 0);
+        return hashCode;
+    }
+}",
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        return System.HashCode.Combine(i, S);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestDirectNullCheck2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = -538000506;
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        hashCode = hashCode * -1521134295 + (S == null ? 0 : S.GetHashCode());
+        return hashCode;
+    }
+}",
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode()
+    {
+        return System.HashCode.Combine(i, S);
+    }
+}");
+        }
     }
 }

@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 if (value is IConditionalOperation conditional &&
                     conditional.Condition is IBinaryOperation binary)
                 {
-                    if (binary.RightOperand.IsNullLiteral() &&
+                    if (Unwrap(binary.RightOperand).IsNullLiteral() &&
                         TryGetFieldOrProperty(binary.LeftOperand, out _))
                     {
                         if (binary.OperatorKind == BinaryOperatorKind.Equals)
