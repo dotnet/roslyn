@@ -10,7 +10,7 @@ namespace Analyzer.Utilities
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";
         public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
-        public const string SystemExceptionFullName = "System.Exception";
+        public const string SystemException = "System.Exception";
         public const string SystemSystemException = "System.SystemException";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
         public const string SystemIDisposable = "System.IDisposable";

@@ -21,15 +21,7 @@ namespace Analyzer.Utilities
             Compilation = compilation;
             _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
 
-            Exception = GetTypeByMetadataName(WellKnownTypeNames.SystemExceptionFullName);
-            Contract = GetTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticContractsContract);
-            IDisposable = GetTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
-            Monitor = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingMonitor);
-            Interlocked = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingInterlocked);
-            Task = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
-            GenericTask = GetTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericTask);
             CollectionTypes = GetWellKnownCollectionTypes();
-            SerializationInfo = GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
             SystemArray = GetTypeBySpecialType(SpecialType.System_Array);
             SystemString = GetTypeBySpecialType(SpecialType.System_String);
             SystemObject = GetTypeBySpecialType(SpecialType.System_Object);
@@ -47,51 +39,6 @@ namespace Analyzer.Utilities
         }
 
         public Compilation Compilation { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Exception"/>
-        /// </summary>
-        public INamedTypeSymbol Exception { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for 'System.Diagnostics.Contracts.Contract' type. />
-        /// </summary>
-        public INamedTypeSymbol Contract { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.IDisposable"/>
-        /// </summary>
-        public INamedTypeSymbol IDisposable { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.Task"/>
-        /// </summary>
-        public INamedTypeSymbol Task { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.Task{TResult}"/>
-        /// </summary>
-        public INamedTypeSymbol GenericTask { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Monitor"/>
-        /// </summary>
-        public INamedTypeSymbol Monitor { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Interlocked"/>
-        /// </summary>
-        public INamedTypeSymbol Interlocked { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for 'System.Runtime.Serialization.SerializationInfo' type />
-        /// </summary>
-        public INamedTypeSymbol SerializationInfo { get; }
-
-        /// <summary>
-        /// <see cref="INamedTypeSymbol"/> for <see cref="System.IEquatable{T}"/>
-        /// </summary>
-        public INamedTypeSymbol GenericIEquatable { get; }
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="SpecialType.System_Array"/>
@@ -129,7 +76,7 @@ namespace Analyzer.Utilities
         /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
         /// <param name="namedTypeSymbol">Named type symbol, if any.</param>
         /// <returns>True if found in the compilation, false otherwise.</returns>
-        public bool TryGetTypeByMetadataName(string fullTypeName, out INamedTypeSymbol namedTypeSymbol)
+        public bool TryGetOrCreateTypeByMetadataName(string fullTypeName, out INamedTypeSymbol namedTypeSymbol)
         {
             namedTypeSymbol = _fullNameToTypeMap.GetOrAdd(
                 fullTypeName,
@@ -142,9 +89,9 @@ namespace Analyzer.Utilities
         /// </summary>
         /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
         /// <returns>The <see cref="INamedTypeSymbol"/> if found, null otherwise.</returns>
-        public INamedTypeSymbol GetTypeByMetadataName(string fullTypeName)
+        public INamedTypeSymbol GetOrCreateTypeByMetadataName(string fullTypeName)
         {
-            TryGetTypeByMetadataName(fullTypeName, out INamedTypeSymbol namedTypeSymbol);
+            TryGetOrCreateTypeByMetadataName(fullTypeName, out INamedTypeSymbol namedTypeSymbol);
             return namedTypeSymbol;
         }
 
@@ -184,19 +131,19 @@ namespace Analyzer.Utilities
         private ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes()
         {
             var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
-            var iCollection = GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection);
+            var iCollection = GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection);
             if (iCollection != null)
             {
                 builder.Add(iCollection);
             }
 
-            var genericICollection = GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1);
+            var genericICollection = GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1);
             if (genericICollection != null)
             {
                 builder.Add(genericICollection);
             }
 
-            var genericIReadOnlyCollection = GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1);
+            var genericIReadOnlyCollection = GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1);
             if (genericIReadOnlyCollection != null)
             {
                 builder.Add(genericIReadOnlyCollection);
@@ -217,7 +164,7 @@ namespace Analyzer.Utilities
         {
             return typeSymbol != null
                 && typeSymbol.OriginalDefinition != null
-                && typeSymbol.OriginalDefinition.Equals(GenericTask)
+                && typeSymbol.OriginalDefinition.Equals(GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericTask))
                 && typeSymbol is INamedTypeSymbol namedTypeSymbol
                 && namedTypeSymbol.TypeArguments.Length == 1
                 && typeArgumentPredicate(namedTypeSymbol.TypeArguments[0]);

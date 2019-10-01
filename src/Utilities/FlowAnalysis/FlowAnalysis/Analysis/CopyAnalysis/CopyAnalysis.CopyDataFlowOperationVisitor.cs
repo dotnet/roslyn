@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
@@ -443,7 +444,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 if (throwBranchWithExceptionType.IsDefaultExceptionForExceptionsPathAnalysis)
                 {
                     // Only tracking non-child analysis entities for exceptions path analysis for now.
-                    Debug.Assert(throwBranchWithExceptionType.ExceptionType.Equals(WellKnownTypeProvider.Exception));
+                    Debug.Assert(throwBranchWithExceptionType.ExceptionType.Equals(WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException)));
                     predicateOpt = e => !e.IsChildOrInstanceMember;
                 }
 

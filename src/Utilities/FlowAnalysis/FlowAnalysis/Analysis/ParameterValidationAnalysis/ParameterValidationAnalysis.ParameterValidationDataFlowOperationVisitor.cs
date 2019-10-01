@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -280,13 +281,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 }
                 else if (targetMethod.Parameters.Length > 0 &&
                          arguments.Length > 0 &&
-                         WellKnownTypeProvider.Exception != null &&
-                         targetMethod.ContainingType.DerivesFrom(WellKnownTypeProvider.Exception))
+                         WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException) is INamedTypeSymbol exceptionType &&
+                         targetMethod.ContainingType.DerivesFrom(exceptionType))
                 {
                     // FxCop compat: special cases handled by FxCop.
                     //  1. First argument of type System.Runtime.Serialization.SerializationInfo to System.Exception.GetObjectData or its override is validated.
                     //  2. First argument of type System.Runtime.Serialization.SerializationInfo to constructor of System.Exception or its subtype is validated.
-                    if (Equals(targetMethod.Parameters[0].Type, WellKnownTypeProvider.SerializationInfo))
+                    if (Equals(targetMethod.Parameters[0].Type, WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo)))
                     {
                         switch (targetMethod.MethodKind)
                         {

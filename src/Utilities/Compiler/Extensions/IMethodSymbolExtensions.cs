@@ -157,7 +157,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsDisposeImplementation(this IMethodSymbol method, Compilation compilation)
         {
-            INamedTypeSymbol iDisposable = WellKnownTypeProvider.GetOrCreate(compilation).IDisposable;
+            INamedTypeSymbol iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             return method.IsDisposeImplementation(iDisposable);
         }
 
@@ -247,8 +247,8 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
         {
-            INamedTypeSymbol iDisposable = WellKnownTypeProvider.GetOrCreate(compilation).IDisposable;
-            INamedTypeSymbol task = WellKnownTypeProvider.GetOrCreate(compilation).Task;
+            INamedTypeSymbol iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            INamedTypeSymbol task = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
             return method.GetDisposeMethodKind(iDisposable, task);
         }
 

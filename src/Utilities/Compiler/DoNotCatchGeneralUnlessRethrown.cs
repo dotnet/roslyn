@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -94,8 +95,8 @@ namespace Analyzer.Utilities
             return ImmutableHashSet.CreateRange(
                 new[] {
                     WellKnownTypeProvider.GetOrCreate(compilation).SystemObject,
-                    WellKnownTypeProvider.GetOrCreate(compilation).Exception,
-                    compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemSystemException)
+                    compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException),
+                    compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemSystemException)
                 }.Where(x => x != null));
         }
 
