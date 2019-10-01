@@ -365,5 +365,20 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyAesGcm = "System.Security.Cryptography.AesGcm";
         public const string SystemSecurityCryptographyAesCcm = "System.Security.Cryptography.AesCcm";
         public const string SystemThreadingInterlocked = "System.Threading.Interlocked";
+        public const string SystemRuntimeAttributeUsageAttribute = "System.Runtime.AttributeUsageAttribute";
+        public const string SystemInvalidOperationException = "System.InvalidOperationException";
+        public const string SystemArgumentException = "System.ArgumentException";
+        public const string SystemNotSupportedException = "System.NotSupportedException";
+        public const string SystemCollectionsGenericKeyNotFoundException = "System.Collections.Generic.KeyNotFoundException";
+        public const string SystemCollectionsGenericIEqualityComparer1 = "System.Collections.Generic.IEqualityComparer`1";
+        public const string SystemUri = "System.Uri";
+        public const string SystemNotImplementedException = "System.NotImplementedException";
+        public const string SystemAttribute = "System.Attribute";
+        public const string SystemCodeDomCompilerGeneratedCodeAttribute = "System.CodeDom.Compiler.GeneratedCodeAttribute";
+        public const string SystemResourcesNeutralResourcesLanguageAttribute = "System.Resources.NeutralResourcesLanguageAttribute";
+        public const string SystemConsole = "System.Console";
+        public const string SystemSecurityCryptographyX509CertificatesX509Certificate = "System.Security.Cryptography.X509Certificates.X509Certificate";
+        public const string SystemSecurityCryptographyX509CertificatesX509Chain = "System.Security.Cryptography.X509Certificates.X509Chain";
+        public const string SystemNetSecuritySslPolicyErrors = "System.Net.Security.SslPolicyErrors";
     }
 }

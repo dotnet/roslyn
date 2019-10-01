@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return null;
             }
 
-            var attributeUsageAttribute = compilation.GetTypeByMetadataName(typeof(System.AttributeUsageAttribute).FullName);
+            var attributeUsageAttribute = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeAttributeUsageAttribute);
 
             return new FieldsAnalyzer(compilationType, symbolType, operationType, attributeUsageAttribute, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
