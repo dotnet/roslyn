@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => operation.Kind == OperationKind.Literal && operation.Type.IsNumericType();
 
         public static bool IsNullLiteral(this IOperation operand)
-            => operand is ILiteralOperation literal &&
-               literal.ConstantValue.HasValue &&
-               literal.ConstantValue.Value == null;
+            => operand is ILiteralOperation { ConstantValue: { HasValue: true, Value: null } };
     }
 }
