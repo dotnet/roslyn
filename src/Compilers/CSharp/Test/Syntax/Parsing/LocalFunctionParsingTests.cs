@@ -768,22 +768,27 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
                     }
                     N(SyntaxKind.CloseBraceToken);
@@ -793,15 +798,13 @@ class C
             EOF();
 
             tree.GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (7,5): error CS1519: Invalid token '}' in class, struct, or interface member declaration
-                //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(7, 5),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                // (6,12): error CS1525: Invalid expression term '}'
+                //         [A]
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(6, 12),
+                // (6,12): error CS1002: ; expected
+                //         [A]
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 12)
+            );
         }
 
         [Fact]
