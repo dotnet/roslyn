@@ -387,6 +387,14 @@ sealed class C2 : A {
 }")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestOverrideOfMethodFromMetadata() As Task
+            Await TestAsync(
+"using System;
+class C { public override string $$ToString() { return base.ToString(); } }
+", metadataDefinitions:={"mscorlib:Object.ToString"})
+        End Function
+
 #End Region
 
 #Region "Properties and Events"

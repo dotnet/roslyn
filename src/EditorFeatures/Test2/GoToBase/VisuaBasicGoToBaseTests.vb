@@ -516,6 +516,18 @@ NotInheritable Class C2
 End Class")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestOverrideOfMethodFromMetadata() As Task
+            Await TestAsync(
+"Imports System
+Class C 
+    Public Overrides Function $$ToString() As String
+        Return base.ToString();
+    End Function
+End Class
+", metadataDefinitions:={"mscorlib:Object.ToString"})
+        End Function
+
 #End Region
 
 #Region "Properties and Events"
