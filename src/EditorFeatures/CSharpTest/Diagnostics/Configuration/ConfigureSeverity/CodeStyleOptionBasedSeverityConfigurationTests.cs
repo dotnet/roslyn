@@ -3485,24 +3485,40 @@ class Program1
             }
 
             [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-            public async Task ConfigureEditorconfig_CSharpSpecificRule_Error()
+            public async Task ConfigureEditorconfig_ChooseBestHeader_Error()
             {
                 var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath=""z:\\Program.cs"">
-public class Class1
+class Program1
 {
-    public int Test()
+    static void Main()
     {
-        var o = 1;
-        // csharp_style_unused_value_assignment_preference = discard_variable
-        var [|unused|] = o;
-        return 1;
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+dotnet_style_qualification_for_field = false:silent
+
+[*.cs]
+csharp_style_expression_bodied_methods = false:silent
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -3511,21 +3527,118 @@ public class Class1
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath=""z:\\Program.cs"">
-public class Class1
+class Program1
 {
-    public int Test()
+    static void Main()
     {
-        var o = 1;
-        // csharp_style_unused_value_assignment_preference = discard_variable
-        var [|unused|] = o;
-        return 1;
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+dotnet_style_qualification_for_field = false:silent
+
+# IDE0017: Simplify object initialization
+dotnet_style_object_initializer = true:error
+
+[*.cs]
+csharp_style_expression_bodied_methods = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
     }
 }
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_methods = false:silent
 
-# IDE0059: Unnecessary assignment of a value
-csharp_style_unused_value_assignment_preference = discard_variable:error
+[*.{cs,vb}]
+dotnet_style_qualification_for_field = false:silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // dotnet_style_object_initializer = true
+        var obj = new Customer() { _age = 21 };
+
+        // dotnet_style_object_initializer = false
+        Customer obj2 = [|new Customer()|];
+        obj2._age = 21;
+    }
+
+    internal class Customer
+    {
+        public int _age;
+
+        public Customer()
+        {
+
+        }
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+csharp_style_expression_bodied_methods = false:silent
+
+[*.{cs,vb}]
+dotnet_style_qualification_for_field = false:silent
+
+# IDE0017: Simplify object initialization
+dotnet_style_object_initializer = true:error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";

@@ -199,6 +199,75 @@ dotnet_diagnostic.XYZ0001.severity = none
 
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_RegexHeaderMatch_None()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program/file.cs"">
+[|class Program1 { }|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*am/fi*e.cs]
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\Program/file.cs"">
+class Program1 { }
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*am/fi*e.cs]
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = none
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_RegexHeaderNonMatch_None()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\Program/file.cs"">
+[|class Program1 { }|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*am/fii*e.cs]
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = warning
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\Program/file.cs"">
+class Program1 { }
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*am/fii*e.cs]
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = warning
+
+[*.cs]
+
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = none
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
         }
     }
 }

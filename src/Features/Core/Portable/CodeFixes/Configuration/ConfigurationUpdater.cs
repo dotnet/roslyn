@@ -332,10 +332,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
             // We did not find any existing entry in the in the .editorconfig file to configure rule severity.
             // So we add a new configuration entry to the .editorconfig file.
-            return AddMissingRule(originalText, configureExistingRuleTextAndValidHeader.Item2);
+            return AddMissingRule(originalText, configureExistingRuleTextAndValidHeader.Item2, configureExistingRuleTextAndValidHeader.Item3);
         }
 
-        private Tuple<SourceText, TextLine?> CheckIfRuleExistsAndReplaceInFile(SourceText result)
+        private Tuple<SourceText, TextLine?, TextLine?> CheckIfRuleExistsAndReplaceInFile(SourceText result)
         {
             // Finds the relative path between editorconfig directory and diagnostic filepath.
             var editorConfigDirectory = PathUtilities.GetDirectoryName(FindOrGenerateEditorConfig(_project.Solution).FilePath).ToLowerInvariant();
@@ -346,6 +346,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             TextLine? mostRecentHeader = null;
             TextLine? lastValidHeader = null;
             TextLine? lastValidHeaderSpanEnd = null;
+
+            TextLine? lastValidSpecificHeader = null;
+            TextLine? lastValidSpecificHeaderSpanEnd = null;
 
             var textChange = new TextChange();
 
@@ -443,6 +446,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                             var match = headerRegex.Match(relativePath).Value.Split('.');
                             if (match[0].Contains(PathUtilities.GetFileName(diagnosticFilePath, false)))
                             {
+                                // If the diagnostic's isPerLanguage = true, it means the rule is valid for both C# and VB.
+                                // For the purpose of adding missing rules later, we want to keep track of whether there is a
+                                // valid header that contains both [*.cs] and [*.vb]. 
+                                // Likewise, if isPerLanguage = false, it means the rule is only valid for
+                                // one of the languages. Thus, we want to keep track of whether there is an existing header that is
+                                // only [*.cs] or only [*.vb], depending on the language.
+                                // We also keep track of the last valid header for the language.
+                                if (_isPerLanguage && (_language.Equals(LanguageNames.CSharp) || _language.Equals(LanguageNames.VisualBasic)))
+                                {
+                                    if (brokenUpFileExtensions.Contains("cs") && brokenUpFileExtensions.Contains("vb"))
+                                    {
+                                        lastValidSpecificHeader = mostRecentHeader;
+                                    }
+                                }
+                                else if (!_isPerLanguage && brokenUpFileExtensions.Length == 1)
+                                {
+                                    if (_language.Equals(LanguageNames.CSharp) && brokenUpFileExtensions.Contains("cs"))
+                                    {
+                                        lastValidSpecificHeader = mostRecentHeader;
+                                    }
+                                    else if (_language.Equals(LanguageNames.VisualBasic) && brokenUpFileExtensions.Contains("vb"))
+                                    {
+                                        lastValidSpecificHeader = mostRecentHeader;
+                                    }
+                                }
                                 lastValidHeader = mostRecentHeader;
                             }
                         }
@@ -455,20 +483,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     mostRecentHeader.Equals(lastValidHeader))
                 {
                     lastValidHeaderSpanEnd = curLine;
+                    if (mostRecentHeader.Equals(lastValidSpecificHeader))
+                    {
+                        lastValidSpecificHeaderSpanEnd = curLine;
+                    }
                 }
             }
 
             // We return only the last text change in case of duplicate entries for the same rule.
             if (!textChange.Equals(new TextChange()))
             {
-                return new Tuple<SourceText, TextLine?>(result.WithChanges(textChange), lastValidHeaderSpanEnd);
+                return new Tuple<SourceText, TextLine?, TextLine?>(result.WithChanges(textChange), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
             }
-            return new Tuple<SourceText, TextLine?>(null, lastValidHeaderSpanEnd);
+
+            // Rule not found
+            return new Tuple<SourceText, TextLine?, TextLine?>(null, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
         }
 
         private SourceText AddMissingRule(
             SourceText result,
-            TextLine? lastValidHeaderSpanEnd)
+            TextLine? lastValidHeaderSpanEnd,
+            TextLine? lastValidSpecificHeaderSpanEnd)
         {
             // Create a new rule configuration entry for the given diagnostic ID.
             // If optionNameOpt and optionValueOpt are non-null, it indicates an option based diagnostic ID
@@ -484,8 +519,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             newEntry = $"\r\n# {_diagnostic.Id}: {_diagnostic.Descriptor.Title}\r\n{newEntry}\r\n";
 
             // Check if have a correct existing header for the new entry.
-            // If so, we don't need to generate a header guarding the new entry to specific langauge.
-            if (lastValidHeaderSpanEnd.HasValue)
+            //      - If the diagnostic's isPerLanguage = true, it means the rule is valid for both C# and VB.
+            //        Thus, if there is a valid existing header containing both [*.cs] and [*.vb], then we prioritize it.
+            //      - If isPerLanguage = false, it means the rule is only valid for one of the languages. Thus, we
+            //        prioritize headers that contain only the header for the given language.
+            //      - If none of the above headers exist, we choose the last existing valid header.
+            //      - If no valid existing headers, we generate a new header.
+            if (lastValidSpecificHeaderSpanEnd.HasValue)
+            {
+                if (lastValidSpecificHeaderSpanEnd.Value.ToString().Trim().Length != 0)
+                {
+                    newEntry = "\r\n" + newEntry;
+                }
+
+                var textChange = new TextChange(new TextSpan(lastValidSpecificHeaderSpanEnd.Value.Span.End, 0), newEntry);
+                return result.WithChanges(textChange);
+            }
+            else if (lastValidHeaderSpanEnd.HasValue)
             {
                 if (lastValidHeaderSpanEnd.Value.ToString().Trim().Length != 0)
                 {
@@ -496,12 +546,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 return result.WithChanges(textChange);
             }
 
+            // We need to generate a new header such as '[*.cs]' or '[*.vb]':
+            //      - For compiler diagnostic entries and code style entries which have per-language option = false, generate only *.cs or *.vb".
+            //      - For the remainder, generate [ *.cs, *.vb]
             if (_language == LanguageNames.CSharp || _language == LanguageNames.VisualBasic)
             {
-                // We need to generate a new header such as '[*.cs]' or '[*.vb]':
-                //      - For compiler diagnostic entries and code style entries which have per-language option = false, generate only *.cs or *.vb".
-                //      - For the remainder, generate [ *.cs, *.vb]
-
                 // Insert a newline if not already present
                 var lines = result.Lines;
                 var lastLine = lines.Count > 0 ? lines[lines.Count - 1] : default;
