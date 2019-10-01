@@ -1407,7 +1407,7 @@ struct S : IAsyncDisposable
     }
     static async Task Main()
     {
-        var s = new S();
+        var s = new S(new C());
         await using (s)
         {
         }

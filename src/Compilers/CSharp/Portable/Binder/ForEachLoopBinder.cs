@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsAsync)
             {
                 var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType ?? CreateErrorType());
-                awaitInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                awaitInfo = BindAwaitInfo(placeholder, placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
 
                 if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
                 {
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, awaitableType);
 
             bool hasErrors = false;
-            builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+            builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             return hasErrors;
         }
 

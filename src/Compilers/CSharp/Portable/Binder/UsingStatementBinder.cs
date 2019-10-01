@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // even if we don't have a proper value to await, we'll still report bad usages of `await`
-                awaitOpt = originalBinder.BindAwaitInfo(placeholderOpt, syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                awaitOpt = originalBinder.BindAwaitInfo(placeholderOpt, placeholderOpt, syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             }
 
             // This is not awesome, but its factored. 

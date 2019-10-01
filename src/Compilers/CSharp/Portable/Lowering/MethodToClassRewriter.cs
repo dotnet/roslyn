@@ -361,18 +361,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitAwaitableInfo(BoundAwaitableInfo node)
         {
-            var awaitableInstancePlaceholder = node.AwaitableInstancePlaceholder;
-            awaitableInstancePlaceholder = awaitableInstancePlaceholder.Update(VisitType(awaitableInstancePlaceholder.Type));
+            var awaitablePlaceholder = node.AwaitableInstancePlaceholder;
+            if (awaitablePlaceholder is null)
+            {
+                return node;
+            }
 
-            _placeholderMap.Add(node.AwaitableInstancePlaceholder, awaitableInstancePlaceholder);
+            var rewrittenPlaceholder = awaitablePlaceholder.Update(VisitType(awaitablePlaceholder.Type));
+            _placeholderMap.Add(awaitablePlaceholder, rewrittenPlaceholder);
 
             var getAwaiter = (BoundExpression)this.Visit(node.GetAwaiter);
             var isCompleted = VisitPropertySymbol(node.IsCompleted);
             var getResult = VisitMethodSymbol(node.GetResult);
 
-            _placeholderMap.Remove(node.AwaitableInstancePlaceholder);
+            _placeholderMap.Remove(awaitablePlaceholder);
 
-            return node.Update(awaitableInstancePlaceholder, getAwaiter, isCompleted, getResult);
+            return node.Update(rewrittenPlaceholder, getAwaiter, isCompleted, getResult);
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)

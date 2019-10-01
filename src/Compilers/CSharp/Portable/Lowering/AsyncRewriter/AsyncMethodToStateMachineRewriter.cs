@@ -293,7 +293,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var expression = (BoundExpression)Visit(node.Expression);
             var awaitablePlaceholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
-            _placeholderMap.Add(awaitablePlaceholder, expression);
+
+            if (awaitablePlaceholder != null)
+            {
+                _placeholderMap.Add(awaitablePlaceholder, expression);
+            }
 
             var getAwaiter = node.AwaitableInfo.GetAwaiter is null ?
                 MakeCallMaybeDynamic(expression, null, WellKnownMemberNames.GetAwaiter) :
@@ -304,7 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol isCompletedMethod = ((object)node.AwaitableInfo.IsCompleted != null) ? VisitMethodSymbol(node.AwaitableInfo.IsCompleted.GetMethod) : null;
             TypeSymbol type = VisitType(node.Type);
 
-            _placeholderMap.Remove(awaitablePlaceholder);
+            if (awaitablePlaceholder != null)
+            {
+                _placeholderMap.Remove(awaitablePlaceholder);
+            }
 
             // The awaiter temp facilitates EnC method remapping and thus have to be long-lived.
             // It transfers the awaiter objects from the old version of the MoveNext method to the new one.

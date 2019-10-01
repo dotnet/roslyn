@@ -528,7 +528,7 @@
 
   <Node Name="BoundAwaitableInfo" Base="BoundNode">
     <!-- Used to refer to the awaitable expression in GetAwaiter -->
-    <Field Name="AwaitableInstancePlaceholder" Type="BoundAwaitableValuePlaceholder" Null="disallow" />
+    <Field Name="AwaitableInstancePlaceholder" Type="BoundAwaitableValuePlaceholder?" Null="allow" />
     <Field Name="GetAwaiter" Type="BoundExpression?" Null="allow"/>
     <Field Name="IsCompleted" Type="PropertySymbol?" Null="allow"/>
     <Field Name="GetResult" Type="MethodSymbol?" Null="allow"/>
