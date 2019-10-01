@@ -57,7 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         private readonly DebuggeeModuleInfoCache _baselineMetadata;
-        private readonly object _moduleApplyGuard = new object();
 
         public VisualStudioDebuggeeModuleMetadataProvider()
         {

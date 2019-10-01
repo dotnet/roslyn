@@ -21,9 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioManagedModuleUpdateProvider(VisualStudioWorkspace workspace)
+        public VisualStudioManagedModuleUpdateProvider(PrimaryWorkspace workspace)
         {
-            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            _encService = workspace.Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
         }
 
         public Task<ManagedModuleUpdateStatus> GetStatusAsync(CancellationToken cancellationToken)

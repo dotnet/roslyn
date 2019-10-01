@@ -4,6 +4,7 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -17,9 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private readonly IEditAndContinueWorkspaceService _encService;
 
         [ImportingConstructor]
-        public VisualStudioActiveStatementTracker(VisualStudioWorkspace workspace)
+        public VisualStudioActiveStatementTracker(PrimaryWorkspace workspace)
         {
-            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            _encService = workspace.Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
         }
 
         public async Task<VsTextSpan?> GetCurrentActiveStatementPositionAsync(Guid moduleId, int methodToken, int methodVersion, int ilOffset, CancellationToken cancellationToken)

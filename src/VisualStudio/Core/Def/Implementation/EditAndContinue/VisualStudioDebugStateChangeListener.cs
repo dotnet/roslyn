@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.VisualStudio.Debugger;
@@ -16,7 +17,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
     {
         private readonly IDebuggingWorkspaceService _debuggingService;
         private readonly IEditAndContinueWorkspaceService _encService;
-        private readonly VisualStudioDebuggeeModuleMetadataProvider _moduleMetadataProvider;
 
         /// <summary>
         /// Concord component. Singleton created on demand during debugging session and discarded as soon as the session ends.
@@ -68,11 +68,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         [ImportingConstructor]
-        public VisualStudioDebugStateChangeListener(VisualStudioWorkspace workspace, VisualStudioDebuggeeModuleMetadataProvider moduleMetadataProvider)
+        public VisualStudioDebugStateChangeListener(PrimaryWorkspace workspace)
         {
-            _moduleMetadataProvider = moduleMetadataProvider;
-            _debuggingService = workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
-            _encService = workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
+            var services = workspace.Workspace.Services;
+            _debuggingService = services.GetRequiredService<IDebuggingWorkspaceService>();
+            _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
         }
 
         public void StartDebugging()
