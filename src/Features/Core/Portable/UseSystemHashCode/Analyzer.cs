@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return default;
             }
 
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var hashedSymbols);
+
             // Local declaration can be of the form:
             //
             //      // VS code gen
@@ -133,7 +135,6 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             //      // ReSharper code gen
             //      var hashCode = Hash(firstSymbol);
             var initializerValue = declarator.Initializer.Value;
-            var hashedSymbols = ArrayBuilder<ISymbol>.GetInstance();
             if (!IsLiteralNumber(initializerValue) &&
                 !TryGetHashedSymbol(method, hashCodeVariable, hashedSymbols, initializerValue))
             {
