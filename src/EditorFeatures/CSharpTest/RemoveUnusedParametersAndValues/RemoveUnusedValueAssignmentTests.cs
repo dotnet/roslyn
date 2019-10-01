@@ -7149,5 +7149,32 @@ public class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TupleMember_UsedAfterContinueBranch()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+public class Test
+{
+    void M(List<(int, int)> list)
+    {
+        foreach (var (x, [|y|]) in list)
+        {
+            if (x != 0)
+            {
+                continue;
+            }
+
+            Console.Write(y);
+        }
+    }
+}");
+        }
+
+
     }
 }
