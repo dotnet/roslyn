@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<SyntaxNode> GetGetHashCodeComponents(
             this SyntaxGenerator factory,
             Compilation compilation,
-            INamedTypeSymbol containingType,
+            INamedTypeSymbol containingTypeOpt,
             ImmutableArray<ISymbol> members,
             bool justMemberReference)
         {
             var result = ArrayBuilder<SyntaxNode>.GetInstance();
 
-            if (GetBaseGetHashCodeMethod(containingType) != null)
+            if (containingTypeOpt != null && GetBaseGetHashCodeMethod(containingTypeOpt) != null)
             {
                 result.Add(factory.InvocationExpression(
                     factory.MemberAccessExpression(factory.BaseExpression(), GetHashCodeName)));

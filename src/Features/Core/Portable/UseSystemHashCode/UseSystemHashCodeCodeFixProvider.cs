@@ -52,13 +52,17 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 var methodDecl = diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
                 var method = semanticModel.GetDeclaredSymbol(methodDecl, cancellationToken);
 
-                var members = analyzer.GetHashedMembers(method, operation);
-                if (!members.IsDefaultOrEmpty)
+                var (accessesBase, members) = analyzer.GetHashedMembers(method, operation);
+                if (accessesBase || !members.IsDefaultOrEmpty)
                 {
                     // Produce the new statements for the GetHashCode method and replace the
                     // existing ones with them.
+
+                    // Only if there was a base.GetHashCode() do we pass in the ContainingType
+                    // so that we generate the same.
+                    var containingType = accessesBase ? method.ContainingType : null;
                     var components = generator.GetGetHashCodeComponents(
-                        semanticModel.Compilation, method.ContainingType, members, justMemberReference: true);
+                        semanticModel.Compilation, containingType, members, justMemberReference: true);
 
                     var updatedDecl = generator.WithStatements(
                         methodDecl,

@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
             var owningSymbol = context.OwningSymbol;
             var operation = context.OperationBlocks[0];
-            var hashedMembers = analyzer.GetHashedMembers(owningSymbol, operation);
-            if (hashedMembers.IsDefaultOrEmpty)
+            var (accessesBase, hashedMembers) = analyzer.GetHashedMembers(owningSymbol, operation);
+            if (!accessesBase && hashedMembers.IsDefaultOrEmpty)
             {
                 return;
             }

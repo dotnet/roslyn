@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         private readonly Compilation _compilation;
         private readonly IMethodSymbol _objectGetHashCodeMethod;
         private readonly INamedTypeSymbol _equalityComparerTypeOpt;
+
         public readonly INamedTypeSymbol SystemHashCodeType;
 
         public Analyzer(Compilation compilation)
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         /// Analyzes the containing <c>GetHashCode</c> method to determine which fields and
         /// properties were combined to form a hash code for this type.
         /// </summary>
-        public ImmutableArray<ISymbol> GetHashedMembers(ISymbol owningSymbol, IOperation operation)
+        public (bool accessesBase, ImmutableArray<ISymbol> members) GetHashedMembers(ISymbol owningSymbol, IOperation operation)
         {
             Debug.Assert(CanAnalyze());
 
@@ -131,6 +134,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             var hashedSymbols = ArrayBuilder<ISymbol>.GetInstance();
+            var accessesBase = false;
 
             // Local declaration can be of the form:
             //
@@ -175,7 +179,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 }
             }
 
-            return hashedSymbols.ToImmutableAndFree();
+            return (accessesBase, hashedSymbols.ToImmutableAndFree());
 
             // Recursive function that decomposes <paramref name="value"/>, looking for particular
             // forms that VS or ReSharper generate to hash fields in the containing type.
@@ -249,12 +253,21 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 // hashed the value.
                 if (seenHash)
                 {
-                    if (value is IInstanceReferenceOperation instanceReference)
+                    if (value is IInstanceReferenceOperation instanceReference &&
+                        instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance &&
+                        Equals(method.ContainingType.BaseType, instanceReference.Type))
                     {
-                        // reference to this/base.
+                        if (accessesBase)
+                        {
+                            // already had a reference to base.GetHashCode();
+                            return false;
+                        }
+
+                        // reference to base.
                         //
                         // Happens with code like: `var hashCode = base.GetHashCode();`
-                        return instanceReference.ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
+                        accessesBase = true;
+                        return true;
                     }
 
                     // After decomposing all of the above patterns, we must end up with an operation that is
