@@ -49,9 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression getAwaiter;
                 PropertySymbol isCompleted;
                 MethodSymbol getResult;
-                hasErrors |= !GetAwaitableExpressionInfo(expressionOpt, out getAwaiter, out isCompleted, out getResult, out _, node, diagnostics);
+                bool hasGetAwaitableErrors = !GetAwaitableExpressionInfo(expressionOpt, out getAwaiter, out isCompleted, out getResult, out _, node, diagnostics);
+                hasErrors |= hasGetAwaitableErrors;
 
-                return new BoundAwaitableInfo(node, expressionOpt, getAwaiter, isCompleted, getResult);
+                return new BoundAwaitableInfo(node, expressionOpt, getAwaiter, isCompleted, getResult, hasGetAwaitableErrors);
             }
         }
 
