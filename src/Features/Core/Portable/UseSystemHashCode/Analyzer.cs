@@ -88,11 +88,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
             // First statement has to be the declaration of the accumulator.
             // Last statement has to be the return of it.
-            var firstStatement = statements.First();
-            var lastStatement = statements.Last();
-
-            if (!(firstStatement is IVariableDeclarationGroupOperation varDeclStatement) ||
-                !(lastStatement is IReturnOperation returnStatement))
+            if (!(statements.First() is IVariableDeclarationGroupOperation varDeclStatement) ||
+                !(statements.Last() is IReturnOperation returnStatement))
             {
                 return default;
             }
