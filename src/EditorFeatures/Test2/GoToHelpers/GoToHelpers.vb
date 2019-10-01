@@ -7,7 +7,11 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Friend Class GoToHelpers
-    Friend Shared Async Function TestAsync(workspaceDefinition As XElement, testingMethod As Func(Of Document, Integer, SimpleFindUsagesContext, Task), Optional shouldSucceed As Boolean = True) As Task
+    Friend Shared Async Function TestAsync(
+                                          workspaceDefinition As XElement,
+                                          testingMethod As Func(Of Document, Integer, SimpleFindUsagesContext, Task),
+                                          Optional shouldSucceed As Boolean = True,
+                                          Optional metadataDefinitions As String() = Nothing) As Task
         Using workspace = TestWorkspace.Create(workspaceDefinition)
             Dim documentWithCursor = workspace.DocumentWithCursor
             Dim position = documentWithCursor.CursorPosition.Value
@@ -32,6 +36,30 @@ Friend Class GoToHelpers
                 expectedDefinitions.Sort()
 
                 Assert.Equal(expectedDefinitions.Count, actualDefinitions.Count)
+
+                For i = 0 To actualDefinitions.Count - 1
+                    Dim actual = actualDefinitions(i)
+                    Dim expected = expectedDefinitions(i)
+
+                    Assert.True(actual.CompareTo(expected) = 0,
+                                $"Expected: ({expected}) but got: ({actual})")
+                Next
+
+                Dim actualDefintionsWithoutSpans = context.GetDefinitions().
+                Where(Function(d) d.SourceSpans.IsDefaultOrEmpty).
+                Select(Function(di)
+                           Return String.Format("{0}:{1}",
+                                                String.Join("", di.OriginationParts.Select(Function(t) t.Text)),
+                                                String.Join("", di.NameDisplayParts.Select(Function(t) t.Text)))
+                       End Function).ToList()
+
+                actualDefintionsWithoutSpans.Sort()
+
+                If metadataDefinitions Is Nothing Then
+                    metadataDefinitions = {}
+                End If
+
+                Assert.Equal(actualDefintionsWithoutSpans.Count, metadataDefinitions.Count)
 
                 For i = 0 To actualDefinitions.Count - 1
                     Dim actual = actualDefinitions(i)
