@@ -815,6 +815,38 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_preferSystemHashCode = $@"
+using System;
+
+class Customer1
+{{
+    int a, b, c;
+//[
+    // {ServicesVSResources.Prefer_colon}
+    // {ServicesVSResources.Requires_System_HashCode_be_present_in_project}
+    public override int GetHashCode()
+    {{
+        return System.HashCode.Combine(a, b, c);
+    }}
+//]
+}}
+class Customer2
+{{
+    int a, b, c;
+//[
+    // {ServicesVSResources.Over_colon}
+    public override int GetHashCode()
+    {{
+        var hashCode = 339610899;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        hashCode = hashCode * -1521134295 + c.GetHashCode();
+        return hashCode;
+    }}
+//]
+}}
+";
+
         private static readonly string s_preferLocalFunctionOverAnonymousFunction = $@"
 using System;
 
@@ -1617,6 +1649,7 @@ class C2
             AddBracesOptions(optionStore, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionStore, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionStore, codeBlockPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferSystemHashCode, ServicesVSResources.Prefer_System_HashCode_in_GetHashCode, s_preferSystemHashCode, s_preferSystemHashCode, this, optionStore, codeBlockPreferencesGroupTitle));
 
             AddParenthesesOptions(OptionStore);
 

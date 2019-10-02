@@ -1323,4 +1323,10 @@ I agree to all of the foregoing:</value>
   <data name="Updating_severity" xml:space="preserve">
     <value>Updating severity</value>
   </data>
+  <data name="Prefer_System_HashCode_in_GetHashCode" xml:space="preserve">
+    <value>Prefer 'System.HashCode' in 'GetHashCode'</value>
+  </data>
+  <data name="Requires_System_HashCode_be_present_in_project" xml:space="preserve">
+    <value>Requires 'System.HashCode' be present in project</value>
+  </data>
 </root>
