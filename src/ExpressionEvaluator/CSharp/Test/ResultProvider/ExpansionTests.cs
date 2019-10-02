@@ -626,7 +626,7 @@ class C
                 EvalResult("F", "null", "object", "((S)(new C()).o1).F", DkmEvaluationResultFlags.CanFavorite));
             // S? s1 = new S();
             Verify(GetChildren(children[4]),
-                EvalResult("F", "1", "object {int}", "(new C()).s1.F"));
+                EvalResult("F", "1", "object {int}", "(new C()).s1.F", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]

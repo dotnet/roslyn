@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     value = nullableValue;
                     Debug.Assert(lmrNullableTypeArg.Equals(value.Type.GetLmrType())); // If this is not the case, add a test for includeRuntimeTypeIfNecessary.
                     // CONSIDER: The DynamicAttribute for the type argument should just be Skip(1) of the original flag array.
-                    expansion = this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(DkmClrType.Create(declaredTypeAndInfo.ClrType.AppDomain, lmrNullableTypeArg)), value, ExpansionFlags.IncludeResultsView, supportsFavorites: false);
+                    expansion = this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(DkmClrType.Create(declaredTypeAndInfo.ClrType.AppDomain, lmrNullableTypeArg)), value, ExpansionFlags.IncludeResultsView, supportsFavorites: supportsFavorites);
                 }
             }
             else if (value.IsError() || (inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoExpansion) != 0)

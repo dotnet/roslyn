@@ -89,7 +89,7 @@ End Class"
                 EvalResult("F", "Nothing", "Object", "DirectCast((New C()).o1, S).F", DkmEvaluationResultFlags.CanFavorite))
             ' Dim s1 As S? = New S(1)
             Verify(GetChildren(children(4)),
-                EvalResult("F", "1", "Object {Integer}", "(New C()).s1.F"))
+                EvalResult("F", "1", "Object {Integer}", "(New C()).s1.F", DkmEvaluationResultFlags.CanFavorite))
         End Sub
 
         <Fact>
