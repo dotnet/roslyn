@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         CodeAnalysis.NullableAnnotation IDiscardSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
         public TypeWithAnnotations TypeWithAnnotations { get; }
 
-        public override Symbol ContainingSymbol => null;
+        public override Symbol? ContainingSymbol => null;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override bool IsAbstract => false;
@@ -29,10 +32,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsVirtual => false;
         public override SymbolKind Kind => SymbolKind.Discard;
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
-        internal override ObsoleteAttributeData ObsoleteAttributeData => null;
+        internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument a) => visitor.VisitDiscard(this, a);
         public override void Accept(SymbolVisitor visitor) => visitor.VisitDiscard(this);
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
+        [return: MaybeNull]
+        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+        {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
+            return visitor.VisitDiscard(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
+        }
+
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitDiscard(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
 
