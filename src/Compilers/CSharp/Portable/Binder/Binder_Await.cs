@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasErrors = false;
             var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
-            var info = BindAwaitInfo(expression, placeholder, node, node.Location, diagnostics, ref hasErrors);
+
+            ReportBadAwaitDiagnostics(node, node.Location, diagnostics, ref hasErrors);
+            var info = BindAwaitInfo(placeholder, node, diagnostics, ref hasErrors, expressionOpt: expression);
 
             // Spec 7.7.7.2:
             // The expression await t is classified the same way as the expression (t).GetAwaiter().GetResult(). Thus,
@@ -35,21 +37,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAwaitExpression(node, expression, info, awaitExpressionType, hasErrors);
         }
 
-        internal BoundAwaitableInfo BindAwaitInfo(BoundExpression expressionOpt, BoundAwaitableValuePlaceholder placeholder, SyntaxNode node, Location location, DiagnosticBag diagnostics, ref bool hasErrors)
+        internal void ReportBadAwaitDiagnostics(SyntaxNode node, Location location, DiagnosticBag diagnostics, ref bool hasErrors)
         {
             hasErrors |= ReportBadAwaitWithoutAsync(location, diagnostics);
             hasErrors |= ReportBadAwaitContext(node, location, diagnostics);
+        }
 
-            bool isDynamic = false;
-            BoundExpression getAwaiter = null;
-            PropertySymbol isCompleted = null;
-            MethodSymbol getResult = null;
-            bool hasGetAwaitableErrors = false;
-            if (expressionOpt != null)
-            {
-                hasGetAwaitableErrors = !GetAwaitableExpressionInfo(expressionOpt, placeholder, out isDynamic, out getAwaiter, out isCompleted, out getResult, out _, node, diagnostics);
-                hasErrors |= hasGetAwaitableErrors;
-            }
+        internal BoundAwaitableInfo BindAwaitInfo(BoundAwaitableValuePlaceholder placeholder, SyntaxNode node, DiagnosticBag diagnostics, ref bool hasErrors, BoundExpression expressionOpt = null)
+        {
+            bool hasGetAwaitableErrors = !GetAwaitableExpressionInfo(
+                expressionOpt ?? placeholder,
+                placeholder,
+                out bool isDynamic,
+                out BoundExpression getAwaiter,
+                out PropertySymbol isCompleted,
+                out MethodSymbol getResult,
+                out _,
+                node,
+                diagnostics);
+            hasErrors |= hasGetAwaitableErrors;
 
             return new BoundAwaitableInfo(node, placeholder, isDynamic: isDynamic, getAwaiter, isCompleted, getResult, hasErrors: hasGetAwaitableErrors) { WasCompilerGenerated = true };
         }

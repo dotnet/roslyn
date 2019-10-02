@@ -96,19 +96,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)disposableInterface != null);
             bool hasErrors = ReportUseSiteDiagnostics(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
 
-            Conversion iDisposableConversion = Conversion.NoConversion;
+            Conversion iDisposableConversion;
             ImmutableArray<BoundLocalDeclaration> declarationsOpt = default;
             BoundMultipleLocalDeclarations multipleDeclarationsOpt = null;
             BoundExpression expressionOpt = null;
-            BoundAwaitableInfo awaitOpt = null;
             TypeSymbol declarationTypeOpt = null;
-            MethodSymbol disposeMethodOpt = null;
-            TypeSymbol awaitableTypeOpt = null;
+            MethodSymbol disposeMethodOpt;
+            TypeSymbol awaitableTypeOpt;
 
             if (isExpression)
             {
                 expressionOpt = usingBinderOpt.BindTargetExpression(diagnostics, originalBinder);
-                hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: true);
+                hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: true, out iDisposableConversion, out disposeMethodOpt, out awaitableTypeOpt);
             }
             else
             {
@@ -122,28 +121,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (declarationTypeOpt.IsDynamic())
                 {
                     iDisposableConversion = Conversion.ImplicitDynamic;
+                    disposeMethodOpt = null;
+                    awaitableTypeOpt = null;
                 }
                 else
                 {
-                    hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: false);
+                    hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: false, out iDisposableConversion, out disposeMethodOpt, out awaitableTypeOpt);
                 }
             }
 
+            BoundAwaitableInfo awaitOpt = null;
             if (hasAwait)
             {
-                BoundAwaitableValuePlaceholder placeholderOpt;
+                // even if we don't have a proper value to await, we'll still report bad usages of `await`
+                originalBinder.ReportBadAwaitDiagnostics(syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+
                 if (awaitableTypeOpt is null)
                 {
-                    placeholderOpt = null;
+                    awaitOpt = new BoundAwaitableInfo(syntax, awaitableInstancePlaceholder: null, isDynamic: true, getAwaiter: null, isCompleted: null, getResult: null) { WasCompilerGenerated = true };
                 }
                 else
                 {
                     hasErrors |= ReportUseSiteDiagnostics(awaitableTypeOpt, diagnostics, awaitKeyword);
-                    placeholderOpt = new BoundAwaitableValuePlaceholder(syntax, awaitableTypeOpt).MakeCompilerGenerated();
+                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, awaitableTypeOpt).MakeCompilerGenerated();
+                    awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, diagnostics, ref hasErrors);
                 }
-
-                // even if we don't have a proper value to await, we'll still report bad usages of `await`
-                awaitOpt = originalBinder.BindAwaitInfo(placeholderOpt, placeholderOpt, syntax, awaitKeyword.GetLocation(), diagnostics, ref hasErrors);
             }
 
             // This is not awesome, but its factored. 
@@ -168,11 +170,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors);
             }
 
-            // initializes iDisposableConversion, awaitableTypeOpt and disposeMethodOpt
-            bool populateDisposableConversionOrDisposeMethod(bool fromExpression)
+            bool populateDisposableConversionOrDisposeMethod(bool fromExpression, out Conversion iDisposableConversion, out MethodSymbol disposeMethodOpt, out TypeSymbol awaitableTypeOpt)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteDiagnostics);
+                disposeMethodOpt = null;
+                awaitableTypeOpt = null;
 
                 diagnostics.Add(syntax, useSiteDiagnostics);
 

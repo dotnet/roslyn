@@ -213,12 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (IsAsync)
             {
-                var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType ?? CreateErrorType());
-                awaitInfo = BindAwaitInfo(placeholder, placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                var expr = _syntax.Expression;
+                ReportBadAwaitDiagnostics(expr, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+                var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextMethod?.ReturnType ?? CreateErrorType());
+                awaitInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
 
                 if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, _syntax.Expression.Location, getEnumeratorMethod.ReturnTypeWithAnnotations, getEnumeratorMethod);
+                    diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, expr.Location, getEnumeratorMethod.ReturnTypeWithAnnotations, getEnumeratorMethod);
                     hasErrors = true;
                 }
             }
@@ -521,10 +523,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax)
                 : builder.DisposeMethod.ReturnType;
 
-            var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, awaitableType);
-
             bool hasErrors = false;
-            builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, placeholder, _syntax.Expression, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+            var expr = _syntax.Expression;
+            ReportBadAwaitDiagnostics(expr, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
+
+            var placeholder = new BoundAwaitableValuePlaceholder(expr, awaitableType);
+            builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
             return hasErrors;
         }
 
