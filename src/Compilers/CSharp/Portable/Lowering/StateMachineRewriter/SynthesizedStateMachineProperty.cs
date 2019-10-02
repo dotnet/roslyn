@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _getter; }
         }
 
-        public override MethodSymbol SetMethod
+        public override MethodSymbol? SetMethod
         {
             get { return null; }
         }
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData
+        internal override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _getter.HasMethodBodyDependency; }
         }
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
+        IMethodSymbol? ISynthesizedMethodBodyImplementationSymbol.Method
         {
             get { return ((ISynthesizedMethodBodyImplementationSymbol)ContainingSymbol).Method; }
         }

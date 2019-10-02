@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     internal class PEPropertySymbol
         : PropertySymbol
     {
+#nullable disable // The compiler can't tell '_name' is set in the constructor. https://github.com/dotnet/roslyn/issues/39166
         private readonly string _name;
+#nullable enable
         private readonly PENamedTypeSymbol _containingType;
         private readonly PropertyDefinitionHandle _handle;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
@@ -31,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PEMethodSymbol _getMethod;
         private readonly PEMethodSymbol _setMethod;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private Tuple<CultureInfo, string> _lazyDocComment;
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private Tuple<CultureInfo, string>? _lazyDocComment;
+        private DiagnosticInfo? _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
@@ -60,8 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEMethodSymbol getMethod,
             PEMethodSymbol setMethod)
         {
-            Debug.Assert((object)moduleSymbol != null);
-            Debug.Assert((object)containingType != null);
+            RoslynDebug.Assert((object)moduleSymbol != null);
+            RoslynDebug.Assert((object)containingType != null);
             Debug.Assert(!handle.IsNil);
 
             var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
@@ -100,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _containingType = containingType;
             var module = moduleSymbol.Module;
             PropertyAttributes mdFlags = 0;
-            BadImageFormatException mrEx = null;
+            BadImageFormatException? mrEx = null;
 
             try
             {
@@ -121,9 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _handle = handle;
 
             SignatureHeader unusedCallingConvention;
-            BadImageFormatException getEx = null;
+            BadImageFormatException? getEx = null;
             var getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx);
-            BadImageFormatException setEx = null;
+            BadImageFormatException? setEx = null;
             var setMethodParams = (object)setMethod == null ? null : metadataDecoder.GetSignatureForMethod(setMethod.Handle, out unusedCallingConvention, out setEx);
 
             // NOTE: property parameter names are not recorded in metadata, so we have to
@@ -132,8 +136,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isBad;
 
             _parameters = setMethodParams is null
+#nullable disable // Can 'getMethodParams' or 'getMethod' be null? https://github.com/dotnet/roslyn/issues/39166
                 ? GetParameters(moduleSymbol, this, propertyParams, getMethodParams, getMethod.IsMetadataVirtual(), out isBad)
+#nullable enable
+#nullable disable // Can 'setMethod' be null? https://github.com/dotnet/roslyn/issues/39166
                 : GetParameters(moduleSymbol, this, propertyParams, setMethodParams, setMethod.IsMetadataVirtual(), out isBad);
+#nullable enable
 
             if (getEx != null || setEx != null || mrEx != null || isBad)
             {
@@ -323,8 +331,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             if (getAccessibility == Accessibility.NotApplicable)
                             {
-                                MethodSymbol getMethod = curr.GetMethod;
-                                if ((object)getMethod != null)
+                                MethodSymbol? getMethod = curr.GetMethod;
+                                if ((object?)getMethod != null)
                                 {
                                     Accessibility overriddenAccessibility = getMethod.DeclaredAccessibility;
                                     getAccessibility = overriddenAccessibility == Accessibility.ProtectedOrInternal && crossedAssemblyBoundaryWithoutInternalsVisibleTo
@@ -335,8 +343,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                             if (setAccessibility == Accessibility.NotApplicable)
                             {
-                                MethodSymbol setMethod = curr.SetMethod;
-                                if ((object)setMethod != null)
+                                MethodSymbol? setMethod = curr.SetMethod;
+                                if ((object?)setMethod != null)
                                 {
                                     Accessibility overriddenAccessibility = setMethod.DeclaredAccessibility;
                                     setAccessibility = overriddenAccessibility == Accessibility.ProtectedOrInternal && crossedAssemblyBoundaryWithoutInternalsVisibleTo
@@ -350,9 +358,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                 break;
                             }
 
-                            PropertySymbol next = curr.OverriddenProperty;
+                            PropertySymbol? next = curr.OverriddenProperty;
 
-                            if ((object)next == null)
+                            if ((object?)next == null)
                             {
                                 break;
                             }
@@ -613,13 +621,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEModule module,
             MetadataDecoder metadataDecoder,
             ParamInfo<TypeSymbol>[] propertyParams,
-            PEMethodSymbol getMethod,
-            ParamInfo<TypeSymbol>[] getMethodParams,
-            PEMethodSymbol setMethod,
-            ParamInfo<TypeSymbol>[] setMethodParams)
+            PEMethodSymbol? getMethod,
+            ParamInfo<TypeSymbol>[]? getMethodParams,
+            PEMethodSymbol? setMethod,
+            ParamInfo<TypeSymbol>[]? setMethodParams)
         {
-            Debug.Assert((getMethodParams == null) == ((object)getMethod == null));
-            Debug.Assert((setMethodParams == null) == ((object)setMethod == null));
+            Debug.Assert((getMethodParams == null) == ((object?)getMethod == null));
+            Debug.Assert((setMethodParams == null) == ((object?)setMethod == null));
 
             bool hasGetMethod = getMethodParams != null;
             bool hasSetMethod = setMethodParams != null;
@@ -637,8 +645,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (hasGetMethod && hasSetMethod)
             {
                 var lastPropertyParamIndex = propertyParams.Length - 1;
+#nullable disable // Can 'getMethodParams' or 'setMethodParams' be null? https://github.com/dotnet/roslyn/issues/39166
                 var getHandle = getMethodParams[lastPropertyParamIndex].Handle;
                 var setHandle = setMethodParams[lastPropertyParamIndex].Handle;
+#nullable enable
                 var getterHasParamArray = !getHandle.IsNil && module.HasParamsAttribute(getHandle);
                 var setterHasParamArray = !setHandle.IsNil && module.HasParamsAttribute(setHandle);
                 if (getterHasParamArray != setterHasParamArray)
@@ -646,7 +656,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
                 }
 
+#nullable disable // Can 'getMethod' or 'setMethod' be null? https://github.com/dotnet/roslyn/issues/39166
                 if ((getMethod.IsExtern != setMethod.IsExtern) ||
+#nullable enable
                     // (getMethod.IsAbstract != setMethod.IsAbstract) || // NOTE: Dev10 accepts one abstract accessor
                     (getMethod.IsSealed != setMethod.IsSealed) ||
                     (getMethod.IsOverride != setMethod.IsOverride) ||
@@ -698,16 +710,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return parameters.AsImmutableOrNull();
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
             {
-                DiagnosticInfo result = null;
+                DiagnosticInfo? result = null;
                 CalculateUseSiteDiagnostic(ref result);
                 _lazyUseSiteDiagnostic = result;
             }
@@ -732,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

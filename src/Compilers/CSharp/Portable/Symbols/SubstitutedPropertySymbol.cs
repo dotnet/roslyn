@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Threading;
 
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeWithAnnotations.Boxed _lazyType;
+        private TypeWithAnnotations.Boxed? _lazyType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
         internal SubstitutedPropertySymbol(SubstitutedNamedTypeSymbol containingType, PropertySymbol originalDefinition)
@@ -79,21 +81,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override MethodSymbol GetMethod
+        public override MethodSymbol? GetMethod
         {
             get
             {
-                MethodSymbol originalGetMethod = OriginalDefinition.GetMethod;
-                return (object)originalGetMethod == null ? null : originalGetMethod.AsMember(_containingType);
+                MethodSymbol? originalGetMethod = OriginalDefinition.GetMethod;
+                return (object?)originalGetMethod == null ? null : originalGetMethod.AsMember(_containingType);
             }
         }
 
-        public override MethodSymbol SetMethod
+        public override MethodSymbol? SetMethod
         {
             get
             {
-                MethodSymbol originalSetMethod = OriginalDefinition.SetMethod;
-                return (object)originalSetMethod == null ? null : originalSetMethod.AsMember(_containingType);
+                MethodSymbol? originalSetMethod = OriginalDefinition.SetMethod;
+                return (object?)originalSetMethod == null ? null : originalSetMethod.AsMember(_containingType);
             }
         }
 
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //we want to compute this lazily since it may be expensive for the underlying symbol
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
 
-        private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
+        private OverriddenOrHiddenMembersResult? _lazyOverriddenOrHiddenMembers;
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
         {
