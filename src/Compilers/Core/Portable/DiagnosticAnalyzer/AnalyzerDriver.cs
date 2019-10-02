@@ -334,8 +334,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
             foreach (var analyzer in unsuppressedAnalyzers)
             {
-                var desciptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor);
-                foreach (var descriptor in desciptors)
+                var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor);
+                foreach (var descriptor in descriptors)
                 {
                     if (descriptor.IsNotConfigurable())
                     {
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return builder.Count > 0 ? builder.ToImmutableHashSet() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+            return builder.ToImmutableHashSet();
         }
 
         private ImmutableHashSet<DiagnosticAnalyzer> ComputeSymbolStartAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return builder.Count > 0 ? builder.ToImmutableHashSet() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+            return builder.ToImmutableHashSet();
         }
 
         private bool ComputeShouldSkipAnalysisOnGeneratedCode(ImmutableHashSet<DiagnosticAnalyzer> analyzers)
@@ -954,11 +954,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
-            => GetOrComputeSuppressedAnalyzersForTree(tree).Contains(analyzer);
-
-        private ImmutableHashSet<DiagnosticAnalyzer> GetOrComputeSuppressedAnalyzersForTree(SyntaxTree tree)
         {
-            return _lazySuppressedAnalyzersForTreeMap.GetOrAdd(tree, computeSuppressedAnalyzersForTree);
+            return _lazySuppressedAnalyzersForTreeMap.GetOrAdd(tree, computeSuppressedAnalyzersForTree).Contains(analyzer);
 
             ImmutableHashSet<DiagnosticAnalyzer> computeSuppressedAnalyzersForTree(SyntaxTree tree)
             {
