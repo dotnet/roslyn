@@ -45,7 +45,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var obsoleteAttribute = compilationContext.Compilation.GetTypeByMetadataName(typeof(System.ObsoleteAttribute).FullName);
+                var obsoleteAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
                 var exportAttributeV1 = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemComponentModelCompositionExportAttribute);
                 var importingConstructorAttributeV1 = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemComponentModelCompositionImportingConstructorAttribute);
                 var exportAttributeV2 = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCompositionExportAttribute);

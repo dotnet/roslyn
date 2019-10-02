@@ -40,7 +40,7 @@ namespace Roslyn.Diagnostics.Analyzers
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var exportAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCompositionExportAttribute);
-                var attributeUsageAttribute = compilationContext.Compilation.GetTypeByMetadataName(typeof(System.AttributeUsageAttribute).FullName);
+                var attributeUsageAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeAttributeUsageAttribute);
 
                 if (exportAttribute == null)
                 {

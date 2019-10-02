@@ -81,7 +81,7 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var obsoleteAttributeSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName);
+            var obsoleteAttributeSymbol = semanticModel.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
             if (obsoleteAttributeSymbol is null)
             {
                 return document;

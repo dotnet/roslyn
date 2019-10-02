@@ -49,7 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     return;
                 };
 
-                var attributeUsageAttribute = compilationContext.Compilation.GetTypeByMetadataName(typeof(System.AttributeUsageAttribute).FullName);
+                var attributeUsageAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeAttributeUsageAttribute);
 
                 var exportAttributes = new List<INamedTypeSymbol>() { mefV1ExportAttribute, mefV2ExportAttribute };
                 compilationContext.RegisterSymbolAction(c => AnalyzeSymbol(c, exportAttributes, attributeUsageAttribute), SymbolKind.NamedType);

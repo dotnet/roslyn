@@ -433,5 +433,18 @@ namespace Analyzer.Utilities
         public const string SystemDiagnosticsTracingEventSource = "System.Diagnostics.Tracing.EventSource";
         public const string SystemRuntimeCompilerServicesTypeForwardedToAttribute = "System.Runtime.CompilerServices.TypeForwardedToAttribute";
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
+        public const string SystemFlagsAttribute = "System.FlagsAttribute";
+        public const string SystemDiagnosticsConditionalAttribute = "System.Diagnostics.ConditionalAttribute";
+        public const string SystemReflectionAssemblyVersionAttribute = "System.Reflection.AssemblyVersionAttribute";
+        public const string SystemCLSCompliantAttribute = "System.CLSCompliantAttribute";
+        public const string SystemIComparable = "System.IComparable";
+        public const string SystemIComparable1 = "System.IComparable`1";
+        public const string SystemEventHandler1 = "System.EventHandler`1";
+        public const string SystemRuntimeInteropServicesComVisibleAttribute = "System.Runtime.InteropServices.ComVisibleAttribute";
+        public const string SystemRuntimeInteropServicesFieldOffsetAttribute = "System.Runtime.InteropServices.FieldOffsetAttribute";
+        public const string SystemRuntimeInteropServicesStructLayoutAttribute = "System.Runtime.InteropServices.StructLayoutAttribute";
+        public const string SystemRuntimeInteropServicesComSourceInterfacesAttribute = "System.Runtime.InteropServices.ComSourceInterfacesAttribute";
+        public const string MicrosoftCodeAnalysisDiagnosticsGeneratedCodeAnalysisFlags = "Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags";
+        public const string MicrosoftCodeAnalysisCSharpCSharpCompilation = "Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
     }
 }

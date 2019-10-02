@@ -47,7 +47,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var exportAttributeV1 = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemComponentModelCompositionExportAttribute);
                 var exportAttributeV2 = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCompositionExportAttribute);
                 var inheritedExportAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemComponentModelCompositionInheritedExportAttribute);
-                var attributeUsageAttribute = compilationContext.Compilation.GetTypeByMetadataName(typeof(System.AttributeUsageAttribute).FullName);
+                var attributeUsageAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeAttributeUsageAttribute);
 
                 if (exportAttributeV1 is null && exportAttributeV2 is null)
                 {

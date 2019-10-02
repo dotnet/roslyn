@@ -62,8 +62,8 @@ namespace Analyzer.Utilities.Extensions
                         innerOperation is IThrowOperation throwOperation &&
                         throwOperation.GetThrownExceptionType() is ITypeSymbol createdExceptionType)
                     {
-                        if (Equals(context.Compilation.GetTypeByMetadataName(typeof(System.NotImplementedException).FullName), createdExceptionType.OriginalDefinition)
-                            || Equals(context.Compilation.GetTypeByMetadataName(typeof(System.NotSupportedException).FullName), createdExceptionType.OriginalDefinition))
+                        if (Equals(context.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemNotImplementedException), createdExceptionType.OriginalDefinition)
+                            || Equals(context.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemNotSupportedException), createdExceptionType.OriginalDefinition))
                         {
                             return true;
                         }
