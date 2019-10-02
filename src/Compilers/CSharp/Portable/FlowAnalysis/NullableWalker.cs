@@ -1560,12 +1560,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
             DeclareLocals(node.IterationVariables);
+            Visit(node.AwaitOpt);
             return base.VisitForEachStatement(node);
         }
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
             DeclareLocals(node.Locals);
+            Visit(node.AwaitOpt);
             return base.VisitUsingStatement(node);
         }
 
