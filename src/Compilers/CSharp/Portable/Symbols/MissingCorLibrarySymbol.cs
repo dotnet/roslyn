@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Lazily filled by GetDeclaredSpecialType method.
         /// </summary>
         /// <remarks></remarks>
-        private NamedTypeSymbol[] _lazySpecialTypes;
+        private NamedTypeSymbol?[]? _lazySpecialTypes;
 
         private MissingCorLibrarySymbol()
             : base(new AssemblyIdentity("<Missing Core Assembly>"))
@@ -51,14 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new NamedTypeSymbol[(int)SpecialType.Count + 1], null);
             }
 
-            if ((object)_lazySpecialTypes[(int)type] == null)
+            if ((object?)_lazySpecialTypes[(int)type] == null)
             {
                 MetadataTypeName emittedFullName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding: true);
                 NamedTypeSymbol corType = new MissingMetadataTypeSymbol.TopLevel(this.moduleSymbol, ref emittedFullName, type);
                 Interlocked.CompareExchange(ref _lazySpecialTypes[(int)type], corType, null);
             }
 
+#nullable disable // Should use ref local for '_lazySpecialTypes[(int)type]' so it works with nullable reference types https://github.com/dotnet/roslyn/issues/39166
             return _lazySpecialTypes[(int)type];
+#nullable enable
         }
     }
 }

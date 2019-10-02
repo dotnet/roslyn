@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public MissingAssemblySymbol(AssemblyIdentity identity)
         {
-            Debug.Assert(identity != null);
+            RoslynDebug.Assert(identity != null);
             this.identity = identity;
             moduleSymbol = new MissingModuleSymbol(this, 0);
         }
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override Symbol GetDeclaredSpecialTypeMember(SpecialMember member)
+        internal override Symbol? GetDeclaredSpecialTypeMember(SpecialMember member)
         {
             return null;
         }
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Version AssemblyVersionPattern => null;
+        public override Version? AssemblyVersionPattern => null;
 
         internal override ImmutableArray<byte> PublicKey
         {
@@ -85,14 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return identity.GetHashCode();
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             return Equals(obj as MissingAssemblySymbol);
         }
 
-        public bool Equals(MissingAssemblySymbol other)
+        public bool Equals(MissingAssemblySymbol? other)
         {
-            if ((object)other == null)
+            if ((object?)other == null)
             {
                 return false;
             }
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes)
+        internal override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies, bool digThroughForwardedTypes)
         {
             var result = this.moduleSymbol.LookupTopLevelMetadataType(ref emittedName);
             Debug.Assert(result is MissingMetadataTypeSymbol);
@@ -187,6 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override AssemblyMetadata GetMetadata() => null;
+        public override AssemblyMetadata? GetMetadata() => null;
     }
 }

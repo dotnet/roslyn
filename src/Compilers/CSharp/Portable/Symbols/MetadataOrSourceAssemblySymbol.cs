@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Lazily filled by GetSpecialType method.
         /// </summary>
         /// <remarks></remarks>
-        private NamedTypeSymbol[] _lazySpecialTypes;
+        private NamedTypeSymbol?[]? _lazySpecialTypes;
 
         /// <summary>
         /// How many Cor types have we cached so far.
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 #endif
 
-            if (_lazySpecialTypes == null || (object)_lazySpecialTypes[(int)type] == null)
+            if (_lazySpecialTypes == null || (object?)_lazySpecialTypes[(int)type] == null)
             {
                 MetadataTypeName emittedName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
                 ModuleSymbol module = this.Modules[0];
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RegisterDeclaredSpecialType(result);
             }
 
-            return _lazySpecialTypes[(int)type];
+            return _lazySpecialTypes![(int)type]!;
         }
 
         /// <summary>
@@ -76,11 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new NamedTypeSymbol[(int)SpecialType.Count + 1], null);
             }
 
-            if ((object)Interlocked.CompareExchange(ref _lazySpecialTypes[(int)typeId], corType, null) != null)
+            if ((object?)Interlocked.CompareExchange(ref _lazySpecialTypes[(int)typeId], corType, null) != null)
             {
                 Debug.Assert(ReferenceEquals(corType, _lazySpecialTypes[(int)typeId]) ||
                                         (corType.Kind == SymbolKind.ErrorType &&
+#nullable disable // Should use ref local for '_lazySpecialTypes[(int)typeId]' so it works with nullable reference types https://github.com/dotnet/roslyn/issues/39166
                                         _lazySpecialTypes[(int)typeId].Kind == SymbolKind.ErrorType));
+#nullable enable
             }
             else
             {
@@ -102,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ICollection<string> _lazyTypeNames;
-        private ICollection<string> _lazyNamespaceNames;
+        private ICollection<string>? _lazyTypeNames;
+        private ICollection<string>? _lazyNamespaceNames;
 
         public override ICollection<string> TypeNames
         {
@@ -134,13 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Not yet known value is represented by ErrorTypeSymbol.UnknownResultType
         /// </summary>
-        private Symbol[] _lazySpecialTypeMembers;
+        private Symbol?[]? _lazySpecialTypeMembers;
 
         /// <summary>
         /// Lookup member declaration in predefined CorLib type in this Assembly. Only valid if this 
         /// assembly is the Cor Library
         /// </summary>
-        internal override Symbol GetDeclaredSpecialTypeMember(SpecialMember member)
+        internal override Symbol? GetDeclaredSpecialTypeMember(SpecialMember member)
         {
 #if DEBUG
             foreach (var module in this.Modules)
@@ -165,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var descriptor = SpecialMembers.GetDescriptor(member);
                 NamedTypeSymbol type = GetDeclaredSpecialType((SpecialType)descriptor.DeclaringTypeId);
-                Symbol result = null;
+                Symbol? result = null;
 
                 if (!type.IsErrorType())
                 {
@@ -225,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         //EDMAURER This is a cache mapping from assemblies which we have analyzed whether or not they grant
         //internals access to us to the conclusion reached.
-        private ConcurrentDictionary<AssemblySymbol, IVTConclusion> _assembliesToWhichInternalAccessHasBeenAnalyzed;
+        private ConcurrentDictionary<AssemblySymbol, IVTConclusion>? _assembliesToWhichInternalAccessHasBeenAnalyzed;
 
         private ConcurrentDictionary<AssemblySymbol, IVTConclusion> AssembliesToWhichInternalAccessHasBeenDetermined
         {

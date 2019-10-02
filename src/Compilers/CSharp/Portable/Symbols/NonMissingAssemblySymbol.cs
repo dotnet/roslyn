@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ConcurrentDictionary<MetadataTypeName.Key, NamedTypeSymbol> _emittedNameToTypeMap =
             new ConcurrentDictionary<MetadataTypeName.Key, NamedTypeSymbol>();
 
-        private NamespaceSymbol _globalNamespace;
+        private NamespaceSymbol? _globalNamespace;
 
         /// <summary>
         /// Does this symbol represent a missing assembly.
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)_globalNamespace == null)
+                if ((object?)_globalNamespace == null)
                 {
                     // Get the root namespace from each module, and merge them all together. If there is only one, 
                     // then MergedNamespaceSymbol.Create will just return that one.
@@ -81,9 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="digThroughForwardedTypes">
         /// Take forwarded types into account.
         /// </param>
-        internal sealed override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes)
+        internal sealed override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies, bool digThroughForwardedTypes)
         {
-            NamedTypeSymbol result = null;
+            NamedTypeSymbol? result = null;
 
             // This is a cache similar to the one used by MetaImport::GetTypeByName in native
             // compiler. The difference is that native compiler pre-populates the cache when it
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // 4) Multitargeting - retargeting the type to a different version of assembly
             result = LookupTopLevelMetadataTypeInCache(ref emittedName);
 
-            if ((object)result != null)
+            if ((object?)result != null)
             {
                 // We only cache result equivalent to digging through type forwarders, which
                 // might produce an forwarder specific ErrorTypeSymbol. We don't want to 
@@ -153,14 +155,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // We didn't find the type
                     System.Diagnostics.Debug.Assert(result is MissingMetadataTypeSymbol);
 
-                    NamedTypeSymbol forwarded = TryLookupForwardedMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies);
-                    if ((object)forwarded != null)
+                    NamedTypeSymbol? forwarded = TryLookupForwardedMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies);
+                    if ((object?)forwarded != null)
                     {
                         result = forwarded;
                     }
                 }
 
-                System.Diagnostics.Debug.Assert((object)result != null);
+                RoslynDebug.Assert((object)result != null);
 
                 // Add result of the lookup into the cache
                 if (digThroughForwardedTypes || foundMatchInThisAssembly)
@@ -172,11 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override abstract NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies);
+        internal override abstract NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies);
 
-        private NamedTypeSymbol LookupTopLevelMetadataTypeInCache(ref MetadataTypeName emittedName)
+        private NamedTypeSymbol? LookupTopLevelMetadataTypeInCache(ref MetadataTypeName emittedName)
         {
-            NamedTypeSymbol result = null;
+            NamedTypeSymbol? result = null;
             if (_emittedNameToTypeMap.TryGetValue(emittedName.ToKey(), out result))
             {
                 return result;
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ref MetadataTypeName emittedName,
             NamedTypeSymbol result)
         {
-            NamedTypeSymbol result1 = null;
+            NamedTypeSymbol? result1 = null;
             result1 = _emittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result);
             System.Diagnostics.Debug.Assert(TypeSymbol.Equals(result1, result, TypeCompareKind.ConsiderEverything2)); // object identity may differ in error cases
         }
