@@ -1100,7 +1100,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor)
                     {
                         var baseType = memberSymbol.ContainingType.BaseType;
+#nullable disable // Can 'baseType' be null here? https://github.com/dotnet/roslyn/issues/39166
                         return baseType.Constructors.Where(c => IsSameSignature(methodSymbol, c)).FirstOrDefault();
+#nullable enable
                     }
                     else
                     {
