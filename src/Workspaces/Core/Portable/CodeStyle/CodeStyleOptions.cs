@@ -358,12 +358,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
             });
 
-        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSystemHashCode = CreateOption(
-            CodeStyleOptionGroups.ExpressionLevelPreferences,
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSystemHashCode = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
             nameof(PreferSystemHashCode),
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_prefer_system_hashcode"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode") });
 
         static CodeStyleOptions()
