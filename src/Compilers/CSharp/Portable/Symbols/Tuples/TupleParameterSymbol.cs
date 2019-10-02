@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -14,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TupleParameterSymbol(Symbol container, ParameterSymbol underlyingParameter)
             : base(underlyingParameter)
         {
-            Debug.Assert((object)container != null);
+            RoslynDebug.Assert((object)container != null);
             _container = container;
         }
 
@@ -31,19 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetHashCode();
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             return Equals(obj as TupleParameterSymbol);
         }
 
-        public bool Equals(TupleParameterSymbol other)
+        public bool Equals(TupleParameterSymbol? other)
         {
-            if ((object)other == this)
+            if ((object?)other == this)
             {
                 return true;
             }
 
-            return (object)other != null && _container == other._container && _underlyingParameter == other._underlyingParameter;
+            return (object?)other != null && _container == other._container && _underlyingParameter == other._underlyingParameter;
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -56,20 +58,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets constant value to be stored in metadata Constant table.
         /// </summary>
-        MetadataConstant Cci.IParameterDefinition.GetDefaultValue(EmitContext context)
+        MetadataConstant? Cci.IParameterDefinition.GetDefaultValue(EmitContext context)
         {
             CheckDefinitionInvariant();
             return this.GetMetadataConstantValue(context);
         }
 
-        internal MetadataConstant GetMetadataConstantValue(EmitContext context)
+        internal MetadataConstant? GetMetadataConstantValue(EmitContext context)
         {
             if (!HasMetadataConstantValue)
             {
                 return null;
             }
 
-            ConstantValue constant = this.ExplicitDefaultConstantValue;
+            ConstantValue constant = this.ExplicitDefaultConstantValue!;
             TypeSymbol type;
             if (constant.SpecialType != SpecialType.None)
             {
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IMarshallingInformation Cci.IParameterDefinition.MarshallingInformation
+        Cci.IMarshallingInformation? Cci.IParameterDefinition.MarshallingInformation
         {
             get
             {
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+        Cci.IDefinition? Cci.IReference.AsDefinition(EmitContext context)
         {
             Debug.Assert(this.IsDefinitionOrDistinct());
 

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -7,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected WrappedParameterSymbol(ParameterSymbol underlyingParameter)
         {
-            Debug.Assert((object)underlyingParameter != null);
+            RoslynDebug.Assert((object)underlyingParameter != null);
 
             this._underlyingParameter = underlyingParameter;
         }
@@ -73,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetAttributes();
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData>? attributes)
         {
             _underlyingParameter.AddSynthesizedAttributes(moduleBuilder, ref attributes);
         }
 
-        internal sealed override ConstantValue ExplicitDefaultConstantValue
+        internal sealed override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return _underlyingParameter.ExplicitDefaultConstantValue; }
         }
@@ -118,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.RefCustomModifiers; }
         }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get { return _underlyingParameter.MarshallingInformation; }
         }
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.NotNullIfParameterNotNull; }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }

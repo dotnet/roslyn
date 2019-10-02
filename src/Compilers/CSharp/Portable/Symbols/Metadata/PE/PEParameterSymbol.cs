@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -127,14 +129,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         private readonly Symbol _containingSymbol;
+#nullable disable // The compiler can't see that '_name' is assigned in the constructor. https://github.com/dotnet/roslyn/issues/39166
         private readonly string _name;
+#nullable enable
         private readonly TypeWithAnnotations _typeWithAnnotations;
         private readonly ParameterHandle _handle;
         private readonly ParameterAttributes _flags;
         private readonly PEModuleSymbol _moduleSymbol;
 
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private ConstantValue _lazyDefaultValue = ConstantValue.Unset;
+        private ConstantValue? _lazyDefaultValue = ConstantValue.Unset;
         private ThreeState _lazyIsParams;
 
         /// <summary>
@@ -200,8 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int countOfCustomModifiers,
             out bool isBad)
         {
-            Debug.Assert((object)moduleSymbol != null);
-            Debug.Assert((object)containingSymbol != null);
+            RoslynDebug.Assert((object)moduleSymbol != null);
+            RoslynDebug.Assert((object)containingSymbol != null);
             Debug.Assert(ordinal >= 0);
             Debug.Assert(typeWithAnnotations.HasType);
 
@@ -437,14 +441,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <remarks>
         /// Internal for testing.  Non-test code should use <see cref="ExplicitDefaultConstantValue"/>.
         /// </remarks>
-        internal ConstantValue ImportConstantValue(bool ignoreAttributes = false)
+        internal ConstantValue? ImportConstantValue(bool ignoreAttributes = false)
         {
             Debug.Assert(!_handle.IsNil);
 
             // Metadata Spec 22.33: 
             //   6. If Flags.HasDefault = 1 then this row [of Param table] shall own exactly one row in the Constant table [ERROR]
             //   7. If Flags.HasDefault = 0, then there shall be no rows in the Constant table owned by this row [ERROR]
-            ConstantValue value = null;
+            ConstantValue? value = null;
 
             if ((_flags & ParameterAttributes.HasDefault) != 0)
             {
@@ -459,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return value;
         }
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get
             {
@@ -469,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // From the C# point of view, there is no need to import a parameter's default value
                     // if the language isn't going to treat it as optional. However, we might need metadata constant value for NoPia.
                     // NOTE: Ignoring attributes for non-Optional parameters disrupts round-tripping, but the trade-off seems acceptable.
-                    ConstantValue value = ImportConstantValue(ignoreAttributes: !IsMetadataOptional);
+                    ConstantValue? value = ImportConstantValue(ignoreAttributes: !IsMetadataOptional);
                     Interlocked.CompareExchange(ref _lazyDefaultValue, value, ConstantValue.Unset);
                 }
 
@@ -480,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ConstantValue GetDefaultDecimalOrDateTimeValue()
         {
             Debug.Assert(!_handle.IsNil);
-            ConstantValue value = null;
+            ConstantValue? value = null;
 
             // It is possible in Visual Basic for a parameter of object type to have a default value of DateTime type.
             // If it's present, use it.  We'll let the call-site figure out whether it can actually be used.
@@ -596,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                     bool isCallerLineNumber = HasCallerLineNumberAttribute
                         && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref useSiteDiagnostics);
 
@@ -615,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                     bool isCallerFilePath = !HasCallerLineNumberAttribute
                         && HasCallerFilePathAttribute
                         && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
@@ -635,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                     bool isCallerMemberName = !HasCallerLineNumberAttribute
                         && !HasCallerFilePathAttribute
                         && HasCallerMemberNameAttribute
@@ -748,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get
             {
@@ -827,10 +831,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // the attribute handle for GetCustomAttributesToEmit
                 bool filterOutParamArrayAttribute = (!_lazyIsParams.HasValue() || _lazyIsParams.Value());
 
-                ConstantValue defaultValue = this.ExplicitDefaultConstantValue;
+                ConstantValue? defaultValue = this.ExplicitDefaultConstantValue;
                 AttributeDescription filterOutConstantAttributeDescription = default(AttributeDescription);
 
-                if ((object)defaultValue != null)
+                if ((object?)defaultValue != null)
                 {
                     if (defaultValue.Discriminator == ConstantValueTypeDiscriminator.DateTime)
                     {
@@ -918,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }
