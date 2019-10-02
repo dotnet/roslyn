@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, name, isPublic: true, isReadOnly: isReadOnly, isStatic: isStatic)
         {
             Debug.Assert((object)type != null);
-            Debug.Assert((object)topLevelMethod != null);
+            RoslynDebug.Assert((object)topLevelMethod != null);
             _type = TypeWithAnnotations.Create(type);
             _topLevelMethod = topLevelMethod;
         }

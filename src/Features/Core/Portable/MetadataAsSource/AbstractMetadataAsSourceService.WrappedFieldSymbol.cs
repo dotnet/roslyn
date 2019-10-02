@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
@@ -19,11 +21,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public new IFieldSymbol OriginalDefinition => _symbol.OriginalDefinition;
 
-            public IFieldSymbol CorrespondingTupleField => null;
+            public IFieldSymbol? CorrespondingTupleField => null;
 
-            public ISymbol AssociatedSymbol => _symbol.AssociatedSymbol;
+            public ISymbol? AssociatedSymbol => _symbol.AssociatedSymbol;
 
-            public object ConstantValue => _symbol.ConstantValue;
+            public object? ConstantValue => _symbol.ConstantValue;
 
             public ImmutableArray<CustomModifier> CustomModifiers => _symbol.CustomModifiers;
 

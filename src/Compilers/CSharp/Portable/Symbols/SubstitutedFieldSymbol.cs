@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeWithAnnotations.Boxed _lazyType;
+        private TypeWithAnnotations.Boxed? _lazyType;
 
         internal SubstitutedFieldSymbol(SubstitutedNamedTypeSymbol containingType, FieldSymbol substitutedFrom)
             : base((FieldSymbol)substitutedFrom.OriginalDefinition)
@@ -60,13 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OriginalDefinition.GetAttributes();
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
-                Symbol underlying = OriginalDefinition.AssociatedSymbol;
+                Symbol? underlying = OriginalDefinition.AssociatedSymbol;
 
-                if ((object)underlying == null)
+                if ((object?)underlying == null)
                 {
                     return null;
                 }
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(OriginalDefinition.FixedImplementationType(emitModule)).Type;
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj)
             {
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var other = obj as SubstitutedFieldSymbol;
-            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
+            return (object?)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
         }
 
         public override int GetHashCode()
