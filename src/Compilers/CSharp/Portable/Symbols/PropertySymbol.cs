@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// As a performance optimization, cache parameter types and refkinds - overload resolution uses them a lot.
         /// </summary>
-        private ParameterSignature _lazyParameterSignature;
+        private ParameterSignature? _lazyParameterSignature;
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -152,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var property = (PropertySymbol)this.GetLeastOverriddenMember(this.ContainingType);
-                return (object)property.SetMethod == null;
+                return (object?)property.SetMethod == null;
             }
         }
 
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var property = (PropertySymbol)this.GetLeastOverriddenMember(this.ContainingType);
-                return (object)property.GetMethod == null;
+                return (object?)property.GetMethod == null;
             }
         }
 
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The 'get' accessor of the property, or null if the property is write-only.
         /// </summary>
-        public abstract MethodSymbol GetMethod
+        public abstract MethodSymbol? GetMethod
         {
             get;
         }
@@ -190,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The 'set' accessor of the property, or null if the property is read-only.
         /// </summary>
-        public abstract MethodSymbol SetMethod
+        public abstract MethodSymbol? SetMethod
         {
             get;
         }
@@ -202,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns the overridden property, or null.
         /// </summary>
-        public PropertySymbol OverriddenProperty
+        public PropertySymbol? OverriddenProperty
         {
             get
             {
@@ -232,10 +235,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // Dev10 gives preference to the getter.
-                MethodSymbol accessor = GetMethod ?? SetMethod;
+                MethodSymbol? accessor = GetMethod ?? SetMethod;
 
                 // false is a reasonable default if there are no accessors (e.g. not done typing).
-                return (object)accessor != null && accessor.HidesBaseMethodsByName;
+                return (object?)accessor != null && accessor.HidesBaseMethodsByName;
             }
         }
 
@@ -266,9 +269,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //   }
                 //
                 // See InternalsVisibleToAndStrongNameTests: IvtVirtualCall1, IvtVirtualCall2, IvtVirtual_ParamsAndDynamic.
-                PropertySymbol overridden = p.OverriddenProperty;
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if ((object)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics))
+                PropertySymbol? overridden = p.OverriddenProperty;
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                if ((object?)overridden == null || !AccessCheck.IsSymbolAccessible(overridden, accessingType, ref useSiteDiagnostics))
                 {
                     break;
                 }
@@ -333,12 +336,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
+#nullable disable // Can 'newOwner as SubstitutedNamedTypeSymbol' be null?
             return newOwner.IsDefinition ? this : new SubstitutedPropertySymbol(newOwner as SubstitutedNamedTypeSymbol, this);
+#nullable enable
         }
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             if (this.IsDefinition)
             {
@@ -348,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.OriginalDefinition.GetUseSiteDiagnostic();
         }
 
-        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo result)
+        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo? result)
         {
             Debug.Assert(this.IsDefinition);
 
@@ -364,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we check if its definition depends on a type from a unified reference.
             if (this.ContainingModule.HasUnifiedReferences)
             {
-                HashSet<TypeSymbol> unificationCheckedTypes = null;
+                HashSet<TypeSymbol>? unificationCheckedTypes = null;
                 if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes))
@@ -391,8 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
-                return (object)info != null && (info.Code == (int)ErrorCode.ERR_BindToBogus || info.Code == (int)ErrorCode.ERR_ByRefReturnUnsupported);
+                DiagnosticInfo? info = GetUseSiteDiagnostic();
+                return (object?)info != null && (info.Code == (int)ErrorCode.ERR_BindToBogus || info.Code == (int)ErrorCode.ERR_ByRefReturnUnsupported);
             }
         }
 
@@ -413,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this is a property of a tuple type, return corresponding underlying property from the
         /// tuple underlying type. Otherwise, null. 
         /// </summary>
-        public virtual PropertySymbol TupleUnderlyingProperty
+        public virtual PropertySymbol? TupleUnderlyingProperty
         {
             get
             {
@@ -440,12 +445,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return StaticCast<IParameterSymbol>.From(this.Parameters); }
         }
 
-        IMethodSymbol IPropertySymbol.GetMethod
+        IMethodSymbol? IPropertySymbol.GetMethod
         {
             get { return this.GetMethod; }
         }
 
-        IMethodSymbol IPropertySymbol.SetMethod
+        IMethodSymbol? IPropertySymbol.SetMethod
         {
             get { return this.SetMethod; }
         }
@@ -455,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.OriginalDefinition; }
         }
 
-        IPropertySymbol IPropertySymbol.OverriddenProperty
+        IPropertySymbol? IPropertySymbol.OverriddenProperty
         {
             get { return this.OverriddenProperty; }
         }
@@ -499,9 +504,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.VisitProperty(this);
         }
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return visitor.VisitProperty(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         #endregion
@@ -510,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
-            PropertySymbol other = symbol as PropertySymbol;
+            PropertySymbol? other = symbol as PropertySymbol;
 
             if (ReferenceEquals(null, other))
             {
