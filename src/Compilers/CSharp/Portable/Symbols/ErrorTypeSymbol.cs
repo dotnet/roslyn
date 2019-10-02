@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The underlying error.
         /// </summary>
-        internal abstract DiagnosticInfo ErrorInfo { get; }
+        internal abstract DiagnosticInfo? ErrorInfo { get; }
 
         /// <summary>
         /// Summary of the reason why the type is bad.
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             return this.ErrorInfo;
         }
@@ -227,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Get the symbol that logically contains this symbol. 
         /// </summary>
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -419,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => null;
+        internal override NamedTypeSymbol? BaseTypeNoUseSiteDiagnostics => null;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
@@ -433,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
+        internal override NamedTypeSymbol? GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
         {
             return null;
         }
@@ -451,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override NamedTypeSymbol AsMember(NamedTypeSymbol newOwner)
         {
             Debug.Assert(this.IsDefinition);
-            Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
+            Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol?.OriginalDefinition));
             return newOwner.IsDefinition ? this : new SubstitutedNestedErrorTypeSymbol(newOwner, this);
         }
 
@@ -490,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -548,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.MangleName; }
         }
 
-        internal override DiagnosticInfo ErrorInfo
+        internal override DiagnosticInfo? ErrorInfo
         {
             get { return _originalDefinition.ErrorInfo; }
         }
@@ -578,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.ResultKind; }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             return _originalDefinition.GetUseSiteDiagnostic();
         }
@@ -622,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _constructedFrom; }
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get { return _constructedFrom.ContainingSymbol; }
         }

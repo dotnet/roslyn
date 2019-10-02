@@ -1404,9 +1404,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (forwarded.IsErrorType())
                             {
-                                DiagnosticInfo info = forwarded.GetUseSiteDiagnostic() ?? ((ErrorTypeSymbol)forwarded).ErrorInfo;
+                                DiagnosticInfo? info = forwarded.GetUseSiteDiagnostic() ?? ((ErrorTypeSymbol)forwarded).ErrorInfo;
 
-                                if ((object)info != null)
+                                if ((object?)info != null)
                                 {
                                     diagnostics.Add(info, NoLocation.Singleton);
                                 }
