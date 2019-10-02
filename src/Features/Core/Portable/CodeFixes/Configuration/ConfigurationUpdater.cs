@@ -439,11 +439,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                                 // If the diagnostic's isPerLanguage = true, the rule is valid for both C# and VB.
                                 // For the purpose of adding missing rules later, we want to keep track of whether there is a
                                 // valid header that contains both [*.cs] and [*.vb]. 
-                                // If isPerLanguage = false, the rule is only valid for one of the languages. Thus, we want to
-                                // keep track of whether there is an existing header that only contains [*.cs] or only [*.vb],
-                                // depending on the language.
+                                // If isPerLanguage = false or a compiler diagnostic, the rule is only valid for one of the languages.
+                                // Thus, we want to keep track of whether there is an existing header that only contains [*.cs] or only
+                                // [*.vb], depending on the language.
                                 // We also keep track of the last valid header for the language.
-                                if (_isPerLanguage && (_language.Equals(LanguageNames.CSharp) || _language.Equals(LanguageNames.VisualBasic)))
+                                if (!SuppressionHelpers.IsCompilerDiagnostic(_diagnostic) && _isPerLanguage &&
+                                    (_language.Equals(LanguageNames.CSharp) || _language.Equals(LanguageNames.VisualBasic)))
                                 {
                                     if (brokenUpFileExtensions.Contains("cs") && brokenUpFileExtensions.Contains("vb"))
                                     {
