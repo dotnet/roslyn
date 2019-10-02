@@ -640,7 +640,7 @@ class C
                     EvalResult("F", "{S}", "S?", "o.F", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
                 children = GetChildren(children[0]);
                 Verify(children,
-                    EvalResult("c", "{object[1]}", "object[]", "o.F.c", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),
+                    EvalResult("c", "{object[1]}", "object[]", "o.F.c", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "Results View",
                         "Expanding the Results View will enumerate the IEnumerable",

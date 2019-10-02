@@ -178,6 +178,55 @@ End Class"
                 EvalResult(rootExpr, """S4"", ""S2""", "A", rootExpr, DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.HasFavorites))
         End Sub
 
+        <Fact>
+        Public Sub Nullable()
+
+            Dim source =
+"Structure A
+    Dim s1 As String
+    Dim s2 As String
+
+    Public Sub New(s1 As String, s2 As String)
+        Me.s1 = s1
+        Me.s2 = s2
+    End Sub
+End Structure
+Class B 
+    Dim a1 As A? = Nothing
+    Dim a2 As A? = New A(""S1"", ""S2"")
+End Class"
+
+            Dim assembly = GetAssembly(source)
+            Dim type = assembly.GetType("B")
+            Dim rootExpr = "new B()"
+
+            Dim favoritesByTypeName = New Dictionary(Of String, DkmClrObjectFavoritesInfo) From
+            {
+                {"B", New DkmClrObjectFavoritesInfo(New String() {"a2"})},
+                {"A", New DkmClrObjectFavoritesInfo(New String() {"s2"})}
+            }
+
+            Dim runtime = New DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(assembly), favoritesByTypeName)
+
+            Dim value = CreateDkmClrValue(
+                value:=Activator.CreateInstance(type),
+                type:=runtime.GetType(type))
+
+            Dim result = FormatResult(rootExpr, value)
+            Verify(result,
+                EvalResult(rootExpr, "{B}", "B", rootExpr, DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.HasFavorites))
+            Dim children = GetChildren(result)
+            Verify(children,
+                EvalResult("a2", "{A}", "A?", "(new B()).a2", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite Or DkmEvaluationResultFlags.IsFavorite Or DkmEvaluationResultFlags.HasFavorites),
+                EvalResult("a1", "Nothing", "A?", "(new B()).a1", DkmEvaluationResultFlags.CanFavorite))
+
+            ' A? a2 = new A();
+            Dim more = GetChildren(children(0))
+            Verify(more,
+                EvalResult("s2", """S2""", "String", "(new B()).a2.s2", DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.CanFavorite Or DkmEvaluationResultFlags.IsFavorite, editableValue:="""S2"""),
+                EvalResult("s1", """S1""", "String", "(new B()).a2.s1", DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.CanFavorite, editableValue:="""S1"""))
+        End Sub
+
     End Class
 
 End Namespace
