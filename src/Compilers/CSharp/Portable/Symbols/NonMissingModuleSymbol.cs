@@ -184,9 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName)
         {
             NamedTypeSymbol result;
-            NamespaceSymbol scope = this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
+            NamespaceSymbol? scope = this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
 
-            if ((object)scope == null)
+            if ((object?)scope == null)
             {
                 // We failed to locate the namespace
                 result = new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);

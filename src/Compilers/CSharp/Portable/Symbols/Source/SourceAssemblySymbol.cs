@@ -1048,7 +1048,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableArray<NamespaceSymbol> constituent = mergedNs.ConstituentNamespaces;
 
+#nullable disable // Can 'constituent[x].ContainingModule' be null?
             if (constituent.Length > 2 || (constituent.Length == 2 && constituent[0].ContainingModule.Ordinal != 0 && constituent[1].ContainingModule.Ordinal != 0))
+#nullable enable
             {
                 var topLevelTypesFromModules = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
@@ -1056,7 +1058,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Debug.Assert(moduleNs.Extent.Kind == NamespaceKind.Module);
 
+#nullable disable // Can 'moduleNs.ContainingModule' be null?
                     if (moduleNs.ContainingModule.Ordinal != 0)
+#nullable enable
                     {
                         topLevelTypesFromModules.AddRange(moduleNs.GetTypeMembers());
                     }

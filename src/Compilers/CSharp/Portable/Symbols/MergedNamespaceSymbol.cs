@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,10 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly NamespaceExtent _extent;
         private readonly ImmutableArray<NamespaceSymbol> _namespacesToMerge;
-        private readonly NamespaceSymbol _containingNamespace;
+        private readonly NamespaceSymbol? _containingNamespace;
 
         // used when this namespace is constructed as the result of an extern alias directive
-        private readonly string _nameOpt;
+        private readonly string? _nameOpt;
 
         // The cachedLookup caches results of lookups on the constituent namespaces so that
         // subsequent lookups for the same name are much faster than having to ask each of the
@@ -60,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>A namespace symbol representing the merged namespace.</returns>
         internal static NamespaceSymbol Create(
             NamespaceExtent extent,
-            NamespaceSymbol containingNamespace,
+            NamespaceSymbol? containingNamespace,
             ImmutableArray<NamespaceSymbol> namespacesToMerge,
-            string nameOpt = null)
+            string? nameOpt = null)
         {
             // Currently, if we are just merging 1 namespace, we just return the namespace itself.
             // This is by far the most efficient, because it means that we don't create merged
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Constructor. Use static Create method to create instances.
-        private MergedNamespaceSymbol(NamespaceExtent extent, NamespaceSymbol containingNamespace, ImmutableArray<NamespaceSymbol> namespacesToMerge, string nameOpt)
+        private MergedNamespaceSymbol(NamespaceExtent extent, NamespaceSymbol? containingNamespace, ImmutableArray<NamespaceSymbol> namespacesToMerge, string? nameOpt)
         {
             _extent = extent;
             _namespacesToMerge = namespacesToMerge;
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-        internal NamespaceSymbol GetConstituentForCompilation(CSharpCompilation compilation)
+        internal NamespaceSymbol? GetConstituentForCompilation(CSharpCompilation compilation)
         {
             //return namespacesToMerge.FirstOrDefault(n => n.IsFromSource);
             //Replace above code with that below to eliminate allocation of array enumerator.
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private ImmutableArray<Symbol> SlowGetChildrenOfName(string name)
         {
-            ArrayBuilder<NamespaceSymbol> namespaceSymbols = null;
+            ArrayBuilder<NamespaceSymbol>? namespaceSymbols = null;
             var otherSymbols = ArrayBuilder<Symbol>.GetInstance();
 
             // Accumulate all the child namespaces and types.
@@ -235,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray.CreateRange<NamedTypeSymbol>(_cachedLookup[name].OfType<NamedTypeSymbol>());
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -243,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override AssemblySymbol ContainingAssembly
+        public override AssemblySymbol? ContainingAssembly
         {
             get
             {

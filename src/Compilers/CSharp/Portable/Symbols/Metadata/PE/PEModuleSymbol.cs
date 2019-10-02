@@ -639,9 +639,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
         {
             NamedTypeSymbol result;
-            PENamespaceSymbol scope = (PENamespaceSymbol)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
+            PENamespaceSymbol? scope = (PENamespaceSymbol?)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
 
-            if ((object)scope == null)
+            if ((object?)scope == null)
             {
                 // We failed to locate the namespace
                 isNoPiaLocalType = false;

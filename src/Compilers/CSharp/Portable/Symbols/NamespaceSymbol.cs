@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         // PERF: initialization of the following fields will allocate, so we make them lazy
         private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMethods;
-        private string _lazyQualifiedName;
+        private string? _lazyQualifiedName;
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The containing compilation for compilation namespaces.
         /// </summary>
-        public CSharpCompilation ContainingCompilation
+        public CSharpCompilation? ContainingCompilation
         {
             get { return this.NamespaceKind == NamespaceKind.Compilation ? this.Extent.Compilation : null; }
         }
@@ -81,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override NamedTypeSymbol ContainingType
+        public sealed override NamedTypeSymbol? ContainingType
         {
             get
             {
@@ -92,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Containing assembly.
         /// </summary>
-        public abstract override AssemblySymbol ContainingAssembly { get; }
+        public abstract override AssemblySymbol? ContainingAssembly { get; }
 
-        internal override ModuleSymbol ContainingModule
+        internal override ModuleSymbol? ContainingModule
         {
             get
             {
@@ -206,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -215,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns an implicit type symbol for this namespace or null if there is none. This type
         /// wraps misplaced global code.
         /// </summary>
-        internal NamedTypeSymbol ImplicitType
+        internal NamedTypeSymbol? ImplicitType
         {
             get
             {
@@ -240,21 +244,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Symbol for the most nested namespace, if found. Nothing 
         /// if namespace or any part of it can not be found.
         /// </returns>
-        internal NamespaceSymbol LookupNestedNamespace(ImmutableArray<string> names)
+        internal NamespaceSymbol? LookupNestedNamespace(ImmutableArray<string> names)
         {
-            NamespaceSymbol scope = this;
+            NamespaceSymbol? scope = this;
 
             foreach (string name in names)
             {
-                NamespaceSymbol nextScope = null;
+                NamespaceSymbol? nextScope = null;
 
                 foreach (NamespaceOrTypeSymbol symbol in scope.GetMembers(name))
                 {
                     var ns = symbol as NamespaceSymbol;
 
-                    if ((object)ns != null)
+                    if ((object?)ns != null)
                     {
-                        if ((object)nextScope != null)
+                        if ((object?)nextScope != null)
                         {
                             Debug.Assert((object)nextScope == null, "Why did we run into an unmerged namespace?");
                             nextScope = null;
@@ -267,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 scope = nextScope;
 
-                if ((object)scope == null)
+                if ((object?)scope == null)
                 {
                     break;
                 }
@@ -276,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return scope;
         }
 
-        internal NamespaceSymbol GetNestedNamespace(string name)
+        internal NamespaceSymbol? GetNestedNamespace(string name)
         {
             foreach (var sym in this.GetMembers(name))
             {
@@ -289,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal NamespaceSymbol GetNestedNamespace(NameSyntax name)
+        internal NamespaceSymbol? GetNestedNamespace(NameSyntax name)
         {
             switch (name.Kind())
             {
@@ -300,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.QualifiedName:
                     var qn = (QualifiedNameSyntax)name;
                     var leftNs = this.GetNestedNamespace(qn.Left);
-                    if ((object)leftNs != null)
+                    if ((object?)leftNs != null)
                     {
                         return leftNs.GetNestedNamespace(qn.Right);
                     }
@@ -346,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Only MergedAssemblySymbol should have a null ContainingAssembly
             // and MergedAssemblySymbol overrides GetExtensionMethods.
-            Debug.Assert((object)assembly != null);
+            RoslynDebug.Assert((object?)assembly != null);
 
             if (!assembly.MightContainExtensionMethods)
             {
@@ -383,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.NamespaceKind; }
         }
 
-        Compilation INamespaceSymbol.ContainingCompilation
+        Compilation? INamespaceSymbol.ContainingCompilation
         {
             get
             {
@@ -417,9 +421,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.VisitNamespace(this);
         }
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return visitor.VisitNamespace(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         #endregion
