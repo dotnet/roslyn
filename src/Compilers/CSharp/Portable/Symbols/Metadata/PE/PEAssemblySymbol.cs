@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -60,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
         {
-            Debug.Assert(assembly != null);
-            Debug.Assert(documentationProvider != null);
+            RoslynDebug.Assert(assembly != null);
+            RoslynDebug.Assert(documentationProvider != null);
             _assembly = assembly;
             _documentationProvider = documentationProvider;
 
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         // TODO: https://github.com/dotnet/roslyn/issues/9000
-        public override Version AssemblyVersionPattern => null;
+        public override Version? AssemblyVersionPattern => null;
 
         public override ImmutableArray<ModuleSymbol> Modules
         {
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return this.PrimaryModule.GetAssembliesForForwardedType(ref emittedName);
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
             // Check if it is a forwarded type.
             (AssemblySymbol firstSymbol, AssemblySymbol secondSymbol) = LookupAssembliesForForwardedMetadataType(ref emittedName);
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

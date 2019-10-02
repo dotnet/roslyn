@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface IAssemblySymbolInternal : IAssemblySymbol
     {
-        Version AssemblyVersionPattern { get; }
+        Version? AssemblyVersionPattern { get; }
     }
 }

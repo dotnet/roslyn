@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The contents of the AssemblySignatureKeyAttribute
         /// </summary>
-        string SignatureKey { get; }
+        string? SignatureKey { get; }
 
         AssemblyHashAlgorithm HashAlgorithm { get; }
 
-        Version AssemblyVersionPattern { get; }
+        Version? AssemblyVersionPattern { get; }
 
         bool InternalsAreVisible { get; }
     }
