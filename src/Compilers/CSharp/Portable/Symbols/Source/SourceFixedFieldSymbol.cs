@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // for this situation, but this is what the Dev10 compiler produces.
                             ConstantValue sizeConstant = ConstantValueUtils.GetAndValidateConstantValue(boundSizeExpression, this, intType, sizeExpression.Location, diagnostics);
 
-                            Debug.Assert(sizeConstant != null);
+                            RoslynDebug.Assert(sizeConstant != null);
                             Debug.Assert(sizeConstant.IsIntegral || diagnostics.HasAnyErrors() || sizeExpression.HasErrors);
 
                             if (sizeConstant.IsIntegral)

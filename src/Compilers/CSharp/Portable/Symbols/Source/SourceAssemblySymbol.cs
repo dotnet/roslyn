@@ -1643,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var fieldRequestMinimum = (FieldSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Security_Permissions_SecurityAction__RequestMinimum);
 
                         // NOTE: Dev10 handles missing enum value.
-                        object constantValue = (object)fieldRequestMinimum == null || fieldRequestMinimum.HasUseSiteError ? 0 : fieldRequestMinimum.ConstantValue;
+                        object? constantValue = (object)fieldRequestMinimum == null || fieldRequestMinimum.HasUseSiteError ? 0 : fieldRequestMinimum.ConstantValue;
                         var typedConstantRequestMinimum = new TypedConstant(securityActionType, TypedConstantKind.Enum, constantValue);
 
                         var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
@@ -1661,7 +1661,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (attribute != null)
                         {
+#nullable disable // Can 'constantValue' be null?
                             yield return new Cci.SecurityAttribute((DeclarativeSecurityAction)(int)constantValue, attribute);
+#nullable enable
                         }
                     }
                 }
@@ -2514,8 +2516,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    Symbol associatedPropertyOrEvent = field.AssociatedSymbol;
-                    if ((object)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Event)
+                    Symbol? associatedPropertyOrEvent = field.AssociatedSymbol;
+                    if ((object?)associatedPropertyOrEvent != null && associatedPropertyOrEvent.Kind == SymbolKind.Event)
                     {
                         if (unread)
                         {

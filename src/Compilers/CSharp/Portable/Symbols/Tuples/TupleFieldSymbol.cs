@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            DiagnosticInfo result = base.GetUseSiteDiagnostic();
+            DiagnosticInfo? result = base.GetUseSiteDiagnostic();
             MergeUseSiteDiagnostics(ref result, _underlyingField.GetUseSiteDiagnostic());
             return result;
         }
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var other = obj as TupleFieldSymbol;
 
-            if ((object)other == this)
+            if ((object?)other == this)
             {
                 return true;
             }
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // note we have to compare both index and name because 
             // in nameless tuple there could be fields that differ only by index
             // and in named tuples there could be fields that differ only by name
-            return (object)other != null &&
+            return (object?)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
                 TypeSymbol.Equals(_containingTuple, other._containingTuple, compareKind);
         }
@@ -202,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             : base(container, underlyingField, tupleElementIndex, location, isImplicitlyDeclared, correspondingDefaultFieldOpt)
         {
-            Debug.Assert(name != null);
+            RoslynDebug.Assert(name != null);
             Debug.Assert(name != underlyingField.Name || !container.UnderlyingNamedType.Equals(underlyingField.ContainingType, TypeCompareKind.IgnoreDynamicAndTupleNames),
                                 "fields that map directly to underlying should not be represented by " + nameof(TupleVirtualElementFieldSymbol));
 
@@ -291,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {

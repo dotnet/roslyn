@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class FieldSymbolWithAttributesAndModifiers : FieldSymbol, IAttributeTargetSymbol
     {
-        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+        private CustomAttributesBag<CSharpAttributeData>? _lazyCustomAttributesBag;
         protected SymbolCompletionState state;
         internal abstract Location ErrorLocation { get; }
         protected abstract DeclarationModifiers Modifiers { get; }
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get
             {
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            RoslynDebug.Assert((object?)arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -276,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!attrValue.IsBad)
             {
                 var data = arguments.GetOrCreateData<FieldWellKnownAttributeData>();
-                ConstantValue constValue;
+                ConstantValue? constValue;
 
                 if (this.IsConst)
                 {
@@ -284,14 +286,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         constValue = this.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
 
-                        if ((object)constValue != null && !constValue.IsBad && constValue != attrValue)
+                        if ((object?)constValue != null && !constValue.IsBad && constValue != attrValue)
                         {
+#nullable disable // Can 'arguments.AttributeSyntaxOpt' be null?
                             arguments.Diagnostics.Add(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.Location);
+#nullable enable
                         }
                     }
                     else
                     {
+#nullable disable // Can 'arguments.AttributeSyntaxOpt' be null?
                         arguments.Diagnostics.Add(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.Location);
+#nullable enable
                     }
 
                     if (data.ConstValue == CodeAnalysis.ConstantValue.Unset)
@@ -307,7 +313,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (constValue != attrValue)
                         {
+#nullable disable // Can 'arguments.AttributeSyntaxOpt' be null?
                             arguments.Diagnostics.Add(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.Location);
+#nullable enable
                         }
                     }
                     else
@@ -323,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
             Debug.Assert(boundAttributes.Length == allAttributeSyntaxNodes.Length);
-            Debug.Assert(_lazyCustomAttributesBag != null);
+            RoslynDebug.Assert(_lazyCustomAttributesBag != null);
             Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
 
@@ -376,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal sealed override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get
             {

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public AnonymousTypeFieldSymbol(PropertySymbol property)
             {
-                Debug.Assert((object)property != null);
+                RoslynDebug.Assert((object)property != null);
                 _property = property;
             }
 
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal override MarshalPseudoCustomAttributeData MarshallingInformation
+            internal override MarshalPseudoCustomAttributeData? MarshallingInformation
             {
                 get { return null; }
             }
@@ -84,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+            internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
             {
                 get { return null; }
             }
 
-            internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
+            internal override ConstantValue? GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
             {
                 return null;
             }
