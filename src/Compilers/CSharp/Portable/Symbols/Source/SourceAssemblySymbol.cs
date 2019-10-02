@@ -2653,11 +2653,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var peModuleSymbol = (Metadata.PE.PEModuleSymbol)_modules[i];
 
-                    (AssemblySymbol firstSymbol, AssemblySymbol secondSymbol) = peModuleSymbol.GetAssembliesForForwardedType(ref emittedName);
+                    (AssemblySymbol? firstSymbol, AssemblySymbol? secondSymbol) = peModuleSymbol.GetAssembliesForForwardedType(ref emittedName);
 
-                    if ((object)firstSymbol != null)
+                    if ((object?)firstSymbol != null)
                     {
-                        if ((object)secondSymbol != null)
+                        if ((object?)secondSymbol != null)
                         {
                             return CreateMultipleForwardingErrorTypeSymbol(ref emittedName, peModuleSymbol, firstSymbol, secondSymbol);
                         }

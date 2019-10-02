@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// The contents are provided by ReferenceManager and may not be modified.
         /// </remarks>
-        private ModuleReferences<AssemblySymbol> _moduleReferences;
+        private ModuleReferences<AssemblySymbol>? _moduleReferences;
 
         /// <summary>
         /// Does this symbol represent a missing module.
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override ImmutableArray<AssemblyIdentity> GetReferencedAssemblies()
         {
             AssertReferencesInitialized();
-            return _moduleReferences.Identities;
+            return _moduleReferences!.Identities;
         }
 
         /// <summary>
@@ -56,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override ImmutableArray<AssemblySymbol> GetReferencedAssemblySymbols()
         {
             AssertReferencesInitialized();
-            return _moduleReferences.Symbols;
+            return _moduleReferences!.Symbols;
         }
 
         internal ImmutableArray<UnifiedAssembly<AssemblySymbol>> GetUnifiedAssemblies()
         {
             AssertReferencesInitialized();
-            return _moduleReferences.UnifiedAssemblies;
+            return _moduleReferences!.UnifiedAssemblies;
         }
 
         internal override bool HasUnifiedReferences
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// A helper method for ReferenceManager to set assembly identities for assemblies 
         /// referenced by this module and corresponding AssemblySymbols.
         /// </summary>
-        internal override void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol originatingSourceAssemblyDebugOnly = null)
+        internal override void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol? originatingSourceAssemblyDebugOnly = null)
         {
             Debug.Assert(moduleReferences != null);
 
@@ -194,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = scope.LookupMetadataType(ref emittedName);
             }
 
-            Debug.Assert((object)result != null);
+            RoslynDebug.Assert((object)result != null);
             return result;
         }
     }

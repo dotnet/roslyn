@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             for (int i = 0; i < impls.Length; i++)
             {
                 var retargeted = this.RetargetingTranslator.Retarget(impls[i]);
-                if ((object)retargeted != null)
+                if ((object?)retargeted != null)
                 {
                     builder.Add(retargeted);
                 }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Given a namespace symbol, returns the corresponding module specific namespace symbol
         /// </summary>
-        INamespaceSymbol GetModuleNamespace(INamespaceSymbol namespaceSymbol);
+        INamespaceSymbol? GetModuleNamespace(INamespaceSymbol namespaceSymbol);
 
         /// <summary>
         /// Returns an array of assembly identities for assemblies referenced by this module.

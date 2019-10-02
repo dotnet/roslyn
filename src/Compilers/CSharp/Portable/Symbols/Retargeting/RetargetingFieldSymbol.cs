@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(_underlyingField.GetFieldType(fieldsBeingBound), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get
             {

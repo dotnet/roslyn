@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Emit;
 using System;
 using System.Diagnostics;
@@ -16,8 +18,8 @@ namespace Microsoft.CodeAnalysis
         private int _marshalArrayElementType;      // safe array: VarEnum; array: UnmanagedType
         private int _marshalArrayElementCount;     // number of elements in an array, length of a string, or Unspecified
         private int _marshalParameterIndex;        // index of parameter that specifies array size (short) or IID (int), or Unspecified
-        private object _marshalTypeNameOrSymbol;   // custom marshaller: string or ITypeSymbol; safe array: element type symbol
-        private string _marshalCookie;
+        private object? _marshalTypeNameOrSymbol;   // custom marshaller: string or ITypeSymbol; safe array: element type symbol
+        private string? _marshalCookie;
 
         internal const int Invalid = -1;
         private const UnmanagedType InvalidUnmanagedType = (UnmanagedType)Invalid;
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis
             _marshalArrayElementCount = elementCount ?? Invalid;
         }
 
-        internal void SetMarshalAsSafeArray(Cci.VarEnum? elementType, ITypeSymbol elementTypeSymbol)
+        internal void SetMarshalAsSafeArray(Cci.VarEnum? elementType, ITypeSymbol? elementTypeSymbol)
         {
             Debug.Assert(elementType == null || elementType >= 0 && (int)elementType <= MaxMarshalInteger);
 
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        object Cci.IMarshallingInformation.GetCustomMarshaller(EmitContext context)
+        object? Cci.IMarshallingInformation.GetCustomMarshaller(EmitContext context)
         {
             Debug.Assert(_marshalType == Cci.Constants.UnmanagedType_CustomMarshaler);
             var typeSymbol = _marshalTypeNameOrSymbol as ITypeSymbol;
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        string Cci.IMarshallingInformation.CustomMarshallerRuntimeArgument
+        string? Cci.IMarshallingInformation.CustomMarshallerRuntimeArgument
         {
             get
             {
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        Cci.ITypeReference Cci.IMarshallingInformation.GetSafeArrayElementUserDefinedSubtype(EmitContext context)
+        Cci.ITypeReference? Cci.IMarshallingInformation.GetSafeArrayElementUserDefinedSubtype(EmitContext context)
         {
             Debug.Assert(_marshalType == Cci.Constants.UnmanagedType_SafeArray);
 
@@ -186,8 +188,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns this instance if it doesn't hold on any types.
         /// </summary>
         internal MarshalPseudoCustomAttributeData WithTranslatedTypes<TTypeSymbol, TArg>(
-            Func<TTypeSymbol, TArg, TTypeSymbol> translator, TArg arg)
-            where TTypeSymbol : ITypeSymbol
+            Func<TTypeSymbol, TArg, TTypeSymbol?> translator, TArg arg)
+            where TTypeSymbol : class, ITypeSymbol
         {
             if (_marshalType != Cci.Constants.UnmanagedType_SafeArray || _marshalTypeNameOrSymbol == null)
             {
@@ -195,7 +197,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var translatedType = translator((TTypeSymbol)_marshalTypeNameOrSymbol, arg);
-            if ((object)translatedType == (object)_marshalTypeNameOrSymbol)
+            if ((object?)translatedType == (object)_marshalTypeNameOrSymbol)
             {
                 return this;
             }
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // testing only
-        internal ITypeSymbol TryGetSafeArrayElementUserDefinedSubtype()
+        internal ITypeSymbol? TryGetSafeArrayElementUserDefinedSubtype()
         {
             return _marshalTypeNameOrSymbol as ITypeSymbol;
         }
