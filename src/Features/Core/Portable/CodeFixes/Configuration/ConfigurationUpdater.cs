@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             //      - If the diagnostic's isPerLanguage = true, it means the rule is valid for both C# and VB.
             //        Thus, if there is a valid existing header containing both [*.cs] and [*.vb], then we prioritize it.
             //      - If isPerLanguage = false, it means the rule is only valid for one of the languages. Thus, we
-            //        prioritize headers that contain only the header for the given language.
+            //        prioritize headers that contain only the file extension for the given language.
             //      - If neither of the above hold true, we choose the last existing valid header. 
             //      - If no valid existing headers, we generate a new header.
             if (lastValidSpecificHeaderSpanEnd.HasValue)
