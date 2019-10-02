@@ -1652,23 +1652,27 @@ public class D
             var getAwaiter1 = (MethodSymbol)comp.GetMember("C.GetAwaiter");
             var isCompleted1 = (PropertySymbol)comp.GetMember("C.IsCompleted");
             var getResult1 = (MethodSymbol)comp.GetMember("C.GetResult");
-            var first = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult1);
+            var first = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult1, false);
 
-            var nulls1 = new AwaitExpressionInfo(null, isCompleted1, getResult1);
-            var nulls2 = new AwaitExpressionInfo(getAwaiter1, null, getResult1);
-            var nulls3 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, null);
+            var nulls1 = new AwaitExpressionInfo(null, isCompleted1, getResult1, false);
+            var nulls2 = new AwaitExpressionInfo(getAwaiter1, null, getResult1, false);
+            var nulls3 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, null, false);
+            var nulls4 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, null, true);
 
             Assert.False(first.Equals(nulls1));
             Assert.False(first.Equals(nulls2));
             Assert.False(first.Equals(nulls3));
+            Assert.False(first.Equals(nulls4));
 
             Assert.False(nulls1.Equals(first));
             Assert.False(nulls2.Equals(first));
             Assert.False(nulls3.Equals(first));
+            Assert.False(nulls4.Equals(first));
 
             _ = nulls1.GetHashCode();
             _ = nulls2.GetHashCode();
             _ = nulls3.GetHashCode();
+            _ = nulls4.GetHashCode();
 
             object nullObj = null;
             Assert.False(first.Equals(nullObj));
@@ -1676,10 +1680,10 @@ public class D
             var getAwaiter2 = (MethodSymbol)comp.GetMember("D.GetAwaiter");
             var isCompleted2 = (PropertySymbol)comp.GetMember("D.IsCompleted");
             var getResult2 = (MethodSymbol)comp.GetMember("D.GetResult");
-            var second1 = new AwaitExpressionInfo(getAwaiter2, isCompleted1, getResult1);
-            var second2 = new AwaitExpressionInfo(getAwaiter1, isCompleted2, getResult1);
-            var second3 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult2);
-            var second4 = new AwaitExpressionInfo(getAwaiter2, isCompleted2, getResult2);
+            var second1 = new AwaitExpressionInfo(getAwaiter2, isCompleted1, getResult1, false);
+            var second2 = new AwaitExpressionInfo(getAwaiter1, isCompleted2, getResult1, false);
+            var second3 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult2, false);
+            var second4 = new AwaitExpressionInfo(getAwaiter2, isCompleted2, getResult2, false);
 
             Assert.False(first.Equals(second1));
             Assert.False(first.Equals(second2));
@@ -1694,7 +1698,7 @@ public class D
             Assert.True(first.Equals(first));
             Assert.True(first.Equals((object)first));
 
-            var another = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult1);
+            var another = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult1, false);
             Assert.True(first.GetHashCode() == another.GetHashCode());
         }
 

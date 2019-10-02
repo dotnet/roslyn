@@ -898,7 +898,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default(AwaitExpressionInfo);
             }
 
-            return new AwaitExpressionInfo((IMethodSymbol)awaitableInfo.GetAwaiter.ExpressionSymbol, awaitableInfo.IsCompleted, awaitableInfo.GetResult);
+            return new AwaitExpressionInfo(
+                getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter.ExpressionSymbol,
+                isCompleted: awaitableInfo.IsCompleted,
+                getResult: awaitableInfo.GetResult,
+                isDynamic: awaitableInfo.GetResult is null);
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)

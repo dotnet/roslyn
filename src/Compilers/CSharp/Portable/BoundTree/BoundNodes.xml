@@ -77,7 +77,6 @@
   </AbstractNode>
 
   <AbstractNode Name="BoundValuePlaceholderBase" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </AbstractNode>
 
   <!--
@@ -85,6 +84,7 @@
   It is used to perform intermediate binding, and will not survive the local rewriting.
   -->
   <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
@@ -101,6 +101,7 @@
   This node is used to represent an awaitable expression of a certain type, when binding an using-await statement.
   -->
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
   </Node>
 
   <!--
@@ -108,10 +109,12 @@
   It does not survive past initial binding.
   -->
   <Node Name="BoundDisposableValuePlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
   <!-- The implicit collection in an object or collection initializer expression. -->
   <Node Name="BoundObjectOrCollectionValuePlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
   <!-- only used by codegen -->

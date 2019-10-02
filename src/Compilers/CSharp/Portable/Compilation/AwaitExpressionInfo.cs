@@ -16,13 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public IMethodSymbol GetResultMethod { get; }
 
-        public bool IsDynamic => GetResultMethod is null;
+        public bool IsDynamic { get; }
 
-        internal AwaitExpressionInfo(IMethodSymbol getAwaiter, IPropertySymbol isCompleted, IMethodSymbol getResult)
+        internal AwaitExpressionInfo(IMethodSymbol getAwaiter, IPropertySymbol isCompleted, IMethodSymbol getResult, bool isDynamic)
         {
             GetAwaiterMethod = getAwaiter;
             IsCompletedProperty = isCompleted;
             GetResultMethod = getResult;
+            IsDynamic = isDynamic;
         }
 
         public override bool Equals(object obj)
@@ -34,12 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return object.Equals(this.GetAwaiterMethod, other.GetAwaiterMethod)
                 && object.Equals(this.IsCompletedProperty, other.IsCompletedProperty)
-                && object.Equals(this.GetResultMethod, other.GetResultMethod);
+                && object.Equals(this.GetResultMethod, other.GetResultMethod)
+                && IsDynamic == other.IsDynamic;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(GetAwaiterMethod, Hash.Combine(IsCompletedProperty, Hash.Combine(GetResultMethod, 0)));
+            return Hash.Combine(GetAwaiterMethod, Hash.Combine(IsCompletedProperty, Hash.Combine(GetResultMethod, IsDynamic.GetHashCode())));
         }
     }
 }

@@ -392,24 +392,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundValuePlaceholderBase : BoundExpression
     {
-        protected BoundValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+        protected BoundValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
             : base(kind, syntax, type, hasErrors)
         {
-
-            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
         }
 
-        protected BoundValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, TypeSymbol type)
+        protected BoundValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, TypeSymbol? type)
             : base(kind, syntax, type)
         {
-
-            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
         }
 
-
-        public new TypeSymbol Type => base.Type!;
     }
 
     internal sealed partial class BoundDeconstructValuePlaceholder : BoundValuePlaceholderBase
@@ -432,6 +424,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ValEscape = valEscape;
         }
 
+
+        public new TypeSymbol Type => base.Type!;
 
         public uint ValEscape { get; }
         [DebuggerStepThrough]
@@ -489,19 +483,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundAwaitableValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
             : base(BoundKind.AwaitableValuePlaceholder, syntax, type, hasErrors)
         {
-
-            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
         }
 
         public BoundAwaitableValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
             : base(BoundKind.AwaitableValuePlaceholder, syntax, type)
         {
-
-            Debug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
         }
 
+
+        public new TypeSymbol Type => base.Type!;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitAwaitableValuePlaceholder(this);
 
@@ -535,6 +525,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+
+        public new TypeSymbol Type => base.Type!;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDisposableValuePlaceholder(this);
 
@@ -568,6 +560,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
+
+        public new TypeSymbol Type => base.Type!;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitObjectOrCollectionValuePlaceholder(this);
 
