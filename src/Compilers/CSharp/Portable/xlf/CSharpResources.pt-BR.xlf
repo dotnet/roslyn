@@ -298,8 +298,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">'{0}': o tipo usado em uma instrução using deve ser implicitamente conversível em 'System.IDisposable' ou implementar um método 'Dispose' adequado. Você quis dizer 'await using' em vez de 'using'?</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">'{0}': o tipo usado em uma instrução using deve ser implicitamente conversível em 'System.IDisposable' ou implementar um método 'Dispose' adequado. Você quis dizer 'await using' em vez de 'using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -6133,8 +6133,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="translated">'{0}': o tipo usado em uma instrução using deve ser implicitamente conversível em 'System.IDisposable' ou implementar um método 'Dispose' adequado.</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
+        <target state="needs-review-translation">'{0}': o tipo usado em uma instrução using deve ser implicitamente conversível em 'System.IDisposable' ou implementar um método 'Dispose' adequado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">

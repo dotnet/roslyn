@@ -820,7 +820,7 @@ This object has been disposed by IDisposable.Dispose().";
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (17,13): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // (17,13): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //             using S1 s1 = new S1();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using S1 s1 = new S1();").WithArguments("S1").WithLocation(17, 13)
                 );
