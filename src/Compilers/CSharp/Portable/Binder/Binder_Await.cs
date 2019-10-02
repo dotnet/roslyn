@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= hasGetAwaitableErrors;
             }
 
-            return new BoundAwaitableInfo(node, placeholder, isDynamic: isDynamic, getAwaiter, isCompleted, getResult, hasErrors: hasGetAwaitableErrors);
+            return new BoundAwaitableInfo(node, placeholder, isDynamic: isDynamic, getAwaiter, isCompleted, getResult, hasErrors: hasGetAwaitableErrors) { WasCompilerGenerated = true };
         }
 
         /// <summary>

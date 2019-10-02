@@ -543,7 +543,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Expression" Type="BoundExpression"/>
-    <Field Name="AwaitableInfo" Type="BoundAwaitableInfo" Null="disallow"/>
+    <Field Name="AwaitableInfo" Type="BoundAwaitableInfo" Null="disallow" SkipInVisitor="true"/>
   </Node>
 
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
@@ -853,7 +853,7 @@
   <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarations">
     <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="Allow"/>
     <Field Name="IDisposableConversion" Type="Conversion"/>
-    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
+    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?" SkipInVisitor="true"/>
   </Node>
 
   <!-- 
@@ -1001,7 +1001,7 @@
          boxing.  If this node has errors, then the conversion may not be present.-->
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep?"/>
-    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
+    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?" SkipInVisitor="true"/>
     <Field Name="Body" Type="BoundStatement"/>
   
     <Field Name="Checked" Type="bool"/>
@@ -1020,7 +1020,7 @@
     <Field Name="ExpressionOpt" Type="BoundExpression?"/>
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
-    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
+    <Field Name="AwaitOpt" Type="BoundAwaitableInfo?" SkipInVisitor="true"/>
     <Field Name="DisposeMethodOpt" Type="MethodSymbol?"/>
   </Node>
 
