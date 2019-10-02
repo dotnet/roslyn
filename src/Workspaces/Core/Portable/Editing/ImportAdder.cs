@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal static async Task<Document> AddImportsFromSyntaxesAsync(Document document, bool safe = true, OptionSet? options = null, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(root);
             return await AddImportsFromSyntaxesAsync(document, root.FullSpan, safe, options, cancellationToken).ConfigureAwait(false);
         }
 
@@ -69,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal static async Task<Document> AddImportsFromSyntaxesAsync(Document document, SyntaxAnnotation annotation, bool safe = true, OptionSet? options = null, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(root);
             return await AddImportsFromSyntaxesAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), safe, options, cancellationToken).ConfigureAwait(false);
         }
 
@@ -94,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal static async Task<Document> AddImportsFromSymbolAnnotationAsync(Document document, bool safe = true, OptionSet? options = null, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(root);
             return await AddImportsFromSymbolAnnotationAsync(document, root.FullSpan, safe, options, cancellationToken).ConfigureAwait(false);
         }
 
@@ -111,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Editing
         internal static async Task<Document> AddImportsFromSymbolAnnotationAsync(Document document, SyntaxAnnotation annotation, bool safe = true, OptionSet? options = null, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(root);
             return await AddImportsFromSymbolAnnotationAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), safe, options, cancellationToken).ConfigureAwait(false);
         }
 

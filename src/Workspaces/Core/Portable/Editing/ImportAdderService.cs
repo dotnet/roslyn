@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editing
             options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(model);
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportsService = document.GetLanguageService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -68,14 +69,18 @@ namespace Microsoft.CodeAnalysis.Editing
                 // This will allow us to find it after we have called MakeSafeToAddNamespaces.
                 var annotation = new SyntaxAnnotation();
                 document = document.WithSyntaxRoot(root.ReplaceNode(context, context.WithAdditionalAnnotations(annotation)));
-                root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+                root = (await document.GetSyntaxRootAsync().ConfigureAwait(false))!;
+
                 model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(model);
 
                 // Make Safe to add namespaces
                 document = document.WithSyntaxRoot(
                    MakeSafeToAddNamespaces(root, namespaceSymbols, model, document.Project.Solution.Workspace, cancellationToken));
-                root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+                root = (await document.GetSyntaxRootAsync().ConfigureAwait(false))!;
+
                 model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(model);
 
                 // Find the context. It might be null if we have removed the context in the process of complexifying the tree.
                 context = root.DescendantNodesAndSelf().FirstOrDefault(x => x.HasAnnotation(annotation)) ?? root;
