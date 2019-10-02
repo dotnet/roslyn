@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolCompletionState _state;
         private ImmutableArray<Location> _locations;
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> _nameToMembersMap;
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
+        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>>? _nameToMembersMap;
+        private Dictionary<string, ImmutableArray<NamedTypeSymbol>>? _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MergedNamespaceDeclaration mergedDeclaration,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(mergedDeclaration != null);
+            RoslynDebug.Assert(mergedDeclaration != null);
             _module = module;
             _container = container;
             _mergedDeclaration = mergedDeclaration;
@@ -307,9 +309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, DiagnosticBag diagnostics)
         {
             var memberOfArity = new Symbol[10];
-            MergedNamespaceSymbol mergedAssemblyNamespace = null;
+            MergedNamespaceSymbol? mergedAssemblyNamespace = null;
 
+#nullable disable // Can '@namespace.ContainingAssembly' be null? https://github.com/dotnet/roslyn/issues/39166
             if (@namespace.ContainingAssembly.Modules.Length > 1)
+#nullable enable
             {
                 mergedAssemblyNamespace = @namespace.ContainingAssembly.GetAssemblyNamespace(@namespace) as MergedNamespaceSymbol;
             }
@@ -320,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var symbol in result[name])
                 {
                     var nts = symbol as NamedTypeSymbol;
-                    var arity = ((object)nts != null) ? nts.Arity : 0;
+                    var arity = ((object?)nts != null) ? nts.Arity : 0;
                     if (arity >= memberOfArity.Length)
                     {
                         Array.Resize(ref memberOfArity, arity + 1);
@@ -328,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var other = memberOfArity[arity];
 
-                    if ((object)other == null && (object)mergedAssemblyNamespace != null)
+                    if ((object)other == null && (object?)mergedAssemblyNamespace != null)
                     {
                         // Check for collision with declarations from added modules.
                         foreach (NamespaceSymbol constituent in mergedAssemblyNamespace.ConstituentNamespaces)
@@ -352,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
 
-                    if ((object)other != null)
+                    if ((object?)other != null)
                     {
                         if ((nts as SourceNamedTypeSymbol)?.IsPartial == true && (other as SourceNamedTypeSymbol)?.IsPartial == true)
                         {
@@ -366,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     memberOfArity[arity] = symbol;
 
-                    if ((object)nts != null)
+                    if ((object?)nts != null)
                     {
                         //types declared at the namespace level may only have declared accessibility of public or internal (Section 3.5.1)
                         Accessibility declaredAccessibility = nts.DeclaredAccessibility;
@@ -413,13 +417,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (containingAssembly.KeepLookingForDeclaredSpecialTypes)
             {
                 // Register newly declared COR types
+#nullable disable // Can '_nameToMembersMap' be null? https://github.com/dotnet/roslyn/issues/39166
                 foreach (var array in _nameToMembersMap.Values)
+#nullable enable
                 {
                     foreach (var member in array)
                     {
                         var type = member as NamedTypeSymbol;
 
-                        if ((object)type != null && type.SpecialType != SpecialType.None)
+                        if ((object?)type != null && type.SpecialType != SpecialType.None)
                         {
                             containingAssembly.RegisterDeclaredSpecialType(type);
 

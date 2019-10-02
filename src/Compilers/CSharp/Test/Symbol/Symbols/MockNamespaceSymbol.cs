@@ -1,15 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     internal class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
     {
-        private NamespaceSymbol _container;
+        private NamespaceSymbol? _container;
         private NamespaceExtent _extent;
         private readonly IEnumerable<Symbol> _children;
         private readonly string _name;
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     select (NamedTypeSymbol)c).ToArray().AsImmutableOrNull();
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -74,11 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        public override AssemblySymbol ContainingAssembly
+        public override AssemblySymbol? ContainingAssembly
         {
             get
             {
+#nullable disable // Can '_container' be null here? https://github.com/dotnet/roslyn/issues/39166
                 return _container.ContainingAssembly;
+#nullable enable
             }
         }
 

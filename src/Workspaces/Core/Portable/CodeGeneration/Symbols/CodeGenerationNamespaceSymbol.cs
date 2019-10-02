@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
@@ -34,9 +37,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             visitor.VisitNamespace(this);
         }
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return visitor.VisitNamespace(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         public new IEnumerable<INamespaceOrTypeSymbol> GetMembers()
@@ -64,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public NamespaceKind NamespaceKind => NamespaceKind.Module;
 
-        public Compilation ContainingCompilation => null;
+        public Compilation? ContainingCompilation => null;
 
-        public INamedTypeSymbol ImplicitType => null;
+        public INamedTypeSymbol? ImplicitType => null;
 
         public ImmutableArray<INamespaceSymbol> ConstituentNamespaces
         {

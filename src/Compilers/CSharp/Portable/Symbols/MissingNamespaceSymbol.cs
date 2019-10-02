@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public MissingNamespaceSymbol(MissingModuleSymbol containingModule)
         {
-            Debug.Assert((object)containingModule != null);
+            RoslynDebug.Assert((object)containingModule != null);
 
             _containingSymbol = containingModule;
             _name = string.Empty;
@@ -29,8 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public MissingNamespaceSymbol(NamespaceSymbol containingNamespace, string name)
         {
-            Debug.Assert((object)containingNamespace != null);
-            Debug.Assert(name != null);
+            RoslynDebug.Assert((object)containingNamespace != null);
+            RoslynDebug.Assert(name != null);
 
             _containingSymbol = containingNamespace;
             _name = name;
@@ -78,16 +80,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(_containingSymbol.GetHashCode(), _name.GetHashCode());
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if (ReferenceEquals(this, obj))
             {
                 return true;
             }
 
-            MissingNamespaceSymbol other = obj as MissingNamespaceSymbol;
+            MissingNamespaceSymbol? other = obj as MissingNamespaceSymbol;
 
-            return (object)other != null && _name.Equals(other._name) && _containingSymbol.Equals(other._containingSymbol, compareKind);
+            return (object?)other != null && _name.Equals(other._name) && _containingSymbol.Equals(other._containingSymbol, compareKind);
         }
 
         public override ImmutableArray<Location> Locations
