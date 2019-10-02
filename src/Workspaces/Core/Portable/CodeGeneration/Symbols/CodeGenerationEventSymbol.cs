@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -50,14 +53,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override void Accept(SymbolVisitor visitor)
             => visitor.VisitEvent(this);
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-            => visitor.VisitEvent(this);
+        {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
+            return visitor.VisitEvent(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
+        }
 
         public new IEventSymbol OriginalDefinition => this;
 
         public bool IsWindowsRuntimeEvent => false;
 
-        public IEventSymbol OverriddenEvent => null;
+        public IEventSymbol? OverriddenEvent => null;
 
         public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray.Create<CustomModifier>();
     }

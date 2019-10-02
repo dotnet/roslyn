@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override MethodSymbol AddMethod
+        public override MethodSymbol? AddMethod
         {
             get
             {
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override MethodSymbol RemoveMethod
+        public override MethodSymbol? RemoveMethod
         {
             get
             {
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override FieldSymbol AssociatedField
+        internal override FieldSymbol? AssociatedField
         {
             get
             {
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            DiagnosticInfo result = base.GetUseSiteDiagnostic();
+            DiagnosticInfo? result = base.GetUseSiteDiagnostic();
             MergeUseSiteDiagnostics(ref result, _underlyingEvent.GetUseSiteDiagnostic());
             return result;
         }
@@ -110,19 +112,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingEvent.GetHashCode();
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             return Equals(obj as TupleEventSymbol, compareKind);
         }
 
-        public bool Equals(TupleEventSymbol other, TypeCompareKind compareKind)
+        public bool Equals(TupleEventSymbol? other, TypeCompareKind compareKind)
         {
-            if ((object)other == this)
+            if ((object?)other == this)
             {
                 return true;
             }
 
-            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && _underlyingEvent == other._underlyingEvent;
+            return (object?)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && _underlyingEvent == other._underlyingEvent;
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()

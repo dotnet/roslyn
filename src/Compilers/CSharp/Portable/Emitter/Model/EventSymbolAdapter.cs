@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -18,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckDefinitionInvariant();
 
             var addMethod = this.AddMethod;
-            Debug.Assert((object)addMethod != null);
+            RoslynDebug.Assert((object?)addMethod != null);
             if (addMethod.ShouldInclude(context))
             {
                 yield return addMethod;
             }
 
             var removeMethod = this.RemoveMethod;
-            Debug.Assert((object)removeMethod != null);
+            RoslynDebug.Assert((object?)removeMethod != null);
             if (removeMethod.ShouldInclude(context))
             {
                 yield return removeMethod;
@@ -37,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                MethodSymbol addMethod = this.AddMethod;
-                Debug.Assert((object)addMethod != null);
+                MethodSymbol? addMethod = this.AddMethod;
+                RoslynDebug.Assert((object?)addMethod != null);
                 return addMethod;
             }
         }
@@ -48,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                MethodSymbol removeMethod = this.RemoveMethod;
-                Debug.Assert((object)removeMethod != null);
+                MethodSymbol? removeMethod = this.RemoveMethod;
+                RoslynDebug.Assert((object?)removeMethod != null);
                 return removeMethod;
             }
         }
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IMethodReference Cci.IEventDefinition.Caller
+        Cci.IMethodReference? Cci.IEventDefinition.Caller
         {
             get
             {
