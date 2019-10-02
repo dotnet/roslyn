@@ -27,7 +27,7 @@ using System.Diagnostics;
             var edits = GetTopEdits(src1, src2);
             edits.VerifyEdits("Delete [using System.Diagnostics;]@2");
             Assert.IsType<UsingDirectiveSyntax>(edits.Edits.First().OldNode);
-            Assert.Equal(edits.Edits.First().NewNode, null);
+            Assert.Null(edits.Edits.First().NewNode);
         }
 
         [Fact]

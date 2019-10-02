@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
-        <target state="new">Adding analyzer config documents is not supported.</target>
+        <target state="translated">不支持添加分析器配置文档。</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
-        <target state="new">Changing analyzer config documents is not supported.</target>
+        <target state="translated">不支持更改分析器配置文档。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
-        <target state="translated">日期时间类型必须是 utc</target>
+        <target state="translated">DateTimeKind 必须是 Utc</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">命名规则</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_styles">
         <source>Naming styles</source>
-        <target state="new">Naming styles</target>
+        <target state="translated">命名样式</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
@@ -104,102 +104,102 @@
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
         <source>All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</source>
-        <target state="new">All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</target>
+        <target state="translated">所有控制字符。这包括 Cc、Cf、Cs、Co 和 Cn 类别。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_short">
         <source>all control characters</source>
-        <target state="new">all control characters</target>
+        <target state="translated">所有控制字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_diacritic_marks_long">
         <source>All diacritic marks. This includes the Mn, Mc, and Me categories.</source>
-        <target state="new">All diacritic marks. This includes the Mn, Mc, and Me categories.</target>
+        <target state="translated">所有音调符号标记。这包括 "Mn"、"Mc" 和 "Me" 类别。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_diacritic_marks_short">
         <source>all diacritic marks</source>
-        <target state="new">all diacritic marks</target>
+        <target state="translated">所有音调符号标记</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_letter_characters_long">
         <source>All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</source>
-        <target state="new">All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</target>
+        <target state="translated">所有字母字符。这包括 Lu、Ll、Lt、Lm 和 Lo 字符。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_letter_characters_short">
         <source>all letter characters</source>
-        <target state="new">all letter characters</target>
+        <target state="translated">所有字母字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_numbers_long">
         <source>All numbers. This includes the Nd, Nl, and No categories.</source>
-        <target state="new">All numbers. This includes the Nd, Nl, and No categories.</target>
+        <target state="translated">所有数字。这包括 Nd、Nl 和 No 类别。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_numbers_short">
         <source>all numbers</source>
-        <target state="new">all numbers</target>
+        <target state="translated">所有数字</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_punctuation_characters_long">
         <source>All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</source>
-        <target state="new">All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</target>
+        <target state="translated">所有标点字符。这包括 Pc、Pd、Ps、Pe、Pi、Pf 和 Po 类别。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_punctuation_characters_short">
         <source>all punctuation characters</source>
-        <target state="new">all punctuation characters</target>
+        <target state="translated">所有标点字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_separator_characters_long">
         <source>All separator characters. This includes the Zs, Zl, and Zp categories.</source>
-        <target state="new">All separator characters. This includes the Zs, Zl, and Zp categories.</target>
+        <target state="translated">所有分隔符字符。这包括 Zs、Zl 和 Zp 类别。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_separator_characters_short">
         <source>all separator characters</source>
-        <target state="new">all separator characters</target>
+        <target state="translated">所有分隔符字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_symbols_long">
         <source>All symbols. This includes the Sm, Sc, Sk, and So categories.</source>
-        <target state="new">All symbols. This includes the Sm, Sc, Sk, and So categories.</target>
+        <target state="translated">所有符号。这包括 Sm、Sc、Sk 和 So 类别。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_symbols_short">
         <source>all symbols</source>
-        <target state="new">all symbols</target>
+        <target state="translated">所有符号</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_alternation_long">
         <source>You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.</source>
-        <target state="new">You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.</target>
+        <target state="translated">可以使用竖线(|)字符匹配一系列模式中的任何一个，其中 | 字符分隔每个模式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_alternation_short">
         <source>alternation</source>
-        <target state="new">alternation</target>
+        <target state="translated">替换</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_long">
         <source>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</source>
-        <target state="new">The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</target>
+        <target state="translated">句点字符(.)匹配除 \n (换行符 \u000A)以外的任何字符。如果正则表达式模式已被 RegexOptions Singleline 选项修改，或者如果包含 ". " 字符类的模式部分已被 "s" 选项修改，则 ". " 可匹配任何字符。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_short">
         <source>any character</source>
-        <target state="new">any character</target>
+        <target state="translated">任何字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_long">
         <source>Matches a backspace character, \u0008</source>
-        <target state="new">Matches a backspace character, \u0008</target>
+        <target state="translated">与退格键字符(\u0008)匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_short">
         <source>backspace character</source>
-        <target state="new">backspace character</target>
+        <target state="translated">退格键字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
@@ -208,205 +208,205 @@
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+        <target state="translated">均衡组定义删除以前定义的组的定义，并在当前组中存储以前定义的组和当前组之间的时间间隔。
     
-'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+"name1" 是当前组(可选)，"name2" 是以前定义的组，而 "subexpression" 是任何有效的正则表达式模式。均衡组定义将删除 name2 的定义，并在 name1 中存储 name2 和 name1 之间的间隔。如果未定义 name2 组，则匹配回溯。由于删除 name2 的最后一个定义会发现 name2 的上一个定义，此构造使你能够使用作为计数器的组的捕获堆栈来跟踪嵌套构造(如括号)或左括号和右括号。
 
-The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
+均衡组定义使用 "name2" 作为堆栈。每个嵌套构造的开始字符都放在该组中并位于其组中。捕获集合。匹配结束字符时，将从组中删除其相应的左符号，并减小捕获集合 1。在所有嵌套构造的开始和结束字符都匹配后，"name1" 为空。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
         <source>balancing group</source>
-        <target state="new">balancing group</target>
+        <target state="translated">均衡组</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_base_group">
         <source>base-group</source>
-        <target state="new">base-group</target>
+        <target state="translated">基本组</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_bell_character_long">
         <source>Matches a bell (alarm) character, \u0007</source>
-        <target state="new">Matches a bell (alarm) character, \u0007</target>
+        <target state="translated">与响铃(警告)字符(\u0007)匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_bell_character_short">
         <source>bell character</source>
-        <target state="new">bell character</target>
+        <target state="translated">响铃字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_long">
         <source>Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</source>
-        <target state="new">Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</target>
+        <target state="translated">与回车符(\u000D)匹配。请注意，\r 与换行符(\n)不等效。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_short">
         <source>carriage-return character</source>
-        <target state="new">carriage-return character</target>
+        <target state="translated">回车符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_class_subtraction_long">
         <source>Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
 
 'base_group' is a positive or negative character group or range. The 'excluded_group' component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</source>
-        <target state="new">Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+        <target state="translated">字符类减法生成一组字符，这是从另一个字符类中排除一个字符类中的字符后得到的。
 
-'base_group' is a positive or negative character group or range. The 'excluded_group' component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</target>
+"base_group" 为正或为负的字符组或范围。"excluded_group" 组件是另一个为正或为负的字符组，或其他字符类减法表达式(即，可以嵌套字符类减法表达式)。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_class_subtraction_short">
         <source>character class subtraction</source>
-        <target state="new">character class subtraction</target>
+        <target state="translated">字符类减法</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_group">
         <source>character-group</source>
-        <target state="new">character-group</target>
+        <target state="translated">字符组</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_comment">
         <source>comment</source>
-        <target state="new">comment</target>
+        <target state="translated">注释</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_expression_match_long">
         <source>This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
 
 'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</source>
-        <target state="new">This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
+        <target state="translated">此语言元素尝试匹配两种模式之一，具体取决于它是否可以与初始模式匹配。
 
-'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</target>
+"expression" 是要匹配的初始模式，如果表达式匹配，则 "yes" 是可匹配的模式；如果表达式不匹配，则 "no" 是可匹配的可选模式。。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_expression_match_short">
         <source>conditional expression match</source>
-        <target state="new">conditional expression match</target>
+        <target state="translated">条件表达式匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_group_match_long">
         <source>This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
 
 'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</source>
-        <target state="new">This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
+        <target state="translated">此语言元素尝试匹配两种模式之一，具体取决于它是否与指定的捕获组匹配。
 
-'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</target>
+"name" 是捕获组的名称(或编号)，"yes" 是在 "name" (或 "number") 具有匹配项的情况下匹配的表达式，"no" 是没有匹配的情况下可匹配的可选表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_group_match_short">
         <source>conditional group match</source>
-        <target state="new">conditional group match</target>
+        <target state="translated">条件组匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_contiguous_matches_long">
         <source>The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</source>
-        <target state="new">The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</target>
+        <target state="translated">\G 定位点指定匹配必须出现在上一个匹配结束的点。在 Regex.Matches 或 Match.NextMatch 方法中使用此定位点可确保所有匹配项都是连续的。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_contiguous_matches_short">
         <source>contiguous matches</source>
-        <target state="new">contiguous matches</target>
+        <target state="translated">连续匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_control_character_long">
         <source>Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</source>
-        <target state="new">Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</target>
+        <target state="translated">与 ASCII 控制字符匹配，其中 X 是控制字符的字母。例如, \cC 是 CTRL-C。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_control_character_short">
         <source>control character</source>
-        <target state="new">control character</target>
+        <target state="translated">控制字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_decimal_digit_character_long">
         <source>\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
 
 If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</source>
-        <target state="new">\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+        <target state="translated">\d 匹配任何十进制数字。它等效于 \p{Nd} 正则表达式模式，该模式包括标准十进制数字 0-9 以及许多其他字符集的小数位数。
 
-If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</target>
+如果指定了符合 ECMAScript 的行为，则 \d 等效于 [0-9]</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_decimal_digit_character_short">
         <source>decimal-digit character</source>
-        <target state="new">decimal-digit character</target>
+        <target state="translated">十进制数字字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_line_comment_long">
         <source>A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</source>
-        <target state="new">A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</target>
+        <target state="translated">数字符号(#)标记 x 模式注释，该注释从正则表达式模式结尾处的非转义 # 字符开始，一直持续到行尾。若要使用此构造，必须启用 x 选项(通过内联选项)，或者在实例化 regex 对象或调用静态 regex 方法时向选项参数提供 RegexOptions 值。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_line_comment_short">
         <source>end-of-line comment</source>
-        <target state="new">end-of-line comment</target>
+        <target state="translated">行尾注释</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_only_long">
         <source>The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</source>
-        <target state="new">The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</target>
+        <target state="translated">\z 定位点指定匹配必须出现在输入字符串的末尾。像 $ language 元素一样，\z 忽略了 RegexOptions 选项。与 \z 语言元素不同，\z 与字符串结尾的 \n 字符不匹配。因此，它只能匹配输入字符串的最后一行。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_only_short">
         <source>end of string only</source>
-        <target state="new">end of string only</target>
+        <target state="translated">仅字符串末尾</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_before_ending_newline_long">
         <source>The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
 
 The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</source>
-        <target state="new">The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+        <target state="translated">\Z 定位点指定匹配必须出现在输入字符串的末尾或输入字符串的结尾处的 \n 之前。它与 $ 定位点相同，只不过 \Z 忽略了 RegexOptions 选项。因此，在多行字符串中，它只能匹配最后一行的结尾或 \n 前的最后一行。
 
-The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</target>
+\Z 定位点匹配 \n 但不匹配 \r\n (CR/LF 字符组合)。若要匹配 CR/LF，请在正则表达式模式中包含 \r?\Z。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_before_ending_newline_short">
         <source>end of string or before ending newline</source>
-        <target state="new">end of string or before ending newline</target>
+        <target state="translated">字符串末尾或结束换行符之前</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_long">
         <source>The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
 
 The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</source>
-        <target state="new">The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
+        <target state="translated">$ 定位点指定前面的模式必须出现在输入字符串的末尾或输入字符串结尾的 \n 之前。如果将 $ 与 RegexOptions 选项一起使用，则匹配也可以出现在行尾。
 
-The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</target>
+$ 定位点匹配 \n，但不匹配 \r\n (回车符和换行符的组合，或 CR/LF)。若要匹配 CR/LF 字符组合, 请在正则表达式模式中包括 \r?$。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_short">
         <source>end of string or line</source>
-        <target state="new">end of string or line</target>
+        <target state="translated">字符串或行的结尾</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_escape_character_long">
         <source>Matches an escape character, \u001B</source>
-        <target state="new">Matches an escape character, \u001B</target>
+        <target state="translated">与转义字符(\u001B)匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_escape_character_short">
         <source>escape character</source>
-        <target state="new">escape character</target>
+        <target state="translated">转义字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_excluded_group">
         <source>excluded-group</source>
-        <target state="new">excluded-group</target>
+        <target state="translated">排除的组</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
         <source>Matches a form-feed character, \u000C</source>
-        <target state="new">Matches a form-feed character, \u000C</target>
+        <target state="translated">与换页符(\u000C)匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_short">
         <source>form-feed character</source>
-        <target state="new">form-feed character</target>
+        <target state="translated">换页符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_group_options_long">
@@ -421,42 +421,42 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 	named or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="new">This grouping construct applies or disables the specified options within a subexpression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+        <target state="translated">此分组构造应用或禁用子表达式中的指定选项。在问号后指定要启用的选项，在减号后禁用的选项。允许的选项有:
 
-    i	Use case-insensitive matching.
-    m	Use multiline mode, where ^ and $ match the beginning and end of each line
-	(instead of the beginning and end of the input string).
-    s	Use single-line mode, where the period (.) matches every character
-	(instead of every character except \n).
-    n	Do not capture unnamed groups. The only valid captures are explicitly
-	named or numbered groups of the form (?&lt;name&gt; subexpression).
-    x	Exclude unescaped white space from the pattern, and enable comments
-	after a number sign (#).</target>
+    i	使用不区分大小写的匹配。
+    m	使用多行模式，其中 ^ 和 $ 分别匹配每行的开头和结尾
+	(而不是输入字符串的开头和结尾)。
+    s	使用单行模式，其中句点(.)与每个字符
+	(而不是除 \n 之外的每个字符)匹配。
+    n	请勿捕获未命名的组。唯一有效的捕获已被显式
+	命名为或编码为(?&lt;name&gt; subexpression)形式的组。
+    x	请删除模式中的非转义空格，并
+	在数字符号(#)之后使用注释。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_group_options_short">
         <source>group options</source>
-        <target state="new">group options</target>
+        <target state="translated">组选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_long">
         <source>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</source>
-        <target state="new">Matches an ASCII character, where ## is a two-digit hexadecimal character code.</target>
+        <target state="translated">与 ASCII 字符匹配，其中 ## 是两位数的十六进制字符代码。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="new">hexidecimal escape</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">十六进制转义符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
         <source>The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</source>
-        <target state="new">The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</target>
+        <target state="translated">(?# comment)构造允许在正则表达式中包括内联注释。尽管注释包含在 Regex 方法返回的字符串中，但正则表达式引擎不使用模式匹配中注释的任何部分。注释以第一个右括号结束。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_short">
         <source>inline comment</source>
-        <target state="new">inline comment</target>
+        <target state="translated">内联注释</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_options_long">
@@ -471,226 +471,226 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 	or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="new">Enables or disables specific pattern matching options for the remainder of a regular expression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+        <target state="translated">为正则表达式的其余部分启用或禁用特定模式匹配选项。在问号后面指定要启用的选项，在减号后指定要禁用的选项。允许的选项有:
 
-    i	Use case-insensitive matching.
-    m	Use multiline mode, where ^ and $ match the beginning and end of each line
-	(instead of the beginning and end of the input string).
-    s	Use single-line mode, where the period (.) matches every character
-	(instead of every character except \n).
-    n	Do not capture unnamed groups. The only valid captures are explicitly named
-	or numbered groups of the form (?&lt;name&gt; subexpression).
-    x	Exclude unescaped white space from the pattern, and enable comments
-	after a number sign (#).</target>
+    i	使用不区分大小写的匹配。
+    m	使用多行模式，其中 ^ 和 $ 分别匹配每行的开头和结尾
+	(而不是输入字符串的开头和结尾)。
+    s	使用单行模式，其中句点(.)与每个字符
+	(而不是除 \n 之外的每个字符)匹配。
+    n	请勿捕获未命名的组。唯一有效的捕获已被显式
+	命名为或编码为(?&lt;name&gt; subexpression)形式的组。
+    x	请删除模式中的非转义空格，并
+	在数字符号(#)之后使用注释。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_options_short">
         <source>inline options</source>
-        <target state="new">inline options</target>
+        <target state="translated">内联选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_lowercase">
         <source>letter, lowercase</source>
-        <target state="new">letter, lowercase</target>
+        <target state="translated">字母，小写</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_modifier">
         <source>letter, modifier</source>
-        <target state="new">letter, modifier</target>
+        <target state="translated">字母，修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_other">
         <source>letter, other</source>
-        <target state="new">letter, other</target>
+        <target state="translated">字母，其他</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_titlecase">
         <source>letter, titlecase</source>
-        <target state="new">letter, titlecase</target>
+        <target state="translated">字母，首字母大写</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_uppercase">
         <source>letter, uppercase</source>
-        <target state="new">letter, uppercase</target>
+        <target state="translated">字母，大写</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_enclosing">
         <source>mark, enclosing</source>
-        <target state="new">mark, enclosing</target>
+        <target state="translated">标记，封闭</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_nonspacing">
         <source>mark, nonspacing</source>
-        <target state="new">mark, nonspacing</target>
+        <target state="translated">标记，非间距</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_spacing_combining">
         <source>mark, spacing combining</source>
-        <target state="new">mark, spacing combining</target>
+        <target state="translated">标记，间距组合</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_long">
         <source>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</source>
-        <target state="new">The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</target>
+        <target state="translated">{n,}? 限定符匹配前面的元素至少 n 次，其中 n 是任何整数，但次数尽可能少。它是贪婪限定符 {n,} 的惰性副本</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_short">
         <source>match at least 'n' times (lazy)</source>
-        <target state="new">match at least 'n' times (lazy)</target>
+        <target state="translated">至少匹配 "n" 次(惰性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_long">
         <source>The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</source>
-        <target state="new">The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</target>
+        <target state="translated">{n,} 限定符匹配前面的元素至少 n 次，其中 n 是任何整数。{n,} 是贪婪限定符，其惰性等效值为 {n,}?</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_short">
         <source>match at least 'n' times</source>
-        <target state="new">match at least 'n' times</target>
+        <target state="translated">至少匹配 "n" 次</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_long">
         <source>The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</source>
-        <target state="new">The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</target>
+        <target state="translated">{n,m}? 限定符匹配前面的元素 n 次和 m 次，其中 n 和 m 是整数，但次数尽可能少。它是贪婪限定符 {n, m} 的惰性副本</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_short">
         <source>match at least 'n' times (lazy)</source>
-        <target state="new">match at least 'n' times (lazy)</target>
+        <target state="translated">至少匹配 "n" 次(惰性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_long">
         <source>The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</source>
-        <target state="new">The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</target>
+        <target state="translated">{n, m} 限定符匹配前面的元素至少 n 次，但不超过 m 次，其中 n 和 m 是整数。{n, m} 是贪婪限定符，其惰性等效值为 {n,m}?</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_short">
         <source>match between 'm' and 'n' times</source>
-        <target state="new">match between 'm' and 'n' times</target>
+        <target state="translated">匹配次数介于 "m" 次和 "n" 次之间</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_long">
         <source>The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</source>
-        <target state="new">The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</target>
+        <target state="translated">{n}? 限定符恰好匹配前面的元素 n 次，其中 n 是任何整数。它是贪婪限定符 {n}+ 的惰性副本</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_short">
         <source>match exactly 'n' times (lazy)</source>
-        <target state="new">match exactly 'n' times (lazy)</target>
+        <target state="translated">刚好匹配 "n" 次(惰性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_long">
         <source>The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</source>
-        <target state="new">The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</target>
+        <target state="translated">{n} 限定符恰好匹配前面的元素 n 次，其中 n 是任何整数。{n} 是贪婪限定符，其惰性等效值为 {n}?</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_short">
         <source>match exactly 'n' times</source>
-        <target state="new">match exactly 'n' times</target>
+        <target state="translated">刚好匹配 "n" 次</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_long">
         <source>The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</source>
-        <target state="new">The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</target>
+        <target state="translated">+? 限定符匹配前面的元素一次或多次，但次数尽可能少。它是贪婪限定符 + 的惰性副本</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_short">
         <source>match one or more times (lazy)</source>
-        <target state="new">match one or more times (lazy)</target>
+        <target state="translated">匹配一次或多次(惰性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_long">
         <source>The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</source>
-        <target state="new">The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</target>
+        <target state="translated">+ 限定符匹配前面的元素一次或多次。它等效于 {1,} 数量表示符。+ 是贪婪限定符，其惰性等效项为 +?。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_short">
         <source>match one or more times</source>
-        <target state="new">match one or more times</target>
+        <target state="translated">匹配一次或多次</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_long">
         <source>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</source>
-        <target state="new">The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</target>
+        <target state="translated">*? 限定符匹配前导元素零次或多次，但次数尽可能少。它是贪婪限定符 * 的惰性副本</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_short">
         <source>match zero or more times (lazy)</source>
-        <target state="new">match zero or more times (lazy)</target>
+        <target state="translated">匹配零次或多次(惰性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_long">
         <source>The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</source>
-        <target state="new">The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</target>
+        <target state="translated">* 限定符匹配前面的元素零次或多次。它等效于 {0,} 数量表示符。* 是贪婪限定符，其惰性等效项为 *?。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_short">
         <source>match zero or more times</source>
-        <target state="new">match zero or more times</target>
+        <target state="translated">匹配零次或多次</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_long">
         <source>The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</source>
-        <target state="new">The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</target>
+        <target state="translated">?? 限定符匹配前面的元素零次或一次，但次数尽可能少。它是贪婪限定符 ? 的惰性副本</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_short">
         <source>match zero or one time (lazy)</source>
-        <target state="new">match zero or one time (lazy)</target>
+        <target state="translated">匹配零次或一次(惰性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_long">
         <source>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</source>
-        <target state="new">The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</target>
+        <target state="translated">? 限定符匹配前面的元素零次或一次。它等效于 {0,1} 限定符。? 是贪婪限定符，其惰性等效项为 ??。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_short">
         <source>match zero or one time</source>
-        <target state="new">match zero or one time</target>
+        <target state="translated">匹配零次或一次</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_long">
         <source>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</source>
-        <target state="new">This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</target>
+        <target state="translated">此分组构造捕获匹配的 "subexpression"，其中 "subexpression" 是任何有效的正则表达式模式。使用括号的捕获将根据正则表达式中左括号的顺序从 1 开始按从左到右的顺序自动编号。被编号为零的捕获是由整个正则表达式模式匹配的文本。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_short">
         <source>matched subexpression</source>
-        <target state="new">matched subexpression</target>
+        <target state="translated">匹配的子表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">名称</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
         <source>name1</source>
-        <target state="new">name1</target>
+        <target state="translated">name1</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name2">
         <source>name2</source>
-        <target state="new">name2</target>
+        <target state="translated">name2</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name_or_number">
         <source>name-or-number</source>
-        <target state="new">name-or-number</target>
+        <target state="translated">名称或数字</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_backreference_long">
         <source>A named or numbered backreference.
 
 'name' is the name of a capturing group defined in the regular expression pattern.</source>
-        <target state="new">A named or numbered backreference.
+        <target state="translated">已命名或已编号的后向引用。
 
-'name' is the name of a capturing group defined in the regular expression pattern.</target>
+"name" 是在正则表达式模式中定义的捕获组的名称。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_backreference_short">
         <source>named backreference</source>
-        <target state="new">named backreference</target>
+        <target state="translated">已命名的后向引用</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_matched_subexpression_long">
@@ -699,107 +699,107 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 'name' is a valid group name, and 'subexpression' is any valid regular expression pattern. 'name' must not contain any punctuation characters and cannot begin with a number.
 
 If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.</source>
-        <target state="new">Captures a matched subexpression and lets you access it by name or by number.
+        <target state="translated">捕获匹配的子表达式，以便按名称或按编号进行访问。
 
-'name' is a valid group name, and 'subexpression' is any valid regular expression pattern. 'name' must not contain any punctuation characters and cannot begin with a number.
+"name" 是有效的组名，而 "subexpression" 是任何有效的正则表达式模式。"name" 不得包含任何标点符号字符且不能以数字开头。
 
-If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.</target>
+如果正则表达式模式匹配方法的 RegexOptions 参数包括 RegexOptions ExplicitCapture 标志，或者如果将 n 选项应用于此子表达式，则捕获子表达式的唯一方法是显式命名捕获组。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_matched_subexpression_short">
         <source>named matched subexpression</source>
-        <target state="new">named matched subexpression</target>
+        <target state="translated">已命名匹配的子表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_group_long">
         <source>A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
 
 Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</source>
-        <target state="new">A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
+        <target state="translated">负字符组指定不能出现在匹配项的输入字符串中的字符列表。字符列表是单独指定的。
 
-Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</target>
+可以连接两个或更多字符范围。例如，若要指定从 "0" 到 "9" 的十进制数字范围、从 "a" 到 "f" 的小写字母范围以及从 "A" 到 "F" 的大写字母范围，请使用 [0-9a-fA-F]。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_group_short">
         <source>negative character group</source>
-        <target state="new">negative character group</target>
+        <target state="translated">负字符组</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_range_long">
         <source>A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
 
 Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</source>
-        <target state="new">A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
+        <target state="translated">负字符范围指定不能出现在输入字符串中的字符列表，以使匹配发生。"firstCharacter" 是该范围的开始字符，而 "lastCharacter" 是该范围的结束字符。
 
-Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</target>
+可以连接两个或更多字符范围。例如，若要指定从 "0" 到 "9" 的十进制数字范围、从 "a" 到 "f" 的小写字母范围以及从 "A" 到 "F" 的大写字母范围，请使用 [0-9a-fA-F]。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_range_short">
         <source>negative character range</source>
-        <target state="new">negative character range</target>
+        <target state="translated">负字符范围</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="new">The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</target>
+        <target state="translated">正则表达式构造 \P{name} 匹配不属于 Unicode 通用类别或命名块的任何字符，其中 "name" 是类别缩写或命名块名称。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_short">
         <source>negative unicode category</source>
-        <target state="new">negative unicode category</target>
+        <target state="translated">负 unicode 类别</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_new_line_character_long">
         <source>Matches a new-line character, \u000A</source>
-        <target state="new">Matches a new-line character, \u000A</target>
+        <target state="translated">与换行符(\u000A)匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_new_line_character_short">
         <source>new-line character</source>
-        <target state="new">new-line character</target>
+        <target state="translated">换行符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">否</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
         <source>\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
 
 If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</source>
-        <target state="new">\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+        <target state="translated">\D 与任何非数字字符匹配。它等效于 \P{Nd} 正则表达式模式。
 
-If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</target>
+如果指定了符合 ECMAScript 的行为，则 \P 等效于 [^0-9]</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_short">
         <source>non-digit character</source>
-        <target state="new">non-digit character</target>
+        <target state="translated">非数字字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_white_space_character_long">
         <source>\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
 
 If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</source>
-        <target state="new">\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+        <target state="translated">\S 与任何非空格字符匹配。它等效于 [^\f\n\r\t\v\x85\p{Z}] 正则表达式模式，或与等效于 \s 的正则表达式模式(与空格字符匹配)的相反形式。
 
-If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</target>
+如果指定了符合 ECMAScript 的行为，则 \s 等效于 [^ \f\n\r\t\v]</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_white_space_character_short">
         <source>non-white-space character</source>
-        <target state="new">non-white-space character</target>
+        <target state="translated">非空格字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_boundary_long">
         <source>The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</source>
-        <target state="new">The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</target>
+        <target state="translated">\B 定位点指定匹配不得出现在字边界上。它与 \b 定位点相反。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_boundary_short">
         <source>non-word boundary</source>
-        <target state="new">non-word boundary</target>
+        <target state="translated">非字边界</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_character_long">
@@ -815,37 +815,37 @@ If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</source>
-        <target state="new">\W matches any non-word character. It matches any character except for those in the following Unicode categories:
+        <target state="translated">\w 与任何非字词字符匹配。它匹配除以下 Unicode 类别中的任何字符:
 
-    Ll	Letter, Lowercase
-    Lu	Letter, Uppercase
-    Lt	Letter, Titlecase
-    Lo	Letter, Other
-    Lm	Letter, Modifier
-    Mn	Mark, Nonspacing
-    Nd	Number, Decimal Digit
-    Pc	Punctuation, Connector
+    Ll	字母，小写
+    Lu 	字母，大写
+    Lt	字母，首字母大写
+    Lo	字母，其他
+    Lm	字母，修饰符
+    Mn	标记，非间距
+    Nd	数字，十进制数字
+    Pc	标点，连接符
 
-If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</target>
+如果指定了符合 ECMAScript 的行为，则 \W 等效于 [^a-zA-Z_0-9]</target>
         <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized. </note>
       </trans-unit>
       <trans-unit id="Regex_non_word_character_short">
         <source>non-word character</source>
-        <target state="new">non-word character</target>
+        <target state="translated">非字词字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_long">
         <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="new">This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+        <target state="translated">此构造禁用回溯。正则表达式引擎将匹配输入字符串中的多个字符。当无进一步的匹配时，它将不回溯以尝试匹配备用模式。(也就是说，子表达式只匹配那些将单独由子表达式匹配的字符串；它不会尝试根据子表达式和其后的任何子表达式匹配字符串。)
 
-This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</target>
+如果你知道回溯不会成功，建议使用此选项。防止正则表达式引擎执行不必要的搜索可提高性能。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_short">
         <source>nonbacktracking subexpression</source>
-        <target state="new">nonbacktracking subexpression</target>
+        <target state="translated">非回溯子表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_long">
@@ -854,230 +854,230 @@ This option is recommended if you know that backtracking will not succeed. Preve
 The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
 
 If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</source>
-        <target state="new">This construct does not capture the substring that is matched by a subexpression:
+        <target state="translated">此构造不捕获由子表达式匹配的子字符串:
 
-The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
+在将限定符应用于组时，通常使用非捕获组构造，但组捕获的子字符串不具有任何意义。
 
-If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</target>
+如果正则表达式包含嵌套的分组构造，则外部非捕获组构造不适用于内部嵌套的组构造。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_short">
         <source>noncapturing group</source>
-        <target state="new">noncapturing group</target>
+        <target state="translated">非捕获组</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_decimal_digit">
         <source>number, decimal digit</source>
-        <target state="new">number, decimal digit</target>
+        <target state="translated">数字，十进制数字</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_letter">
         <source>number, letter</source>
-        <target state="new">number, letter</target>
+        <target state="translated">数字，字母</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_other">
         <source>number, other</source>
-        <target state="new">number, other</target>
+        <target state="translated">数字，其他</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_numbered_backreference_long">
         <source>A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
 
 There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</source>
-        <target state="new">A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
+        <target state="translated">一个带编号的后向引用，其中 "number" 是正则表达式中捕获组的序号位置。例如，\4 与第四个捕获组的内容匹配。
 
-There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</target>
+八进制转义码(例如 \16) 和使用相同表示法的 \number 后向引用之间存在二义性。如果多义性是一个问题，则可以使用 \k&lt;name&gt; 表示法，该符号是明确的，不能与八进制字符代码混淆。同样，十六进制代码(如 \xdd)是明确的，不能与后向引用混淆。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_numbered_backreference_short">
         <source>numbered backreference</source>
-        <target state="new">numbered backreference</target>
+        <target state="translated">带编号的后向引用</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_control">
         <source>other, control</source>
-        <target state="new">other, control</target>
+        <target state="translated">其他，控件</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_format">
         <source>other, format</source>
-        <target state="new">other, format</target>
+        <target state="translated">其他，格式</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_not_assigned">
         <source>other, not assigned</source>
-        <target state="new">other, not assigned</target>
+        <target state="translated">其他，未分配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_private_use">
         <source>other, private use</source>
-        <target state="new">other, private use</target>
+        <target state="translated">其他，专用</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_surrogate">
         <source>other, surrogate</source>
-        <target state="new">other, surrogate</target>
+        <target state="translated">其他，代理项</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_group_long">
         <source>A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur.</source>
-        <target state="new">A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur.</target>
+        <target state="translated">正字符组指定字符列表，其中的任何一个字符都可能出现在输入字符串中，以使匹配发生。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_group_short">
         <source>positive character group</source>
-        <target state="new">positive character group</target>
+        <target state="translated">正字符组</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_range_long">
         <source>A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </source>
-        <target state="new">A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </target>
+        <target state="translated">正字符范围指定一个字符范围，其中的任何一个字符都可能出现在输入字符串中，以使匹配发生。 "firstCharacter" 是该范围的起始字符，而 "lastCharacter" 是该范围的结束字符。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_range_short">
         <source>positive character range</source>
-        <target state="new">positive character range</target>
+        <target state="translated">正字符范围</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_close">
         <source>punctuation, close</source>
-        <target state="new">punctuation, close</target>
+        <target state="translated">标点，结束</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_connector">
         <source>punctuation, connector</source>
-        <target state="new">punctuation, connector</target>
+        <target state="translated">标点，连接符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_dash">
         <source>punctuation, dash</source>
-        <target state="new">punctuation, dash</target>
+        <target state="translated">标点，短划线</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_final_quote">
         <source>punctuation, final quote</source>
-        <target state="new">punctuation, final quote</target>
+        <target state="translated">标点，右引号</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_initial_quote">
         <source>punctuation, initial quote</source>
-        <target state="new">punctuation, initial quote</target>
+        <target state="translated">标点，左引号</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_open">
         <source>punctuation, open</source>
-        <target state="new">punctuation, open</target>
+        <target state="translated">标点，开始</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_other">
         <source>punctuation, other</source>
-        <target state="new">punctuation, other</target>
+        <target state="translated">标点，其他</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_line">
         <source>separator, line</source>
-        <target state="new">separator, line</target>
+        <target state="translated">分隔符，行</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_paragraph">
         <source>separator, paragraph</source>
-        <target state="new">separator, paragraph</target>
+        <target state="translated">分隔符，段落</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_space">
         <source>separator, space</source>
-        <target state="new">separator, space</target>
+        <target state="translated">分隔符，空格</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_only_long">
         <source>The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</source>
-        <target state="new">The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</target>
+        <target state="translated">\A 定位点指定匹配必须出现在输入字符串的开头。它与 ^ 定位点相同，只不过 \A 忽略了 RegexOptions 选项。因此，它只能匹配多行输入字符串中第一行的开头。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_only_short">
         <source>start of string only</source>
-        <target state="new">start of string only</target>
+        <target state="translated">仅字符串的开头</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_or_line_long">
         <source>The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</source>
-        <target state="new">The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</target>
+        <target state="translated">^ 定位点指定以下模式必须从字符串的第一个字符位置开始。如果使用 ^ 和 RegexOptions 选项，则匹配必须出现在每行的开头。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_or_line_short">
         <source>start of string or line</source>
-        <target state="new">start of string or line</target>
+        <target state="translated">字符串或行的开头</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_subexpression">
         <source>subexpression</source>
-        <target state="new">subexpression</target>
+        <target state="translated">子表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_currency">
         <source>symbol, currency</source>
-        <target state="new">symbol, currency</target>
+        <target state="translated">符号，货币</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_math">
         <source>symbol, math</source>
-        <target state="new">symbol, math</target>
+        <target state="translated">符号，数学</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_modifier">
         <source>symbol, modifier</source>
-        <target state="new">symbol, modifier</target>
+        <target state="translated">符号，修饰符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_other">
         <source>symbol, other</source>
-        <target state="new">symbol, other</target>
+        <target state="translated">符号，其他</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_tab_character_long">
         <source>Matches a tab character, \u0009</source>
-        <target state="new">Matches a tab character, \u0009</target>
+        <target state="translated">与制表符(\u0009)匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_tab_character_short">
         <source>tab character</source>
-        <target state="new">tab character</target>
+        <target state="translated">制表符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_long">
         <source>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="new">The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</target>
+        <target state="translated">正则表达式构造 \p{name} 匹配属于 Unicode 通用类别或命名块的任何字符，其中 "name" 是类别缩写或命名块名称。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_short">
         <source>unicode category</source>
-        <target state="new">unicode category</target>
+        <target state="translated">Unicode 类别</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_escape_long">
         <source>Matches a UTF-16 code unit whose value is #### hexadecimal.</source>
-        <target state="new">Matches a UTF-16 code unit whose value is #### hexadecimal.</target>
+        <target state="translated">与值为 ####十六进制的 utf-16 代码单元匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_escape_short">
         <source>unicode escape</source>
-        <target state="new">unicode escape</target>
+        <target state="translated">Unicode 转义</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_general_category_0">
         <source>Unicode General Category: {0}</source>
-        <target state="new">Unicode General Category: {0}</target>
+        <target state="translated">Unicode 通用类别: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_vertical_tab_character_long">
         <source>Matches a vertical-tab character, \u000B</source>
-        <target state="new">Matches a vertical-tab character, \u000B</target>
+        <target state="translated">与垂直制表符(\u000B)匹配</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_vertical_tab_character_short">
         <source>vertical-tab character</source>
-        <target state="new">vertical-tab character</target>
+        <target state="translated">垂直制表符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_white_space_character_long">
@@ -1092,36 +1092,36 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
     \p{Z}	Matches any separator character
 
 If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</source>
-        <target state="new">\s matches any white-space character. It is equivalent to the following escape sequences and Unicode categories:
+        <target state="translated">\s 与任何空格字符匹配。它等效于以下转义序列和 Unicode 类别:
 
-    \f	The form feed character, \u000C
-    \n	The newline character, \u000A
-    \r	The carriage return character, \u000D
-    \t	The tab character, \u0009
-    \v	The vertical tab character, \u000B
-    \x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
-    \p{Z}	Matches any separator character
+    \f	换页符 \u000C
+    \n	换行符 \u000A
+    \rr	回车符 \u000D
+    \t	制表符 \u0009
+    \v	垂直制表符 \u000B
+    \x85	省略号或下一行(NEL)字符(…) \u0085
+    \p{Z}	匹配任何分隔符字符
 
-If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</target>
+如果指定了符合 ECMAScript 的行为，则 \s 等效于 [ \f\n\r\t\v]</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_white_space_character_short">
         <source>white-space character</source>
-        <target state="new">white-space character</target>
+        <target state="translated">空格字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_boundary_long">
         <source>The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
 
 The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</source>
-        <target state="new">The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+        <target state="translated">\b 定位点指定匹配必须出现在字词字符(\w 语言元素)和非字词字符(\w 语言元素)之间的边界上。字词字符由字母数字字符和下划线组成；非字词字符是任何不是字母数字或下划线的字符。匹配也可能出现在字符串开头或结尾的字边界上。
 
-The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</target>
+\b 定位点经常用于确保子表达式匹配整个字而不只是匹配字的开头或结尾。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_boundary_short">
         <source>word boundary</source>
-        <target state="new">word boundary</target>
+        <target state="translated">字边界</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_character_long">
@@ -1137,84 +1137,84 @@ The \b anchor is frequently used to ensure that a subexpression matches an entir
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</source>
-        <target state="new">\w matches any word character. A word character is a member of any of the following Unicode categories:
+        <target state="translated">\w 匹配任何字词字符。字词字符是以下任何 Unicode 类别中的成员之一:
 
-    Ll	Letter, Lowercase
-    Lu	Letter, Uppercase
-    Lt	Letter, Titlecase
-    Lo	Letter, Other
-    Lm	Letter, Modifier
-    Mn	Mark, Nonspacing
-    Nd	Number, Decimal Digit
-    Pc	Punctuation, Connector
+    Ll	字母，小写
+    Lu	字母，大写
+    Lt	字母，首字母大写
+    Lo	字母，其他
+    Lm	字母，修饰符
+    Mn	标记，非间距
+    Nd	数字，十进制数字
+    Pc	标点，连接符
 
-If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</target>
+如果指定了符合 ECMAScript 的行为，则 \w 等效于 [a-zA-Z_0-9]</target>
         <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized.</note>
       </trans-unit>
       <trans-unit id="Regex_word_character_short">
         <source>word character</source>
-        <target state="new">word character</target>
+        <target state="translated">字词字符</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">是</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
         <source>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
 
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
-        <target state="new">A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+        <target state="translated">零宽负向先行断言(即要成功匹配)，输入字符串不得与子表达式中的正则表达式模式匹配。匹配的字符串未包含在匹配结果中。
 
-A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</target>
+零宽负向先行断言通常在正则表达式的开头或结尾使用。在正则表达式的开头，它可以定义一个特定模式，当正则表达式的开头定义类似但更多个要匹配的常规模式时，不应匹配该模式。在这种情况下，它通常用于限制回溯。在正则表达式的末尾，它可以定义无法在匹配结束时出现的子表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
         <source>zero-width negative lookahead assertion</source>
-        <target state="new">zero-width negative lookahead assertion</target>
+        <target state="translated">零宽负向先行断言</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_long">
         <source>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
 
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</source>
-        <target state="new">A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
+        <target state="translated">零宽负向后行断言(即要成功匹配)，不得在输入字符串的当前位置左侧出现 "subexpression"。与 "subexpression" 不匹配的任何子字符串都不包含在匹配结果中。
 
-Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</target>
+零宽负向后行断言通常在正则表达式开头使用。它们定义的模式在后面的字符串中排除匹配。当捕获组中的最后一个字符不能是与该组的正则表达式模式匹配的一个或多个字符时，它们也用于限制回溯。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_short">
         <source>zero-width negative lookbehind assertion</source>
-        <target state="new">zero-width negative lookbehind assertion</target>
+        <target state="translated">零宽负向后行断言</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_long">
         <source>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</source>
-        <target state="new">A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+        <target state="translated">零宽正向先行断言(即要成功匹配)，输入字符串必须与 "subexpression" 中的正则表达式模式匹配。匹配结果中不包括匹配的子字符串。零宽正向先行断言不回溯。
 
-Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</target>
+零宽正向先行断言通常出现在正则表达式模式的末尾。它定义一个子字符串，该字符串必须位于字符串的末尾(以便匹配发生)但不应包含在匹配中。它对于防止过度回溯也很有用。可以使用零宽正向先行断言来确保特定捕获的组以与为捕获的组定义的模式的子集匹配的文本开头。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_short">
         <source>zero-width positive lookahead assertion</source>
-        <target state="new">zero-width positive lookahead assertion</target>
+        <target state="translated">零宽正向先行断言</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_long">
         <source>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
 
 Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</source>
-        <target state="new">A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
+        <target state="translated">零宽正向后行断言(即要成功匹配)，"subexpression" 必须出现在输入字符串的当前位置左侧。匹配结果中不包含 "subexpression"。零宽正向后行断言不会回溯。
 
-Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</target>
+零宽正向后行断言通常在正则表达式开头使用。它们定义的模式是匹配项的前提条件，尽管它不是匹配结果的一部分。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
         <source>zero-width positive lookbehind assertion</source>
-        <target state="new">zero-width positive lookbehind assertion</target>
+        <target state="translated">零宽正向后行断言</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
@@ -1224,7 +1224,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
-        <target state="new">Removing analyzer config documents is not supported.</target>
+        <target state="translated">不支持删除分析器配置文档。</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -1304,48 +1304,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>
-        <target state="new">Symbol specifications</target>
+        <target state="translated">符号规范</target>
         <note />
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
-        <source>Base Type</source>
-        <target state="new">Base Type</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Construct">
-        <source>Construct</source>
-        <target state="new">Construct</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Declare">
-        <source>Declare</source>
-        <target state="new">Declare</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Import">
-        <source>Import</source>
-        <target state="new">Import</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
-        <source>Qualify</source>
-        <target state="new">Qualify</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
-        <source>Type Argument</source>
-        <target state="new">Type Argument</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
-        <source>Type Constraint</source>
-        <target state="new">Type Constraint</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Name">
-        <source>Name</source>
-        <target state="new">Name</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
@@ -1839,7 +1799,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_returned_an_uninitialized_ImmutableArray">
         <source>'{0}' returned an uninitialized ImmutableArray</source>
-        <target state="translated">'“{0}”返回一个未初始化的 ImmutableArray</target>
+        <target state="translated">“{0}”返回一个未初始化的 ImmutableArray</target>
         <note />
       </trans-unit>
       <trans-unit id="Failure">
@@ -2014,7 +1974,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="None">
         <source>None</source>
-        <target state="translated">没有</target>
+        <target state="translated">无</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_suffix_colon_0">
@@ -2246,21 +2206,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Regex issue: {0}</source>
         <target state="translated">正则表达式问题: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Read">
-        <source>Read</source>
-        <target state="needs-review-translation">读取</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Reference">
-        <source>Reference</source>
-        <target state="needs-review-translation">引用</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Write">
-        <source>Write</source>
-        <target state="needs-review-translation">写入</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Parameter_preferences">
         <source>Parameter preferences</source>

@@ -133,9 +133,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             await TaskScheduler.Default;
 
-            // Perf: Initialize the command handlers.
-            var commandHandlerServiceFactory = this.ComponentModel.GetService<ICommandHandlerServiceFactory>();
-            commandHandlerServiceFactory.Initialize(ContentTypeNames.RoslynContentType);
             await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
 
             // Initialize any experiments async
@@ -158,11 +155,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await TaskScheduler.Default;
 
             await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
-                .InitializeResetInteractiveFromProjectCommandAsync(cancellationToken)
+                .InitializeResetInteractiveFromProjectCommandAsync()
                 .ConfigureAwait(true);
 
             await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
-                .InitializeResetInteractiveFromProjectCommandAsync(cancellationToken)
+                .InitializeResetInteractiveFromProjectCommandAsync()
                 .ConfigureAwait(true);
         }
 

@@ -200,9 +200,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private void PrimeLanguageServiceComponentsOnBackground(IComponentModel componentModel)
         {
-            var commandHandlerServiceFactory = componentModel.GetService<ICommandHandlerServiceFactory>();
-            commandHandlerServiceFactory.Initialize(this.ContentTypeName);
-
             var formatter = this.Workspace.Services.GetLanguageServices(RoslynLanguageName).GetService<ISyntaxFormattingService>();
             if (formatter != null)
             {
@@ -233,17 +230,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             Debug.Assert(!wpfTextView.Properties.ContainsProperty(typeof(AbstractVsTextViewFilter<TPackage, TLanguageService>)));
 
-            var commandHandlerFactory = Package.ComponentModel.GetService<ICommandHandlerServiceFactory>();
             var workspace = Package.ComponentModel.GetService<VisualStudioWorkspace>();
 
             // The lifetime of CommandFilter is married to the view
             wpfTextView.GetOrCreateAutoClosingProperty(v =>
                 new StandaloneCommandFilter<TPackage, TLanguageService>(
-                    (TLanguageService)this, v, commandHandlerFactory, EditorAdaptersFactoryService).AttachToVsTextView());
-
-            // Ensure we start sending save events
-            var saveEventsService = Package.ComponentModel.GetService<SaveEventsService>();
-            saveEventsService.StartSendingSaveEvents();
+                    (TLanguageService)this, v, EditorAdaptersFactoryService).AttachToVsTextView());
 
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
@@ -348,10 +340,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var subjectBuffer = wpfTextView.TextBuffer;
             var snapshot = subjectBuffer.CurrentSnapshot;
             var tagger = outliningTaggerProvider.CreateTagger<IOutliningRegionTag>(subjectBuffer);
-            using (var disposable = tagger as IDisposable)
-            {
-                tagger.GetAllTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()), CancellationToken.None);
-            }
+
+            using var disposable = tagger as IDisposable;
+            tagger.GetAllTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()), CancellationToken.None);
         }
 
         private void InitializeLanguageDebugInfo()

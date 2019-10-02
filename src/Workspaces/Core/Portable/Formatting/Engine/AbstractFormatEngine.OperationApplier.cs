@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // check whether current position is less than indentation
                 if (endColumnOfPreviousToken < indentation)
                 {
+                    Debug.Assert(!_context.IsFormattingDisabled(pairIndex));
+
                     _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithSpace(indentation - endColumnOfPreviousToken, _context, _formattingRules));
                     return true;
                 }
@@ -93,6 +95,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return false;
                 }
 
+                Debug.Assert(!_context.IsFormattingDisabled(pairIndex));
+
                 _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithSpace(space, _context, _formattingRules));
                 return true;
             }
@@ -105,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 {
                     return false;
                 }
+
+                Debug.Assert(!_context.IsFormattingDisabled(pairIndex));
 
                 _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithSpace(operation.Space, _context, _formattingRules));
                 return true;
@@ -126,6 +132,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 {
                     return false;
                 }
+
+                Debug.Assert(!_context.IsFormattingDisabled(pairIndex));
 
                 _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithSpace(space, _context, _formattingRules));
                 return true;
@@ -173,6 +181,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return true;
                 }
 
+                Debug.Assert(!_context.IsFormattingDisabled(pairIndex));
+
                 // well, force it regardless original content
                 _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithLine(operation.Line, indentation, _context, _formattingRules, cancellationToken));
                 return true;
@@ -188,6 +198,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var indentation = _context.GetBaseIndentation(_context.TokenStream.GetToken(pairIndex + 1));
                 if (operation.Line > triviaInfo.LineBreaks)
                 {
+                    Debug.Assert(!_context.IsFormattingDisabled(pairIndex));
+
                     // alright force them
                     _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithLine(operation.Line, indentation, _context, _formattingRules, cancellationToken));
                     return true;
@@ -197,6 +209,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (triviaInfo.SecondTokenIsFirstTokenOnLine &&
                     indentation != triviaInfo.Spaces)
                 {
+                    // Formatting can only be disabled for entire lines. This block only modifies the line containing
+                    // the second token of the current pair, so we only need to check for disabled formatting at the
+                    // starting position of the second token of the pair.
+                    Debug.Assert(!_context.IsFormattingDisabled(new TextSpan(_context.TokenStream.GetToken(pairIndex + 1).SpanStart, 0)));
+
                     _context.TokenStream.ApplyChange(pairIndex, triviaInfo.WithIndentation(indentation, _context, _formattingRules, cancellationToken));
                     return true;
                 }
@@ -335,6 +352,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return;
                 }
 
+                if (_context.IsFormattingDisabled(spanBetweenTokens))
+                {
+                    return;
+                }
+
                 // okay, update indentation
                 _context.TokenStream.ApplyChange(
                     previousToken.IndexInStream,
@@ -447,6 +469,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                     // indentation didn't actually move. nothing to change
                     return;
                 }
+
+                Debug.Assert(!_context.IsFormattingDisabled(pairIndex));
 
                 // record the fact that this pair has been moved
                 Debug.Assert(!previousChangesMap.ContainsKey(currentToken));

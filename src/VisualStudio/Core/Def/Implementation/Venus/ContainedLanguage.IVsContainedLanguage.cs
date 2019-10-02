@@ -36,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return VSConstants.E_FAIL;
             }
 
-            var commandHandlerServiceFactory = ComponentModel.GetService<ICommandHandlerServiceFactory>();
-            textViewFilter = new VenusCommandFilter<TPackage, TLanguageService>(_languageService, wpfTextView, commandHandlerServiceFactory, SubjectBuffer, nextCmdTarget, _editorAdaptersFactoryService);
+            textViewFilter = new VenusCommandFilter<TPackage, TLanguageService>(_languageService, wpfTextView, SubjectBuffer, nextCmdTarget, _editorAdaptersFactoryService);
 
             return VSConstants.S_OK;
         }
@@ -55,8 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return null;
             }
 
-            var view = field.GetValue(intellisenseHost) as IVsTextView;
-            if (view == null)
+            if (!(field.GetValue(intellisenseHost) is IVsTextView view))
             {
                 return null;
             }

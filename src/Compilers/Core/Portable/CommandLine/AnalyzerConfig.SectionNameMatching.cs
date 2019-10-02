@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     public sealed partial class AnalyzerConfig
     {
-        public readonly struct SectionNameMatcher
+        internal readonly struct SectionNameMatcher
         {
             private readonly ImmutableArray<(int minValue, int maxValue)> _numberRangePairs;
             // internal for testing
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
         /// matches the the given language. Returns null if the section name is
         /// invalid.
         /// </summary>
-        public static SectionNameMatcher? TryCreateSectionNameMatcher(string sectionName)
+        internal static SectionNameMatcher? TryCreateSectionNameMatcher(string sectionName)
         {
             // An editorconfig section name is a language for recognizing file paths
             // defined by the following grammar:
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Compile a globbing character class of the form [...]. Returns true if
-        /// the character class was succesfully compiled. False if there was a syntax
+        /// the character class was successfully compiled. False if there was a syntax
         /// error. The starting character is expected to be directly after the '['.
         /// </summary>
         private static bool TryCompileCharacterClass(ref SectionNameLexer lexer, StringBuilder sb)
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis
             // Try to compile the nested <path-list>
             while (TryCompilePathList(ref lexer, sb, parsingChoice: true, numberRangePairs))
             {
-                // If we've succesfully compiled a <path-list> the last token should
+                // If we've successfully compiled a <path-list> the last token should
                 // have been a ',' or a '}'
                 char lastChar = lexer[lexer.Position - 1];
                 if (lastChar == ',')

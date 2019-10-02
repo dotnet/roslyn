@@ -2582,7 +2582,6 @@ End Namespace
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0,
-                expectedBlankLineIndentation:=0,
                 indentStyle:=FormattingOptions.IndentStyle.None)
         End Sub
 
@@ -2970,6 +2969,27 @@ End Class
                 expectedIndentation:=12)
         End Sub
 
+        <WorkItem(38819, "https://github.com/dotnet/roslyn/issues/38819")>
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub IndentationOfReturnInFileWithTabs1()
+            dim code = "
+public class Example
+	public sub Test(session as object)
+		if (session is nothing)
+return
+	end sub
+end class"
+            ' Ensure the test code doesn't get switched to spaces
+            Assert.Contains(vbTab & vbTab & "if (session is nothing)", code)
+            AssertSmartIndent(
+                code,
+                indentationLine:=4,
+                expectedIndentation:=12,
+                useTabs:=True,
+                indentStyle:=FormattingOptions.IndentStyle.Smart)
+        End sub
+
         Private Sub AssertSmartIndentIndentationInProjection(
                 markup As String,
                 expectedIndentation As Integer)
@@ -2996,10 +3016,21 @@ End Class
         Private Sub AssertSmartIndent(
                 code As String, indentationLine As Integer,
                 expectedIndentation As Integer?,
-                Optional expectedBlankLineIndentation As Integer? = Nothing,
                 Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
+            AssertSmartIndent(code, indentationLine, expectedIndentation, useTabs:=False, indentStyle)
+            AssertSmartIndent(code.Replace("    ", vbTab), indentationLine, expectedIndentation, useTabs:=True, indentStyle)
+        End Sub
+
+        ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
+        Private Sub AssertSmartIndent(
+                code As String, indentationLine As Integer,
+                expectedIndentation As Integer?,
+                useTabs As Boolean,
+                indentStyle As FormattingOptions.IndentStyle)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
+                workspace.Options = workspace.Options _
+                    .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle) _
+                    .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, useTabs)
 
                 TestIndentation(workspace, indentationLine, expectedIndentation)
             End Using

@@ -21,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     [Export(typeof(ICommandHandler))]
     [ContentType(CodeAnalysis.Editor.ContentTypeNames.CSharpContentType)]
     [Name("CSharp Snippets")]
-    [Order(After = CodeAnalysis.Editor.PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     [Order(After = CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
     internal sealed class SnippetCommandHandler :

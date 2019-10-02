@@ -3436,18 +3436,25 @@ class Program{
 
         internal static void AutoFormatToken(string markup, string expected)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
-            {
-                var subjectDocument = workspace.Documents.Single();
+            AutoFormatToken(markup, expected, useTabs: false);
+            AutoFormatToken(markup.Replace("    ", "\t"), expected.Replace("    ", "\t"), useTabs: true);
+        }
 
-                var commandHandler = workspace.GetService<FormatCommandHandler>();
-                var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
-                commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
+        internal static void AutoFormatToken(string markup, string expected, bool useTabs)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(markup);
 
-                var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
+            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
 
-                Assert.Equal(expected, newSnapshot.GetText());
-            }
+            var subjectDocument = workspace.Documents.Single();
+
+            var commandHandler = workspace.GetService<FormatCommandHandler>();
+            var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
+            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
+
+            var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
+
+            Assert.Equal(expected, newSnapshot.GetText());
         }
 
         private static Tuple<OptionSet, IEnumerable<AbstractFormattingRule>> GetService(
@@ -3474,42 +3481,49 @@ class Program{
 
         private async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(initialMarkup))
+            await AutoFormatOnMarkerAsync(initialMarkup, expected, useTabs: false, tokenKind, startTokenKind).ConfigureAwait(false);
+            await AutoFormatOnMarkerAsync(initialMarkup.Replace("    ", "\t"), expected.Replace("    ", "\t"), useTabs: true, tokenKind, startTokenKind).ConfigureAwait(false);
+        }
+
+        private async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, bool useTabs, SyntaxKind tokenKind, SyntaxKind startTokenKind)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(initialMarkup);
+
+            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
+
+            var tuple = GetService(workspace);
+            var testDocument = workspace.Documents.Single();
+            var buffer = testDocument.GetTextBuffer();
+            var position = testDocument.CursorPosition.Value;
+
+            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+
+            var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();
+            var endToken = root.FindToken(position);
+            if (position == endToken.SpanStart && !endToken.GetPreviousToken().IsKind(SyntaxKind.None))
             {
-                var tuple = GetService(workspace);
-                var testDocument = workspace.Documents.Single();
-                var buffer = testDocument.GetTextBuffer();
-                var position = testDocument.CursorPosition.Value;
-
-                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-
-                var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();
-                var endToken = root.FindToken(position);
-                if (position == endToken.SpanStart && !endToken.GetPreviousToken().IsKind(SyntaxKind.None))
-                {
-                    endToken = endToken.GetPreviousToken();
-                }
-
-                Assert.Equal(tokenKind, endToken.Kind());
-                var formatter = new CSharpSmartTokenFormatter(tuple.Item1, tuple.Item2, root);
-
-                var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
-                if (tokenRange == null)
-                {
-                    Assert.Equal(startTokenKind, SyntaxKind.None);
-                    return;
-                }
-
-                Assert.Equal(startTokenKind, tokenRange.Value.Item1.Kind());
-                if (tokenRange.Value.Item1.Equals(tokenRange.Value.Item2))
-                {
-                    return;
-                }
-
-                var changes = formatter.FormatRange(workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
-                var actual = GetFormattedText(buffer, changes);
-                Assert.Equal(expected, actual);
+                endToken = endToken.GetPreviousToken();
             }
+
+            Assert.Equal(tokenKind, endToken.Kind());
+            var formatter = new CSharpSmartTokenFormatter(tuple.Item1, tuple.Item2, root);
+
+            var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
+            if (tokenRange == null)
+            {
+                Assert.Equal(SyntaxKind.None, startTokenKind);
+                return;
+            }
+
+            Assert.Equal(startTokenKind, tokenRange.Value.Item1.Kind());
+            if (tokenRange.Value.Item1.Equals(tokenRange.Value.Item2))
+            {
+                return;
+            }
+
+            var changes = formatter.FormatRange(workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
+            var actual = GetFormattedText(buffer, changes);
+            Assert.Equal(expected, actual);
         }
 
         private static string GetFormattedText(ITextBuffer buffer, IList<TextChange> changes)

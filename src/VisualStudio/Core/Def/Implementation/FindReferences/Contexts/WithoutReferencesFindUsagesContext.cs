@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
+using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -23,8 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithoutReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
-                ImmutableArray<AbstractFindUsagesCustomColumnDefinition> customColumns)
-                : base(presenter, findReferencesWindow, customColumns)
+                ImmutableArray<ITableColumnDefinition> customColumns,
+                bool includeContainingTypeAndMemberColumns,
+                bool includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 
@@ -60,7 +63,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     foreach (var sourceSpan in definition.SourceSpans)
                     {
                         var entry = await TryCreateDocumentSpanEntryAsync(
-                            definitionBucket, sourceSpan, HighlightSpanKind.Definition, customColumnsDataOpt: null).ConfigureAwait(false);
+                            definitionBucket,
+                            sourceSpan,
+                            HighlightSpanKind.Definition,
+                            symbolUsageInfo: SymbolUsageInfo.None,
+                            additionalProperties: definition.DisplayableProperties)
+                                .ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }
                 }

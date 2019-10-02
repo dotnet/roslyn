@@ -87,7 +87,7 @@
   <Target Name="_AddCommitHashAttribute"
           DependsOnTargets="InitializeSourceControlInformation"
           BeforeTargets="GetAssemblyAttributes"
-          Condition="'$(GenerateMicrosoftCodeAnalysisCommitHashAttribute)' == 'true'">
+          Condition="'$(GenerateMicrosoftCodeAnalysisCommitHashAttribute)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
     <ItemGroup>
       <AssemblyAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
         <_Parameter1 Condition="'$(OfficialBuild)' == 'true'">$(SourceRevisionId)</_Parameter1>
@@ -186,7 +186,7 @@
   <Target Name="_AppendCommonPackageDescription" 
           BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec" 
           DependsOnTargets="InitializeSourceControlInformation"
-          Condition="'$(IsPackable)' == 'true'">
+          Condition="'$(IsPackable)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
     <PropertyGroup>
       <PackageDescription>
       $(PackageDescription)
@@ -209,6 +209,8 @@
   <PropertyGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- https://github.com/NuGet/Home/issues/8583 -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
   

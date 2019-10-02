@@ -22,6 +22,11 @@
         <target state="translated">C# 格式规则</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_language_server_client">
+        <source>C# Language Server Client</source>
+        <target state="translated">C# 语言服务器客户端</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">放弃</target>
@@ -49,12 +54,12 @@
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
-        <target state="new">Inside namespace</target>
+        <target state="translated">在命名空间中</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>
-        <target state="new">Outside namespace</target>
+        <target state="translated">命名空间外</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
@@ -69,12 +74,12 @@
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">
         <source>Prefer switch expression</source>
-        <target state="new">Prefer switch expression</target>
+        <target state="translated">首选 switch 表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Preferred_using_directive_placement">
         <source>Preferred 'using' directive placement</source>
-        <target state="new">Preferred 'using' directive placement</target>
+        <target state="translated">首选 "using" 指令放置</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
@@ -84,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces (experimental)</source>
-        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <target state="translated">显示 unimported 命名空间中的项(实验)</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
@@ -94,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
-        <target state="new">Suggest usings for types in .NET Framework assemblies</target>
+        <target state="translated">建议对 .NET Framework 程序集中的类型使用 using</target>
         <note />
       </trans-unit>
       <trans-unit id="Surround_With">
@@ -514,7 +519,7 @@
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
         <source>_Show completion list after a character is typed</source>
-        <target state="translated">键入字符后显示完成列表</target>
+        <target state="translated">键入字符后显示完成列表(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -624,7 +629,7 @@
       </trans-unit>
       <trans-unit id="using_preferences_colon">
         <source>'using' preferences:</source>
-        <target state="new">'using' preferences:</target>
+        <target state="translated">"using" 首选项:</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="var_preferences_colon">

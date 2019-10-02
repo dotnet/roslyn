@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConcurrentSet<Suppression> _programmaticSuppressions;
 
         /// <summary>
+        /// Set of diagnostics that have already been processed for application of programmatic suppressions. 
+        /// </summary>
+        private readonly ConcurrentSet<Diagnostic> _diagnosticsProcessedForProgrammaticSuppressions;
+
+        /// <summary>
         /// Flag indicating if the <see cref="Analyzers"/> include any <see cref="DiagnosticSuppressor"/>
         /// which can suppress reported analyzer/compiler diagnostics.
         /// </summary>
@@ -168,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _isGeneratedCode = (tree, ct) => GeneratedCodeUtilities.IsGeneratedCode(tree, isComment, ct);
             _hasDiagnosticSuppressors = this.Analyzers.Any(a => a is DiagnosticSuppressor);
             _programmaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
+            _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
         }
 
         /// <summary>
@@ -631,42 +637,55 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(_hasDiagnosticSuppressors);
             Debug.Assert(!reportedDiagnostics.IsEmpty);
             Debug.Assert(_programmaticSuppressions != null);
+            Debug.Assert(_diagnosticsProcessedForProgrammaticSuppressions != null);
 
-            // We do not allow analyzer based suppressions for following category of diagnostics:
-            //  1. Diagnostics which are already suppressed in source via pragma/suppress message attribute.
-            //  2. Diagnostics explicitly tagged as not configurable by analyzer authors - this includes compiler error diagnostics.
-            //  3. Diagnostics which are marked as error by default by diagnostic authors.
-            var suppressableDiagnostics = reportedDiagnostics.Where(d => !d.IsSuppressed &&
-                                                                         !d.IsNotConfigurable() &&
-                                                                         d.DefaultSeverity != DiagnosticSeverity.Error);
-            if (suppressableDiagnostics.IsEmpty())
+            try
             {
-                return reportedDiagnostics;
-            }
+                // We do not allow analyzer based suppressions for following category of diagnostics:
+                //  1. Diagnostics which are already suppressed in source via pragma/suppress message attribute.
+                //  2. Diagnostics explicitly tagged as not configurable by analyzer authors - this includes compiler error diagnostics.
+                //  3. Diagnostics which are marked as error by default by diagnostic authors.
+                var suppressableDiagnostics = reportedDiagnostics.Where(d => !d.IsSuppressed &&
+                                                                             !d.IsNotConfigurable() &&
+                                                                             d.DefaultSeverity != DiagnosticSeverity.Error &&
+                                                                             !_diagnosticsProcessedForProgrammaticSuppressions.Contains(d));
 
-            executeSuppressionActions(suppressableDiagnostics, concurrent: compilation.Options.ConcurrentBuild);
-            if (_programmaticSuppressions.IsEmpty)
-            {
-                return reportedDiagnostics;
-            }
-
-            var builder = ArrayBuilder<Diagnostic>.GetInstance(reportedDiagnostics.Length);
-            ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> programmaticSuppressionsByDiagnostic = createProgrammaticSuppressionsByDiagnosticMap(_programmaticSuppressions);
-            foreach (var diagnostic in reportedDiagnostics)
-            {
-                if (programmaticSuppressionsByDiagnostic.TryGetValue(diagnostic, out var programmaticSuppressionInfo))
+                if (suppressableDiagnostics.IsEmpty())
                 {
-                    Debug.Assert(suppressableDiagnostics.Contains(diagnostic));
-                    Debug.Assert(!diagnostic.IsSuppressed);
-                    builder.Add(diagnostic.WithProgrammaticSuppression(programmaticSuppressionInfo));
+                    return reportedDiagnostics;
                 }
-                else
-                {
-                    builder.Add(diagnostic);
-                }
-            }
 
-            return builder.ToImmutableAndFree();
+                executeSuppressionActions(suppressableDiagnostics, concurrent: compilation.Options.ConcurrentBuild);
+                if (_programmaticSuppressions.IsEmpty)
+                {
+                    return reportedDiagnostics;
+                }
+
+                var builder = ArrayBuilder<Diagnostic>.GetInstance(reportedDiagnostics.Length);
+                ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> programmaticSuppressionsByDiagnostic = createProgrammaticSuppressionsByDiagnosticMap(_programmaticSuppressions);
+                foreach (var diagnostic in reportedDiagnostics)
+                {
+                    if (programmaticSuppressionsByDiagnostic.TryGetValue(diagnostic, out var programmaticSuppressionInfo))
+                    {
+                        Debug.Assert(suppressableDiagnostics.Contains(diagnostic));
+                        Debug.Assert(!diagnostic.IsSuppressed);
+                        var suppressedDiagnostic = diagnostic.WithProgrammaticSuppression(programmaticSuppressionInfo);
+                        Debug.Assert(suppressedDiagnostic.IsSuppressed);
+                        builder.Add(suppressedDiagnostic);
+                    }
+                    else
+                    {
+                        builder.Add(diagnostic);
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+            finally
+            {
+                // Mark the reported diagnostics as processed for programmatic suppressions to avoid duplicate callbacks to suppressors for same diagnostics.
+                _diagnosticsProcessedForProgrammaticSuppressions.AddRange(reportedDiagnostics);
+            }
 
             void executeSuppressionActions(IEnumerable<Diagnostic> reportedDiagnostics, bool concurrent)
             {

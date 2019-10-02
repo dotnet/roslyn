@@ -625,6 +625,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
         }
 
+        public static bool Equals(Symbol first, Symbol second, TypeCompareKind compareKind)
+        {
+            if (first is null)
+            {
+                return second is null;
+            }
+
+            return first.Equals(second, compareKind);
+        }
+
         /// <summary>
         /// Returns a string representation of this symbol, suitable for debugging purposes, or
         /// for placing in an error message.
@@ -1282,6 +1292,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Parameter:
                     break;
+
+                case SymbolKind.Method:
+                    if (variable is LocalFunctionSymbol localFunction)
+                    {
+                        // calling a static local function doesn't require capturing state
+                        if (localFunction.IsStatic)
+                        {
+                            return false;
+                        }
+
+                        break;
+                    }
+
+                    throw ExceptionUtilities.UnexpectedValue(variable);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(variable.Kind);

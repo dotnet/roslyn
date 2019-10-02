@@ -111,8 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                         }
 
                         var extensionType_GetContentMethod = extensionType.GetRuntimeMethod("GetContentLocation", new Type[] { parameterType });
-                        var assembly = extensionType_GetContentMethod?.Invoke(extension, new object[] { content }) as string;
-                        if (assembly == null)
+                        if (!(extensionType_GetContentMethod?.Invoke(extension, new object[] { content }) is string assembly))
                         {
                             continue;
                         }

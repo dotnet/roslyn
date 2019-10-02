@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Determine what we can learn from one successful runtime type test about another planned
         /// runtime type test for the purpose of building the decision tree.
-        /// We accomodate a special behavior of the runtime here, which does not match the language rules.
+        /// We accommodate a special behavior of the runtime here, which does not match the language rules.
         /// A value of type `int[]` is an "instanceof" (i.e. result of the `isinst` instruction) the type
         /// `uint[]` and vice versa.  It is similarly so for every pair of same-sized numeric types, and
         /// arrays of enums are considered to be their underlying type.  We need the dag construction to

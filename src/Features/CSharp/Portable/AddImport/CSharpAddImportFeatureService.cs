@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 }
             }
 
-            // Didn't conflict with anything.  We shoudl remove the global:: alias.
+            // Didn't conflict with anything.  We should remove the global:: alias.
             return false;
         }
 

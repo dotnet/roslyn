@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
-using System;
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -25,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private HashSet<Symbol> _unassignedVariables;
         private ImmutableArray<ISymbol> _dataFlowsIn;
         private ImmutableArray<ISymbol> _dataFlowsOut;
+        private ImmutableArray<ISymbol> _definitelyAssignedOnEntry;
+        private ImmutableArray<ISymbol> _definitelyAssignedOnExit;
         private ImmutableArray<ISymbol> _alwaysAssigned;
         private ImmutableArray<ISymbol> _readInside;
         private ImmutableArray<ISymbol> _writtenInside;
@@ -99,6 +100,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return _dataFlowsIn;
             }
+        }
+
+        /// <summary>
+        /// The set of local variables which are definitely assigned a value when a region is
+        /// entered.
+        /// </summary>
+        public override ImmutableArray<ISymbol> DefinitelyAssignedOnEntry
+            => ComputeDefinitelyAssignedValues().onEntry;
+
+        /// <summary>
+        /// The set of local variables which are definitely assigned a value when a region is
+        /// exited.
+        /// </summary>
+        public override ImmutableArray<ISymbol> DefinitelyAssignedOnExit
+            => ComputeDefinitelyAssignedValues().onExit;
+
+        private (ImmutableArray<ISymbol> onEntry, ImmutableArray<ISymbol> onExit) ComputeDefinitelyAssignedValues()
+        {
+            // Check for _definitelyAssignedOnExit as that's the last thing we write to. If it's not
+            // Default, then we'll have written to both variables and can safely read from either of
+            // them.
+            if (_definitelyAssignedOnExit.IsDefault)
+            {
+                var entryResult = ImmutableArray<ISymbol>.Empty;
+                var exitResult = ImmutableArray<ISymbol>.Empty;
+                if (Succeeded)
+                {
+                    var (entry, exit) = DefinitelyAssignedWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion);
+                    entryResult = Normalize(entry);
+                    exitResult = Normalize(exit);
+                }
+
+                ImmutableInterlocked.InterlockedInitialize(ref _definitelyAssignedOnEntry, entryResult);
+                ImmutableInterlocked.InterlockedInitialize(ref _definitelyAssignedOnExit, exitResult);
+            }
+
+            return (_definitelyAssignedOnEntry, _definitelyAssignedOnExit);
         }
 
         /// <summary>

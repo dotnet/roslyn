@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     Partial Friend Class ImportsOrganizer
-        Private Shared ReadOnly s_newLine As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
+        Private Shared ReadOnly s_newLine As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
 
         Public Shared Function Organize([imports] As SyntaxList(Of ImportsStatementSyntax),
                                         placeSystemNamespaceFirst As Boolean,

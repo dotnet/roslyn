@@ -341,26 +341,26 @@ public class Point
         int i = 12;
         if (i is default) {} // error 1
         if (i is (default)) {} // error 2
-        switch (i) { case default: break; } // warning 3
+        switch (i) { case default: break; } // error 3
         switch (i) { case default when true: break; } // error 4
         switch ((1, 2)) { case (1, default): break; } // error 5
     }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,18): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (6,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default) {} // error 1
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 18),
-                // (7,19): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (7,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default)) {} // error 2
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(7, 19),
-                // (8,27): error CS8313: Did you mean to use the default switch label ('default:') rather than 'case default:'? If you really mean to use the default value, use another literal ('case 0:' or 'case null:') as appropriate.
-                //         switch (i) { case default: break; } // warning 3
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(8, 27),
-                // (9,27): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (8,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                //         switch (i) { case default: break; } // error 3
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 27),
+                // (9,27): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case default when true: break; } // error 4
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(9, 27),
-                // (10,36): error CS8405: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
+                // (10,36): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch ((1, 2)) { case (1, default): break; } // error 5
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(10, 36)
                 );
@@ -494,7 +494,7 @@ public class Point
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         var r = 1 switch { };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19),
                 // (5,19): error CS8506: No best type was found for the switch expression.
@@ -518,7 +518,7 @@ public class Point
     public delegate void D();
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (5,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         var x = 1 switch { 0 => M, 1 => new D(M), 2 => M };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19)
                 );
@@ -609,7 +609,7 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,19): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (7,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         var c = a switch { var x2 when x2 is var x3 => x3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 19)
                 );

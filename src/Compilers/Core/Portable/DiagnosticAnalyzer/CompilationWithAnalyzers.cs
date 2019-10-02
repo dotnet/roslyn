@@ -688,11 +688,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     // Track if this task was suspended by another tree diagnostics request for the same tree.
                     // If so, we wait for the high priority requests to complete before restarting analysis.
-                    bool suspendend;
+                    bool suspended;
                     var pendingEvents = ImmutableArray<CompilationEvent>.Empty;
                     do
                     {
-                        suspendend = false;
+                        suspended = false;
 
                         // Create a new cancellation source to allow higher priority requests to suspend our analysis.
                         using (cts = new CancellationTokenSource())
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                         throw;
                                     }
 
-                                    suspendend = true;
+                                    suspended = true;
                                 }
                                 finally
                                 {
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 }
                             }
                         }
-                    } while (suspendend);
+                    } while (suspended);
 
                     return (pendingEvents, hasSymbolStartActions: driver?.HasSymbolStartedActions(analysisScope) ?? false);
                 }
@@ -780,12 +780,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task GenerateCompilationEventsAndPopulateEventsCacheAsync(AnalysisScope analysisScope, AnalyzerDriver driver, CancellationToken cancellationToken)
         {
-#if SIMULATED_EVENT_QUEUE
-            await _analysisState.GenerateSimulatedCompilationEventsAsync(analysisScope, _compilation, _compilationData.GetOrCreateCachedSemanticModel, driver, cancellationToken).ConfigureAwait(false);
-#else
             GenerateCompilationEvents(analysisScope, cancellationToken);
             await PopulateEventsCacheAsync(cancellationToken).ConfigureAwait(false);
-#endif
         }
 
         private void GenerateCompilationEvents(AnalysisScope analysisScope, CancellationToken cancellationToken)

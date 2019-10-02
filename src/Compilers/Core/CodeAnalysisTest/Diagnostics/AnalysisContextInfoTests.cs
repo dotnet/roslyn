@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private class Analyzer : DiagnosticAnalyzer
         {
-            public const string Id = "expection";
+            public const string Id = "exception";
             private static readonly DiagnosticDescriptor s_rule = GetRule(Id);
 
             private readonly Func<string, bool> _throwPredicate;

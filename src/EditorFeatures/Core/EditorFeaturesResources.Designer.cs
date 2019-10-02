@@ -702,6 +702,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to items from unimported namespaces.
+        /// </summary>
+        internal static string Expander_display_text {
+            get {
+                return ResourceManager.GetString("Expander_display_text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expander.
+        /// </summary>
+        internal static string Expander_image_element {
+            get {
+                return ResourceManager.GetString("Expander_image_element", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extract Interface.
         /// </summary>
         internal static string Extract_Interface {
@@ -923,6 +941,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Go_To_Adjacent_Member {
             get {
                 return ResourceManager.GetString("Go_To_Adjacent_Member", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Go To Base.
+        /// </summary>
+        internal static string Go_To_Base {
+            get {
+                return ResourceManager.GetString("Go_To_Base", resourceCulture);
             }
         }
         
@@ -1202,6 +1229,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Loading_Peek_information {
             get {
                 return ResourceManager.GetString("Loading_Peek_information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Locating bases....
+        /// </summary>
+        internal static string Locating_bases {
+            get {
+                return ResourceManager.GetString("Locating_bases", resourceCulture);
             }
         }
         
@@ -1923,6 +1959,42 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string This_session_has_already_been_dismissed {
             get {
                 return ResourceManager.GetString("This_session_has_already_been_dismissed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggle Block Comment.
+        /// </summary>
+        internal static string Toggle_Block_Comment {
+            get {
+                return ResourceManager.GetString("Toggle_Block_Comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggle Line Comment.
+        /// </summary>
+        internal static string Toggle_Line_Comment {
+            get {
+                return ResourceManager.GetString("Toggle_Line_Comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggling block comment....
+        /// </summary>
+        internal static string Toggling_block_comment {
+            get {
+                return ResourceManager.GetString("Toggling_block_comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggling line comment....
+        /// </summary>
+        internal static string Toggling_line_comment {
+            get {
+                return ResourceManager.GetString("Toggling_line_comment", resourceCulture);
             }
         }
         
