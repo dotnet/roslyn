@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using System.Collections.Immutable;
@@ -54,7 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 var method = GetIntrinsicMethod(_compilation, ExpressionCompilerConstants.GetVariableValueMethodName);
                 var local = variable.LocalSymbol;
+#nullable disable // can 'method' be null here?
                 var expr = InvokeGetMethod(method, variable.Syntax, local.Name);
+#nullable enable
                 return ConvertToLocalType(_compilation, expr, local.Type, diagnostics);
             }
 
@@ -69,7 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // TODO: refs are available
                 // Debug.Assert(method.ReturnType.TypeKind == TypeKind.Error); // If byref return types are supported in the future, use method as is.
                 method = new PlaceholderMethodSymbol(
+#nullable disable // can 'method' be null here?
                     method.ContainingType,
+#nullable enable
                     method.Name,
                     m => method.TypeParameters.SelectAsArray(t => (TypeParameterSymbol)new SimpleTypeParameterSymbol(m, t.Ordinal, t.Name)),
                     m => m.TypeParameters[0], // return type is <>T&

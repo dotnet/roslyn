@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -30,7 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var argument = new BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_address),
+#nullable disable // can 'method' be null here?
                 method.Parameters[0].Type);
+#nullable enable
             var call = BoundCall.Synthesized(
                 syntax,
                 receiverOpt: null,
