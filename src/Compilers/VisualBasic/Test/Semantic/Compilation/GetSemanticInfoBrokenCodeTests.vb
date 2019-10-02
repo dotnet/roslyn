@@ -321,7 +321,7 @@ End Module
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
-End Class
+End Clas 'Class is intentionally misspelled here
 Namespace N
     Class B
         Sub M(Optional o = Nothing)
