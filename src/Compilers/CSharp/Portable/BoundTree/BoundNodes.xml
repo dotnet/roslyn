@@ -102,6 +102,7 @@
   -->
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!--
