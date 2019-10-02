@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private TNode WithAnnotations<TNode>(TNode node, CodeGenerationOptions options) where TNode : SyntaxNode
         {
             return options?.AddImports ?? true
-                ? node.WithAdditionalAnnotations(Simplifier.Annotation)
+                ? node.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
                 : node;
         }
 
