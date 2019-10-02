@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -33,16 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="compilation">Compilation used to check constraints.
         /// The latest language version is assumed if this is null.</param>
-        public static MethodSymbol Create(MethodSymbol method, TypeSymbol receiverType, CSharpCompilation compilation)
+        public static MethodSymbol? Create(MethodSymbol method, TypeSymbol receiverType, CSharpCompilation compilation)
         {
             Debug.Assert(method.IsExtensionMethod && method.MethodKind != MethodKind.ReducedExtension);
             Debug.Assert(method.ParameterCount > 0);
-            Debug.Assert((object)receiverType != null);
+            RoslynDebug.Assert((object)receiverType != null);
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
 
+#nullable disable // Need to create a local variable for this temporary nullable assignment to 'method'
             method = InferExtensionMethodTypeArguments(method, receiverType, compilation, ref useSiteDiagnostics);
-            if ((object)method == null)
+#nullable enable
+            if ((object?)method == null)
             {
                 return null;
             }
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ReducedExtensionMethodSymbol(MethodSymbol reducedFrom)
         {
-            Debug.Assert((object)reducedFrom != null);
+            RoslynDebug.Assert((object)reducedFrom != null);
             Debug.Assert(reducedFrom.IsExtensionMethod);
             Debug.Assert((object)reducedFrom.ReducedFrom == null);
             Debug.Assert(reducedFrom.ConstructedFrom == reducedFrom);
@@ -108,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// are not satisfied, the return value is null.
         /// </summary>
         /// <param name="compilation">Compilation used to check constraints.  The latest language version is assumed if this is null.</param>
-        private static MethodSymbol InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, CSharpCompilation compilation, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static MethodSymbol? InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, CSharpCompilation compilation, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             Debug.Assert(method.IsExtensionMethod);
             Debug.Assert((object)thisType != null);
@@ -195,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Check constraints.
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
-            ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+            ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
             var success = method.CheckConstraints(conversions, includeNullability: false, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder,
                                                   ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
             diagnosticsBuilder.Free();
@@ -248,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
             _reducedFrom.Parameters[0].TypeWithAnnotations.ToPublicAnnotation();
 
-        public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
+        public override TypeSymbol? GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
             if ((object)reducedFromTypeParameter == null)
             {
@@ -357,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.DeclaringSyntaxReferences; }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return _reducedFrom.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
@@ -445,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _reducedFrom.GetAttributes();
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get { return null; }
         }
@@ -568,8 +572,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if ((object)this == obj) return true;
 
-            ReducedExtensionMethodSymbol other = obj as ReducedExtensionMethodSymbol;
-            return (object)other != null && _reducedFrom.Equals(other._reducedFrom, compareKind);
+            ReducedExtensionMethodSymbol? other = obj as ReducedExtensionMethodSymbol;
+            return (object?)other != null && _reducedFrom.Equals(other._reducedFrom, compareKind);
         }
 
         public override int GetHashCode()
@@ -624,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // ReferenceEquals.
 
                 var other = obj as ReducedExtensionMethodParameterSymbol;
-                return (object)other != null &&
+                return (object?)other != null &&
                     this.Ordinal == other.Ordinal &&
                     this.ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
             }

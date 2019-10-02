@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override CSharpCompilation DeclaringCompilation
+        internal override CSharpCompilation? DeclaringCompilation
         {
             get
             {
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override string GetDocumentationCommentId()
+        public override string? GetDocumentationCommentId()
         {
             return null;
         }
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override DllImportData GetDllImportData()
+        public override DllImportData? GetDllImportData()
         {
             return null;
         }
@@ -165,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
         }
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
         {
             get
             {
@@ -278,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
@@ -315,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override NamedTypeSymbol ContainingType
+        public override NamedTypeSymbol? ContainingType
         {
             get
             {
@@ -395,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData
+        internal override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get
             {
@@ -417,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var other = obj as SynthesizedIntrinsicOperatorSymbol;
 
-            if ((object)other == null)
+            if ((object?)other == null)
             {
                 return false;
             }
@@ -467,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var other = obj as SynthesizedOperatorParameterSymbol;
 
-                if ((object)other == null)
+                if ((object?)other == null)
                 {
                     return false;
                 }
