@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             if (document.SupportsSyntaxTree)
             {
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, ImportAdder.Annotation, safe: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document, Simplifier.AddImportsAnnotation, safe: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private TNode WithAnnotations<TNode>(TNode node, CodeGenerationOptions options) where TNode : SyntaxNode
         {
             return options?.AddImports ?? true
-                ? node.WithAdditionalAnnotations(ImportAdder.Annotation)
+                ? node.WithAdditionalAnnotations(Simplifier.Annotation)
                 : node;
         }
 
