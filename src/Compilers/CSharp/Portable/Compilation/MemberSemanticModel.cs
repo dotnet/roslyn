@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new AwaitExpressionInfo(
-                getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter.ExpressionSymbol,
+                getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter?.ExpressionSymbol,
                 isCompleted: awaitableInfo.IsCompleted,
                 getResult: awaitableInfo.GetResult,
                 isDynamic: awaitableInfo.IsDynamic);

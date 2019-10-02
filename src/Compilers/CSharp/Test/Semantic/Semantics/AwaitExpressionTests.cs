@@ -191,5 +191,29 @@ class C
             var symbolV = (LocalSymbol)semanticModel.GetDeclaredSymbol(decl);
             Assert.Equal("System.Int32", symbolV.TypeWithAnnotations.ToTestDisplayString());
         }
+
+        [Fact]
+        public void Dynamic()
+        {
+            string source =
+@"using System.Threading.Tasks;
+class Program
+{
+    static async Task Main()
+    {
+        dynamic d = Task.CompletedTask;
+        await d;
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var info = model.GetAwaitExpressionInfo(expr);
+            Assert.True(info.IsDynamic);
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.Null(info.GetResultMethod);
+        }
     }
 }
