@@ -28,7 +28,7 @@ namespace Roslyn.Utilities
         /// <returns>
         /// True if <paramref name="path"/> is a simple file name, false if it is null or includes a directory specification.
         /// </returns>
-        internal static bool IsFileName(string path)
+        internal static bool IsFileName([NotNullWhen(returnValue: true)] string? path)
         {
             return IndexOfFileName(path) == 0;
         }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
             return hashSet == null || hashSet.Count == 0;
         }
 
-        internal static bool InitializeAndAdd<T>([NotNullIfNotNull(parameterName: "item")] ref HashSet<T>? hashSet, T? item)
+        internal static bool InitializeAndAdd<T>([NotNullIfNotNull(parameterName: "item"), NotNullWhen(returnValue: true)] ref HashSet<T>? hashSet, [NotNullWhen(returnValue: true)] T? item)
             where T : class
         {
             if (item is null)

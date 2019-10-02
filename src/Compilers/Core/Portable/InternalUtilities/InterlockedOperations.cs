@@ -21,7 +21,7 @@ namespace Roslyn.Utilities
         /// <returns>The new value referenced by <paramref name="target"/>. Note that this is
         /// nearly always more useful than the usual return from <see cref="Interlocked.CompareExchange{T}(ref T, T, T)"/>
         /// because it saves another read to <paramref name="target"/>.</returns>
-        public static T Initialize<T>(ref T? target, T value) where T : class
+        public static T Initialize<T>([NotNull] ref T? target, T value) where T : class
         {
             RoslynDebug.Assert((object?)value != null);
             return Interlocked.CompareExchange(ref target, value, null) ?? value;
