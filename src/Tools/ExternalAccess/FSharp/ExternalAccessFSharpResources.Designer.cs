@@ -61,33 +61,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add an assembly reference to &apos;{0}&apos;.
-        /// </summary>
-        internal static string AddAssemblyReference {
-            get {
-                return ResourceManager.GetString("AddAssemblyReference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add &apos;new&apos; keyword.
-        /// </summary>
-        internal static string AddNewKeyword {
-            get {
-                return ResourceManager.GetString("AddNewKeyword", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add a project reference to &apos;{0}&apos;.
-        /// </summary>
-        internal static string AddProjectReference {
-            get {
-                return ResourceManager.GetString("AddProjectReference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot determine the symbol under the caret.
         /// </summary>
         internal static string CannotDetermineSymbol {
@@ -102,15 +75,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp {
         internal static string CannotNavigateUnknown {
             get {
                 return ResourceManager.GetString("CannotNavigateUnknown", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Exceptions:.
-        /// </summary>
-        internal static string ExceptionsHeader {
-            get {
-                return ResourceManager.GetString("ExceptionsHeader", resourceCulture);
             }
         }
         
@@ -156,15 +120,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp {
         internal static string FSharpPropertiesClassificationType {
             get {
                 return ResourceManager.GetString("FSharpPropertiesClassificationType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generic parameters:.
-        /// </summary>
-        internal static string GenericParametersHeader {
-            get {
-                return ResourceManager.GetString("GenericParametersHeader", resourceCulture);
             }
         }
         
@@ -223,38 +178,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefix &apos;{0}&apos; with underscore.
-        /// </summary>
-        internal static string PrefixValueNameWithUnderscore {
-            get {
-                return ResourceManager.GetString("PrefixValueNameWithUnderscore", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove unused open declarations.
         /// </summary>
         internal static string RemoveUnusedOpens {
             get {
                 return ResourceManager.GetString("RemoveUnusedOpens", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rename &apos;{0}&apos; to &apos;__&apos;.
-        /// </summary>
-        internal static string RenameValueToDoubleUnderscore {
-            get {
-                return ResourceManager.GetString("RenameValueToDoubleUnderscore", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rename &apos;{0}&apos; to &apos;_&apos;.
-        /// </summary>
-        internal static string RenameValueToUnderscore {
-            get {
-                return ResourceManager.GetString("RenameValueToUnderscore", resourceCulture);
             }
         }
         
