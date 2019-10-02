@@ -40,17 +40,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasErrors |= ReportBadAwaitWithoutAsync(location, diagnostics);
             hasErrors |= ReportBadAwaitContext(node, location, diagnostics);
 
+            bool isDynamic = false;
             BoundExpression getAwaiter = null;
             PropertySymbol isCompleted = null;
             MethodSymbol getResult = null;
             bool hasGetAwaitableErrors = false;
             if (expressionOpt != null)
             {
-                hasGetAwaitableErrors = !GetAwaitableExpressionInfo(expressionOpt, placeholder, out getAwaiter, out isCompleted, out getResult, out _, node, diagnostics);
+                hasGetAwaitableErrors = !GetAwaitableExpressionInfo(expressionOpt, placeholder, out isDynamic, out getAwaiter, out isCompleted, out getResult, out _, node, diagnostics);
                 hasErrors |= hasGetAwaitableErrors;
             }
 
-            return new BoundAwaitableInfo(node, placeholder, getAwaiter, isCompleted, getResult, hasGetAwaitableErrors);
+            return new BoundAwaitableInfo(node, placeholder, isDynamic: isDynamic, getAwaiter, isCompleted, getResult, hasErrors: hasGetAwaitableErrors);
         }
 
         /// <summary>
@@ -225,12 +226,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             DiagnosticBag diagnostics)
         {
-            return GetAwaitableExpressionInfo(expression, expression, out _, out _, out _, out getAwaiterGetResultCall, node, diagnostics);
+            return GetAwaitableExpressionInfo(expression, expression, out _, out _, out _, out _, out getAwaiterGetResultCall, node, diagnostics);
         }
 
         private bool GetAwaitableExpressionInfo(
             BoundExpression expression,
             BoundExpression getAwaiterArgument,
+            out bool isDynamic,
             out BoundExpression getAwaiter,
             out PropertySymbol isCompleted,
             out MethodSymbol getResult,
@@ -240,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(TypeSymbol.Equals(expression.Type, getAwaiterArgument.Type, TypeCompareKind.ConsiderEverything));
 
+            isDynamic = false;
             getAwaiter = null;
             isCompleted = null;
             getResult = null;
@@ -252,6 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression.HasDynamicType())
             {
+                isDynamic = true;
                 return true;
             }
 

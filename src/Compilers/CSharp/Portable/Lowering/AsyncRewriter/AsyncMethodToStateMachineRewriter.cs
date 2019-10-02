@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _placeholderMap.Add(awaitablePlaceholder, expression);
             }
 
-            var getAwaiter = node.AwaitableInfo.GetAwaiter is null ?
+            var getAwaiter = node.AwaitableInfo.IsDynamic ?
                 MakeCallMaybeDynamic(expression, null, WellKnownMemberNames.GetAwaiter) :
                 (BoundExpression)Visit(node.AwaitableInfo.GetAwaiter);
 

@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter.ExpressionSymbol,
                 isCompleted: awaitableInfo.IsCompleted,
                 getResult: awaitableInfo.GetResult,
-                isDynamic: awaitableInfo.GetResult is null);
+                isDynamic: awaitableInfo.IsDynamic);
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)

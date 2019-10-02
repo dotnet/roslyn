@@ -3322,7 +3322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.AwaitExpression:
                     var await = (BoundAwaitExpression)boundNode;
-                    isDynamic = await.AwaitableInfo.GetAwaiter is null;
+                    isDynamic = await.AwaitableInfo.IsDynamic;
                     goto default;
 
                 case BoundKind.ConditionalOperator:

@@ -1675,10 +1675,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAwaitableInfo : BoundNode
     {
-        public BoundAwaitableInfo(SyntaxNode syntax, BoundAwaitableValuePlaceholder? awaitableInstancePlaceholder, BoundExpression? getAwaiter, PropertySymbol? isCompleted, MethodSymbol? getResult, bool hasErrors = false)
+        public BoundAwaitableInfo(SyntaxNode syntax, BoundAwaitableValuePlaceholder? awaitableInstancePlaceholder, bool isDynamic, BoundExpression? getAwaiter, PropertySymbol? isCompleted, MethodSymbol? getResult, bool hasErrors = false)
             : base(BoundKind.AwaitableInfo, syntax, hasErrors || awaitableInstancePlaceholder.HasErrors() || getAwaiter.HasErrors())
         {
             this.AwaitableInstancePlaceholder = awaitableInstancePlaceholder;
+            this.IsDynamic = isDynamic;
             this.GetAwaiter = getAwaiter;
             this.IsCompleted = isCompleted;
             this.GetResult = getResult;
@@ -1686,6 +1687,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundAwaitableValuePlaceholder? AwaitableInstancePlaceholder { get; }
+
+        public bool IsDynamic { get; }
 
         public BoundExpression? GetAwaiter { get; }
 
@@ -1695,11 +1698,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitAwaitableInfo(this);
 
-        public BoundAwaitableInfo Update(BoundAwaitableValuePlaceholder? awaitableInstancePlaceholder, BoundExpression? getAwaiter, PropertySymbol? isCompleted, MethodSymbol? getResult)
+        public BoundAwaitableInfo Update(BoundAwaitableValuePlaceholder? awaitableInstancePlaceholder, bool isDynamic, BoundExpression? getAwaiter, PropertySymbol? isCompleted, MethodSymbol? getResult)
         {
-            if (awaitableInstancePlaceholder != this.AwaitableInstancePlaceholder || getAwaiter != this.GetAwaiter || !SymbolEqualityComparer.ConsiderEverything.Equals(isCompleted, this.IsCompleted) || !SymbolEqualityComparer.ConsiderEverything.Equals(getResult, this.GetResult))
+            if (awaitableInstancePlaceholder != this.AwaitableInstancePlaceholder || isDynamic != this.IsDynamic || getAwaiter != this.GetAwaiter || !SymbolEqualityComparer.ConsiderEverything.Equals(isCompleted, this.IsCompleted) || !SymbolEqualityComparer.ConsiderEverything.Equals(getResult, this.GetResult))
             {
-                var result = new BoundAwaitableInfo(this.Syntax, awaitableInstancePlaceholder, getAwaiter, isCompleted, getResult, this.HasErrors);
+                var result = new BoundAwaitableInfo(this.Syntax, awaitableInstancePlaceholder, isDynamic, getAwaiter, isCompleted, getResult, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9234,7 +9237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundAwaitableValuePlaceholder? awaitableInstancePlaceholder = (BoundAwaitableValuePlaceholder?)this.Visit(node.AwaitableInstancePlaceholder);
             BoundExpression? getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);
-            return node.Update(awaitableInstancePlaceholder, getAwaiter, node.IsCompleted, node.GetResult);
+            return node.Update(awaitableInstancePlaceholder, node.IsDynamic, getAwaiter, node.IsCompleted, node.GetResult);
         }
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
         {
@@ -10623,7 +10626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundAwaitableValuePlaceholder? awaitableInstancePlaceholder = (BoundAwaitableValuePlaceholder?)this.Visit(node.AwaitableInstancePlaceholder);
             BoundExpression? getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);
-            return node.Update(awaitableInstancePlaceholder, getAwaiter, GetUpdatedSymbol(node, node.IsCompleted), GetUpdatedSymbol(node, node.GetResult));
+            return node.Update(awaitableInstancePlaceholder, node.IsDynamic, getAwaiter, GetUpdatedSymbol(node, node.IsCompleted), GetUpdatedSymbol(node, node.GetResult));
         }
 
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
@@ -12456,6 +12459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitAwaitableInfo(BoundAwaitableInfo node, object? arg) => new TreeDumperNode("awaitableInfo", null, new TreeDumperNode[]
         {
             new TreeDumperNode("awaitableInstancePlaceholder", null, new TreeDumperNode[] { Visit(node.AwaitableInstancePlaceholder, null) }),
+            new TreeDumperNode("isDynamic", node.IsDynamic, null),
             new TreeDumperNode("getAwaiter", null, new TreeDumperNode[] { Visit(node.GetAwaiter, null) }),
             new TreeDumperNode("isCompleted", node.IsCompleted, null),
             new TreeDumperNode("getResult", node.GetResult, null),
