@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData
+        internal override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get
             {
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if (ReferenceEquals(this, obj))
             {
@@ -133,9 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            PreprocessingSymbol other = obj as PreprocessingSymbol;
+            PreprocessingSymbol? other = obj as PreprocessingSymbol;
 
-            return (object)other != null &&
+            return (object?)other != null &&
                 this.Name.Equals(other.Name);
         }
 
