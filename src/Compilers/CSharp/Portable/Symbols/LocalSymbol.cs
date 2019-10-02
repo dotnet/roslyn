@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Syntax node that is used as the scope designator. Otherwise, null.
         /// </summary>
-        internal abstract SyntaxNode ScopeDesignatorOpt { get; }
+        internal abstract SyntaxNode? ScopeDesignatorOpt { get; }
 
         internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax);
 
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -295,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                ConstantValue constantValue = this.GetConstantValue(null, null, null);
+                ConstantValue? constantValue = this.GetConstantValue(null, null, null);
                 return constantValue != null && !constantValue.IsBad; //can be null in error scenarios
             }
         }
@@ -304,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If IsConst returns true, then returns the constant value of the field or enum member. If IsConst returns
         /// false, then returns null.
         /// </summary>
-        public object ConstantValue
+        public object? ConstantValue
         {
             get
             {
@@ -313,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                ConstantValue constantValue = this.GetConstantValue(null, null, null);
+                ConstantValue? constantValue = this.GetConstantValue(null, null, null);
                 return constantValue?.Value; //can be null in error scenarios
             }
         }
@@ -326,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null);
+        internal abstract ConstantValue? GetConstantValue(SyntaxNode? node, LocalSymbol? inProgress, DiagnosticBag? diagnostics = null);
 
         internal abstract ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 
@@ -354,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// expression that computes its value (and type). This property returns
         /// the expression where a reference to an inferred variable is forbidden.
         /// </summary>
-        internal virtual SyntaxNode ForbiddenZone => null;
+        internal virtual SyntaxNode? ForbiddenZone => null;
 
         /// <summary>
         /// The diagnostic code to be reported when an inferred variable is used
@@ -391,9 +394,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.VisitLocal(this);
         }
 
+        [return: MaybeNull]
         public sealed override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return visitor.VisitLocal(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         #endregion

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public PlaceholderLocal(Symbol containingSymbol, object identifier, TypeWithAnnotations type)
             {
-                Debug.Assert(identifier != null);
+                RoslynDebug.Assert(identifier != null);
                 _containingSymbol = containingSymbol;
                 _type = type;
                 _identifier = identifier;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override int GetHashCode() => _identifier.GetHashCode();
-            internal override SyntaxNode ScopeDesignatorOpt => null;
+            internal override SyntaxNode? ScopeDesignatorOpt => null;
             public override Symbol ContainingSymbol => _containingSymbol;
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
             public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override bool IsPinned => false;
             public override RefKind RefKind => RefKind.None;
             internal override SynthesizedLocalKind SynthesizedKind => throw ExceptionUtilities.Unreachable;
-            internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null) => null;
+            internal override ConstantValue? GetConstantValue(SyntaxNode? node, LocalSymbol? inProgress, DiagnosticBag? diagnostics = null) => null;
             internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue) => ImmutableArray<Diagnostic>.Empty;
             internal override SyntaxNode GetDeclaratorSyntax() => throw ExceptionUtilities.Unreachable;
             internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) => throw ExceptionUtilities.Unreachable;

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -25,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxToken _identifierToken;
         private readonly ImmutableArray<Location> _locations;
         private readonly RefKind _refKind;
-        private readonly TypeSyntax _typeSyntax;
+        private readonly TypeSyntax? _typeSyntax;
         private readonly LocalDeclarationKind _declarationKind;
-        private TypeWithAnnotations.Boxed _type;
+        private TypeWithAnnotations.Boxed? _type;
 
         /// <summary>
         /// Scope to which the local can "escape" via aliasing/ref assignment.
@@ -45,13 +47,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol,
             Binder scopeBinder,
             bool allowRefKind,
-            TypeSyntax typeSyntax,
+            TypeSyntax? typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind)
         {
             Debug.Assert(identifierToken.Kind() != SyntaxKind.None);
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
-            Debug.Assert(scopeBinder != null);
+            RoslynDebug.Assert(scopeBinder != null);
 
             this._scopeBinder = scopeBinder;
             this._containingSymbol = containingSymbol;
@@ -141,8 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             LocalDeclarationKind kind,
             SyntaxNode deconstruction)
         {
-            Debug.Assert(closestTypeSyntax != null);
-            Debug.Assert(nodeBinder != null);
+            RoslynDebug.Assert(closestTypeSyntax != null);
+            RoslynDebug.Assert(nodeBinder != null);
 
             Debug.Assert(closestTypeSyntax.Kind() != SyntaxKind.RefType);
             return closestTypeSyntax.IsVar
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol,
             Binder scopeBinder,
             Binder nodeBinder,
-            TypeSyntax typeSyntax,
+            TypeSyntax? typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind kind,
             SyntaxNode nodeToBind,
@@ -202,8 +204,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind,
-            EqualsValueClauseSyntax initializer = null,
-            Binder initializerBinderOpt = null)
+            EqualsValueClauseSyntax? initializer = null,
+            Binder? initializerBinderOpt = null)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             return (initializer != null)
@@ -297,7 +299,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     SetTypeWithAnnotations(localType);
                 }
 
+#nullable disable // The compiler can't see that 'SetTypeWithAnnotations' ensures '_type' is not null. https://github.com/dotnet/roslyn/issues/39166
                 return _type.Value;
+#nullable enable
             }
         }
 
@@ -382,16 +386,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetTypeWithAnnotations(TypeWithAnnotations newType)
         {
             Debug.Assert(newType.Type is object);
-            TypeSymbol originalType = _type?.Value.DefaultType;
+            TypeSymbol? originalType = _type?.Value.DefaultType;
 
             // In the event that we race to set the type of a local, we should
             // always deduce the same type, or deduce that the type is an error.
 
-            Debug.Assert((object)originalType == null ||
+            Debug.Assert((object?)originalType == null ||
                 originalType.IsErrorType() && newType.Type.IsErrorType() ||
                 TypeSymbol.Equals(originalType, newType.Type, TypeCompareKind.ConsiderEverything2));
 
-            if ((object)originalType == null)
+            if ((object?)originalType == null)
             {
                 Interlocked.CompareExchange(ref _type, new TypeWithAnnotations.Boxed(newType), null);
             }
@@ -461,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
+        internal override ConstantValue? GetConstantValue(SyntaxNode? node, LocalSymbol? inProgress, DiagnosticBag? diagnostics)
         {
             return null;
         }
@@ -513,12 +517,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// to avoid having the former set by one thread and the latter set by
             /// another.
             /// </summary>
-            private EvaluatedConstant _constantTuple;
+            private EvaluatedConstant? _constantTuple;
 
             public LocalWithInitializer(
                 Symbol containingSymbol,
                 Binder scopeBinder,
-                TypeSyntax typeSyntax,
+                TypeSyntax? typeSyntax,
                 SyntaxToken identifierToken,
                 EqualsValueClauseSyntax initializer,
                 Binder initializerBinder,
@@ -526,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     base(containingSymbol, scopeBinder, true, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
-                Debug.Assert(initializer != null);
+                RoslynDebug.Assert(initializer != null);
 
                 _initializer = initializer;
                 _initializerBinder = initializerBinder;
@@ -550,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             /// <param name="inProgress">Null for the initial call, non-null if we are in the process of evaluating a constant.</param>
             /// <param name="boundInitValue">If we already have the bound node for the initial value, pass it in to avoid recomputing it.</param>
-            private void MakeConstantTuple(LocalSymbol inProgress, BoundExpression boundInitValue)
+            private void MakeConstantTuple(LocalSymbol? inProgress, BoundExpression? boundInitValue)
             {
                 if (this.IsConst && _constantTuple == null)
                 {
@@ -570,13 +574,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics = null)
+            internal override ConstantValue? GetConstantValue(SyntaxNode? node, LocalSymbol? inProgress, DiagnosticBag? diagnostics = null)
             {
                 if (this.IsConst && inProgress == this)
                 {
                     if (diagnostics != null)
                     {
+#nullable disable // can 'node' be null here? https://github.com/dotnet/roslyn/issues/39166
                         diagnostics.Add(ErrorCode.ERR_CircConstValue, node.GetLocation(), this);
+#nullable enable
                     }
 
                     return Microsoft.CodeAnalysis.ConstantValue.Bad;
@@ -617,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public ForEachLocalSymbol(
                 Symbol containingSymbol,
                 ForEachLoopBinder scopeBinder,
-                TypeSyntax typeSyntax,
+                TypeSyntax? typeSyntax,
                 SyntaxToken identifierToken,
                 ExpressionSyntax collection,
                 LocalDeclarationKind declarationKind) :
@@ -642,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// There is no forbidden zone for a foreach loop, because the iteration
             /// variable is not in scope in the collection expression.
             /// </summary>
-            internal override SyntaxNode ForbiddenZone => null;
+            internal override SyntaxNode? ForbiddenZone => null;
         }
 
         /// <summary>
@@ -658,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Symbol containingSymbol,
                 Binder scopeBinder,
                 Binder nodeBinder,
-                TypeSyntax typeSyntax,
+                TypeSyntax? typeSyntax,
                 SyntaxToken identifierToken,
                 LocalDeclarationKind declarationKind,
                 SyntaxNode deconstruction)
@@ -678,8 +684,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.SimpleAssignmentExpression:
                         var assignment = (AssignmentExpressionSyntax)_deconstruction;
                         Debug.Assert(assignment.IsDeconstruction());
-                        DeclarationExpressionSyntax declaration = null;
-                        ExpressionSyntax expression = null;
+                        DeclarationExpressionSyntax? declaration = null;
+                        ExpressionSyntax? expression = null;
                         _nodeBinder.BindDeconstruction(assignment, assignment.Left, assignment.Right, diagnostics, ref declaration, ref expression);
                         break;
 
@@ -692,10 +698,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
                 }
 
+#nullable disable // can '_type' be null here? https://github.com/dotnet/roslyn/issues/39166
                 return _type.Value;
+#nullable enable
             }
 
-            internal override SyntaxNode ForbiddenZone
+            internal override SyntaxNode? ForbiddenZone
             {
                 get
                 {
@@ -726,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Symbol containingSymbol,
                 Binder scopeBinder,
                 Binder nodeBinder,
-                TypeSyntax typeSyntax,
+                TypeSyntax? typeSyntax,
                 SyntaxToken identifierToken,
                 LocalDeclarationKind declarationKind,
                 SyntaxNode nodeToBind,
@@ -792,7 +800,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     SetTypeWithAnnotations(TypeWithAnnotations.Create(_nodeBinder.CreateErrorType("var")));
                 }
 
+#nullable disable // The compiler can't see that 'SetTypeWithAnnotations' ensures '_type' is not null. https://github.com/dotnet/roslyn/issues/39166
                 return _type.Value;
+#nullable enable
             }
         }
     }
