@@ -451,7 +451,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                                         lastValidSpecificHeader = mostRecentHeader;
                                     }
                                 }
-                                else if ((SuppressionHelpers.IsCompilerDiagnostic(_diagnostic) || !_isPerLanguage) && brokenUpFileExtensions.Length == 1)
+                                else if ((SuppressionHelpers.IsCompilerDiagnostic(_diagnostic) || !_isPerLanguage) &&
+                                         brokenUpFileExtensions.Length == 1)
                                 {
                                     if (_language.Equals(LanguageNames.CSharp) && brokenUpFileExtensions.Contains("cs"))
                                     {
