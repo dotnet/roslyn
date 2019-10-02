@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // Now we need to walk the base type chain, but we start at the first type that actually
                 // has the interface directly in its interface hierarchy.
                 var seenTypeDeclaringInterface = false;
-                for (var currentType = typeSymbol; currentType != null; currentType = currentType.BaseType)
+                for (ITypeSymbol? currentType = typeSymbol; currentType != null; currentType = currentType.BaseType)
                 {
                     seenTypeDeclaringInterface = seenTypeDeclaringInterface ||
                                                  currentType.GetOriginalInterfacesAndTheirBaseInterfaces().Contains(interfaceType.OriginalDefinition);

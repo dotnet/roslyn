@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
@@ -167,11 +169,11 @@ namespace Microsoft.CodeAnalysis
 
         private struct ValidTargetsStringLocalizableErrorArgument : IFormattable
         {
-            private readonly string[] _targetResourceIds;
+            private readonly string[]? _targetResourceIds;
 
             internal ValidTargetsStringLocalizableErrorArgument(string[] targetResourceIds)
             {
-                Debug.Assert(targetResourceIds != null);
+                RoslynDebug.Assert(targetResourceIds != null);
                 _targetResourceIds = targetResourceIds;
             }
 
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis
                 return ToString(null, null);
             }
 
-            public string ToString(string format, IFormatProvider formatProvider)
+            public string ToString(string? format, IFormatProvider? formatProvider)
             {
                 var builder = PooledStringBuilder.GetInstance();
                 var culture = formatProvider as System.Globalization.CultureInfo;
