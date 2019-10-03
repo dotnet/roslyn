@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
@@ -17,9 +18,70 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
             }
 
-            public static SyntaxKind Analyze(SwitchStatementSyntax node, out bool shouldRemoveNextStatement)
+            public static (SyntaxKind nodeToGenerate, VariableDeclaratorSyntax declaratorToRemoveOpt) Analyze(
+                SwitchStatementSyntax node,
+                SemanticModel semanticModel,
+                out bool shouldRemoveNextStatement)
             {
-                return new Analyzer().AnalyzeSwitchStatement(node, out shouldRemoveNextStatement);
+                var analyzer = new Analyzer();
+                var nodeToGenerate = analyzer.AnalyzeSwitchStatement(node, out shouldRemoveNextStatement);
+
+                if (nodeToGenerate == SyntaxKind.SimpleAssignmentExpression &&
+                    analyzer.TryGetVariableDeclaratorAndSymbol(semanticModel) is var (declarator, symbol))
+                {
+                    if (shouldRemoveNextStatement &&
+                        semanticModel.AnalyzeDataFlow(node.GetNextStatement()).DataFlowsIn.Contains(symbol))
+                    {
+                        // Bail out if data flows into the next statement that we want to move
+                        // For example:
+                        //
+                        //      string name = "";
+                        //      switch (index)
+                        //      {
+                        //          case 0: name = "0"; break;
+                        //          case 1: name = "1"; break;
+                        //      }
+                        //      throw new Exception(name);
+                        //
+                        return default;
+                    }
+
+                    var declaration = declarator.GetAncestor<StatementSyntax>();
+                    if (declaration.Parent == node.Parent && declarator.Initializer is null)
+                    {
+                        var beforeSwitch = node.GetPreviousStatement() is StatementSyntax previousStatement
+                            ? semanticModel.AnalyzeDataFlow(declaration, previousStatement)
+                            : semanticModel.AnalyzeDataFlow(declaration);
+                        if (!beforeSwitch.WrittenInside.Contains(symbol))
+                        {
+                            // Move declarator only if it has no initializer and it's not used before switch
+                            return (nodeToGenerate, declaratorToRemoveOpt: declarator);
+                        }
+                    }
+                }
+
+                return (nodeToGenerate, declaratorToRemoveOpt: null);
+            }
+
+            private (VariableDeclaratorSyntax, ISymbol)? TryGetVariableDeclaratorAndSymbol(SemanticModel semanticModel)
+            {
+                if (!_assignmentTargetOpt.IsKind(SyntaxKind.IdentifierName))
+                {
+                    return null;
+                }
+
+                var symbol = semanticModel.GetSymbolInfo(_assignmentTargetOpt).Symbol;
+                if (!(symbol is { Kind: SymbolKind.Local, DeclaringSyntaxReferences: { Length: 1 } syntaxRefs }))
+                {
+                    return null;
+                }
+
+                if (!(syntaxRefs[0].GetSyntax() is VariableDeclaratorSyntax declarator))
+                {
+                    return null;
+                }
+
+                return (declarator, symbol);
             }
 
             private static bool IsDefaultSwitchLabel(SwitchLabelSyntax node)
@@ -57,31 +119,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             private SyntaxKind AnalyzeSwitchStatement(SwitchStatementSyntax switchStatement, out bool shouldRemoveNextStatement)
             {
-                shouldRemoveNextStatement = false;
-
                 // Fail if the switch statement is empty or any of sections have more than one "case" label.
                 // Once we have "or" patterns, we can relax this to accept multi-case sections.
                 var sections = switchStatement.Sections;
-                if (sections.Count == 0 || sections.Any(section => section.Labels.Count != 1))
+                if (sections.Count == 0 || !sections.All(s => s.Labels.Count == 1 || s.Labels.Any(x => x.IsKind(SyntaxKind.DefaultSwitchLabel))))
                 {
+                    shouldRemoveNextStatement = false;
                     return default;
                 }
 
                 // If there's no "default" case, we look at the next statement.
                 // For instance, it could be a "return" statement which we'll use
                 // as the default case in the switch expression.
-                var nextStatement = AnalyzeNextStatement(switchStatement, ref shouldRemoveNextStatement);
+                var nextStatement = AnalyzeNextStatement(switchStatement, out shouldRemoveNextStatement);
 
                 // We do need to intersect the next statement analysis result to catch possible
                 // arm kind mismatch, e.g. a "return" after a non-exhaustive assignment switch.
                 return Aggregate(nextStatement, sections, (result, section) => Intersect(result, AnalyzeSwitchSection(section)));
             }
 
-            private SyntaxKind AnalyzeNextStatement(SwitchStatementSyntax switchStatement, ref bool shouldRemoveNextStatement)
+            private SyntaxKind AnalyzeNextStatement(SwitchStatementSyntax switchStatement, out bool shouldRemoveNextStatement)
             {
-                if (switchStatement.Sections.Any(section => IsDefaultSwitchLabel(section.Labels[0])))
+                if (switchStatement.Sections.Any(section => section.Labels.Count > 1 || IsDefaultSwitchLabel(section.Labels[0])))
                 {
                     // Throw can be overridden by other section bodies, therefore it has no effect on the result.
+                    shouldRemoveNextStatement = false;
                     return SyntaxKind.ThrowStatement;
                 }
 
@@ -122,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 switch (section.Statements.Count)
                 {
                     case 1:
-                    case 2 when section.Statements[1].IsKind(SyntaxKind.BreakStatement):
+                    case 2 when section.Statements[1].IsKind(SyntaxKind.BreakStatement) || section.Statements[0].IsKind(SyntaxKind.SwitchStatement):
                         return Visit(section.Statements[0]);
                     default:
                         return default;

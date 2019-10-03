@@ -8,7 +8,7 @@
     <MajorVersion>3</MajorVersion>
     <MinorVersion>4</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>beta2</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
