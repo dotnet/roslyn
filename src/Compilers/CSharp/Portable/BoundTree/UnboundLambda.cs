@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaBodyBinder,
                 delegateType,
                 inferredReturnType)
-                { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
+            { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
             // TODO: Should InferredReturnType.UseSiteDiagnostics be merged into BoundLambda.Diagnostics?
             var returnType = inferredReturnType.TypeWithAnnotations;
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lambdaBodyBinder,
                     delegateType,
                     new InferredLambdaReturnType(inferredReturnType.NumExpressions, inferredReturnType.HadExpressionlessReturn, refKind, returnType, ImmutableArray<DiagnosticInfo>.Empty))
-                    { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
+                { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
             }
         }
 
