@@ -139,11 +139,6 @@
     </When>
   </Choose>
 
-  <PropertyGroup>
-    <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
-  </PropertyGroup>
-
   <!--
     Language specific settings
   -->
