@@ -1137,7 +1137,7 @@ class C1
 
             _mockCompilationOutputsService.Outputs.Add(project.Id, new CompilationOutputFiles(moduleFile.Path, pdbFile.Path));
 
-            // set up an active statement in the first method, so that we can test preservaton of local signature.
+            // set up an active statement in the first method, so that we can test preservation of local signature.
             _mockActiveStatementProvider = new Mock<IActiveStatementProvider>(MockBehavior.Strict);
             _mockActiveStatementProvider.Setup(p => p.GetActiveStatementsAsync(It.IsAny<CancellationToken>())).
                 Returns(Task.FromResult(ImmutableArray.Create(new ActiveStatementDebugInfo(

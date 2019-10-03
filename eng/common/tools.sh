@@ -332,7 +332,7 @@ function MSBuild {
     # Work around issues with Azure Artifacts credential provider
     # https://github.com/dotnet/arcade/issues/3932
     if [[ "$ci" == true ]]; then
-      dotnet nuget locals http-cache -c
+      "$_InitializeBuildTool" nuget locals http-cache -c
 
       export NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS=20
       export NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS=20
