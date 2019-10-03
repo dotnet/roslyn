@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -544,10 +545,10 @@ namespace Microsoft.CodeAnalysis
         internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
             => array.DangerousGetUnderlyingArray();
 
-        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>(ref T[] array)
+        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>([MaybeNull] ref T[] array)
         {
             var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
-            array = null;
+            array = null!;
             return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
         }
 
