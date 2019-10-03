@@ -27,6 +27,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Operations\OperationInterfaces.xml" />
+  </ItemGroup>
+  <ItemGroup>
     <!--
       Analyzers that will be used to analyze projects that references 
       Microsoft.CodeAnalysis project or Microsoft.CodeAnalysis.Common package.
