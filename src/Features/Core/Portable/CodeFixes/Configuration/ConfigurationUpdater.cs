@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
         //              "[*.{vb,cs}]"
         //              "[*]    ; Optional comment"
         //              "[ConsoleApp/Program.cs]"
-        private static readonly Regex s_headerPattern = new Regex(@"\[(\*|[^ #;\[\]]+\.({[^ #;{}\[\]]+}|[^ #;{}\[\]]+))\]\s*([#;].*)?");
+        private static readonly Regex s_headerPattern = new Regex(@"\[(\*|[^ #;\[\]]+\.({[^ #;{}\.\[\]]+}|[^ #;{}\.\[\]]+))\]\s*([#;].*)?");
 
         // Regular expression for .editorconfig code style option entry.
         // For example: "dotnet_style_object_initializer = true:suggestion   # Optional comment"
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             var originalText = await editorConfigDocument.GetTextAsync(_cancellationToken).ConfigureAwait(false);
 
             // Compute the updated text for analyzer config document.
-            var newText = GetNewAnalyzerConfigDocumentText(originalText);
+            var newText = GetNewAnalyzerConfigDocumentText(originalText, editorConfigDocument);
 
             return newText != null
                 ? solution.WithAnalyzerConfigDocumentText(editorConfigDocument.Id, newText)
@@ -302,27 +302,42 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             return ImmutableArray<(OptionKey, ICodeStyleOption, IEditorConfigStorageLocation2, bool)>.Empty;
         }
 
-        private SourceText GetNewAnalyzerConfigDocumentText(SourceText originalText)
+        private SourceText GetNewAnalyzerConfigDocumentText(SourceText originalText, AnalyzerConfigDocument editorConfigDocument)
         {
             // Check if an entry to configure the rule severity already exists in the .editorconfig file.
             // If it does, we update the existing entry with the new severity.
-            var configureExistingRuleTextAndValidHeader = CheckIfRuleExistsAndReplaceInFile(originalText);
-            if (configureExistingRuleTextAndValidHeader.Item1 != null)
+            var (newText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd) = CheckIfRuleExistsAndReplaceInFile(originalText, editorConfigDocument);
+            if (newText != null)
             {
-                return configureExistingRuleTextAndValidHeader.Item1;
+                return newText;
             }
 
             // We did not find any existing entry in the in the .editorconfig file to configure rule severity.
             // So we add a new configuration entry to the .editorconfig file.
-            return AddMissingRule(originalText, configureExistingRuleTextAndValidHeader.Item2, configureExistingRuleTextAndValidHeader.Item3);
+            return AddMissingRule(originalText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
         }
 
-        private Tuple<SourceText, TextLine?, TextLine?> CheckIfRuleExistsAndReplaceInFile(SourceText result)
+        private (SourceText newText, TextLine? lastValidHeaderSpanEnd, TextLine? lastValidSpecificHeaderSpanEnd) CheckIfRuleExistsAndReplaceInFile(
+            SourceText result,
+            AnalyzerConfigDocument editorConfigDocument)
         {
+            // If there's an error finding the editorconfig directory, bail out.
+            var editorConfigDirectory = PathUtilities.GetDirectoryName(editorConfigDocument.FilePath);
+            if (editorConfigDirectory == null)
+            {
+                return (null, null, null);
+            }
+
+            // If there's an error finding the diagnostic's filepath, bail out.
+            var diagnosticSourceTree = _diagnostic.Location.SourceTree;
+            if (diagnosticSourceTree == null)
+            {
+                return (null, null, null);
+            }
+
             // Finds the relative path between editorconfig directory and diagnostic filepath.
-            var editorConfigDirectory = PathUtilities.GetDirectoryName(FindOrGenerateEditorConfig().FilePath).ToLowerInvariant();
-            var diagnosticFilePath = _diagnostic.Location.SourceTree.FilePath.ToLowerInvariant();
-            var relativePath = PathUtilities.GetRelativePath(editorConfigDirectory, diagnosticFilePath);
+            var diagnosticFilePath = diagnosticSourceTree.FilePath.ToLowerInvariant();
+            var relativePath = PathUtilities.GetRelativePath(editorConfigDirectory.ToLowerInvariant(), diagnosticFilePath);
             relativePath = PathUtilities.NormalizeWithForwardSlash(relativePath);
 
             TextLine? mostRecentHeader = null;
@@ -409,18 +424,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     }
                     else
                     {
-                        var brokenUpHeader = mostRecentHeaderText.Split(new[] { '.' }, 2);
-                        var brokenUpFileExtensions = brokenUpHeader[1].Split(',', ' ', '{', '}');
+                        // We splice on the last occurrence of '.' to account for filenames containing periods.
+                        var nameExtensionSplitIndex = mostRecentHeaderText.LastIndexOf('.');
+                        var fileName = mostRecentHeaderText.Substring(0, nameExtensionSplitIndex);
+                        var splicedFileExtensions = mostRecentHeaderText.Substring(nameExtensionSplitIndex + 1).Split(',', ' ', '{', '}');
 
-                        // Replacing characters in the header with the regex equivalent
-                        brokenUpHeader[0] = brokenUpHeader[0].Replace("*", ".*");
-                        brokenUpHeader[0] = brokenUpHeader[0].Replace("/", @"\/");
+                        // Replacing characters in the header with the regex equivalent.
+                        fileName = fileName.Replace(".", @"\.");
+                        fileName = fileName.Replace("*", ".*");
+                        fileName = fileName.Replace("/", @"\/");
 
                         // Creating the header regex string, ex. [*.{cs,vb}] => ((\.cs)|(\.vb))
-                        var headerRegexStr = brokenUpHeader[0] + @"((\." + brokenUpFileExtensions[0] + ")";
-                        for (var i = 1; i < brokenUpFileExtensions.Length; i++)
+                        var headerRegexStr = fileName + @"((\." + splicedFileExtensions[0] + ")";
+                        for (var i = 1; i < splicedFileExtensions.Length; i++)
                         {
-                            headerRegexStr += @"|(\." + brokenUpFileExtensions[i] + ")";
+                            headerRegexStr += @"|(\." + splicedFileExtensions[i] + ")";
                         }
                         headerRegexStr += ")";
 
@@ -430,11 +448,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         // matches the header regex pattern.
                         if (headerRegex.IsMatch(relativePath))
                         {
-                            var match = headerRegex.Match(relativePath).Value.Split('.');
+                            var match = headerRegex.Match(relativePath).Value;
+                            var matchWithoutExtension = match.Substring(0, match.LastIndexOf('.'));
 
                             // Edge case: The below statement checks that we correctly handle cases such as a header of [m.cs] and
                             // a file name of Program.cs.
-                            if (match[0].Contains(PathUtilities.GetFileName(diagnosticFilePath, false)))
+                            if (matchWithoutExtension.Contains(PathUtilities.GetFileName(diagnosticFilePath, false)))
                             {
                                 // If the diagnostic's isPerLanguage = true, the rule is valid for both C# and VB.
                                 // For the purpose of adding missing rules later, we want to keep track of whether there is a
@@ -443,22 +462,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                                 // Thus, we want to keep track of whether there is an existing header that only contains [*.cs] or only
                                 // [*.vb], depending on the language.
                                 // We also keep track of the last valid header for the language.
-                                if (!SuppressionHelpers.IsCompilerDiagnostic(_diagnostic) && _isPerLanguage &&
-                                    (_language.Equals(LanguageNames.CSharp) || _language.Equals(LanguageNames.VisualBasic)))
+                                var compilerDiagAndPerLang = !SuppressionHelpers.IsCompilerDiagnostic(_diagnostic) && _isPerLanguage;
+                                if (compilerDiagAndPerLang)
                                 {
-                                    if (brokenUpFileExtensions.Contains("cs") && brokenUpFileExtensions.Contains("vb"))
+                                    if ((_language.Equals(LanguageNames.CSharp) || _language.Equals(LanguageNames.VisualBasic)) &&
+                                        splicedFileExtensions.Contains("cs") && splicedFileExtensions.Contains("vb"))
                                     {
                                         lastValidSpecificHeader = mostRecentHeader;
                                     }
                                 }
-                                else if ((SuppressionHelpers.IsCompilerDiagnostic(_diagnostic) || !_isPerLanguage) &&
-                                         brokenUpFileExtensions.Length == 1)
+                                else if (splicedFileExtensions.Length == 1)
                                 {
-                                    if (_language.Equals(LanguageNames.CSharp) && brokenUpFileExtensions.Contains("cs"))
+                                    if (_language.Equals(LanguageNames.CSharp) && splicedFileExtensions.Contains("cs"))
                                     {
                                         lastValidSpecificHeader = mostRecentHeader;
                                     }
-                                    else if (_language.Equals(LanguageNames.VisualBasic) && brokenUpFileExtensions.Contains("vb"))
+                                    else if (_language.Equals(LanguageNames.VisualBasic) && splicedFileExtensions.Contains("vb"))
                                     {
                                         lastValidSpecificHeader = mostRecentHeader;
                                     }
@@ -483,13 +502,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             }
 
             // We return only the last text change in case of duplicate entries for the same rule.
-            if (!textChange.Equals(new TextChange()))
+            if (textChange != default)
             {
-                return new Tuple<SourceText, TextLine?, TextLine?>(result.WithChanges(textChange), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
+                return (result.WithChanges(textChange), lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
             }
 
-            // Rule not found
-            return new Tuple<SourceText, TextLine?, TextLine?>(null, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
+            // Rule not found.
+            return (null, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd);
         }
 
         private SourceText AddMissingRule(
@@ -539,8 +558,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             }
 
             // We need to generate a new header such as '[*.cs]' or '[*.vb]':
-            //      - For compiler diagnostic entries and code style entries which have per-language option = false, generate only *.cs or *.vb".
-            //      - For the remainder, generate [ *.cs, *.vb]
+            //      - For compiler diagnostic entries and code style entries which have per-language option = false, generate only [*.cs] or [*.vb].
+            //      - For the remainder, generate [*.{cs,vb}]
             if (_language == LanguageNames.CSharp || _language == LanguageNames.VisualBasic)
             {
                 // Insert a newline if not already present
@@ -558,11 +577,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     prefix += "\r\n";
                 }
 
-                if (_language.Equals(LanguageNames.CSharp) && (!_isPerLanguage || SuppressionHelpers.IsCompilerDiagnostic(_diagnostic)))
+                var compilerDiagOrNotPerLang = SuppressionHelpers.IsCompilerDiagnostic(_diagnostic) || !_isPerLanguage;
+                if (_language.Equals(LanguageNames.CSharp) && compilerDiagOrNotPerLang)
                 {
                     prefix += "[*.cs]\r\n";
                 }
-                else if (_language.Equals(LanguageNames.VisualBasic) && (!_isPerLanguage || SuppressionHelpers.IsCompilerDiagnostic(_diagnostic)))
+                else if (_language.Equals(LanguageNames.VisualBasic) && compilerDiagOrNotPerLang)
                 {
                     prefix += "[*.vb]\r\n";
                 }
