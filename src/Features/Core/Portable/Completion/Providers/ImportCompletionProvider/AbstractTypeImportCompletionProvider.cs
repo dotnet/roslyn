@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var importNode = CreateImport(document, containingNamespace);
 
-                var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst);
+                var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst, cancellationToken);
                 var documentWithImport = document.WithSyntaxRoot(rootWithImport);
                 var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
