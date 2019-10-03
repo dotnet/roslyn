@@ -3745,6 +3745,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding imports will bring an extension method into scope with the same name as &apos;{0}&apos;.
+        /// </summary>
+        internal static string Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access {
+            get {
+                return ResourceManager.GetString("Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_na" +
+                        "me_as_member_access", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Workspace is not empty..
         /// </summary>
         internal static string Workspace_is_not_empty {
