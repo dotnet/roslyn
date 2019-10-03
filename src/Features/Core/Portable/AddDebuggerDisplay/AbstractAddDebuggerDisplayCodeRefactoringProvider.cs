@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Simplification;
@@ -122,7 +121,9 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             var newAttribute = generator
                 .Attribute(generator.TypeExpression(debuggerAttributeTypeSymbol), new[] { attributeArgument })
-                .WithAdditionalAnnotations(Simplifier.Annotation);
+                .WithAdditionalAnnotations(
+                    Simplifier.Annotation,
+                    Simplifier.AddImportsAnnotation);
 
             editor.AddAttribute(type, newAttribute);
 
@@ -142,49 +143,9 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                         }));
             }
 
-            editor.TrackNode(type);
-
             syntaxRoot = editor.GetChangedRoot();
 
-            syntaxRoot = await EnsureNamespaceImportAsync(
-                document,
-                generator,
-                syntaxRoot,
-                contextLocation: syntaxRoot.GetCurrentNode(type),
-                "System.Diagnostics",
-                cancellationToken).ConfigureAwait(false);
-
             return document.WithSyntaxRoot(syntaxRoot);
-        }
-
-        private static async Task<SyntaxNode> EnsureNamespaceImportAsync(
-            Document document,
-            SyntaxGenerator generator,
-            SyntaxNode syntaxRoot,
-            SyntaxNode contextLocation,
-            string namespaceName,
-            CancellationToken cancellationToken)
-        {
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            var importsService = document.Project.LanguageServices.GetRequiredService<IAddImportsService>();
-            var newImport = generator.NamespaceImportDeclaration(namespaceName);
-
-            if (importsService.HasExistingImport(compilation, syntaxRoot, contextLocation, newImport))
-            {
-                return syntaxRoot;
-            }
-
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-
-            return importsService.AddImport(
-                compilation,
-                syntaxRoot,
-                contextLocation,
-                newImport,
-                placeSystemNamespaceFirst,
-                cancellationToken);
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
