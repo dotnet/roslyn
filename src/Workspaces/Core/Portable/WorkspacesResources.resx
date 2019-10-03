@@ -1473,4 +1473,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Symbol_specifications" xml:space="preserve">
     <value>Symbol specifications</value>
   </data>
+  <data name="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access" xml:space="preserve">
+    <value>Adding imports will bring an extension method into scope with the same name as '{0}'</value>
+  </data>
 </root>

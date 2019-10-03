@@ -23,10 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return VisualBasicCodeGenerationHelpers.GetDestination(containerNode)
         End Function
 
-        Protected Overrides Function CreateImportsAdder(document As Document) As AbstractImportsAdder
-            Return New ImportsStatementsAdder(document)
-        End Function
-
         Protected Overrides Function GetMemberComparer() As IComparer(Of SyntaxNode)
             Return VisualBasicDeclarationComparer.WithoutNamesInstance
         End Function

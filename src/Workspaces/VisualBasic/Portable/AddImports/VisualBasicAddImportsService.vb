@@ -2,11 +2,13 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
     <ExportLanguageService(GetType(IAddImportsService), LanguageNames.VisualBasic), [Shared]>
@@ -20,6 +22,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
         <ImportingConstructor>
         Public Sub New()
         End Sub
+
+        Private Shared ImportsStatementComparer As ImportsStatementComparer = New ImportsStatementComparer(New CaseInsensitiveTokenComparer())
+
+        Protected Overrides Function IsEquivalentImport(a As SyntaxNode, b As SyntaxNode) As Boolean
+            Dim importsA = TryCast(a, ImportsStatementSyntax)
+            Dim importsB = TryCast(b, ImportsStatementSyntax)
+            If importsA Is Nothing OrElse importsB Is Nothing Then
+                Return False
+            End If
+
+            Return ImportsStatementComparer.Compare(importsA, importsB) = 0
+
+        End Function
 
         Protected Overrides Function GetGlobalImports(compilation As Compilation) As ImmutableArray(Of SyntaxNode)
             Dim generator = VisualBasicSyntaxGenerator.Instance
@@ -67,14 +82,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                 staticUsingContainer As SyntaxNode,
                 aliasContainer As SyntaxNode,
                 placeSystemNamespaceFirst As Boolean,
-                root As SyntaxNode) As SyntaxNode
+                root As SyntaxNode,
+                cancellationToken As CancellationToken) As SyntaxNode
 
             Dim compilationUnit = DirectCast(root, CompilationUnitSyntax)
+
+            If Not compilationUnit.CanAddImportsStatements(cancellationToken) Then
+                Return compilationUnit
+            End If
 
             Return compilationUnit.AddImportsStatements(
                 usingDirectives.Concat(aliasDirectives).ToList(),
                 placeSystemNamespaceFirst,
                 Array.Empty(Of SyntaxAnnotation))
         End Function
+
+        Private Class CaseInsensitiveTokenComparer
+            Implements IComparer(Of SyntaxToken)
+            Public Function Compare(x As SyntaxToken, y As SyntaxToken) As Integer Implements IComparer(Of SyntaxToken).Compare
+                ' By using 'ValueText' we get the value that is normalized.  i.e.
+                ' [class] will be 'class', and unicode escapes will be converted
+                ' to actual unicode.  This allows sorting to work properly across
+                ' tokens that have different source representations, but which
+                ' mean the same thing.
+
+                ' Don't bother checking the raw kind, since this will only ever be used with Identifier tokens.
+
+                Return CaseInsensitiveComparer.Default.Compare(x.GetIdentifierText(), y.GetIdentifierText())
+            End Function
+        End Class
     End Class
 End Namespace
