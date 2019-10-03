@@ -271,6 +271,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
+            if (context.IsFormattingDisabled(new TextSpan(context.TokenStream.LastTokenInStream.Token.SpanStart, 0)))
+            {
+                // Formatting is suppressed in the document, and not restored before the end
+                return;
+            }
+
             // remove all trailing indentation
             var triviaInfo = context.TokenStream.GetTriviaDataAtEndOfTree().WithIndentation(0, context, _formattingRules, cancellationToken);
 
@@ -301,6 +307,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             static void TriviaFormatter(int tokenPairIndex, FormattingContext ctx, ChainedFormattingRules formattingRules, CancellationToken ct)
             {
+                if (ctx.IsFormattingDisabled(tokenPairIndex))
+                {
+                    return;
+                }
+
                 var triviaInfo = ctx.TokenStream.GetTriviaData(tokenPairIndex);
                 triviaInfo.Format(
                     ctx,

@@ -7126,5 +7126,55 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task LocalFunction_OutParameter_UsedInCaller()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+public class C
+{
+    public void M()
+    {
+        if (GetVal(out var [|value|]))
+        {
+            var x = value;
+        }
+
+        bool GetVal(out string val)
+        {
+            val = string.Empty;
+            return true;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TupleMember_UsedAfterContinueBranch()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+public class Test
+{
+    void M(List<(int, int)> list)
+    {
+        foreach (var (x, [|y|]) in list)
+        {
+            if (x != 0)
+            {
+                continue;
+            }
+
+            Console.Write(y);
+        }
+    }
+}");
+        }
+
+
     }
 }

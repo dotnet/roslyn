@@ -1277,7 +1277,7 @@ class Program
             var comp = CreateCompilationWithMscorlib40(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var eof = tree.GetCompilationUnitRoot().FullSpan.End;
-            Assert.NotEqual(eof, 0);
+            Assert.NotEqual(0, eof);
             var symbols = model.LookupSymbols(eof);
             CompilationUtils.CheckSymbols(symbols, "System", "Microsoft");
         }

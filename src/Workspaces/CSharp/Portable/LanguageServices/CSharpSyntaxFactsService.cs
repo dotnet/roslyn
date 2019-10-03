@@ -951,6 +951,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
             => ((NamespaceDeclarationSyntax)namespaceDeclaration).Members;
 
+        public SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit)
+            => ((CompilationUnitSyntax)compilationUnit).Members;
+
         private void AppendMethodLevelMembers(SyntaxNode node, List<SyntaxNode> list)
         {
             foreach (var member in node.GetMembers())

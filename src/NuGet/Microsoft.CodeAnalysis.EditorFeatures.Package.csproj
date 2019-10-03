@@ -7,6 +7,8 @@
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.EditorFeatures</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- https://github.com/NuGet/Home/issues/8583 -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for editor features inside the Visual Studio editor.
     </PackageDescription>

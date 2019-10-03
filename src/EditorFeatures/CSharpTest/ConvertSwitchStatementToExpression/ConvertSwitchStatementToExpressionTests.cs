@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestTrivia()
+        public async Task TestTrivia_01()
         {
             await TestInCSharp8(
 @"class Program
@@ -599,7 +599,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         [||]switch (i) // trailing switch
         {
             // leading label
-            case 1:
+            case 1: // trailing label
+                // leading body
                 return 4; // trailing body
             case 2:
                 return 5;
@@ -619,12 +620,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         return i switch // trailing switch
         {
             // leading label
-            1 => 4, // trailing body
+            // trailing label
+            1 => 4,// leading body
+                   // trailing body
             2 => 5,
             3 => 6,
-
             // leading next statement
-            _ => throw null, // leading next statement
+            _ => throw null,// leading next statement
+        };
+    }
+}");
+        }
+
+        [WorkItem(37873, "https://github.com/dotnet/roslyn/issues/37873")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestTrivia_02()
+        {
+            await TestInCSharp8(
+@"class Program
+{
+    static int GetValue(int input)
+    {
+        [||]switch (input)
+        {
+            case 1:
+                // this little piggy went to market
+                return 42;
+            case 2:
+                // this little piggy stayed home
+                return 50;
+            case 3:
+                // this little piggy had roast beef
+                return 79;
+            default:
+                // this little piggy had none
+                return 80;
+        }
+    }
+}",
+@"class Program
+{
+    static int GetValue(int input)
+    {
+        return input switch
+        {
+            1 => 42,// this little piggy went to market
+            2 => 50,// this little piggy stayed home
+            3 => 79,// this little piggy had roast beef
+            _ => 80,// this little piggy had none
         };
     }
 }");
@@ -694,6 +737,240 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             1 => 4,
             2 => 5,
             _ => throw null,
+        };
+    }
+}");
+        }
+
+        [WorkItem(37947, "https://github.com/dotnet/roslyn/issues/37947")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMultiLabelWithDefault()
+        {
+            await TestInCSharp8(
+@"using System;
+
+class Program
+{
+    public static string FromDay(DayOfWeek dayOfWeek)
+    {
+        [||]switch (dayOfWeek)
+        {
+            case DayOfWeek.Monday:
+                return ""Monday"";
+            case DayOfWeek.Friday:
+            default:
+                return ""Other"";
+        }
+    }
+}",
+@"using System;
+
+class Program
+{
+    public static string FromDay(DayOfWeek dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            DayOfWeek.Monday => ""Monday"",
+            _ => ""Other"",
+        };
+    }
+}");
+        }
+
+        [WorkItem(37949, "https://github.com/dotnet/roslyn/issues/37949")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnUseInNextStatement()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Program
+{
+    public static void Throw(int index)
+    {
+        string name = """";
+        [||]switch (index)
+        {
+            case 0: name = ""1""; break;
+            case 1: name = ""2""; break;
+        }
+        throw new Exception(name);
+    }
+}");
+        }
+
+        [WorkItem(36876, "https://github.com/dotnet/roslyn/issues/36876")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestDeclarationInOuterScope()
+        {
+            await TestInCSharp8(
+@"using System;
+using System.IO;
+
+class Program
+{
+    static SeekOrigin origin;
+    static long offset;
+    static long position;
+    static long length;
+    public static void Test()
+    {
+        long target;
+        try
+        {
+            [||]switch (origin)
+            {
+                case SeekOrigin.Begin:
+                    target = offset;
+                    break;
+
+                case SeekOrigin.Current:
+                    target = checked(offset + position);
+                    break;
+
+                case SeekOrigin.End:
+                    target = checked(offset + length);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(origin));
+            }
+        }
+        catch (OverflowException)
+        {
+            throw new ArgumentOutOfRangeException(nameof(offset));
+        }
+
+        if (target < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(offset));
+        }
+    }
+}",
+@"using System;
+using System.IO;
+
+class Program
+{
+    static SeekOrigin origin;
+    static long offset;
+    static long position;
+    static long length;
+    public static void Test()
+    {
+        long target;
+        try
+        {
+            target = origin switch
+            {
+                SeekOrigin.Begin => offset,
+                SeekOrigin.Current => checked(offset + position),
+                SeekOrigin.End => checked(offset + length),
+                _ => throw new ArgumentOutOfRangeException(nameof(origin)),
+            };
+        }
+        catch (OverflowException)
+        {
+            throw new ArgumentOutOfRangeException(nameof(offset));
+        }
+
+        if (target < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(offset));
+        }
+    }
+}");
+        }
+
+        [WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingOnDirectives()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    static void Main() { }
+
+    static int GetValue(int input)
+    {
+        [||]switch (input)
+        {
+            case 1:
+                return 42;
+            case 2:
+#if PLATFORM_UNIX
+                return 50;
+#else
+                return 51;
+#endif
+            case 3:
+                return 79;
+            default:
+                return 80;
+        }
+    }
+}");
+        }
+
+        [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestShouldNotCastNullOnNullableValueType_ReturnStatement()
+        {
+            await TestInCSharp8(
+@"class Program
+{
+    public static bool? GetBool(string name)
+    {
+        [||]switch (name)
+        {
+            case ""a"": return true;
+            case ""b"": return false;
+            default: return null;
+        }
+    }
+}",
+@"class Program
+{
+    public static bool? GetBool(string name)
+    {
+        return name switch
+        {
+            ""a"" => true,
+            ""b"" => false,
+            _ => null,
+        };
+    }
+}");
+        }
+
+        [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestShouldNotCastNullOnNullableValueType_Assignment()
+        {
+            await TestInCSharp8(
+@"class Program
+{
+    public static void Test(string name)
+    {
+        bool? result;
+        [||]switch (name)
+        {
+            case ""a"": result = true; break;
+            case ""b"": result = false; break;
+            default: result = null; break;
+        }
+    }
+}",
+@"class Program
+{
+    public static void Test(string name)
+    {
+        var result = name switch
+        {
+            ""a"" => true,
+            ""b"" => false,
+            _ => null,
         };
     }
 }");

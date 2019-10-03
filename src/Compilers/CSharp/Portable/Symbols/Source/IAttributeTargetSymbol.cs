@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Implemented by symbols that can be targetted by an attribute declaration (i.e. source symbols).
+    /// Implemented by symbols that can be targeted by an attribute declaration (i.e. source symbols).
     /// </summary>
     internal interface IAttributeTargetSymbol
     {

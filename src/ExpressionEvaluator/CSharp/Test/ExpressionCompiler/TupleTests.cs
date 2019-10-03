@@ -458,7 +458,7 @@ class C
                     testData: testData);
                 diagnostics.Verify();
                 diagnostics.Free();
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 ReadOnlyCollection<byte> customTypeInfo;
                 var customTypeInfoId = locals[0].GetCustomTypeInfo(out customTypeInfo);
                 ReadOnlyCollection<byte> dynamicFlags;

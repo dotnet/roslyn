@@ -6,6 +6,8 @@
     <IsPackable>true</IsPackable>
     <NuspecPackageId>Microsoft.Net.Compilers</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- https://github.com/NuGet/Home/issues/8583 -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageDescription>
       .NET Compilers package.

@@ -33,15 +33,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             argumentNames = default;
             argumentRefKinds = default;
             dynamicExpression = createDynamicExpression(arguments, argumentNames, argumentRefKinds);
-            Assert.Equal(null, dynamicExpression.GetArgumentName(0));
-            Assert.Equal(null, dynamicExpression.GetArgumentRefKind(0));
+            Assert.Null(dynamicExpression.GetArgumentName(0));
+            Assert.Null(dynamicExpression.GetArgumentRefKind(0));
 
             // Non-empty arguments and empty argument names/refkinds
             arguments = ImmutableArray.Create((IOperation)null);
             argumentNames = ImmutableArray<string>.Empty;
             argumentRefKinds = ImmutableArray<RefKind>.Empty;
             dynamicExpression = createDynamicExpression(arguments, argumentNames, argumentRefKinds);
-            Assert.Equal(null, dynamicExpression.GetArgumentName(0));
+            Assert.Null(dynamicExpression.GetArgumentName(0));
             Assert.Equal(RefKind.None, dynamicExpression.GetArgumentRefKind(0));
 
             // Non-empty arguments and non-empty argument names/refkinds

@@ -3,10 +3,6 @@ variables:
   - group: DotNet-DotNetCli-Storage
   - group: DotNet-MSRC-Storage
 
-  # .NET Core 3 Dev
-  - name: PublicDevRelease_30_Channel_Id
-    value: 3
-
   # .NET Core 3.1 Dev
   - name: PublicDevRelease_31_Channel_Id
     value: 128
@@ -54,10 +50,6 @@ variables:
 
   # Feed Configurations
   # These should include the suffix "/index.json"
-
-  # Configuration for the feed where packages from internal non-stable builds will be published to
-  - name: StaticInternalFeed
-    value: 'https://dnceng.pkgs.visualstudio.com/_packaging/dotnet-core-internal/nuget/v3/index.json'
 
   # Default locations for Installers and checksums
   # Public Locations

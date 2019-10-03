@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 // We set this local to true during the loop below when we make some changes that might enable
                 // transformations for basic blocks that were already looked at. We simply keep repeating the
-                // pass untill no such changes are made.
+                // pass until no such changes are made.
                 retry = false;
 
                 int count = blocks.Count - 1;

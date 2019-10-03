@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        private readonly ICommandHandlerServiceFactory _commandFactory;
         private readonly IFeatureServiceFactory _featureServiceFactory;
         private AbstractDebuggerIntelliSenseContext _context;
         private IOleCommandTarget _originalNextCommandFilter;
@@ -32,11 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
             IVsEditorAdaptersFactoryService adapterFactory,
-            ICommandHandlerServiceFactory commandFactory,
             IFeatureServiceFactory featureServiceFactory)
-            : base(languageService, wpfTextView, adapterFactory, commandFactory)
+            : base(languageService, wpfTextView, adapterFactory)
         {
-            _commandFactory = commandFactory;
             _featureServiceFactory = featureServiceFactory;
         }
 
@@ -70,9 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         {
             // We have a new _originalNextCommandFilter or new _context, reset NextCommandTarget chain based on their values.
             // The chain is formed like this: 
-            // this.CurrentHandlers (legacy command handlers) 
-            //     -> IVsCommandHandlerServiceAdapter (our command handlers migrated to the modern editor commanding)
-            //            -> original next command filter
+            //     IVsCommandHandlerServiceAdapter (our command handlers migrated to the modern editor commanding)
+            //         -> original next command filter
             var nextCommandFilter = _originalNextCommandFilter;
             // The next filter is set in response to debugger calling IVsImmediateStatementCompletion2.InstallStatementCompletion(),
             // followed IVsImmediateStatementCompletion2.SetCompletionContext() that sets the context.
@@ -93,12 +89,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             this.NextCommandTarget = nextCommandFilter;
         }
 
-        internal void SetCommandHandlers(ITextBuffer buffer)
-        {
-            this.CurrentHandlers = _commandFactory.GetService(buffer);
-            SetNextFilterWorker();
-        }
-
         // If they haven't given us a context, or we aren't enabled, we should pass along to the next thing in the chain,
         // instead of trying to have our command handlers to work.
         public override int Exec(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut)
@@ -108,31 +98,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 return NextCommandTarget.Exec(pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
 
+            // NOTE: at this point base.Exec will still call NextCommandTarget.Exec like above, but we
+            // are skipping some special handling in a few cases, and also enabling GC Low Latency mode.
             return base.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
         }
 
         // Our immediate window filter has to override this behavior in the default
         // AbstractOLECommandTarget because they'll send us SCROLLUP when the key typed was CANCEL
         // (see below)
-        protected override int ExecuteVisualStudio2000(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
+        protected override int ExecuteVisualStudio2000(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut)
         {
             // We have to ask the buffer to make itself writable, if it isn't already
             _context.DebuggerTextLines.GetStateFlags(out var bufferFlags);
             _context.DebuggerTextLines.SetStateFlags((uint)((BUFFERSTATEFLAGS)bufferFlags & ~BUFFERSTATEFLAGS.BSF_USER_READONLY));
 
             var result = VSConstants.S_OK;
-            var guidCmdGroup = pguidCmdGroup;
 
             // If the caret is outside our projection, defer to the next command target.
             var caretPosition = _context.DebuggerTextView.GetCaretPoint(_context.Buffer);
             if (caretPosition == null)
             {
-                return NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            }
-
-            void executeNextCommandTarget()
-            {
-                result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+                return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
 
             switch ((VSConstants.VSStd2KCmdID)commandId)
@@ -140,13 +126,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                 // If we see a RETURN, and we're in the immediate window, we'll want to rebuild
                 // spans after all the other command handlers have run.
                 case VSConstants.VSStd2KCmdID.RETURN:
-                    ExecuteReturn(subjectBuffer, contentType, executeNextCommandTarget);
+                    result = NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
                     _context.RebuildSpans();
                     break;
 
                 // After handling typechar of '?', start completion.
                 case VSConstants.VSStd2KCmdID.TYPECHAR:
-                    ExecuteTypeCharacter(pvaIn, subjectBuffer, contentType, executeNextCommandTarget);
+                    result = NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+
                     if ((char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn) == '?')
                     {
                         if (_context.CompletionStartsOnQuestionMark)
@@ -155,20 +142,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
                             // target isn't the one we want, because we've
                             // definitely remapped buffers. Ask our context for
                             // the real subject buffer.
-                            ExecuteInvokeCompletionList(_context.Buffer, _context.ContentType, () =>
-                            {
-                                // We cannot just pass executeNextCommandTarget becuase it would execute TYPECHAR
-                                var showMemberListCmdGroupId = VSConstants.VSStd2K;
-                                NextCommandTarget.Exec(ref showMemberListCmdGroupId, (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST,
-                                    executeInformation, pvaIn, pvaOut);
-                            });
+                            NextCommandTarget.Exec(VSConstants.VSStd2K, (uint)VSConstants.VSStd2KCmdID.SHOWMEMBERLIST,
+                                executeInformation, pvaIn, pvaOut);
                         }
                     }
 
                     break;
 
                 default:
-                    return base.ExecuteVisualStudio2000(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
+                    return base.ExecuteVisualStudio2000(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
 
             _context.DebuggerTextLines.SetStateFlags(bufferFlags);
@@ -192,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             // If there was an old context, it must be cleaned before calling SetContext.
             Debug.Assert(_context == null);
             _context = context;
-            this.SetCommandHandlers(context.Buffer);
+            this.SetNextFilterWorker();
         }
 
         internal void RemoveContext()

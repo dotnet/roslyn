@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var streamName1 = "TestReadChecksumReturnsNullWhenNeverWritten";
 
             using var storage = GetStorage(solution);
-            Assert.Equal(null, await storage.ReadChecksumAsync(streamName1));
+            Assert.Null(await storage.ReadChecksumAsync(streamName1));
         }
 
         [Fact]
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                Assert.Equal(null, await storage.ReadStreamAsync(streamName1, s_checksum2));
+                Assert.Null(await storage.ReadStreamAsync(streamName1, s_checksum2));
             }
         }
 
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                Assert.Equal(null, await storage.ReadChecksumAsync(streamName1));
+                Assert.Null(await storage.ReadChecksumAsync(streamName1));
             }
         }
 
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             using (var storage = GetStorage(solution))
             {
-                Assert.Equal(null, await storage.ReadChecksumAsync(streamName1));
+                Assert.Null(await storage.ReadChecksumAsync(streamName1));
             }
         }
 

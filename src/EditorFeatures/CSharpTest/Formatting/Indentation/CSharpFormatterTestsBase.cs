@@ -96,11 +96,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             string code,
             int indentationLine,
             char ch,
+            bool useTabs,
             int? baseIndentation = null,
             TextSpan span = default)
         {
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
+            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
+
             if (baseIndentation.HasValue)
             {
                 var factory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>()

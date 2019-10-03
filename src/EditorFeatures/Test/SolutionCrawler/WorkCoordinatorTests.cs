@@ -2,13 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -839,7 +837,7 @@ End Class";
                 {
                     started = true;
                 }
-                else if (s.Status == ProgressStatus.Stoped)
+                else if (s.Status == ProgressStatus.Stopped)
                 {
                     stopped = true;
                 }

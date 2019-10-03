@@ -4382,26 +4382,26 @@ End Class
 
             Dim parsedArgs = DefaultParse({"/errorlog:", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", ":<file>"))
-            Assert.Null(parsedArgs.ErrorLogPath)
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             parsedArgs = DefaultParse({"/errorlog", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
-                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", ":<file>"))
-            Assert.Null(parsedArgs.ErrorLogPath)
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' Should preserve fully qualified paths
             parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("C:\MyFolder\MyBinary.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("C:\MyFolder\MyBinary.xml", parsedArgs.ErrorLogOptions.Path)
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' Should handle quotes
             parsedArgs = DefaultParse({"/errorlog:""C:\My Folder\MyBinary.xml""", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("C:\My Folder\MyBinary.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("C:\My Folder\MyBinary.xml", parsedArgs.ErrorLogOptions.Path)
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' Quote after a \ is treated as an escape
@@ -4412,12 +4412,12 @@ End Class
             ' Should expand partially qualified paths
             parsedArgs = DefaultParse({"/errorlog:MyBinary.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(Path.Combine(baseDirectory, "MyBinary.xml"), parsedArgs.ErrorLogPath)
+            Assert.Equal(Path.Combine(baseDirectory, "MyBinary.xml"), parsedArgs.ErrorLogOptions.Path)
 
             ' Should expand partially qualified paths
             parsedArgs = DefaultParse({"/errorlog:..\MyBinary.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("C:\abc\def\MyBinary.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("C:\abc\def\MyBinary.xml", parsedArgs.ErrorLogOptions.Path)
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' drive-relative path:
@@ -4427,15 +4427,43 @@ End Class
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(filePath))
 
-            Assert.Null(parsedArgs.ErrorLogPath)
+            Assert.Null(parsedArgs.ErrorLogOptions)
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
             ' UNC
             parsedArgs = DefaultParse({"/errorlog:\\server\share\file.xml", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
 
-            Assert.Equal("\\server\share\file.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("\\server\share\file.xml", parsedArgs.ErrorLogOptions.Path)
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Parses SARIF version.
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=2", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal("C:\MyFolder\MyBinary.xml", parsedArgs.ErrorLogOptions.Path)
+            Assert.Equal(SarifVersion.Sarif2, parsedArgs.ErrorLogOptions.SarifVersion)
+            Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Invalid SARIF version.
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=42", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=42", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Invalid errorlog qualifier.
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,invalid=42", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,invalid=42", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            ' Too many errorlog qualifiers.
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=2,version=2", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=2,version=2", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
         End Sub
 
         <Fact>
@@ -4446,7 +4474,7 @@ End Class
             Dim parsedArgs = DefaultParse({"/errorlog:a\b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
 
-            Assert.Equal("C:\abc\def\baz\a\b.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("C:\abc\def\baz\a\b.xml", parsedArgs.ErrorLogOptions.Path)
 
             Assert.Equal("C:\abc\def\baz\c", parsedArgs.OutputDirectory)
             Assert.Equal("d.exe", parsedArgs.OutputFileName)
@@ -4455,7 +4483,7 @@ End Class
             parsedArgs = DefaultParse({"/errorlog:b.xml", "/out:c\d.exe", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify()
 
-            Assert.Equal("C:\abc\def\baz\b.xml", parsedArgs.ErrorLogPath)
+            Assert.Equal("C:\abc\def\baz\b.xml", parsedArgs.ErrorLogOptions.Path)
 
             Assert.Equal("C:\abc\def\baz\c", parsedArgs.OutputDirectory)
             Assert.Equal("d.exe", parsedArgs.OutputFileName)
@@ -9338,7 +9366,7 @@ End Class").Path
         End Sub
 
         <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
         Public Sub TestSuppression_CompilerWarning()
             ' warning BC40008 : 'C' is obsolete
             Dim source = "
@@ -9383,7 +9411,7 @@ End Class"
         End Sub
 
         <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
         Public Sub TestSuppression_CompilerWarningAsError()
             ' warning BC40008 : 'C' is obsolete
             Dim source = "
@@ -9461,7 +9489,7 @@ End Class"
         End Sub
 
         <WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/38454")>
         Public Sub TestSuppression_AnalyzerWarning()
             Dim source = "
 Class C

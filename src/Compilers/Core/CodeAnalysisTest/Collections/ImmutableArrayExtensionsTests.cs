@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(1, a.Length);
             Assert.Equal(2, a[0]);
 
-            Assert.Throws(typeof(ArgumentNullException), () => ImmutableArray.CreateRange<int>((IEnumerable<int>)null));
+            Assert.Throws<ArgumentNullException>(() => ImmutableArray.CreateRange<int>((IEnumerable<int>)null));
 
             a = ImmutableArray.CreateRange<int>(Enumerable.Range(1, 2));
             Assert.Equal(2, a.Length);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             ImmutableArray<int> nullOrEmpty = default(ImmutableArray<int>);
             Assert.True(nullOrEmpty.IsDefault);
             Assert.True(nullOrEmpty.IsDefaultOrEmpty);
-            Assert.Throws(typeof(NullReferenceException), () => nullOrEmpty.IsEmpty);
+            Assert.Throws<NullReferenceException>(() => nullOrEmpty.IsEmpty);
 
             nullOrEmpty = ImmutableArray.Create<int>();
             Assert.True(nullOrEmpty.IsEmpty);
@@ -67,12 +67,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             builder.Insert(1, "banana");
             builder.Insert(0, "$$$");
 
-            Assert.Equal(builder[0], "$$$");
-            Assert.Equal(builder[1], "apple");
-            Assert.Equal(builder[2], "banana");
-            Assert.Equal(builder[3], "candy");
-            Assert.Equal(builder[4], "drum");
-            Assert.Equal(builder[5], "elephant");
+            Assert.Equal("$$$", builder[0]);
+            Assert.Equal("apple", builder[1]);
+            Assert.Equal("banana", builder[2]);
+            Assert.Equal("candy", builder[3]);
+            Assert.Equal("drum", builder[4]);
+            Assert.Equal("elephant", builder[5]);
         }
 
         [Fact]
@@ -161,20 +161,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void CompareToNull()
         {
             var roaNull = default(ImmutableArray<int>);
-            Assert.Equal(true, roaNull == null);
-            Assert.Equal(false, roaNull != null);
-            Assert.Equal(true, null == roaNull);
-            Assert.Equal(false, null != roaNull);
+            Assert.True(roaNull == null);
+            Assert.False(roaNull != null);
+            Assert.True(null == roaNull);
+            Assert.False(null != roaNull);
 
             var copy = roaNull;
-            Assert.Equal(true, copy == roaNull);
-            Assert.Equal(false, copy != roaNull);
+            Assert.True(copy == roaNull);
+            Assert.False(copy != roaNull);
 
             var notnull = ImmutableArray.Create<int>();
-            Assert.Equal(false, notnull == null);
-            Assert.Equal(true, notnull != null);
-            Assert.Equal(false, null == notnull);
-            Assert.Equal(true, null != notnull);
+            Assert.False(notnull == null);
+            Assert.True(notnull != null);
+            Assert.False(null == notnull);
+            Assert.True(null != notnull);
         }
 
         [Fact]
@@ -213,9 +213,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void Last()
         {
             var roa = new int?[] { }.AsImmutableOrNull();
-            Assert.Throws(typeof(InvalidOperationException), () => roa.Last());
+            Assert.Throws<InvalidOperationException>(() => roa.Last());
             roa = new int?[] { 1, 2, 3 }.AsImmutableOrNull();
-            Assert.Throws(typeof(InvalidOperationException), () => roa.Last(i => i < 1));
+            Assert.Throws<InvalidOperationException>(() => roa.Last(i => i < 1));
             Assert.Equal(3, roa.Last(i => i > 1));
         }
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             roa = new int?[] { 1 }.AsImmutableOrNull();
             Assert.Equal(1, roa.SingleOrDefault());
             roa = new int?[] { 1, 2, 3 }.AsImmutableOrNull();
-            Assert.Throws(typeof(InvalidOperationException), () => roa.SingleOrDefault());
+            Assert.Throws<InvalidOperationException>(() => roa.SingleOrDefault());
             roa = new int?[] { 1, 2, 3 }.AsImmutableOrNull();
             Assert.Equal(2, roa.SingleOrDefault(i => i == 2));
         }
@@ -294,25 +294,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal("one:1", dict["one"]);
             Assert.Equal("two:2", dict["two"]);
             Assert.Equal("three:3", dict["three"]);
-            Assert.Throws(typeof(KeyNotFoundException), () => dict["One"]);
+            Assert.Throws<KeyNotFoundException>(() => dict["One"]);
 
             dict = System.Linq.ImmutableArrayExtensions.ToDictionary(roa, s => s.Split(':').First(), StringComparer.OrdinalIgnoreCase);
             Assert.Equal("one:1", dict["one"]);
             Assert.Equal("two:2", dict["Two"]);
             Assert.Equal("three:3", dict["THREE"]);
-            Assert.Throws(typeof(KeyNotFoundException), () => dict[""]);
+            Assert.Throws<KeyNotFoundException>(() => dict[""]);
 
             dict = System.Linq.ImmutableArrayExtensions.ToDictionary(roa, s => s.Split(':').First(), s => s.Split(':').Last());
             Assert.Equal("1", dict["one"]);
             Assert.Equal("2", dict["two"]);
             Assert.Equal("3", dict["three"]);
-            Assert.Throws(typeof(KeyNotFoundException), () => dict["THREE"]);
+            Assert.Throws<KeyNotFoundException>(() => dict["THREE"]);
 
             dict = System.Linq.ImmutableArrayExtensions.ToDictionary(roa, s => s.Split(':').First(), s => s.Split(':').Last(), StringComparer.OrdinalIgnoreCase);
             Assert.Equal("1", dict["onE"]);
             Assert.Equal("2", dict["Two"]);
             Assert.Equal("3", dict["three"]);
-            Assert.Throws(typeof(KeyNotFoundException), () => dict["four"]);
+            Assert.Throws<KeyNotFoundException>(() => dict["four"]);
         }
 
         [Fact]
@@ -374,17 +374,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             AssertEx.Equal(new[] { 2, 3, 4, 5, 6 }, array.SelectAsArray(item => true, item => item + 1));
             AssertEx.Equal(new[] { 3, 5 }, array.SelectAsArray(item => item % 2 == 0, item => item + 1));
             Assert.Empty(array.SelectAsArray<int, int>(item => item < 0, item => throw null));
-        }
-
-        [Fact]
-        public void DangerousCreateFromUnderlyingArray()
-        {
-            var array = new[] { 1, 2, 3, 4 };
-            var copy = array;
-            var immutable = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref copy);
-            Assert.Null(copy);
-            AssertEx.Equal(array, immutable);
-            Assert.Same(array, ImmutableArrayExtensions.DangerousGetUnderlyingArray(immutable));
         }
 
         [Fact]
