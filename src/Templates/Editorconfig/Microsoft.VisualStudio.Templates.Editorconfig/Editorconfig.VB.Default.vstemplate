@@ -5,7 +5,7 @@
     <ProjectType>VisualBasic</ProjectType>
     <Icon Package="{FAE04EC1-301F-11d3-BF4B-00C04F79EFBC}" ID="4600" />
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
-    <DefaultName>editorconfig</DefaultName>
+    <DefaultName>.editorconfig</DefaultName>
   </TemplateData>
   <TemplateContent>
     <CustomParameters>
