@@ -86,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim ioMock = New Mock(Of IIOService)()
 
-                ' Simlute the local database being missing.
+                ' Simulate the local database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
                 Dim clientMock = New Mock(Of IRemoteControlClient)
@@ -124,7 +124,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim ioMock = New Mock(Of IIOService)()
 
-                ' Simlute the local database being missing.
+                ' Simulate the local database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
                 Dim clientMock = CreateClientMock(CreateStream(New XElement("Database",
@@ -345,7 +345,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
                 ' Simulate the database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
-                ' Create a client that will download the latest databsae
+                ' Create a client that will download the latest database
                 Dim clientMock = CreateFullDatabaseClientMock()
                 Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=True)
 
