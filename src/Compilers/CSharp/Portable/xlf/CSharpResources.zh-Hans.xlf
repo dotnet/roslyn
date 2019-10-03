@@ -37,6 +37,11 @@
         <target state="translated">在 as 表达式中使用可以为 null 的引用类型“{0}?”是非法的；请改用基础类型“{0}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">特性“{0}”对事件访问器无效。它仅对“{1}”声明有效。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">无法将自动实现的属性 "{0}" 标记为 "readonly"，因为它具有 "set" 访问器。</target>
@@ -45,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">自动实现的的 "set" 访问器 "{0}" 不能标记为 "readonly"。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="translated">特性“{0}”对事件访问器无效。它仅对“{1}”声明有效。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
+        <target state="translated">/nullable 的选项“{0}”无效；必须为“禁用”、“启用”、“警告”或“注释”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -117,11 +117,6 @@
         <target state="needs-review-translation">默认文本 "default" 作为模式无效。请相应使用其他文本(例如 "0" 或 "null")。若要匹配一切项，请使用放弃模式 "_"。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">修饰符“{0}”对 C# {1} 中的此项无效。请使用语言版本“{2}”或更高版本。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
         <target state="new">There is no target type for the default literal.</target>
@@ -139,7 +134,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
-        <target state="new">Duplicate null suppression operator ('!')</target>
+        <target state="translated">Null 抑制运算符("!")重复</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
@@ -319,7 +314,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">应为“警告”、“注释”或指令结束</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -642,11 +637,11 @@
         <target state="needs-review-translation">
                              Visual C# 编译器选项
 
-                       - OUTPUT FILES -
+                       - 输出文件 -
 -out:&lt;file&gt;                   指定输出文件名称(默认: 具有主类的文件或
                               第一个文件的基名称)
 -target:exe                   生成控制台可执行文件(默认)(缩
-                              form: -t:exe)
+                              写: -t:exe)
 -target:winexe                生成 Windows 可执行文件(缩写:
                               -t:winexe)
 -target:library               生成库(缩写: -t:library)
@@ -662,7 +657,7 @@
                               Itanium、x64、arm、arm64、anycpu32bitpreferred 或
                               anycpu。默认平台为 anycpu。
 
-                       - 输入文件-
+                       - 输入文件 -
 -recurse:&lt;wildcard&gt;           根据通配符规范包括当前目录和
                               子目录中的所有
                               文件
@@ -713,7 +708,8 @@
 -nowarn:&lt;warn list&gt;           禁用特定警告消息
 -ruleset:&lt;file&gt;               指定禁用特定诊断的
                               规则集文件。
--errorlog:&lt;file&gt;              指定用于记录所有编译器和分析器诊断的
+-errorlog:&lt;file&gt;              指定用于记录所有编译器
+                       和分析器诊断的
                               文件。
 -reportanalyzer               报告其他分析器信息，如
                               执行时间。
@@ -724,7 +720,7 @@
 -define:&lt;symbol list&gt;         定义条件编译符号(缩
                               写: -d)
 -langversion:?                显示允许使用的语言版本值
--langversion:&lt;string&gt;         S指定语言版本，例如
+-langversion:&lt;string&gt;         指定语言版本，例如
                               `default` (最新主要版本)，或
                               `latest` (最新版本，包括次要版本)，
                               或者特定版本，如 `6` 或 `7.1`
@@ -741,7 +737,7 @@
 -keycontainer:&lt;string&gt;        指定强名称密钥容器
 -highentropyva[+|-]           启用高平均信息量 ASLR
 
-                       - 杂项 -
+                       - 其他 -
 @&lt;file&gt;                       读取响应文件以获取更多选项
 -help                         显示此用法消息(缩写: -?)
 -nologo                       取消显示编译器版权消息
@@ -771,14 +767,15 @@
 -errorendlocation             输出每个错误的结束位置
                               行和列
 -preferreduilang              指定首选输出语言名称。
--nosdkpath                    禁止搜索标准库程序集的默认 SDK 路径。
+-nosdkpath                    禁止搜索标准库程序集
+                             的默认 SDK 路径。
 -nostdlib[+|-]                不引用标准库(mscorlib.dll)
 -subsystemversion:&lt;string&gt;    指定此程序集的子系统版本
 -lib:&lt;file list&gt;              指定要在其中搜索引用的附加
                               目录
 -errorreport:&lt;string&gt;         指定如何处理内部编译器错误:
                               prompt、send、queue 或 none。默认为
-                              queue.
+                              queue。
 -appconfig:&lt;file&gt;             指定包含程序集绑定设置的
                               应用程序配置文件
 -moduleassemblyname:&lt;string&gt;  此模块所属程序集
@@ -786,6 +783,11 @@
 -modulename:&lt;string&gt;          指定源模块的名称
 </target>
         <note>Visual C# Compiler Options</note>
+      </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="translated">默认接口实现</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
@@ -909,7 +911,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;switch expression&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1373,13 +1375,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">可能的 null 值可能不会传递到用 [DisallowNull] 属性标记的目标</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">可能的 null 值可能不会传递到用 [DisallowNull] 属性标记的目标</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">可能的 null 值可能不会传递到用 [DisallowNull] 属性标记的目标</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">可能的 null 值可能不会传递到用 [DisallowNull] 属性标记的目标</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1390,6 +1392,16 @@
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
         <source>Interface is already listed in the interface list with different nullability of reference types.</source>
         <target state="translated">接口已在接口列表中列出，引用类型具有不同的 Null 性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExpressionMayIntroduceNullT">
+        <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
+        <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
+        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1434,7 +1446,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">只能在 "#nullable" 注释上下文内的代码中使用可为 null 的引用类型的注释。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
@@ -1449,7 +1461,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">只能在 "#nullable" 注释上下文内的代码中使用可为 null 的引用类型的注释。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1490,6 +1502,16 @@
       <trans-unit id="WRN_NullReferenceAssignment_Title">
         <source>Possible null reference assignment.</source>
         <target state="translated">可能的 null 引用赋值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer">
+        <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer_Title">
+        <source>Object or collection initializer implicitly dereferences possibly null member.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
@@ -1614,7 +1636,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <target state="translated">“{1}”的参数“{0}”类型中引用类型的为 Null 性与隐式实现的成员“{2}”不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1664,7 +1686,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">“{0}”的返回类型中引用类型的为 Null 性与隐式实现的成员“{1}”不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1694,7 +1716,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">“{0}”的类型中引用类型的为 Null 性与隐式实现的成员“{1}”不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
@@ -1704,12 +1726,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">类型中引用类型的为 Null 性与重写成员不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">类型中引用类型的为 Null 性与重写成员不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1753,8 +1775,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">Switch 表达式不会处理所有可能的输入（它并非详尽无遗）。</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">Switch 表达式不会处理所有可能的输入（它并非详尽无遗）。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1768,8 +1790,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">Switch 表达式不会处理所有可能的输入（它并非详尽无遗）。</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">Switch 表达式不会处理所有可能的输入（它并非详尽无遗）。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1834,12 +1856,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">未初始化不可以为 null 的 {0}“{1}”。</target>
+        <target state="translated">不可为 null 的 {0} "{1}" 未初始化。请考虑将 {0} 声明为可以为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="needs-review-translation">未初始化不可以为 null 的字段。</target>
+        <target state="translated">不可为 null 的字段未初始化。请考虑声明为可以为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5862,12 +5884,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected 'disable' or 'restore'</source>
-        <target state="needs-review-translation">应为 disable、restore、enable 或 safeonly</target>
+        <target state="translated">应为 disable 或 restore</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected 'disable' or 'restore' after #pragma warning</source>
-        <target state="needs-review-translation">应在 #pragma warning 之后为 disable、restore、enable 或 safeonly</target>
+        <target state="translated">#pragma 警告后应为 "disable" 或 "restore"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -9723,11 +9745,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">接口不能包含转换、相等或不相等运算符</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_DefaultInterfaceImplementation">
-        <source>default interface implementation</source>
-        <target state="translated">默认接口实现</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">目标运行时不支持默认接口实现。</target>
@@ -9736,6 +9753,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">“{0}”无法在类型 "{2}" 中实现接口成员 "{1}"，因为目标运行时不支持默认接口实现。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="translated">在 C# {1} 中，修饰符 "{0}" 对此项无效。请使用语言版本 "{2}" 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

@@ -419,25 +419,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a.b", e.Expression.ToString());
             var cons = e.WhenNotNull;
             Assert.Equal(".c.d?[1]?.e()?.f", cons.ToString());
-            Assert.Equal(cons.Kind(), SyntaxKind.ConditionalAccessExpression);
+            Assert.Equal(SyntaxKind.ConditionalAccessExpression, cons.Kind());
 
             e = e.WhenNotNull as ConditionalAccessExpressionSyntax;
             Assert.Equal(".c.d", e.Expression.ToString());
             cons = e.WhenNotNull;
             Assert.Equal("[1]?.e()?.f", cons.ToString());
-            Assert.Equal(cons.Kind(), SyntaxKind.ConditionalAccessExpression);
+            Assert.Equal(SyntaxKind.ConditionalAccessExpression, cons.Kind());
 
             e = e.WhenNotNull as ConditionalAccessExpressionSyntax;
             Assert.Equal("[1]", e.Expression.ToString());
             cons = e.WhenNotNull;
             Assert.Equal(".e()?.f", cons.ToString());
-            Assert.Equal(cons.Kind(), SyntaxKind.ConditionalAccessExpression);
+            Assert.Equal(SyntaxKind.ConditionalAccessExpression, cons.Kind());
 
             e = e.WhenNotNull as ConditionalAccessExpressionSyntax;
             Assert.Equal(".e()", e.Expression.ToString());
             cons = e.WhenNotNull;
             Assert.Equal(".f", cons.ToString());
-            Assert.Equal(cons.Kind(), SyntaxKind.MemberBindingExpression);
+            Assert.Equal(SyntaxKind.MemberBindingExpression, cons.Kind());
         }
 
         private void TestFunctionKeyword(SyntaxKind kind, SyntaxToken keyword)
@@ -2180,7 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var qs = (QueryExpressionSyntax)expr;
             Assert.NotNull(qs.Body.SelectOrGroup);
-            Assert.IsType(typeof(GroupClauseSyntax), qs.Body.SelectOrGroup);
+            Assert.IsType<GroupClauseSyntax>(qs.Body.SelectOrGroup);
 
             var gs = (GroupClauseSyntax)qs.Body.SelectOrGroup;
             Assert.NotNull(gs.GroupExpression);

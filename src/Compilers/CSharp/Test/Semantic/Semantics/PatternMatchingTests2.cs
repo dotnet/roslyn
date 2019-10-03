@@ -494,7 +494,7 @@ public class Point
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (5,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         var r = 1 switch { };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19),
                 // (5,19): error CS8506: No best type was found for the switch expression.
@@ -518,7 +518,7 @@ public class Point
     public delegate void D();
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (5,19): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (5,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         var x = 1 switch { 0 => M, 1 => new D(M), 2 => M };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19)
                 );
@@ -609,7 +609,7 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,19): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (7,19): warning CS8409: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         var c = a switch { var x2 when x2 is var x3 => x3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 19)
                 );

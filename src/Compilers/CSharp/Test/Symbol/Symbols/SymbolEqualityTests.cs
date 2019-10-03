@@ -405,18 +405,18 @@ public class A
             var member1 = model.GetDeclaredSymbol(member1Syntax.Declaration.Variables[0]);
             var member2 = model.GetDeclaredSymbol(member2Syntax.Declaration.Variables[0]);
 
-            Assert.Equal(true, member1.Equals(member1));
-            Assert.Equal(true, member2.Equals(member2));
-            Assert.Equal(false, member1.Equals(member2));
-            Assert.Equal(false, member2.Equals(member1));
+            Assert.True(member1.Equals(member1));
+            Assert.True(member2.Equals(member2));
+            Assert.False(member1.Equals(member2));
+            Assert.False(member2.Equals(member1));
 
             var field1 = (FieldSymbol)member1;
             var field2 = (FieldSymbol)member2;
 
-            Assert.Equal(true, field1.Equals(field1));
-            Assert.Equal(true, field2.Equals(field2));
-            Assert.Equal(false, field1.Equals(field2));
-            Assert.Equal(false, field2.Equals(field1));
+            Assert.True(field1.Equals(field1));
+            Assert.True(field2.Equals(field2));
+            Assert.False(field1.Equals(field2));
+            Assert.False(field2.Equals(field1));
         }
 
         [Fact]
@@ -744,20 +744,20 @@ public class B
         private void VerifyEquality(ISymbol type1, ISymbol type2, bool expectedDefault, bool expectedIncludeNullability)
         {
             // Symbol.Equals
-            Assert.Equal(true, type1.Equals(type1));
-            Assert.Equal(true, type2.Equals(type2));
+            Assert.True(type1.Equals(type1));
+            Assert.True(type2.Equals(type2));
             Assert.Equal(expectedDefault, type1.Equals(type2));
             Assert.Equal(expectedDefault, type2.Equals(type1));
 
             // TypeSymbol.Equals - Default
-            Assert.Equal(true, type1.Equals(type1, SymbolEqualityComparer.Default));
-            Assert.Equal(true, type2.Equals(type2, SymbolEqualityComparer.Default));
+            Assert.True(type1.Equals(type1, SymbolEqualityComparer.Default));
+            Assert.True(type2.Equals(type2, SymbolEqualityComparer.Default));
             Assert.Equal(expectedDefault, type1.Equals(type2, SymbolEqualityComparer.Default));
             Assert.Equal(expectedDefault, type2.Equals(type1, SymbolEqualityComparer.Default));
 
             // TypeSymbol.Equals - IncludeNullability
-            Assert.Equal(true, type1.Equals(type1, SymbolEqualityComparer.IncludeNullability));
-            Assert.Equal(true, type2.Equals(type2, SymbolEqualityComparer.IncludeNullability));
+            Assert.True(type1.Equals(type1, SymbolEqualityComparer.IncludeNullability));
+            Assert.True(type2.Equals(type2, SymbolEqualityComparer.IncludeNullability));
             Assert.Equal(expectedIncludeNullability, type1.Equals(type2, SymbolEqualityComparer.IncludeNullability));
             Assert.Equal(expectedIncludeNullability, type2.Equals(type1, SymbolEqualityComparer.IncludeNullability));
 

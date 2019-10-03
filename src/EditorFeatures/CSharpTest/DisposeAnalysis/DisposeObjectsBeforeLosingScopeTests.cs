@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisposeAnalysis
     public sealed class DisposeObjectsBeforeLosingScopeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer(), null);
+            => (new DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer(isEnabledByDefault: true), null);
 
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
             => TestDiagnosticsAsync(initialMarkup, parseOptions: null, expectedDiagnostics);

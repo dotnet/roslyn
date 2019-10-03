@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             TypeImportCompletionItemCount,
             TypeImportCompletionReferenceCount,
             TypeImportCompletionTimeoutCount,
+
+            TargetTypeCompletionTicks
         }
 
         internal static void LogTypeImportCompletionTicksDataPoint(int count) =>
@@ -34,6 +36,9 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogTypeImportCompletionTimeout() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.TypeImportCompletionTimeoutCount);
+
+        internal static void LogTargetTypeCompletionTicksDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
 
         internal static void ReportTelemetry()
         {

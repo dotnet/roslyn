@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationWithAnalyzersOptions GetAnalyzerOptions()
             {
                 // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
-                // async being used with syncronous blocking concurrency.
+                // async being used with synchronous blocking concurrency.
                 return new CompilationWithAnalyzersOptions(
                     options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution),
                     onAnalyzerException: service.GetOnAnalyzerException(project.Id, logAggregatorOpt),
