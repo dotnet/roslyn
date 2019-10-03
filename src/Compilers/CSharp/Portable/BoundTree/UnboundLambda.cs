@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds)
         {
-            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithDelegateAndReturnType(delegateType, parameterTypes, parameterRefKinds, returnType: default);
+            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithDelegateAndReturnType(parameterTypes, parameterRefKinds, returnType: default);
             var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
             BoundLambda.BlockReturns.GetReturnTypes(returnTypes, block);
             var inferredReturnType = BoundLambda.InferReturnType(returnTypes, _unboundLambda, lambdaBodyBinder.Compilation, lambdaBodyBinder.Conversions, delegateType, lambdaSymbol.IsAsync);
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaBodyBinder,
                 delegateType,
                 inferredReturnType)
-                { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
+            { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
             // TODO: Should InferredReturnType.UseSiteDiagnostics be merged into BoundLambda.Diagnostics?
             var returnType = inferredReturnType.TypeWithAnnotations;
@@ -673,26 +673,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol delegateType,
             TypeWithAnnotations returnType)
         {
-            var cacheKey = ReturnInferenceCacheKey.Create(Binder, delegateType, IsAsync);
-            return BindWithDelegateAndReturnType(delegateType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, returnType);
+            var cacheKey = ReturnInferenceCacheKey.Create(delegateType, IsAsync);
+            return BindWithDelegateAndReturnType(cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, returnType);
         }
 
         private (LambdaSymbol lambdaSymbol, BoundBlock block, ExecutableCodeBinder lambdaBodyBinder, DiagnosticBag diagnostics) BindWithDelegateAndReturnType(
-            NamedTypeSymbol delegateType,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             TypeWithAnnotations returnType)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var lambdaSymbol = new LambdaSymbol(
-                Binder.Compilation,
-                Binder.ContainingMemberOrLambda,
-                _unboundLambda,
-                parameterTypes,
-                parameterRefKinds,
-                refKind: CodeAnalysis.RefKind.None,
-                returnType: returnType,
-                diagnostics: diagnostics);
+            var lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda,
+                                                  returnType,
+                                                  diagnostics,
+                                                  parameterTypes,
+                                                  parameterRefKinds,
+                                                  CodeAnalysis.RefKind.None);
             var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             return (lambdaSymbol, block, lambdaBodyBinder, diagnostics);
@@ -900,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lambdaBodyBinder,
                     delegateType,
                     new InferredLambdaReturnType(inferredReturnType.NumExpressions, inferredReturnType.HadExpressionlessReturn, refKind, returnType, ImmutableArray<DiagnosticInfo>.Empty))
-                    { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
+                { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
             }
         }
 

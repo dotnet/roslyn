@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 updatedSymbol = sym;
             }
             // On merge, replace with RoslynDebug.Assert and remove suppression
-            Debug.Assert(updatedSymbol is object);
+            RoslynDebug.Assert(updatedSymbol is object);
 
             switch (updatedSymbol)
             {
@@ -100,11 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return (T)updatedSymbol!;
+            return (T)updatedSymbol;
 
             Symbol remapLambda(BoundLambda boundLambda, LambdaSymbol lambda)
             {
-                var updatedDelegateType = _snapshotManager!.GetUpdatedDelegateTypeForLambda(lambda);
+                var updatedDelegateType = _snapshotManager?.GetUpdatedDelegateTypeForLambda(lambda);
 
                 if (!_remappedSymbols.TryGetValue(lambda.ContainingSymbol, out Symbol? updatedContaining) && updatedDelegateType is null)
                 {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return updatedLocal;
                 }
 
-                var updatedType = _snapshotManager!.GetUpdatedTypeForLocalSymbol((SourceLocalSymbol)local);
+                var updatedType = _snapshotManager?.GetUpdatedTypeForLocalSymbol(local);
 
                 if (!_remappedSymbols.TryGetValue(local.ContainingSymbol, out Symbol? updatedContaining) && !updatedType.HasValue)
                 {

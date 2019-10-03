@@ -49,6 +49,10 @@ class C
 
             void assertEquality(Symbol symbol1, Symbol symbol2, bool nullableIgnored, bool considerEverything)
             {
+                if (considerEverything)
+                {
+                    Assert.True(nullableIgnored, "If considerEverything is true, nullableIgnored should be true as well.");
+                }
                 Assert.Equal(nullableIgnored, symbol1.Equals(symbol2));
                 Assert.Equal(nullableIgnored, symbol2.Equals(symbol1));
 
