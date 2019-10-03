@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                            SyntaxFactory.KeywordEventContainer(token)), identifier)
 
             Dim array = items.ToArray()
-            Return If(array.Count = 0, Nothing, SyntaxFactory.HandlesClause(array))
+            Return If(array.Length = 0, Nothing, SyntaxFactory.HandlesClause(array))
         End Function
 
         Private Overloads Shared Function GenerateTypeParameterList(method As IMethodSymbol) As TypeParameterListSyntax

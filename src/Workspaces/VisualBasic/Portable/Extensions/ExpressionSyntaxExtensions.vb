@@ -1690,7 +1690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                 If ((namedType.GetBaseTypes().Contains(containingType) AndAlso
                                     Not optionSet.GetOption(SimplificationOptions.AllowSimplificationToBaseType)) OrElse
                                     (Not optionSet.GetOption(SimplificationOptions.AllowSimplificationToGenericType) AndAlso
-                                    containingType.TypeArguments.Count() <> 0)) Then
+                                    containingType.TypeArguments.Length <> 0)) Then
                                     Return False
                                 End If
                             End If
