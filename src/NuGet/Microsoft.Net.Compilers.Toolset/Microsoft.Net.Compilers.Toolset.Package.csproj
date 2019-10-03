@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;net472</TargetFrameworks>
+    <TargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">netcoreapp2.1</TargetFrameworks>
 
     <IsPackable>true</IsPackable>
     <NuspecPackageId>Microsoft.Net.Compilers.Toolset</NuspecPackageId>
@@ -47,7 +48,7 @@
       <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcoreapp2.1/bincore"/>
       <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcoreapp2.1/bincore/runtimes"/>
      
-      <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="build" />
+      <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472' or '$(DotNetBuildFromSource)' == 'true'" TargetDir="build" />
      
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
