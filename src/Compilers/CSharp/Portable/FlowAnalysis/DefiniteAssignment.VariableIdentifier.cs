@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly Symbol Symbol;
             /// <summary>
             /// Indicates whether this variable is nested inside another tracked variable.
-            /// For instance, if a field `x` of a struct is tracked a symbol is not sufficient
+            /// For instance, if a field `x` of a struct is a tracked variable, the symbol is not sufficient
             /// to uniquely determine which field is being tracked. The containing slot(s) would
             /// identify which tracked variable the field `x` is part of.
             /// </summary>

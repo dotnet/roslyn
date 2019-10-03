@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (numElements >= RestPosition && diagnostics != null && !underlyingType.IsErrorType())
             {
                 WellKnownMember wellKnownTupleRest = GetTupleTypeMember(RestPosition, RestPosition);
-                _ = (FieldSymbol)GetWellKnownMemberInType(underlyingType.OriginalDefinition, wellKnownTupleRest, diagnostics, syntax);
+                _ = GetWellKnownMemberInType(underlyingType.OriginalDefinition, wellKnownTupleRest, diagnostics, syntax);
             }
 
             if (diagnostics != null && ((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
