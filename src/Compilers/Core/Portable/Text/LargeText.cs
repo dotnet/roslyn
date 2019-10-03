@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     // maxCharRemainingGuess typically overestimates a little
                     // so we will first fill a slightly smaller (maxCharRemainingGuess - 64) chunk
-                    // and then use 64 char tail, which is likley to be resized.
+                    // and then use 64 char tail, which is likely to be resized.
                     nextChunkSize = Math.Max(maxCharRemainingGuess - 64, 64);
                 }
 
