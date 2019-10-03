@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -37,6 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // may have made a change that introduced text that we didn't classify because we hadn't
             // parsed it yet, and we want to get back to a known state.
             private const int ReportChangeDelayInMilliseconds = TaggerConstants.ShortDelay;
+
+            // TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
+            // LSP client language names
+            private readonly ImmutableArray<string> _lspClientLanguages = ImmutableArray.Create("C#_LSP", "VB_LSP");
+            // Cache if the LSP experiment is enabled.
+            private bool? _areRemoteClassificationsEnabled;
 
             private readonly ITextBuffer _subjectBuffer;
             private readonly WorkspaceRegistration _workspaceRegistration;
@@ -199,9 +207,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
-                // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
-                // F#/typescript and other languages that doesn't support syntax tree will return null here.
-                _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                // TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
+                if (ShouldLogLocalTelemetry(document.Project.Language))
+                {
+                    using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger))
+                    {
+                        _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
+                    // F#/typescript and other languages that doesn't support syntax tree will return null here.
+                    _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                }
 
                 lock (_gate)
                 {
@@ -218,6 +237,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     ReportChangeDelayInMilliseconds,
                     _listener.BeginAsyncOperation("ReportEntireFileChanged"),
                     _reportChangeCancellationSource.Token);
+            }
+
+            /// <summary>
+            /// TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
+            /// Only capture local classification telemetry for experiment when in liveshare and remote classifications are not active.
+            /// </summary>
+            private bool ShouldLogLocalTelemetry(string languageName)
+            {
+                var isLspContentType = _lspClientLanguages.Contains(languageName);
+                if (_areRemoteClassificationsEnabled == null)
+                {
+                    var experimentationService = _workspace.Services.GetService<IExperimentationService>();
+                    _areRemoteClassificationsEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote);
+                }
+
+                return isLspContentType && !(bool)_areRemoteClassificationsEnabled;
             }
 
             private void ReportChangedSpan(SnapshotSpan changeSpan)
