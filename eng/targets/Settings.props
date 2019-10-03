@@ -18,7 +18,7 @@
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
     <RoslynPortableTargetFrameworks>net472;netcoreapp2.1</RoslynPortableTargetFrameworks>
-    <RoslynEnforceCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true'">true</RoslynEnforceCodeStyle>
+    <RoslynCheckCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true' or '$(RoslynEnforceCodeStyle)' == 'true'">true</RoslynCheckCodeStyle>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <Features>strict, IOperation</Features>
@@ -126,18 +126,23 @@
 
   <!-- Language-specific analyzer packages -->
   <Choose>
-    <When Condition="'$(Language)' == 'VB' and '$(RoslynEnforceCodeStyle)' == 'true'">
+    <When Condition="'$(Language)' == 'VB' and '$(RoslynCheckCodeStyle)' == 'true'">
       <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(MicrosoftCodeAnalysisVisualBasicCodeStyleVersion)" PrivateAssets="all" />
       </ItemGroup>
     </When>
 
-    <When Condition="'$(Language)' == 'C#' and '$(RoslynEnforceCodeStyle)' == 'true'">
+    <When Condition="'$(Language)' == 'C#' and '$(RoslynCheckCodeStyle)' == 'true'">
       <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(MicrosoftCodeAnalysisCSharpCodeStyleVersion)" PrivateAssets="all" />
       </ItemGroup>
     </When>
   </Choose>
+
+  <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
+    <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
+  </PropertyGroup>
 
   <!--
     Language specific settings
