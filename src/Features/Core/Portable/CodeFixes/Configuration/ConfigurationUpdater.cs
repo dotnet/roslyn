@@ -328,17 +328,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 return (null, null, null);
             }
 
-            // If there's an error finding the diagnostic's filepath, bail out.
-            var diagnosticSourceTree = _diagnostic.Location.SourceTree;
-            if (diagnosticSourceTree == null)
-            {
-                return (null, null, null);
-            }
+            var relativePath = string.Empty;
+            var diagnosticFilePath = string.Empty;
 
-            // Finds the relative path between editorconfig directory and diagnostic filepath.
-            var diagnosticFilePath = diagnosticSourceTree.FilePath.ToLowerInvariant();
-            var relativePath = PathUtilities.GetRelativePath(editorConfigDirectory.ToLowerInvariant(), diagnosticFilePath);
-            relativePath = PathUtilities.NormalizeWithForwardSlash(relativePath);
+            // If diagnostic SourceTree is null, it means Location.None, and thus no relative path.
+            var diagnosticSourceTree = _diagnostic.Location.SourceTree;
+            if (diagnosticSourceTree != null)
+            {
+                // Finds the relative path between editorconfig directory and diagnostic filepath.
+                diagnosticFilePath = diagnosticSourceTree.FilePath.ToLowerInvariant();
+                relativePath = PathUtilities.GetRelativePath(editorConfigDirectory.ToLowerInvariant(), diagnosticFilePath);
+                relativePath = PathUtilities.NormalizeWithForwardSlash(relativePath);
+            }
 
             TextLine? mostRecentHeader = null;
             TextLine? lastValidHeader = null;
@@ -462,8 +463,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                                 // Thus, we want to keep track of whether there is an existing header that only contains [*.cs] or only
                                 // [*.vb], depending on the language.
                                 // We also keep track of the last valid header for the language.
-                                var compilerDiagAndPerLang = !SuppressionHelpers.IsCompilerDiagnostic(_diagnostic) && _isPerLanguage;
-                                if (compilerDiagAndPerLang)
+                                var isLanguageAgnosticEntry = !SuppressionHelpers.IsCompilerDiagnostic(_diagnostic) && _isPerLanguage;
+                                if (isLanguageAgnosticEntry)
                                 {
                                     if ((_language.Equals(LanguageNames.CSharp) || _language.Equals(LanguageNames.VisualBasic)) &&
                                         splicedFileExtensions.Contains("cs") && splicedFileExtensions.Contains("vb"))
@@ -485,6 +486,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                                 lastValidHeader = mostRecentHeader;
                             }
                         }
+                        // Location.None special case.
+                        else if (relativePath.IsEmpty() && new Regex(fileName).IsMatch(relativePath))
+                        {
+                            if ((_language.Equals(LanguageNames.CSharp) && splicedFileExtensions.Contains("cs")) ||
+                                    (_language.Equals(LanguageNames.VisualBasic) && splicedFileExtensions.Contains("vb")))
+                            {
+                                lastValidHeader = mostRecentHeader;
+                            }
+                        }
                     }
                 }
 
@@ -494,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                     mostRecentHeader.Equals(lastValidHeader))
                 {
                     lastValidHeaderSpanEnd = curLine;
-                    if (mostRecentHeader.Equals(lastValidSpecificHeader))
+                    if (lastValidSpecificHeader != null && mostRecentHeader.Equals(lastValidSpecificHeader))
                     {
                         lastValidSpecificHeaderSpanEnd = curLine;
                     }
