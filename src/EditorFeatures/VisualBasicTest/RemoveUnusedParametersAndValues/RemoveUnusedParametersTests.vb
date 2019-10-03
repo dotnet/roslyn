@@ -97,5 +97,34 @@ $"Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(36816, "https://github.com/dotnet/roslyn/issues/36816")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function PartialMethodParameter_NoDiagnostic() As Task
+            Await TestDiagnosticMissingAsync(
+$"Class C
+    [|Partial Private Sub M(str As String)|]
+    End Sub
+End Class
+
+Partial Class C
+    Private Sub M(str As String)
+        Dim x = str.ToString()
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(37988, "https://github.com/dotnet/roslyn/issues/37988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function XmlLiteral_NoDiagnostic() As Task
+            Await TestDiagnosticMissingAsync(
+$"Public Class C
+    Sub M([|param|] As System.Xml.Linq.XElement)
+        Dim a = param.<Test>
+        Dim b = param.@Test
+        Dim c = param...<Test>
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

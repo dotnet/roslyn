@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get; }
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations
-            => TypeWithAnnotations.Create(DeclaringCompilation.GetSpecialType(SpecialType.System_Int32));
+            => TypeWithAnnotations.Create(DeclaringCompilation.GetSpecialType(SpecialType.System_Int32), NullableAnnotation.NotAnnotated);
 
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
 
@@ -155,7 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool GenerateDebugInfo => false;
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
         public override DllImportData GetDllImportData() => null;
 

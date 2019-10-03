@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var text = line.ToString();
 
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 if (!SyntaxFacts.IsWhitespace(text[i]))
                 {
@@ -59,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </remarks>
         public static bool TryGetClosestBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
         {
-            SyntaxNode node = root.FindToken(position).Parent;
+            var node = root.FindToken(position).Parent;
             while (node != null)
             {
-                TextSpan? breakpointSpan = TryCreateSpanForNode(node, position);
+                var breakpointSpan = TryCreateSpanForNode(node, position);
                 if (breakpointSpan.HasValue)
                 {
                     span = breakpointSpan.Value;
@@ -294,14 +293,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         TryCreateSpanForNode(localFunction.ExpressionBody.Expression, position);
 
                 default:
-                    var expression = node as ExpressionSyntax;
-                    if (expression != null)
+                    if (node is ExpressionSyntax expression)
                     {
                         return IsBreakableExpression(expression) ? CreateSpan(expression) : default(TextSpan?);
                     }
 
-                    var statement = node as StatementSyntax;
-                    if (statement != null)
+                    if (node is StatementSyntax statement)
                     {
                         return TryCreateSpanForStatement(statement, position);
                     }
@@ -344,8 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static TextSpan? TryCreateSpanForSwitchLabel(SwitchLabelSyntax switchLabel, int position)
         {
-            var switchSection = switchLabel.Parent as SwitchSectionSyntax;
-            if (switchSection == null || switchSection.Statements.Count == 0)
+            if (!(switchLabel.Parent is SwitchSectionSyntax switchSection) || switchSection.Statements.Count == 0)
             {
                 return null;
             }
@@ -667,14 +663,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static SyntaxTokenList GetModifiers(VariableDeclarationSyntax declaration)
         {
-            BaseFieldDeclarationSyntax fieldDeclaration;
-            LocalDeclarationStatementSyntax localDeclaration;
-            if ((fieldDeclaration = declaration.Parent as BaseFieldDeclarationSyntax) != null)
+            if (declaration.Parent is BaseFieldDeclarationSyntax fieldDeclaration)
             {
                 return fieldDeclaration.Modifiers;
             }
 
-            if ((localDeclaration = declaration.Parent as LocalDeclarationStatementSyntax) != null)
+            if (declaration.Parent is LocalDeclarationStatementSyntax localDeclaration)
             {
                 return localDeclaration.Modifiers;
             }

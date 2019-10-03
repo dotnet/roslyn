@@ -43,11 +43,6 @@ namespace Roslyn.Test.Utilities
         public const string TestExecutionNeedsFusion = "Test depends on desktop fusion loader API";
 
         /// <summary>
-        /// Edit and continue is only supported on desktop at the moment.
-        /// </summary>
-        public const string EditAndContinueRequiresDesktop = "Edit and continue is only supported on desktop";
-
-        /// <summary>
         /// Mono issues around Default Interface Methods
         /// </summary>
         public const string MonoDefaultInterfaceMethods = "Mono can't execute this default interface method test yet";
@@ -56,8 +51,8 @@ namespace Roslyn.Test.Utilities
     public class ConditionalFactAttribute : FactAttribute
     {
         /// <summary>
-        /// This proprety exists to prevent users of ConditionalFact from accidentally putting documentation
-        /// in the Skip proprety instead of Reason. Putting it into Skip would cause the test to be unconditionally
+        /// This property exists to prevent users of ConditionalFact from accidentally putting documentation
+        /// in the Skip property instead of Reason. Putting it into Skip would cause the test to be unconditionally
         /// skipped vs. conditionally skipped which is the entire point of this attribute.
         /// </summary>
         [Obsolete("ConditionalFact should use Reason or AlwaysSkip", error: true)]
@@ -96,8 +91,8 @@ namespace Roslyn.Test.Utilities
     public class ConditionalTheoryAttribute : TheoryAttribute
     {
         /// <summary>
-        /// This proprety exists to prevent users of ConditionalFact from accidentally putting documentation
-        /// in the Skip proprety instead of Reason. Putting it into Skip would cause the test to be unconditionally
+        /// This property exists to prevent users of ConditionalFact from accidentally putting documentation
+        /// in the Skip property instead of Reason. Putting it into Skip would cause the test to be unconditionally
         /// skipped vs. conditionally skipped which is the entire point of this attribute.
         /// </summary>
         [Obsolete("ConditionalTheory should use Reason or AlwaysSkip")]
@@ -159,6 +154,7 @@ namespace Roslyn.Test.Utilities
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsUnix => !IsWindows;
         public static bool IsMacOS => RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+        public static bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;

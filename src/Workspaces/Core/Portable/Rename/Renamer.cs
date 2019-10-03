@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            options = options ?? solution.Options;
+            options ??= solution.Options;
             return RenameLocations.FindAsync(
                 symbolAndProjectId, solution, options, cancellationToken);
         }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            options = options ?? solution.Workspace.Options;
+            options ??= solution.Workspace.Options;
             var renameLocations = await GetRenameLocationsAsync(solution, symbolAndProjectId, options, cancellationToken).ConfigureAwait(false);
             return await RenameAsync(renameLocations, newName, filter, hasConflict, cancellationToken).ConfigureAwait(false);
         }

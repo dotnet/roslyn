@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Computed during initial binding so that we can expose it in the semantic model.
         public readonly bool NeedsDisposal;
 
+        public readonly bool IsAsync;
+
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
         public AwaitableInfo DisposeAwaitableInfo;
 
@@ -41,15 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public readonly BinderFlags Location;
 
-        internal bool IsAsync
-            => DisposeAwaitableInfo != null;
-
         private ForEachEnumeratorInfo(
             TypeSymbol collectionType,
             TypeWithAnnotations elementType,
             MethodSymbol getEnumeratorMethod,
             MethodSymbol currentPropertyGetter,
             MethodSymbol moveNextMethod,
+            bool isAsync,
             bool needsDisposal,
             AwaitableInfo disposeAwaitableInfo,
             MethodSymbol disposeMethod,
@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetEnumeratorMethod = getEnumeratorMethod;
             this.CurrentPropertyGetter = currentPropertyGetter;
             this.MoveNextMethod = moveNextMethod;
+            this.IsAsync = isAsync;
             this.NeedsDisposal = needsDisposal;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
             this.DisposeMethod = disposeMethod;
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public MethodSymbol CurrentPropertyGetter;
             public MethodSymbol MoveNextMethod;
 
+            public bool IsAsync;
             public bool NeedsDisposal;
             public AwaitableInfo DisposeAwaitableInfo;
             public MethodSymbol DisposeMethod;
@@ -112,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetEnumeratorMethod,
                     CurrentPropertyGetter,
                     MoveNextMethod,
+                    IsAsync,
                     NeedsDisposal,
                     DisposeAwaitableInfo,
                     DisposeMethod,

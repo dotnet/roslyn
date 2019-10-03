@@ -224,8 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else if (current is DeclarationExpressionSyntax decl)
                 {
-                    var name = decl.Designation as SingleVariableDesignationSyntax;
-                    if (name == null)
+                    if (!(decl.Designation is SingleVariableDesignationSyntax name))
                     {
                         break;
                     }
@@ -309,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             IList<string> reservedNames,
             CancellationToken cancellationToken)
         {
-            reservedNames = reservedNames ?? SpecializedCollections.EmptyList<string>();
+            reservedNames ??= SpecializedCollections.EmptyList<string>();
 
             // We can't change the names of named parameters.  Any other names we're flexible on.
             var isFixed = reservedNames.Select(s => true).Concat(
@@ -328,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             NamingRule parameterNamingRule,
             CancellationToken cancellationToken)
         {
-            reservedNames = reservedNames ?? SpecializedCollections.EmptyList<string>();
+            reservedNames ??= SpecializedCollections.EmptyList<string>();
 
             // We can't change the names of named parameters.  Any other names we're flexible on.
             var isFixed = reservedNames.Select(s => true).Concat(
@@ -360,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             IList<string> reservedNames,
             CancellationToken cancellationToken)
         {
-            reservedNames = reservedNames ?? SpecializedCollections.EmptyList<string>();
+            reservedNames ??= SpecializedCollections.EmptyList<string>();
 
             // We can't change the names of named parameters.  Any other names we're flexible on.
             var isFixed = reservedNames.Select(s => true).Concat(
@@ -379,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             NamingRule parameterNamingRule,
             CancellationToken cancellationToken)
         {
-            reservedNames = reservedNames ?? SpecializedCollections.EmptyList<string>();
+            reservedNames ??= SpecializedCollections.EmptyList<string>();
 
             // We can't change the names of named parameters.  Any other names we're flexible on.
             var isFixed = reservedNames.Select(s => true).Concat(
@@ -403,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     var symbolInfo = semanticModel.GetSymbolInfo(@using.Name);
                     if (symbolInfo.Symbol != null && symbolInfo.Symbol.Kind == SymbolKind.Namespace)
                     {
-                        result = result ?? new HashSet<INamespaceSymbol>();
+                        result ??= new HashSet<INamespaceSymbol>();
                         result.Add((INamespaceSymbol)symbolInfo.Symbol);
                     }
                 }

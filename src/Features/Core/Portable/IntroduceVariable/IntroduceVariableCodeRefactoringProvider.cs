@@ -22,10 +22,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
@@ -35,7 +32,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var action = await service.IntroduceVariableAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (action != null)
             {
-                context.RegisterRefactoring(action);
+                context.RegisterRefactoring(action, textSpan);
             }
         }
     }

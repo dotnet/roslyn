@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
         private readonly CommonMessageProvider _messageProvider;
         internal readonly bool IsScriptCommandLineParser;
         private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
+        internal const string ErrorLogOptionFormat = "<file>[,version={1|1.0|1.0.0|2|2.1|2.1.0}]";
 
         internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptCommandLineParser)
         {
@@ -118,6 +119,61 @@ namespace Microsoft.CodeAnalysis
             name = name.ToLowerInvariant();
             return true;
         }
+
+#nullable enable
+
+        internal ErrorLogOptions? ParseErrorLogOptions(
+            string arg,
+            IList<Diagnostic> diagnostics,
+            string baseDirectory,
+            out bool diagnosticAlreadyReported)
+        {
+            diagnosticAlreadyReported = false;
+
+            IEnumerator<string> partsEnumerator = ParseSeparatedStrings(arg, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).GetEnumerator();
+            if (!partsEnumerator.MoveNext() || string.IsNullOrEmpty(partsEnumerator.Current))
+            {
+                return null;
+            }
+
+            string? path = ParseGenericPathToFile(partsEnumerator.Current, diagnostics, baseDirectory);
+            if (path is null)
+            {
+                // ParseGenericPathToFile already reported the failure, so the caller should not
+                // report its own failure.
+                diagnosticAlreadyReported = true;
+                return null;
+            }
+
+            const char ParameterNameValueSeparator = '=';
+            SarifVersion sarifVersion = SarifVersion.Default;
+
+            if (partsEnumerator.MoveNext() && !string.IsNullOrEmpty(partsEnumerator.Current))
+            {
+                string part = partsEnumerator.Current;
+
+                string versionParameterDesignator = "version" + ParameterNameValueSeparator;
+                int versionParameterDesignatorLength = versionParameterDesignator.Length;
+
+                if (!(
+                        part.Length > versionParameterDesignatorLength &&
+                        part.Substring(0, versionParameterDesignatorLength).Equals(versionParameterDesignator, StringComparison.OrdinalIgnoreCase) &&
+                        SarifVersionFacts.TryParse(part.Substring(versionParameterDesignatorLength), out sarifVersion)
+                    ))
+                {
+                    return null;
+                }
+            }
+
+            if (partsEnumerator.MoveNext())
+            {
+                return null;
+            }
+
+            return new ErrorLogOptions(path, sarifVersion);
+        }
+
+#nullable restore
 
         internal static void ParseAndNormalizeFile(
             string unquoted,
@@ -407,7 +463,7 @@ namespace Microsoft.CodeAnalysis
         /// Only defined if errors were encountered.
         /// The error message for the encountered error.
         /// </param>
-        /// <param name="sessionKey">
+        /// <param name="pipeName">
         /// Only specified if <paramref name="containsShared"/> is true and the session key
         /// was provided.  Can be null
         /// </param>
@@ -416,14 +472,14 @@ namespace Microsoft.CodeAnalysis
             out List<string> parsedArgs,
             out bool containsShared,
             out string keepAliveValue,
-            out string sessionKey,
+            out string pipeName,
             out string errorMessage)
         {
             containsShared = false;
             keepAliveValue = null;
             errorMessage = null;
             parsedArgs = null;
-            sessionKey = null;
+            pipeName = null;
             var newArgs = new List<string>();
             foreach (var arg in args)
             {
@@ -465,7 +521,7 @@ namespace Microsoft.CodeAnalysis
                             return false;
                         }
 
-                        sessionKey = value;
+                        pipeName = value;
                     }
 
                     containsShared = true;
@@ -911,7 +967,9 @@ namespace Microsoft.CodeAnalysis
             string directory = PathUtilities.GetDirectoryName(path);
             string pattern = PathUtilities.GetFileName(path);
 
-            var resolvedDirectoryPath = (directory.Length == 0) ? baseDirectory : FileUtilities.ResolveRelativePath(directory, baseDirectory);
+            var resolvedDirectoryPath = string.IsNullOrEmpty(directory) ?
+                baseDirectory :
+                FileUtilities.ResolveRelativePath(directory, baseDirectory);
 
             IEnumerator<string> enumerator = null;
             try

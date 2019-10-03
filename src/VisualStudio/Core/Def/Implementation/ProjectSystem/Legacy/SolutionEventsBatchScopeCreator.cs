@@ -68,9 +68,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            foreach (var scope in _fullSolutionLoadScopes)
+            foreach (var (_, _, batchScope) in _fullSolutionLoadScopes)
             {
-                scope.batchScope.Dispose();
+                batchScope.Dispose();
             }
 
             _fullSolutionLoadScopes.Clear();
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         {
             AssertIsForeground();
 
-            for (int i = 0; i < _fullSolutionLoadScopes.Count; i++)
+            for (var i = 0; i < _fullSolutionLoadScopes.Count; i++)
             {
                 if (_fullSolutionLoadScopes[i].hierarchy == hierarchy)
                 {

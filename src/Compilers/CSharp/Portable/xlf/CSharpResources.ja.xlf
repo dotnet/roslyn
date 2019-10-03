@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
-        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <target state="translated">'{0}': 抽象イベントはイベント アクセサーの構文を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -39,17 +39,17 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="new">Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</target>
+        <target state="translated">属性 '{0}' はイベント アクセサーでは無効です。'{1}' 宣言でのみ有効です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
-        <target state="new">Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</target>
+        <target state="translated">'set' アクセサーがあるため、自動実装プロパティ '{0}' を 'readonly' とマークすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
-        <target state="new">Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</target>
+        <target state="translated">自動実装の 'set' アクセサー '{0}' を 'readonly' とマークすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,17 +69,22 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="needs-review-translation">/nullable のオプションとして '{0}' は無効です。'disable'、'enable'、'safeonly'、'warnings'、'safeonlywarnings' のいずれかにする必要があります</target>
+        <target state="translated">/nullable のオプション '{0}' が無効です。'disable'、'enable'、'warnings'、'annotations' のいずれかにする必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
-        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <target state="translated">NULL 許容参照型では typeof 演算子を使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">パターン マッチには使用できないオペランドです。値が必要ですが、'{0}' が見つかりました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -94,7 +99,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
-        <target state="new">An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</target>
+        <target state="translated">型 '{0}' の式を型 '{1}' のパターンで処理することはできません。オープン型と定数パターンを一致させるには、言語バージョン '{2}' 以上をご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
@@ -104,7 +109,12 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="translated">型 '{0}' には非抽象メンバーがあるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することを検討してください。</target>
+        <target state="translated">型 '{0}' には非抽象メンバーがあるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -122,9 +132,14 @@
         <target state="translated">'{0}' が複数回、明示的に実装されています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateNullSuppression">
+        <source>Duplicate null suppression operator ('!')</source>
+        <target state="translated">Null 抑制演算子 ('!') が重複しています</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
-        <target state="new">Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</target>
+        <target state="translated">プロパティまたはインデクサー '{0}' の両方のアクセサーで 'readonly' 修飾子を指定することはできません。代わりに、プロパティ自体に 'readonly' 修飾子を指定してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -174,17 +189,17 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="translated">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
+        <target state="translated">機能 '{0}' は C# 8.0 では使用できません。言語バージョン {1} 以上を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="translated">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
+        <target state="translated">機能 '{0}' は C# 8.0 では使用できません。言語バージョン {1} 以上を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
         <source>Field-like event '{0}' cannot be 'readonly'.</source>
-        <target state="new">Field-like event '{0}' cannot be 'readonly'.</target>
+        <target state="translated">フィールドに類似したイベント '{0}' を 'readonly' にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -217,6 +232,11 @@
         <target state="translated">'{0}' は、__arglist パラメーターが指定されているため、型 '{2}' のインターフェイス メンバー '{1}' を実装できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InternalError">
+        <source>Internal error in the C# compiler.</source>
+        <target state="new">Internal error in the C# compiler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">無効なハッシュ アルゴリズム名: '{0}'</target>
@@ -229,7 +249,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
-        <target state="new">Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</target>
+        <target state="translated">プロパティまたはインデクサー '{0}' とそのアクセサーの両方で 'readonly' 修飾子を指定することはできません。いずれかを削除してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidStackAllocArray">
@@ -259,12 +279,12 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">複数のアナライザー構成ファイルを同じディレクトリに入れることはできません ('{0}')。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
         <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
-        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <target state="translated">属性 [EnumeratorCancellation] を複数のパラメーターで使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -284,17 +304,17 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
-        <target state="new">The 'notnull' constraint must come before any other constraints</target>
+        <target state="translated">'notnull' 制約は、他の制約の前に指定されなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
-        <target state="needs-review-translation">'enable'、'safeonly'、'disable'、'restore' のいずれかが必要でした</target>
+        <target state="translated">'enable'、'disable'、'restore' のいずれかが必要でした</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">'warnings'、'annotations'、またはディレクティブの終わりが必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -314,17 +334,17 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
-        <target state="new">Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</target>
+        <target state="translated">メソッド '{0}' は、型パラメーター '{1}' に対して 'class' 制約を指定していますが、オーバーライドされた、または明示的に実装されたメソッド '{3}' の対応する型パラメーター '{2}' は参照型ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
-        <target state="new">Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</target>
+        <target state="translated">メソッド '{0}' は、型パラメーター '{1}' に対して 'struct' 制約を指定していますが、オーバーライドされた、または明示的に実装されたメソッド '{3}' の対応する型パラメーター '{2}' は NULL 非許容の値型ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="new">Both partial method declarations must be readonly or neither may be readonly</target>
+        <target state="translated">部分メソッド宣言は、両方とも readonly であるか、両方とも readonly でないかのいずれかである必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -347,9 +367,14 @@
         <target state="translated">プロパティ サブパターンには、一致させるプロパティまたはフィールドへの参照が必要です。例: '{{ Name: {0} }}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
         <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
-        <target state="new">'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</target>
+        <target state="translated">'{0}': 'readonly' は、プロパティまたはインデクサーが get および set の両方のアクセサーを含む場合にのみ、アクセサーで使用できます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -364,7 +389,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
-        <target state="translated">ターゲット ランタイムでは、インターフェイスのメンバーに対してアクセシビリティ 'protected'、'protected internal'、'private protected' はサポートされていません。</target>
+        <target state="translated">ターゲット ランタイムは、インターフェイスのメンバーに対して 'protected'、'protected internal'、'private protected' アクセシビリティをサポートしていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
@@ -384,7 +409,7 @@
       </trans-unit>
       <trans-unit id="ERR_StaticMemberCantBeReadOnly">
         <source>Static member '{0}' cannot be marked 'readonly'.</source>
-        <target state="new">Static member '{0}' cannot be marked 'readonly'.</target>
+        <target state="translated">静的メンバー '{0}' を 'readonly' とマークすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -532,8 +557,11 @@
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Specify a file to log all compiler and analyzer
                               diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
 
@@ -544,12 +572,14 @@
                               form: -d)
 -langversion:?                Display the allowed values for language version
 -langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
                               `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|warnings}
-                              Specify nullable context option enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Specify nullable context option enable|disable|warnings|annotations.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -605,152 +635,159 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
         <target state="needs-review-translation">
-                              Visual C# Compiler のオプション
+                             Visual C# コンパイラのオプション
 
-                        - 出力ファイル -
--out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラス
-                               のあるファイルまたは最初のファイルのベース名)
+                       - 出力ファイル -
+-out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラスを含むファイル
+                              または最初のファイルのベース名)
 -target:exe                   コンソール実行可能ファイルをビルドします (既定) (短い
-                               形式: -t:exe)
+                              形式: -t:exe)
 -target:winexe                Windows 実行可能ファイルをビルドします (短い形式:
-                               -t:winexe)
+                              -t:winexe)
 -target:library               ライブラリをビルドします (短い形式: -t:library)
--target:module                別のアセンブリに追加できるモジュールをビルド
-                               します (短い形式: -t:module)
+-target:module                別のアセンブリに追加できるモジュールを
+                              ビルドします (短い形式: -t:module)
 -target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
-                               -t:appcontainerexe)
+                              -t:appcontainerexe)
 -target:winmdobj              WinMDExp で使用される
-                               Windows ランタイムの中間ファイルをビルドします (短い形式: -t:winmdobj)
+                              Windows ランタイムの中間ファイルをビルドします (短い形式: -t:winmdobj)
 -doc:&lt;file&gt;                   生成する XML ドキュメント ファイル
--refout:&lt;file&gt;                生成する参照アセンブリ出力
+-refout:&lt;file&gt;                生成する参照アセンブリの出力
 -platform:&lt;string&gt;            このコードを実行できるプラットフォームを x86、
-                               Itanium、x64、arm、arm64、anycpu32bitpreferred、
-                               anycpu に制限します。既定は anycpu です。
+                              Itanium、x64、arm、arm64、anycpu32bitpreferred、
+                              anycpu に限定します。既定は anycpu です。
 
-                        - 入力ファイル -
+                       - 入力ファイル -
 -recurse:&lt;wildcard&gt;           ワイルドカードの指定に従い、現行ディレクトリおよび
-                               サブディレクトリ内のすべてのファイルを
-                               インクルードします
+                              サブディレクトリ内のすべてのファイルを
+                              インクルードします
 -reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定された
-                               アセンブリ ファイルのメタデータを参照します (短い形式: -r)
--reference:&lt;file list&gt;        指定されたアセンブリ ファイルのメタデータを参照
-                               します (短い形式: -r)
+                              アセンブリ ファイルのメタデータを参照します (短い形式: -r)
+-reference:&lt;file list&gt;        指定されたアセンブリ ファイルのメタデータを
+                              参照します (短い形式: -r)
 -addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
--link:&lt;file list&gt;             指定された相互運用アセンブリ ファイルのメタデータを
-                               埋め込みます (短い形式: -l)
+-link:&lt;file list&gt;             指定された相互運用アセンブリ ファイルの
+                              メタデータを埋め込みます (短い形式: -l)
 -analyzer:&lt;file list&gt;         このアセンブリからアナライザーを実行します
-                               (短い形式: -a)
+                              (短い形式: -a)
 -additionalfile:&lt;file list&gt;   コード生成には直接影響しないものの、
-                               アナライザーがエラーまたは警告を
-                               生成するときに使用する可能性のある追加ファイル。
+                              アナライザーがエラーまたは警告を
+                              生成するときに使用する可能性のある追加ファイル。
 -embed                        すべてのソース ファイルを PDB に埋め込みます。
--embed:&lt;file list&gt;            特定のファイルを PDB に埋め込みます
+-embed:&lt;file list&gt;            特定のファイルを PDB に埋め込みます。
 
-                        - リソース -
+                       - リソース -
 -win32res:&lt;file&gt;              Win32 リソース ファイル (.res) を指定します
 -win32icon:&lt;file&gt;             出力にこのアイコンを使用します
 -win32manifest:&lt;file&gt;         Win32 マニフェスト ファイル (.xml) を指定します
 -nowin32manifest              既定の Win32 マニフェストはインクルードしません
 -resource:&lt;resinfo&gt;           指定されたリソースを埋め込みます (短い形式: -res)
 -linkresource:&lt;resinfo&gt;       指定されたリソースをこのアセンブリにリンクします
-                               (短い形式: -linkres) ここで resinfo の形式
-                               は &lt;file&gt;[,&lt;string name&gt;[,public|private]] です
+                              (短い形式: -linkres) resinfo の形式
+                              は &lt;file&gt;[,&lt;string name&gt;[,public|private]] です
 
-                        - コード生成 -
--debug[+|-]                   デバッグ情報を生成します
+                       - コード生成 -
+-debug[+|-]                   デバッグ情報を出力します
 -debug:{full|pdbonly|portable|embedded}
-                               デバッグの種類を指定します ('full' が既定です。
-                               'portable' はクロスプラットフォーム形式です。
-                               'embedded' は、ターゲット .dll または .exe に
-                               埋め込まれるクロスプラットフォーム形式です)
+                              デバッグの種類を指定します ('full' が既定です。
+                              'portable' はクロスプラットフォーム形式です。
+                              'embedded' は、ターゲット .dll または .exe に
+                              埋め込まれるクロスプラットフォーム形式です)
 -optimize[+|-]                最適化を有効にします (短い形式: -o)
--deterministic                決定論的アセンブリを作成します
-                               (モジュール バージョン GUID やタイムスタンプなど)
+-deterministic                決定論的アセンブリを生成します
+                              (モジュール バージョン GUID やタイムスタンプを含みます)
 -refonly                      メイン出力の代わりに参照アセンブリを生成します
--instrument:TestCoverage      収集するためのインストルメント化されたアセンブリを作成します
-                               カバレッジ情報
+-instrument:TestCoverage      カバレッジ情報を収集するようにインストルメント化された
+                              アセンブリを生成します
 -sourcelink:&lt;file&gt;            PDB に埋め込むソース リンク情報。
 
-                        - エラーと警告 -
+                       - エラーと警告 -
 -warnaserror[+|-]             すべての警告をエラーとして報告します
 -warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
 -warn:&lt;n&gt;                     警告レベル (0-4) を設定します (短い形式: -w)
 -nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
 -ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
-                               指定します。
+                              指定します。
 -errorlog:&lt;file&gt;              すべてのコンパイラとアナライザーの診断をログに記録するための
-                               ファイルを指定します。
+                              ファイルを指定します。
 -reportanalyzer               追加のアナライザー情報を報告します
-                               (実行時間など)。
+                              (実行時間など)。
 
-                        - 言語 -
+                       - 言語 -
 -checked[+|-]                 オーバーフロー検査を生成します
 -unsafe[+|-]                  '安全でない' コードを許可します
 -define:&lt;symbol list&gt;         条件付きコンパイル シンボルを定義します (短い
-                               形式: -d)
--langversion:?                言語バージョンに許容される値を表示します
--langversion:&lt;string&gt;         `default` (最新のメジャー バージョン)や
-                               `latest` (マイナー バージョンを含む最新バージョン)
-                               または `6` や `7.1` の特定バージョンなどの
-                               言語バージョンを指定します。
--nullable[+|-]                Null 許容コンテキスト オプション enable|disable を指定します。
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Null 許容コンテキスト オプション enable|disable|safeonly|warnings|safeonlywarnings を指定します。
+                              形式: -d)
+-langversion:?                許容される言語バージョンの値を表示します。
+-langversion:&lt;string&gt;         `latest` (マイナー バージョンを含む最新バージョン)、
+                              `default` (`latest` と同様)、
+                              `latestmajor` (マイナー バージョンを除く最新バージョン)、
+                              `preview` (サポートされないプレビューの機能を含む、最新バージョン)、
+                              または `6` や `7.1` などの特定のバージョンなど、
+                              言語バージョンを指定します
+-nullable[+|-]                Null 許容コンテキスト オプションの enable|disable を指定します。
+-nullable:{enable|disable|warnings|annotations}
+                              Null 許容コンテキスト オプションの enable|disable|warnings|annotations を指定します。
 
-                        - SECURITY -
+                       - セキュリティ -
 -delaysign[+|-]               厳密な名前キーのパブリックな部分のみを使って
-                               アセンブリを遅延署名します
+                              アセンブリを遅延署名します
 -publicsign[+|-]              厳密な名前キーのパブリックな部分のみを使って
-                               アセンブリを公開署名します
+                              アセンブリを公開署名します
 -keyfile:&lt;file&gt;               厳密な名前キーのファイルを指定します
 -keycontainer:&lt;string&gt;        厳密な名前キーのコンテナーを指定します
--highentropyva[+|-]           高エントロピ ASLR を有効化します
+-highentropyva[+|-]           高エントロピ ASLR を有効にします
 
-                        - その他 -
- @&lt;file&gt;                       応答ファイルを読み取り、オプションを追加します
--help                         使用法に関するメッセージを表示します (短い形式: -?)
--nologo                       コンパイル時の著作権メッセージを表示しません
+                       - その他 -
+@&lt;file&gt;                       応答ファイルを読み取り、オプションを追加します
+-help                         この使用法に関するメッセージを表示します (短い形式: -?)
+-nologo                       コンパイラの著作権メッセージを表示しません
 -noconfig                     CSC.RSP ファイルを自動的に含めません
 -parallel[+|-]                ビルドを並列処理します。
--version                      コンパイラのバージョン番号を出力して終了します。
+-version                      コンパイラ バージョンの数字を表示して終了します。
 
-                        - 詳細 -
--baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレス
+                       - 高度なオプション -
+-baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレスです
 -checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイルのチェックサム
-                               を計算するアルゴリズムを指定します。サポートされる値:
-                               SHA1 または SHA256 (既定)。
+                              を計算するアルゴリズムを指定します。サポートされる値:
+                              SHA1 または SHA256 (既定)。
 -codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコード ページを
-                               指定します
+                              指定します
 -utf8output                   コンパイラ メッセージを UTF-8 エンコードで出力します
 -main:&lt;type&gt;                  エントリ ポイントを含む型を指定します
-                               (他のエントリ ポイントはすべて無視します) (短い
-                               形式: -m)
+                              (他のエントリ ポイントはすべて無視します) (短い
+                              形式: -m)
 -fullpaths                    コンパイラは完全修飾パスを生成します
--filealign:&lt;n&gt;                出力ファイル セクションで使用する配置を指定
-                               します
+-filealign:&lt;n&gt;                出力ファイル セクションで使用する配置を
+                              指定します
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               コンパイラが出力するソース パス名のマッピングを
-                               指定します。
+                              コンパイラが出力するソース パス名のマッピングを
+                              指定します。
 -pdb:&lt;file&gt;                   デバッグ情報ファイル名を指定します (既定:
-                               .pdb 拡張子の付いた出力ファイル名)
+                              .pdb 拡張子の付いた出力ファイル名)
 -errorendlocation             各エラーの終了位置の出力行と
-                               出力列
+                              出力列
 -preferreduilang              出力用の言語名を指定します。
 -nosdkpath                    標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
 -nostdlib[+|-]                標準ライブラリ (mscorlib.dll) は参照しません
 -subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
--lib:&lt;file list&gt;              参照を検索する追加ディレクトリを指定
-                               します
--errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法を指定します:
-                               prompt、send、queue、none です。既定値は
-                               queue です。
+-lib:&lt;file list&gt;              参照を検索する追加ディレクトリを
+                              指定します
+-errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法:
+                              (prompt、send、queue、none) を指定します。既定値は 
+                              queue です。
 -appconfig:&lt;file&gt;             アセンブリ バインド設定を含む
-                               アプリケーション構成ファイルを指定します
--moduleassemblyname:&lt;string&gt;  このモジュールが一部となるアセンブリ名
-                               です
+                              アプリケーション構成ファイルを指定します
+-moduleassemblyname:&lt;string&gt;  このモジュールが含められる
+                              アセンブリの名前
 -modulename:&lt;string&gt;          ソース モジュールの名前を指定します
 </target>
         <note>Visual C# Compiler Options</note>
+      </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="translated">既定のインターフェイスの実装</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
@@ -804,12 +841,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
         <source>stackalloc in nested expressions</source>
-        <target state="new">stackalloc in nested expressions</target>
+        <target state="translated">入れ子になった式の stackalloc</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
         <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
+        <target state="translated">notnull ジェネリック型の制約</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -819,12 +856,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
         <source>obsolete on property accessor</source>
-        <target state="new">obsolete on property accessor</target>
+        <target state="translated">プロパティ アクセサーで廃止</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
         <source>warning action enable</source>
-        <target state="new">warning action enable</target>
+        <target state="translated">警告アクション enable</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -834,7 +871,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureReadOnlyMembers">
         <source>readonly members</source>
-        <target state="new">readonly members</target>
+        <target state="translated">読み取り専用メンバー</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
@@ -872,6 +909,11 @@
         <target state="translated">静的ローカル関数</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureSwitchExpression">
+        <source>&lt;switch expression&gt;</source>
+        <target state="translated">&lt;switch 式&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">タプルの等値性</target>
@@ -884,7 +926,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
         <source>unmanaged constructed types</source>
-        <target state="translated">unmanaged 構築型</target>
+        <target state="translated">アンマネージド構築型</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
@@ -904,7 +946,7 @@
       </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
         <source>constraints for override and explicit interface implementation methods</source>
-        <target state="new">constraints for override and explicit interface implementation methods</target>
+        <target state="translated">オーバーライドおよび明示的なインターフェイスの実装メソッドの制約</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -924,7 +966,7 @@
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
         <source>&lt;!-- Badly formed XML comment ignored for member "{0}" --&gt;</source>
-        <target state="translated">&lt;!-- 正しくない形式の XML コメントがメンバー "{0}" で無視されました --&gt;</target>
+        <target state="translated">&lt;!-- Badly formed XML comment ignored for member "{0}" --&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED2">
@@ -1284,12 +1326,12 @@
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull">
         <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'as' 演算子を使用すると、'{0}' が Null 非許容参照型の場合に Null 値が生成される可能性があります。</target>
+        <target state="translated">'{0}' が NULL 非許容の参照型の場合、'as' 演算子は null 値を生成することがあります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
         <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">'as' 演算子を使用すると、型パラメーターで Null 値が生成される可能性があります。</target>
+        <target state="translated">'as' 演算子は、型パラメーターに対して null 値を生成することがあります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
@@ -1304,12 +1346,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull">
         <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">条件付きアクセスを使用すると、'{0}' が Null 非許容参照型の場合に Null 値が生成される可能性があります。</target>
+        <target state="translated">条件付きアクセスでは、'{0}' が NULL 非許容の参照型の場合、null 値が生成されることがあります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
         <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="translated">条件付きアクセスを使用すると、型パラメーターで Null 値が生成される可能性があります。</target>
+        <target state="translated">条件付きアクセスでは、型パラメーターに null 値が生成されることがあります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
@@ -1324,22 +1366,22 @@
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
         <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">既定の式を使用すると、'{0}' が Null 非許容参照型の場合に Null 値が導入されます。</target>
+        <target state="translated">'{0}' が null 非許容参照型である場合、既定の式は null 値を導入します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
         <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="translated">既定の式を使用すると、型パラメーターで Null 値が導入されます</target>
+        <target state="translated">既定の式は、型パラメーターに null 値を導入します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">[DisallowNull] 属性でマークされたターゲットに Null の可能性がある値を渡すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1350,6 +1392,16 @@
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
         <source>Interface is already listed in the interface list with different nullability of reference types.</source>
         <target state="translated">インターフェイスは既にインターフェイス リストに存在しますが、参照型の Null 許容性が異なっています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExpressionMayIntroduceNullT">
+        <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
+        <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
+        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1374,12 +1426,12 @@
       </trans-unit>
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
         <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
-        <target state="new">Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</target>
+        <target state="translated">'readonly' メンバーから readonly 以外のメンバー '{0}' を呼び出すと、'{1}' の暗黙のコピーが生成されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
         <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
-        <target state="new">Call to non-readonly member from a 'readonly' member results in an implicit copy.</target>
+        <target state="translated">'readonly' メンバーから readonly 以外のメンバーを呼び出すと、暗黙のコピーが生成されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -1394,32 +1446,42 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">'#nullable' コンテキスト内のコードでのみ、Null 許容参照型の注釈を使用する必要があります。</target>
+        <target state="translated">'#nullable' 注釈コンテキスト内のコードでのみ、Null 許容参照型の注釈を使用する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">'#nullable' コンテキスト内のコードでのみ、Null 許容参照型の注釈を使用する必要があります。</target>
+        <target state="translated">'#nullable' 注釈コンテキスト内のコードでのみ、Null 許容参照型の注釈を使用する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Null リテラルを Null 非許容参照型に変換できません。</target>
+        <target state="translated">null リテラルを null 非許容参照型に変換できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Null リテラルを Null 非許容参照型に変換できません。</target>
+        <target state="translated">null リテラルを null 非許容参照型に変換できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">Null リテラルを使用すると、'{0}' が Null 非許容参照型の場合に Null 値が導入されます。</target>
+        <target state="translated">null リテラルは、'{0}' が null 非許容参照型である場合に null 値を導入します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
         <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="translated">Null リテラルを使用すると、型パラメーターで Null 値が導入されます。</target>
+        <target state="translated">null リテラルは、型パラメーターに null 値を導入します。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
@@ -1442,24 +1504,34 @@
         <target state="translated">Null 参照割り当ての可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer">
+        <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer_Title">
+        <source>Object or collection initializer implicitly dereferences possibly null member.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
         <source>Possible null reference assignment to iteration variable</source>
-        <target state="new">Possible null reference assignment to iteration variable</target>
+        <target state="translated">繰り返し変数に対する null 参照代入の可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable_Title">
         <source>Possible null reference assignment to iteration variable</source>
-        <target state="new">Possible null reference assignment to iteration variable</target>
+        <target state="translated">繰り返し変数に対する null 参照代入の可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
         <source>Dereference of a possibly null reference.</source>
-        <target state="translated">Null 参照の可能性があるものの逆参照です。</target>
+        <target state="translated">null 参照の可能性があるものの逆参照です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver_Title">
         <source>Dereference of a possibly null reference.</source>
-        <target state="translated">Null 参照の可能性があるものの逆参照です。</target>
+        <target state="translated">null 参照の可能性があるものの逆参照です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
@@ -1474,22 +1546,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
         <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="translated">参照型の Null 許容性が異なるため、型 '{0}' の引数は、'{3}' の型 '{1}' のパラメーター '{2}' で使用できません。</target>
+        <target state="translated">型 '{0}' の引数は、参照型の NULL 値の許容の違いにより、'{3}' の型 '{1}' のパラメーター '{2}' には使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
         <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="translated">参照型の Null 許容性が異なるため、型 '{0}' の引数は、'{3}' のパラメーター '{2}' の型 '{1}' の出力として使用できません。</target>
+        <target state="translated">型 '{0}' の引数は、参照型の NULL 値の許容の違いにより、'{3}' のパラメーター '{2}' に対して型 '{1}' の出力として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
         <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
-        <target state="translated">参照型の Null 許容性が異なるため、引数はパラメーターの出力として使用できません。</target>
+        <target state="translated">参照型の NULL 値の許容の違いにより、引数をパラメーターの出力として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
         <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
-        <target state="translated">参照型の Null 許容性が異なるため、引数はパラメーターとして使用できません。</target>
+        <target state="translated">参照型の NULL 値の許容の違いにより、パラメーターに引数を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -1514,12 +1586,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
         <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <target state="translated">'{0}' の部分メソッド宣言には、型パラメーター '{1}' の制約に NULL 値の許容の矛盾があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
         <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
-        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <target state="translated">部分メソッド宣言には、型パラメーターの制約に NULL 値の許容の矛盾があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -1563,8 +1635,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
-        <source>Nullability of reference types in type of parameter '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="translated">パラメーター '{0}' の型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{1}' と一致しません。</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
+        <target state="translated">'{1}' のパラメーター '{0}' の型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{2}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1613,8 +1685,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
-        <source>Nullability of reference types in return type doesn't match implicitly implemented member '{0}'.</source>
-        <target state="translated">戻り値の型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{0}' と一致しません。</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="translated">'{0}' の戻り値の型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1643,13 +1715,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
-        <source>Nullability of reference types in type doesn't match implicitly implemented member '{0}'.</source>
-        <target state="translated">型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{0}' と一致しません。</target>
+        <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="translated">'{0}' の型における参照型の Null 許容性が、暗黙的に実装されるメンバー '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type doesn't match implicitly implemented member.</source>
         <target state="translated">型における参照型の Null 許容性が、暗黙的に実装されるメンバーと一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="translated">型における参照型の Null 許容性が、オーバーライドされるメンバーと一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="translated">型における参照型の Null 許容性が、オーバーライドされるメンバーと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1664,12 +1746,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
-        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <target state="translated">型 '{2}' を、ジェネリック型またはメソッド '{0}' 内で型パラメーター '{1}' として使用することはできません。型引数 '{2}' の Null 許容性が 'notnull' 制約と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
         <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
-        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <target state="translated">この型を、ジェネリック型またはメソッド内で型パラメーターとして使用することはできません。型引数の Null 許容性が 'notnull' 制約と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
@@ -1693,33 +1775,33 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">switch 式がすべての可能な入力を処理しません (すべてを網羅していません)。</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">switch 式がすべての可能な入力を処理しません (すべてを網羅していません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
         <source>The switch expression does not handle some null inputs (it is not exhaustive).</source>
-        <target state="translated">switch 式が一部の Null 入力を処理しません (すべてを網羅していません)。</target>
+        <target state="translated">switch 式が一部の null 入力を処理しません (すべてを網羅していません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
         <source>The switch expression does not handle some null inputs.</source>
-        <target state="translated">switch 式が一部の Null 入力を処理しません。</target>
+        <target state="translated">switch 式が一部の null 入力を処理しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">switch 式がすべての可能な入力を処理しません (すべてを網羅していません)。</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">switch 式がすべての可能な入力を処理しません (すべてを網羅していません)。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
         <source>Thrown value may be null.</source>
-        <target state="new">Thrown value may be null.</target>
+        <target state="translated">スローされた値が null である可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull_Title">
         <source>Thrown value may be null.</source>
-        <target state="new">Thrown value may be null.</target>
+        <target state="translated">スローされた値が null である可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -1744,42 +1826,42 @@
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
         <source>Unboxing a possibly null value.</source>
-        <target state="new">Unboxing a possibly null value.</target>
+        <target state="translated">null の可能性がある値をボックス化解除しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull_Title">
         <source>Unboxing a possibly null value.</source>
-        <target state="new">Unboxing a possibly null value.</target>
+        <target state="translated">null の可能性がある値をボックス化解除しています。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage">
         <source>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
-        <target state="new">The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <target state="translated">パラメーター '{0}' に適用された EnumeratorCancellationAttribute は効果がありません。この属性は、IAsyncEnumerable を返す非同期反復子メソッドの CancellationToken 型のパラメーターに対してのみ効果があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title">
         <source>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
-        <target state="new">The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <target state="translated">EnumeratorCancellationAttribute は効果がありません。この属性は、IAsyncEnumerable を返す非同期反復子メソッドの CancellationToken 型のパラメーターに対してのみ効果があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
         <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">非同期反復子 '{0}' には型 'CancellationToken' の 1 つ以上のパラメーターがありますが、'EnumeratorCancellation' 属性で修飾されているパラメーターはありません。そのため、生成された 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' からの取り消しトークン パラメーターは使用されません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">非同期反復子メンバーには型 'CancellationToken' の 1 つ以上のパラメーターがありますが、'EnumeratorCancellation' 属性で修飾されているパラメーターはありません。そのため、生成された 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' からの取り消しトークン パラメーターは使用されません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized.</source>
-        <target state="translated">Null 非許容 {0} '{1}' が初期化されていません。</target>
+        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
+        <target state="translated">Null 非許容の {0} '{1}' が初期化されていません。{0} を null 許容として宣言することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized.</source>
-        <target state="translated">Null 非許容フィールドが初期化されていません。</target>
+        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
+        <target state="translated">Null 非許容フィールドは初期化されていません。null 許容として宣言することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -2839,7 +2921,7 @@
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
         <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
-        <target state="translated">'{0}' に定義済みのサイズがないため、sizeof は unsafe コンテキストでしか使用できません</target>
+        <target state="translated">'{0}' には定義済みのサイズが指定されていないため、sizeof は unsafe コンテキストでのみ使用できます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
@@ -3479,7 +3561,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
         <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</source>
-        <target state="needs-review-translation">オーバーライドおよび明示的なインターフェイスの実装メソッドの制約は、基本メソッドから継承されるので、直接指定できません</target>
+        <target state="translated">オーバーライドおよび明示的なインターフェイスの実装メソッドの制約は、基本メソッドから継承されるので、'class' または 'struct' 制約の場合を除いて直接指定できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOverride">
@@ -3738,7 +3820,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
         <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</source>
-        <target state="translated">明示的インターフェイス宣言の中の '{0}' は、実装可能なインターフェイスのメンバーの中に見つかりませんでした</target>
+        <target state="translated">明示的なインターフェイス宣言内の '{0}' が、実装可能なインターフェイスのメンバーの中に見つかりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
@@ -3748,7 +3830,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
         <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">'{0}': 明示的インターフェイス宣言はクラス、構造体、インターフェイスの中でのみ宣言できます</target>
+        <target state="translated">'{0}': 明示的インターフェイスはクラス、構造体、インターフェイスの中でのみ宣言できます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -3988,7 +4070,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ComImportWithoutUuidAttribute">
         <source>The Guid attribute must be specified with the ComImport attribute</source>
-        <target state="translated">Guid 属性は Comimport 属性を使って指定する必要があります。</target>
+        <target state="translated">Guid 属性は ComImport 属性を使って指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidNamedArgument">
@@ -4693,7 +4775,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
+        <target state="translated">{0}' の部分メソッド宣言には、型パラメーター '{1}' に対して矛盾する制約が含まれています</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5402,7 +5484,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
         <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">Main メソッドに指定された '{0}' は非ジェネリックのクラス、構造体、インターフェイスでなければなりません</target>
+        <target state="translated">Main メソッドに指定された '{0}' は、非ジェネリックのクラス、構造体、インターフェイスでなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -5801,13 +5883,13 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable, restore or enable</source>
-        <target state="needs-review-translation">disable、restore、enable、または safeonly が必要です</target>
+        <source>Expected 'disable' or 'restore'</source>
+        <target state="translated">'disable' または 'restore' を指定してください</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable, restore or enable after #pragma warning</source>
-        <target state="needs-review-translation">#pragma 警告の後に disable、restore、enable、または safeonly が必要です</target>
+        <source>Expected 'disable' or 'restore' after #pragma warning</source>
+        <target state="translated">#pragma 警告の後に、'disable' または 'restore' が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -7402,7 +7484,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_NamedArgumentForArray">
         <source>An array access may not have a named argument specifier</source>
-        <target state="translated">アレイのアクセスには名前付き引数の指定子を指定できません</target>
+        <target state="translated">配列のアクセスには名前付き引数の指定子を指定できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotYetImplementedInRoslyn">
@@ -8864,8 +8946,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">文字列定数の長さが現在のメモリの制限を超えています。文字列を複数の定数に分割してください。</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">文字列定数の長さが現在のメモリの制限を超えています。文字列を複数の定数に分割してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9075,7 +9157,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
         <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">ref 条件演算子のブランチから、互換性のない宣言スコープを持つ変数を参照することはできません</target>
+        <target state="translated">Ref 条件演算子のブランチでは、互換性のない宣言スコープを持つ変数を参照できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">
@@ -9418,11 +9500,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">パターン内で型 'dynamic' を使用することはできません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">既定のリテラルを、動的にディスパッチされる操作に対する引数として使うことはできません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">指定されたドキュメント モードがサポートされていないか無効です: '{0}'。</target>
@@ -9550,7 +9627,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
         <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="translated">’in' 拡張メソッド '{0}' の最初のパラメーターは具象 (非ジェネリック) 値型でなければなりません。</target>
+        <target state="translated">'in' 拡張メソッド '{0}' の最初のパラメーターは、具象 (非ジェネリック) の値型である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
@@ -9623,11 +9700,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">':' は文字列補間を終了させるため、条件式を文字列補間で直接使用することはできません。条件式をかっこで囲んでください。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">既定のリテラル 'default' は case 定数として無効です。必要に応じて別のリテラル (例: '0' または 'null') をご使用ください。既定のラベルを作成する予定だった場合は、'case' を使用せずに 'default:' をご使用ください。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
         <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
         <target state="translated">プロパティでは 'System.Runtime.CompilerServices.FixedBuffer' 属性を使用しないでください</target>
@@ -9670,12 +9742,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
-        <target state="translated">インターフェイスには、変換演算子、等値演算子、非等値演算子を含めることはできません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_DefaultInterfaceImplementation">
-        <source>default interface implementation</source>
-        <target state="translated">既定のインターフェイスの実装</target>
+        <target state="translated">インターフェイスには、変換演算子、等値演算子、非等値演算子を含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -9685,27 +9752,27 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
-        <target state="translated">ターゲット ランタイムが既定のインターフェイスの実装をサポートしていないため、'{0}' は型 '{2}' のインターフェイス メンバー '{1}' を実装できません。</target>
+        <target state="translated">ターゲットのランタイムは既定のインターフェイス実装をサポートしていないため、'{0}' は型 '{2}' のインターフェイス メンバー '{1}' を実装できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">修飾子 '{0}' が C# {1} のこの項目に対して有効ではありません。言語バージョン '{2}' 以上をご使用ください。</target>
+        <target state="translated">C# {1} では、修飾子 '{0}' はこの項目に対して有効ではありません。'{2}' 以上の言語バージョンをご使用ください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">'{0}' はインターフェイス メンバー '{1}' を実装しません。'{2}' はパブリックでないメンバーを暗黙的に実装できません。</target>
+        <target state="translated">'{0}' は、インターフェイス メンバー '{1}' を実装していません。'{2}' はパブリックでないメンバーを暗黙的に実装できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
-        <target state="translated">インターフェイス メンバー '{0}' は最も固有な実装がありません。'{1}' と '{2}' のどちらも最も固有ではありません。</target>
+        <target state="translated">インターフェイス メンバー '{0}' には最も固有な実装がありません。'{1}' と '{2}' のどちらも最も固有なものではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">機能 '{3}' は C# {4} では使用できないため、'{0}' は型 '{2}' のメンバー '{1}' を実装できません。言語バージョン '{5}' 以上をご使用ください。</target>
+        <target state="translated">機能 '{3}' は C# {4} では使用できないため、'{0}' は型 '{2}' のインターフェイス メンバー '{1}' を実装できません。'{5}' 以上の言語バージョンをご使用ください。</target>
         <note />
       </trans-unit>
     </body>

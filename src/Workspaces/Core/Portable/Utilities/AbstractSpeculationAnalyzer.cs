@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             if (_lazySpeculativeSemanticModel == null)
             {
-                SyntaxNode nodeToSpeculate = this.SemanticRootOfReplacedExpression;
+                var nodeToSpeculate = this.SemanticRootOfReplacedExpression;
                 _lazySpeculativeSemanticModel = CreateSpeculativeSemanticModel(this.SemanticRootOfOriginalExpression, nodeToSpeculate, _semanticModel);
                 ValidateSpeculativeSemanticModel(_lazySpeculativeSemanticModel, nodeToSpeculate);
             }
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
 
-            if (symbol.Equals(newSymbol))
+            if (symbol.Equals(newSymbol, SymbolEqualityComparer.IncludeNullability))
             {
                 return true;
             }
@@ -819,14 +819,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             //       of (for example, if it's returned to us by an invocation,
             //       object-creation, element-access or member-access expression.
 
-            INamedTypeSymbol newSymbolContainingType = newSymbol.ContainingType;
+            var newSymbolContainingType = newSymbol.ContainingType;
             if (newSymbolContainingType == null)
             {
                 return false;
             }
 
             var newReceiver = GetReceiver(newExpression);
-            ITypeSymbol newReceiverType = newReceiver != null ?
+            var newReceiverType = newReceiver != null ?
                 speculativeSemanticModel.GetTypeInfo(newReceiver).ConvertedType :
                 newSymbolContainingType;
 
@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var specifiedParameters1 = new List<IParameterSymbol>();
             var specifiedParameters2 = new List<IParameterSymbol>();
 
-            for (int i = 0; i < specifiedArguments.Length; i++)
+            for (var i = 0; i < specifiedArguments.Length; i++)
             {
                 var argument = specifiedArguments[i];
 
@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // Now we walk the unspecified parameters to ensure that they have the same default
             // values.
 
-            for (int i = 0; i < signature1Parameters.Length; i++)
+            for (var i = 0; i < signature1Parameters.Length; i++)
             {
                 var parameter1 = signature1Parameters[i];
                 if (specifiedParameters1.Contains(parameter1))
@@ -1059,8 +1059,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                     if (object.Equals(parameter1.ExplicitDefaultValue, 0.0))
                     {
-                        bool isParam1DefaultValueNegativeZero = double.IsNegativeInfinity(1.0 / (double)parameter1.ExplicitDefaultValue);
-                        bool isParam2DefaultValueNegativeZero = double.IsNegativeInfinity(1.0 / (double)parameter2.ExplicitDefaultValue);
+                        var isParam1DefaultValueNegativeZero = double.IsNegativeInfinity(1.0 / (double)parameter1.ExplicitDefaultValue);
+                        var isParam2DefaultValueNegativeZero = double.IsNegativeInfinity(1.0 / (double)parameter2.ExplicitDefaultValue);
                         if (isParam1DefaultValueNegativeZero != isParam2DefaultValueNegativeZero)
                         {
                             return false;

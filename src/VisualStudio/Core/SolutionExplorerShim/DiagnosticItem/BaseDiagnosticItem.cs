@@ -2,13 +2,17 @@
 
 using System;
 using System.ComponentModel;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes.Configuration;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -91,41 +95,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         }
 
         private ImageMoniker MapEffectiveSeverityToIconMoniker(ReportDiagnostic effectiveSeverity)
-        {
-            switch (effectiveSeverity)
+            => effectiveSeverity switch
             {
-                case ReportDiagnostic.Error:
-                    return KnownMonikers.CodeErrorRule;
-                case ReportDiagnostic.Warn:
-                    return KnownMonikers.CodeWarningRule;
-                case ReportDiagnostic.Info:
-                    return KnownMonikers.CodeInformationRule;
-                case ReportDiagnostic.Hidden:
-                    return KnownMonikers.CodeHiddenRule;
-                case ReportDiagnostic.Suppress:
-                    return KnownMonikers.CodeSuppressedRule;
-                default:
-                    return default(ImageMoniker);
-            }
-        }
+                ReportDiagnostic.Error => KnownMonikers.CodeErrorRule,
+                ReportDiagnostic.Warn => KnownMonikers.CodeWarningRule,
+                ReportDiagnostic.Info => KnownMonikers.CodeInformationRule,
+                ReportDiagnostic.Hidden => KnownMonikers.CodeHiddenRule,
+                ReportDiagnostic.Suppress => KnownMonikers.CodeSuppressedRule,
+                _ => default,
+            };
 
         private void NotifyPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        internal void SetSeverity(ReportDiagnostic value, string pathToRuleSet)
-        {
-            UpdateRuleSetFile(pathToRuleSet, value);
-        }
-
-        private void UpdateRuleSetFile(string pathToRuleSet, ReportDiagnostic value)
+        internal void SetRuleSetSeverity(ReportDiagnostic value, string pathToRuleSet)
         {
             var ruleSetDocument = XDocument.Load(pathToRuleSet);
 
             ruleSetDocument.SetSeverity(AnalyzerReference.Display, _descriptor.Id, value);
 
             ruleSetDocument.Save(pathToRuleSet);
+        }
+
+        internal Task<Solution> GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(ReportDiagnostic value, Project project, CancellationToken cancellationToken)
+        {
+            var effectiveSeverity = value.ToDiagnosticSeverity() ?? _descriptor.DefaultSeverity;
+            var diagnostic = Diagnostic.Create(_descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null);
+            return ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken);
         }
     }
 }

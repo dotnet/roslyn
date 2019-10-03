@@ -85,8 +85,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
                     return new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>());
                 });
-
-                await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -98,17 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return this.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                JoinableTaskFactory.Run(() => UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None));
-            }
-
-            base.Dispose(disposing);
-        }
-
-        private async Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        protected override async Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -123,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
         }
 
-        private async Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        protected override async Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

@@ -1978,7 +1978,7 @@ static class E
 
             // Type not satisfying constraint.
             symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
-            CheckSymbols(symbols);
+            CheckSymbolsUnordered(symbols);
         }
 
         [Fact]
@@ -4165,7 +4165,7 @@ class C {
 
             var symbolInfo = model.GetSpeculativeSymbolInfo(position, attr1);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4173,7 +4173,7 @@ class C {
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr2);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.OverloadResolutionFailure);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             Assert.Equal(3, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor()", symbolInfo.CandidateSymbols[0].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.CandidateSymbols[1].ToTestDisplayString());
@@ -4183,7 +4183,7 @@ class C {
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr3);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4191,14 +4191,14 @@ class C {
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr4);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
 
             var attr5 = ParseAttributeSyntax("[D]");
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position, attr5);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4207,7 +4207,7 @@ class C {
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position2, attr6);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4216,7 +4216,7 @@ class C {
 
             symbolInfo = model.GetSpeculativeSymbolInfo(position3, attr7);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
         }
@@ -4249,7 +4249,7 @@ class C {
 
             var symbolInfo = speculativeModel.GetSymbolInfo(attr1);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4260,7 +4260,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr2);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.OverloadResolutionFailure);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             Assert.Equal(3, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor()", symbolInfo.CandidateSymbols[0].ToTestDisplayString());
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.CandidateSymbols[1].ToTestDisplayString());
@@ -4277,7 +4277,7 @@ class C {
             Assert.NotNull(speculativeModel);
             symbolInfo = speculativeModel.GetSymbolInfo(attr3);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4299,7 +4299,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr4);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
 
             var attr5 = ParseAttributeSyntax("[D]");
@@ -4310,7 +4310,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr5);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("C.DAttribute..ctor()", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4323,7 +4323,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr6);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4346,7 +4346,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr7);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4368,7 +4368,7 @@ class C {
 
             symbolInfo = speculativeModel.GetSymbolInfo(attr8);
             Assert.NotNull(symbolInfo.Symbol);
-            Assert.Equal(symbolInfo.CandidateReason, CandidateReason.None);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
 
@@ -4686,7 +4686,7 @@ class C : A<object>.B<> { }";
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
             type = type.BaseType();
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<object>.B<?>");
+            Assert.Equal("A<object>.B<?>", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
         }
 
         [Fact]
@@ -4701,7 +4701,7 @@ class C : A<,,>.B<object> { }";
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
             type = type.BaseType();
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<?, ?, ?>.B<object>");
+            Assert.Equal("A<?, ?, ?>.B<object>", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
         }
 
         [Fact]
@@ -4716,7 +4716,7 @@ class C : A<>.B<> { }";
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
             type = type.BaseType();
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "A<?>.B<?>");
+            Assert.Equal("A<?>.B<?>", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
         }
 
         [WorkItem(563572, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563572")]
@@ -4798,9 +4798,9 @@ class C
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int, int)");
-            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(1, 2)");
-            Assert.Equal(type.Locations.Single().IsInSource, true);
+            Assert.Equal("(int, int)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("(1, 2)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(type.Locations.Single().IsInSource);
 
         }
 
@@ -4827,9 +4827,9 @@ class C
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int Alice, int Bob)");
-            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(Alice: 1, Bob: 2)");
-            Assert.Equal(type.Locations.Single().IsInSource, true);
+            Assert.Equal("(int Alice, int Bob)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("(Alice: 1, Bob: 2)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(type.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -4855,9 +4855,9 @@ class C
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short, int)");
-            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(1, 1)");
-            Assert.Equal(type.Locations.Single().IsInSource, true);
+            Assert.Equal("(short, int)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("(1, 1)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(type.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -4883,9 +4883,9 @@ class C
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short, string)");
-            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(1, null)");
-            Assert.Equal(type.Locations.Single().IsInSource, true);
+            Assert.Equal("(short, string)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("(1, null)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(type.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -4911,9 +4911,9 @@ class C
             var decl = (TupleExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.TupleExpression));
             var model = compilation.GetSemanticModel(tree);
             var type = (NamedTypeSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob)");
-            Assert.Equal(type.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "(Alice:1, Bob:null)");
-            Assert.Equal(type.Locations.Single().IsInSource, true);
+            Assert.Equal("(short Alice, string Bob)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("(Alice:1, Bob:null)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(type.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -4939,9 +4939,9 @@ class C
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
             var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int Alice, int Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            Assert.Equal("(int Alice, int Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -4967,9 +4967,9 @@ class C
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
             var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(int Alice, short Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            Assert.Equal("(int Alice, short Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -4995,9 +4995,9 @@ class C
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
             var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            Assert.Equal("(short Alice, string Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -5030,9 +5030,9 @@ class C
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
             var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            Assert.Equal("(short Alice, string Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -5076,9 +5076,9 @@ namespace System
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
             var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            Assert.Equal("(short Alice, string Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -5125,9 +5125,9 @@ namespace System
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
             var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short Alice, string Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            Assert.Equal("(short Alice, string Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -5153,9 +5153,9 @@ class C
             var decl = (ArgumentSyntax)tree.GetCompilationUnitRoot().DescendantNodes().Last(n => n.IsKind(SyntaxKind.Argument));
             var model = compilation.GetSemanticModel(tree);
             var element = (FieldSymbol)model.GetDeclaredSymbol(decl);
-            Assert.Equal(element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat), "(short, string Bob).Bob");
-            Assert.Equal(element.DeclaringSyntaxReferences.Single().GetSyntax().ToString(), "Bob");
-            Assert.Equal(element.Locations.Single().IsInSource, true);
+            Assert.Equal("(short, string Bob).Bob", element.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+            Assert.Equal("Bob", element.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+            Assert.True(element.Locations.Single().IsInSource);
         }
 
         [Fact]
@@ -5193,6 +5193,120 @@ class C
                 this.Incompletes.Add(node);
                 base.VisitIncompleteMember(node);
             }
+        }
+
+        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
+        [Fact]
+        public void TestLookupStaticMembersLocalFunction()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    static void M()
+    {
+        void Local() {}
+    }
+}
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var cu = tree.GetCompilationUnitRoot();
+            var typeDeclC = (TypeDeclarationSyntax)cu.Members.Single();
+            var methodDeclM = (MethodDeclarationSyntax)typeDeclC.Members.Single();
+
+            var symbols = model.LookupStaticMembers(methodDeclM.Body.SpanStart);
+
+            Assert.Contains(symbols, s => s.Name == "Local");
+        }
+
+        [Fact]
+        public void InvalidParameterWithDefaultValue_Method()
+        {
+            var source =
+@"class Program
+{
+    static void F(int x = 2, = 3) { }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        [Fact]
+        [WorkItem(784401, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/784401")]
+        public void InvalidParameterWithDefaultValue_LocalFunction_01()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void F(int x, = 3) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = VerifyParameter(model, decls[0], 0, "System.Int32 x", null, null);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        [Fact]
+        [WorkItem(784401, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/784401")]
+        public void InvalidParameterWithDefaultValue_LocalFunction_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void F(int x = 2, = 3) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+            var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
+        }
+
+        private static ParameterSymbol VerifyParameter(
+            SemanticModel model,
+            ParameterSyntax decl,
+            int expectedOrdinal,
+            string expectedSymbol,
+            string expectedType,
+            object expectedConstant)
+        {
+            var symbol = (ParameterSymbol)model.GetDeclaredSymbol(decl);
+            Assert.Equal(expectedOrdinal, symbol.Ordinal);
+            Assert.Equal(expectedSymbol, symbol.ToTestDisplayString());
+
+            var valueSyntax = decl.Default?.Value;
+            if (valueSyntax == null)
+            {
+                Assert.Null(expectedType);
+                Assert.Null(expectedConstant);
+            }
+            else
+            {
+                var type = model.GetTypeInfo(valueSyntax);
+                Assert.Equal(expectedType, type.Type.ToTestDisplayString());
+                Optional<object> actualConstant = model.GetConstantValue(valueSyntax);
+                Assert.Equal(expectedConstant, actualConstant.Value);
+            }
+
+            return symbol;
         }
     }
 }

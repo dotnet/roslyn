@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitWithAnnotation(TypeWithAnnotations type)
         {
-            Debug.Assert(!(type.Type is null));
+            Debug.Assert(type.Type is object);
             Visit(type.Type);
             AddNullableAnnotations(type);
         }
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
-                symbol.Type.Accept(this);
+                VisitTypeWithAnnotations(TypeWithAnnotations.Create((TypeSymbol)symbol.Type, symbol.NullableAnnotation.ToInternalAnnotation()));
                 AddSpace();
             }
 

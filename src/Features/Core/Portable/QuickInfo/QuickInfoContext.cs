@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             int position,
             CancellationToken cancellationToken)
         {
-            this.Document = document ?? throw new ArgumentNullException(nameof(document));
-            this.Position = position;
-            this.CancellationToken = cancellationToken;
+            Document = document ?? throw new ArgumentNullException(nameof(document));
+            Position = position;
+            CancellationToken = cancellationToken;
         }
     }
 }

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private IEnumerable<CodeRefactoringProvider> GetProviders(Document document)
         {
-            if (this.LanguageToProvidersMap.TryGetValue(document.Project.Language, out var lazyProviders))
+            if (LanguageToProvidersMap.TryGetValue(document.Project.Language, out var lazyProviders))
             {
                 return lazyProviders.Value;
             }
@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
-            foreach (var provider in this.GetProviders(document))
+            foreach (var provider in GetProviders(document))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var refactoring = await GetRefactoringFromProviderAsync(
-                    document, state, provider, extensionManager, cancellationToken).ConfigureAwait(false);
+                    document, state, provider, extensionManager, isBlocking: false, cancellationToken).ConfigureAwait(false);
 
                 if (refactoring != null)
                 {
@@ -89,9 +89,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return false;
         }
 
-        public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
+        public Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
             Document document,
             TextSpan state,
+            CancellationToken cancellationToken)
+        {
+            return ((ICodeRefactoringService)this).GetRefactoringsAsync(document, state, isBlocking: false, cancellationToken);
+        }
+
+        async Task<ImmutableArray<CodeRefactoring>> ICodeRefactoringService.GetRefactoringsAsync(
+            Document document,
+            TextSpan state,
+            bool isBlocking,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
@@ -99,10 +108,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
                 var tasks = new List<Task<CodeRefactoring>>();
 
-                foreach (var provider in this.GetProviders(document))
+                foreach (var provider in GetProviders(document))
                 {
                     tasks.Add(Task.Run(
-                        () => GetRefactoringFromProviderAsync(document, state, provider, extensionManager, cancellationToken), cancellationToken));
+                        () => GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken), cancellationToken));
                 }
 
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -115,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             TextSpan state,
             CodeRefactoringProvider provider,
             IExtensionManager extensionManager,
+            bool isBlocking,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -125,18 +135,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             try
             {
-                var actions = ArrayBuilder<CodeAction>.GetInstance();
+                var actions = ArrayBuilder<(CodeAction action, TextSpan? applicableToSpan)>.GetInstance();
                 var context = new CodeRefactoringContext(document, state,
 
                     // TODO: Can we share code between similar lambdas that we pass to this API in BatchFixAllProvider.cs, CodeFixService.cs and CodeRefactoringService.cs?
-                    a =>
+                    (action, applicableToSpan) =>
                     {
                         // Serialize access for thread safety - we don't know what thread the refactoring provider will call this delegate from.
                         lock (actions)
                         {
-                            actions.Add(a);
+                            actions.Add((action, applicableToSpan));
                         }
                     },
+                    isBlocking,
                     cancellationToken);
 
                 var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;

@@ -6,9 +6,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         {
             private readonly Solution _solution;
             private readonly IAsynchronousOperationListener _asyncListener;
-            private readonly IDocumentTrackingService _documentTrackingService;
             private readonly INavigateToItemDisplayFactory _displayFactory;
             private readonly INavigateToCallback _callback;
             private readonly string _searchPattern;
@@ -37,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             public Searcher(
                 Solution solution,
                 IAsynchronousOperationListener asyncListener,
-                IDocumentTrackingService documentTrackingService,
                 INavigateToItemDisplayFactory displayFactory,
                 INavigateToCallback callback,
                 string searchPattern,
@@ -47,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 _solution = solution;
                 _asyncListener = asyncListener;
-                _documentTrackingService = documentTrackingService;
                 _displayFactory = displayFactory;
                 _callback = callback;
                 _searchPattern = searchPattern;
@@ -68,25 +65,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 try
                 {
-                    using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken))
-                    using (var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search"))
+                    using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken);
+                    using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
+                    _progress.AddItems(_solution.Projects.Count());
+
+                    var workspace = _solution.Workspace;
+
+                    // If the workspace is tracking documents, use that to prioritize our search
+                    // order.  That way we provide results for the documents the user is working
+                    // on faster than the rest of the solution.
+                    var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+                    if (docTrackingService != null)
                     {
-                        _progress.AddItems(_solution.Projects.Count());
-
-                        var workspace = _solution.Workspace;
-
-                        // If the workspace is tracking documents, use that to prioritize our search
-                        // order.  That way we provide results for the documents the user is working
-                        // on faster than the rest of the solution.
-                        var docTrackingService = _documentTrackingService ?? workspace.Services.GetService<IDocumentTrackingService>();
-                        if (docTrackingService != null)
-                        {
-                            await SearchProjectsInPriorityOrder(docTrackingService).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            await SearchAllProjectsAsync().ConfigureAwait(false);
-                        }
+                        await SearchProjectsInPriorityOrder(docTrackingService).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await SearchAllProjectsAsync().ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException)
@@ -94,7 +89,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 }
                 finally
                 {
-                    _callback.Done();
+                    var service = _solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                    if (_callback is INavigateToCallback2 callback2 &&
+                        !await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false))
+                    {
+                        // providing this extra information will make UI to show indication to users
+                        // that result might not contain full data
+                        callback2.Done(IncompleteReason.SolutionLoading);
+                    }
+                    else
+                    {
+                        _callback.Done();
+                    }
                 }
             }
 
@@ -222,23 +228,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
 
             private PatternMatchKind GetPatternMatchKind(NavigateToMatchKind matchKind)
-            {
-                switch (matchKind)
+                => matchKind switch
                 {
-                    case NavigateToMatchKind.Exact: return PatternMatchKind.Exact;
-                    case NavigateToMatchKind.Prefix: return PatternMatchKind.Prefix;
-                    case NavigateToMatchKind.Substring: return PatternMatchKind.Substring;
-                    case NavigateToMatchKind.Regular: return PatternMatchKind.Fuzzy;
-                    case NavigateToMatchKind.None: return PatternMatchKind.Fuzzy;
-                    case NavigateToMatchKind.CamelCaseExact: return PatternMatchKind.CamelCaseExact;
-                    case NavigateToMatchKind.CamelCasePrefix: return PatternMatchKind.CamelCasePrefix;
-                    case NavigateToMatchKind.CamelCaseNonContiguousPrefix: return PatternMatchKind.CamelCaseNonContiguousPrefix;
-                    case NavigateToMatchKind.CamelCaseSubstring: return PatternMatchKind.CamelCaseSubstring;
-                    case NavigateToMatchKind.CamelCaseNonContiguousSubstring: return PatternMatchKind.CamelCaseNonContiguousSubstring;
-                    case NavigateToMatchKind.Fuzzy: return PatternMatchKind.Fuzzy;
-                    default: throw ExceptionUtilities.UnexpectedValue(matchKind);
-                }
-            }
+                    NavigateToMatchKind.Exact => PatternMatchKind.Exact,
+                    NavigateToMatchKind.Prefix => PatternMatchKind.Prefix,
+                    NavigateToMatchKind.Substring => PatternMatchKind.Substring,
+                    NavigateToMatchKind.Regular => PatternMatchKind.Fuzzy,
+                    NavigateToMatchKind.None => PatternMatchKind.Fuzzy,
+                    NavigateToMatchKind.CamelCaseExact => PatternMatchKind.CamelCaseExact,
+                    NavigateToMatchKind.CamelCasePrefix => PatternMatchKind.CamelCasePrefix,
+                    NavigateToMatchKind.CamelCaseNonContiguousPrefix => PatternMatchKind.CamelCaseNonContiguousPrefix,
+                    NavigateToMatchKind.CamelCaseSubstring => PatternMatchKind.CamelCaseSubstring,
+                    NavigateToMatchKind.CamelCaseNonContiguousSubstring => PatternMatchKind.CamelCaseNonContiguousSubstring,
+                    NavigateToMatchKind.Fuzzy => PatternMatchKind.Fuzzy,
+                    _ => throw ExceptionUtilities.UnexpectedValue(matchKind),
+                };
 
             /// <summary>
             /// Returns the name for the language used by the old Navigate To providers.
@@ -246,17 +250,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             /// <remarks> It turns out this string is used for sorting and for some SQM data, so it's best
             /// to keep it unchanged.</remarks>
             private static string GetNavigateToLanguage(string languageName)
-            {
-                switch (languageName)
+                => languageName switch
                 {
-                    case LanguageNames.CSharp:
-                        return "csharp";
-                    case LanguageNames.VisualBasic:
-                        return "vb";
-                    default:
-                        return languageName;
-                }
-            }
+                    LanguageNames.CSharp => "csharp",
+                    LanguageNames.VisualBasic => "vb",
+                    _ => languageName,
+                };
         }
     }
 }

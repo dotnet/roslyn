@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var touchingToken = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var token = touchingToken.GetPreviousToken();
 
-            bool foundPartial = touchingToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword);
-            bool foundAsync = false;
+            var foundPartial = touchingToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword);
+            var foundAsync = false;
 
             while (IsOnSameLine(token, touchingToken, tree.GetText(cancellationToken)))
             {

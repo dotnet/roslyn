@@ -116,8 +116,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool CheckParent<T>(this SyntaxNode node, Func<T, bool> valueChecker) where T : SyntaxNode
         {
-            var parentNode = node?.Parent as T;
-            if (parentNode == null)
+            if (!(node?.Parent is T parentNode))
             {
                 return false;
             }
@@ -239,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Contract.ThrowIfNull(nodes);
             Contract.ThrowIfFalse(nodes.Any());
 
-            TextSpan fullSpan = nodes.First().Span;
+            var fullSpan = nodes.First().Span;
             foreach (var node in nodes)
             {
                 fullSpan = TextSpan.FromBounds(
@@ -454,9 +453,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     previous = span;
                 }
 
-                bool retryNodes = false;
-                bool retryTokens = false;
-                bool retryTrivia = false;
+                var retryNodes = false;
+                var retryTokens = false;
+                var retryTrivia = false;
 
                 // replace nodes in batch
                 // submit all nodes so we can annotate the ones we don't replace
@@ -762,8 +761,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var parent = node.Parent;
             if (parent == null && ascendOutOfTrivia)
             {
-                var structuredTrivia = node as IStructuredTriviaSyntax;
-                if (structuredTrivia != null)
+                if (node is IStructuredTriviaSyntax structuredTrivia)
                 {
                     parent = structuredTrivia.ParentTrivia.Token.Parent;
                 }

@@ -12,8 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
-using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -408,22 +406,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return true;
         }
 
+        // We'll autoformat on n, t, e, only if they are the last character of the below
+        // keywords.  
         private bool ValidSingleOrMultiCharactersTokenKind(char typedChar, SyntaxKind kind)
-        {
-            // We'll autoformat on n, t, e, only if they are the last character of the below
-            // keywords.  
-            switch (typedChar)
+            => typedChar switch
             {
-                case ('n'):
-                    return kind == SyntaxKind.RegionKeyword || kind == SyntaxKind.EndRegionKeyword;
-                case ('t'):
-                    return kind == SyntaxKind.SelectKeyword;
-                case ('e'):
-                    return kind == SyntaxKind.WhereKeyword;
-                default:
-                    return true;
-            }
-        }
+                'n' => kind == SyntaxKind.RegionKeyword || kind == SyntaxKind.EndRegionKeyword,
+                't' => kind == SyntaxKind.SelectKeyword,
+                'e' => kind == SyntaxKind.WhereKeyword,
+                _ => true,
+            };
 
         private bool IsInvalidTokenKind(SyntaxToken token)
         {

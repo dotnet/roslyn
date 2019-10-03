@@ -229,15 +229,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Private Sub Dispose() Implements IDisposable.Dispose
             ' Make sure we're cleaned up. Don't want the test harness crashing...
             GC.SuppressFinalize(Me)
-            _workspace.Dispose()
 
             ' If we failed some other assert, we know we're going to have things left
             ' over. So let's just suppress these so we don't lose the root cause
             If Not _failedAssert Then
                 If _unassertedRelatedLocations.Count > 0 Then
-                    AssertEx.Fail("There were additional related locations than were unasserted.")
+                    AssertEx.Fail(
+                        "There were additional related locations that were unasserted:" + Environment.NewLine _
+                        + String.Join(Environment.NewLine,
+                            From location In _unassertedRelatedLocations
+                            Let document = _workspace.CurrentSolution.GetDocument(location.DocumentId)
+                            Let spanText = document.GetTextSynchronously(CancellationToken.None).ToString(location.ConflictCheckSpan)
+                            Select $"{spanText} @{document.Name}[{location.ConflictCheckSpan.Start}..{location.ConflictCheckSpan.End})"))
                 End If
             End If
+
+            _workspace.Dispose()
         End Sub
 
         Protected Overrides Sub Finalize()

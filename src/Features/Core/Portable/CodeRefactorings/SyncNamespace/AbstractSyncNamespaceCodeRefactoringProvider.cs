@@ -18,10 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles ||
                 document.IsGeneratedCode(cancellationToken))
             {
@@ -76,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                         : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace),
                     token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, token));
 
-                context.RegisterRefactoring(solutionChangeAction);
+                context.RegisterRefactoring(solutionChangeAction, textSpan);
             }
         }
 
@@ -96,8 +93,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
         private class ChangeNamespaceCodeAction : SolutionChangeAction
         {
-            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
-                base(title, createChangedSolution)
+            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution)
             {
             }
         }

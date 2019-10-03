@@ -203,7 +203,7 @@ partial class A : Object {}
             var model = comp.GetSemanticModel(tree);
 
             var alias = model.GetDeclaredSymbol(usingAlias);
-            Assert.Equal(null, alias);
+            Assert.Null(alias);
         }
 
         [Fact]

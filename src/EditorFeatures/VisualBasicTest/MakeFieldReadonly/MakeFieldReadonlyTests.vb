@@ -465,6 +465,23 @@ End Class",
 End Class")
         End Function
 
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <InlineData("")>
+        <InlineData("\r\n")>
+        <InlineData("\r\n\r\n")>
+        Public Async Function MultipleFieldsAssignedInline_LeadingCommentAndWhitespace(leadingTrivia As String) As Task
+            Await TestInRegularAndScriptAsync(
+$"Class C
+    'Comment{leadingTrivia}
+    Private _goo As Integer = 0, [|_bar|] As Integer = 0
+End Class",
+$"Class C
+    'Comment{leadingTrivia}
+    Private _goo As Integer = 0
+    Private ReadOnly _bar As Integer = 0
+End Class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function FieldAssignedInCtor() As Task
             Await TestInRegularAndScriptAsync(

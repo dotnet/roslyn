@@ -87,11 +87,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
 
                 var hostGroup = new HostGroup(current);
-                var remoteHostStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
+                // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
                 var remotableDataRpc = new RemotableDataJsonRpc(
                                           workspace, primary.Logger,
                                           await Connections.RequestServiceAsync(workspace, primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
+
+                var remoteHostStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
                 var enableConnectionPool = workspace.Options.GetOption(RemoteHostOptions.EnableConnectionPool);
                 var maxConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
@@ -109,7 +111,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 return client;
             }
+            catch (ConnectionLostException ex)
+            {
+                RemoteHostCrashInfoBar.ShowInfoBar(workspace, ex);
+
+                Shutdown(client, ex, cancellationToken);
+
+                // dont crash VS because OOP is failed to start. we will show info bar telling users to restart
+                // but never physically crash VS.
+                throw new SoftCrashException("Connection Lost", ex, cancellationToken);
+            }
             catch (Exception ex)
+            {
+                Shutdown(client, ex, cancellationToken);
+                throw;
+            }
+
+            static void Shutdown(ServiceHubRemoteHostClient client, Exception ex, CancellationToken cancellationToken)
             {
                 // make sure we shutdown client if initializing client has failed.
                 client?.Shutdown();
@@ -117,9 +135,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // translate to our own cancellation if it is raised.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // otherwise, report watson and throw original exception
+                // otherwise, report watson
                 ex.ReportServiceHubNFW("ServiceHub creation failed");
-                throw;
             }
         }
 

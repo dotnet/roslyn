@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// the state transitions (including the test to perform at each node and the successor nodes) but
     /// not the state descriptions. A <see cref="BoundDecisionDag"/> containing this
     /// set of nodes becomes part of the bound nodes (e.g. in <see cref="BoundSwitchStatement"/> and
-    /// <see cref="BoundSwitchExpression"/>) and is used for semantic analysis and lowering.
+    /// <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic analysis and lowering.
     /// </para>
     /// </summary>
     internal class DecisionDagBuilder
@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Determine what we can learn from one successful runtime type test about another planned
         /// runtime type test for the purpose of building the decision tree.
-        /// We accomodate a special behavior of the runtime here, which does not match the language rules.
+        /// We accommodate a special behavior of the runtime here, which does not match the language rules.
         /// A value of type `int[]` is an "instanceof" (i.e. result of the `isinst` instruction) the type
         /// `uint[]` and vice versa.  It is similarly so for every pair of same-sized numeric types, and
         /// arrays of enums are considered to be their underlying type.  We need the dag construction to

@@ -257,17 +257,14 @@ class C
                 // (4,45): error CS0234: The type or namespace name 'IAsyncEnumerable<>' does not exist in the namespace 'System.Collections.Generic' (are you missing an assembly reference?)
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IAsyncEnumerable<int>").WithArguments("IAsyncEnumerable<>", "System.Collections.Generic").WithLocation(4, 45),
-                // (4,67): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,67): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("async streams").WithLocation(4, 67),
-                // (4,67): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M").WithArguments("async streams", "8.0").WithLocation(4, 67),
+                // (4,67): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("async streams").WithLocation(4, 67)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M").WithArguments("async streams", "8.0").WithLocation(4, 67)
             };
             var comp = CreateCompilationWithTasksExtensions(new[] { source }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(expected);
-
-            comp = CreateCompilationWithTasksExtensions(new[] { source }, parseOptions: TestOptions.RegularDefault);
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilationWithTasksExtensions(new[] { source }, parseOptions: TestOptions.RegularPreview);
@@ -324,6 +321,7 @@ class C
 }";
             var comp = CreateCompilationWithAsyncIterator(source);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
 
             var m2 = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M2");
             Assert.False(m2.IsAsync);
@@ -332,6 +330,122 @@ class C
             var m = comp.GlobalNamespace.GetMember<MethodSymbol>("C.M");
             Assert.True(m.IsAsync);
             Assert.True(m.IsIterator);
+        }
+
+        [Fact, WorkItem(38201, "https://github.com/dotnet/roslyn/issues/38201")]
+        public void ReturningIAsyncEnumerable_Misc()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    async IAsyncEnumerable<string> GetStrings(int i = 0) { yield return await Task.FromResult(""""); }
+
+    async IAsyncEnumerable<string> AsyncExpressionBody()
+        => GetStrings(await Task.FromResult(1)); // 1
+
+    IAsyncEnumerable<string> ExpressionBody() => GetStrings();
+
+    async IAsyncEnumerable<string> AsyncReturn()
+    {
+        return GetStrings(await Task.FromResult(1)); // 2
+    }
+
+    IAsyncEnumerable<string> Return() { return GetStrings(); }
+
+    async IAsyncEnumerable<string> AsyncReturnAndYieldReturn()
+    {
+        bool b = true;
+        if (b) { return GetStrings(); } // 3
+        yield return await Task.FromResult("""");
+    }
+
+    IAsyncEnumerable<string> ReturnAndYieldReturn() // 4
+    {
+        bool b = true;
+        if (b) { return GetStrings(); } // 5
+        yield return """";
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
+            comp.VerifyDiagnostics(
+                // (9,12): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         => GetStrings(await Task.FromResult(1)); // 1
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "GetStrings(await Task.FromResult(1))").WithLocation(9, 12),
+                // (15,9): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         return GetStrings(await Task.FromResult(1)); // 2
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(15, 9),
+                // (23,18): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         if (b) { return GetStrings(); } // 3
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(23, 18),
+                // (27,30): error CS8403: Method 'C.ReturnAndYieldReturn()' with an iterator block must be 'async' to return 'IAsyncEnumerable<string>'
+                //     IAsyncEnumerable<string> ReturnAndYieldReturn() // 4
+                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "ReturnAndYieldReturn").WithArguments("C.ReturnAndYieldReturn()", "System.Collections.Generic.IAsyncEnumerable<string>").WithLocation(27, 30),
+                // (30,18): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //         if (b) { return GetStrings(); } // 5
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(30, 18)
+                );
+        }
+
+        [Fact, WorkItem(38201, "https://github.com/dotnet/roslyn/issues/38201")]
+        public void ReturningIAsyncEnumerable_Misc_LocalFunction()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+#pragma warning disable 8321 // unused local function
+class C
+{
+    void M()
+    {
+        async IAsyncEnumerable<string> GetStrings(int i = 0) { yield return await Task.FromResult(""""); }
+
+        async IAsyncEnumerable<string> AsyncExpressionBody()
+            => GetStrings(await Task.FromResult(1)); // 1
+
+        IAsyncEnumerable<string> ExpressionBody() => GetStrings();
+
+        async IAsyncEnumerable<string> AsyncReturn()
+        {
+            return GetStrings(await Task.FromResult(1)); // 2
+        }
+
+        IAsyncEnumerable<string> Return() { return GetStrings(); }
+
+        async IAsyncEnumerable<string> AsyncReturnAndYieldReturn()
+        {
+            bool b = true;
+            if (b) { return GetStrings(); } // 3
+            yield return await Task.FromResult("""");
+        }
+
+        IAsyncEnumerable<string> ReturnAndYieldReturn() // 4
+        {
+            bool b = true;
+            if (b) { return GetStrings(); } // 5
+            yield return """";
+        }
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
+            comp.VerifyDiagnostics(
+                // (12,16): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //             => GetStrings(await Task.FromResult(1)); // 1
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "GetStrings(await Task.FromResult(1))").WithLocation(12, 16),
+                // (18,13): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //             return GetStrings(await Task.FromResult(1)); // 2
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(18, 13),
+                // (26,22): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //             if (b) { return GetStrings(); } // 3
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(26, 22),
+                // (30,34): error CS8403: Method 'ReturnAndYieldReturn()' with an iterator block must be 'async' to return 'IAsyncEnumerable<string>'
+                //         IAsyncEnumerable<string> ReturnAndYieldReturn() // 4
+                Diagnostic(ErrorCode.ERR_IteratorMustBeAsync, "ReturnAndYieldReturn").WithArguments("ReturnAndYieldReturn()", "System.Collections.Generic.IAsyncEnumerable<string>").WithLocation(30, 34),
+                // (33,22): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+                //             if (b) { return GetStrings(); } // 5
+                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(33, 22)
+                );
         }
 
         [Fact]
@@ -1173,17 +1287,14 @@ class C
 }";
             var expected = new[]
             {
-                // (4,60): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,60): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     async System.Collections.Generic.IAsyncEnumerator<int> M()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("async streams").WithLocation(4, 60),
-                // (34,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M").WithArguments("async streams", "8.0").WithLocation(4, 60),
+                // (34,2): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // #nullable disable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(34, 2)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "nullable").WithArguments("nullable reference types", "8.0").WithLocation(34, 2)
             };
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(expected);
-
-            comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.RegularDefault);
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.RegularPreview);
@@ -6254,7 +6365,7 @@ class C
         if (!await enumerator.MoveNextAsync()) throw null;
         System.Console.Write($""{enumerator.Current} ""); // 43
 
-        if (source != default)
+        if (source != null)
             source.Cancel();
         try
         {

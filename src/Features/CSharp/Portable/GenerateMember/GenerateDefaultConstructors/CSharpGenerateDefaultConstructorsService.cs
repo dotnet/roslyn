@@ -31,10 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
             // first base-type of a class.
 
             var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start))
+            if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, out var typeDeclaration))
             {
-                classType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
-                    semanticDocument.SemanticModel, semanticDocument.Root, textSpan.Start, cancellationToken);
+                classType = semanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
                 return classType?.TypeKind == TypeKind.Class;
             }
 

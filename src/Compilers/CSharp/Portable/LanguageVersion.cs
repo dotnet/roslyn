@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp7_2:
                 case LanguageVersion.CSharp7_3:
                 case LanguageVersion.CSharp8:
+                case LanguageVersion.Preview:
                     return true;
             }
 
@@ -355,10 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case LanguageVersion.Latest:
                 case LanguageVersion.Default:
-                    return LanguageVersion.CSharp7_3;
                 case LanguageVersion.LatestMajor:
-                    return LanguageVersion.CSharp7;
-                case LanguageVersion.Preview:
                     return LanguageVersion.CSharp8;
                 default:
                     return version;

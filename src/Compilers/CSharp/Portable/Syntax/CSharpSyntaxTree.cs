@@ -619,15 +619,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
         }
 
-        internal NullableContextState GetNullableContextState(int position)
+        private void EnsureNullableContextMapInitialized()
         {
             if (_lazyNullableContextStateMap == null)
             {
                 // Create the #nullable directive map on demand.
                 Interlocked.CompareExchange(ref _lazyNullableContextStateMap, NullableContextStateMap.Create(this, IsGeneratedCode()), null);
             }
+        }
 
+        internal NullableContextState GetNullableContextState(int position)
+        {
+            EnsureNullableContextMapInitialized();
             return _lazyNullableContextStateMap.GetContextState(position);
+        }
+
+        /// <summary>
+        /// Returns true if there are any nullable directives that enable annotations, warnings, or both.
+        /// This does not include any restore directives.
+        /// </summary>
+        internal bool HasNullableEnables()
+        {
+            EnsureNullableContextMapInitialized();
+            return _lazyNullableContextStateMap.HasNullableEnables();
         }
 
         internal bool IsGeneratedCode()

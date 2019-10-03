@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EmitContext sourceContext,
             SourceAssemblySymbol otherAssembly,
             EmitContext otherContext,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> otherSynthesizedMembersOpt)
+            ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> otherSynthesizedMembersOpt)
         {
             _defs = new MatchDefsToSource(sourceContext, otherContext);
             _symbols = new MatchSymbols(anonymousTypeMap, sourceAssembly, otherAssembly, otherSynthesizedMembersOpt, new DeepTranslator(otherAssembly.GetSpecialType(SpecialType.System_Object)));
@@ -50,8 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override Cci.IDefinition MapDefinition(Cci.IDefinition definition)
         {
-            var symbol = definition as Symbol;
-            if ((object)symbol != null)
+            if (definition is Symbol symbol)
             {
                 return (Cci.IDefinition)_symbols.Visit(symbol);
             }
@@ -59,10 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _defs.VisitDef(definition);
         }
 
+        public override Cci.INamespace MapNamespace(Cci.INamespace @namespace)
+        {
+            return (Cci.INamespace)_symbols.Visit((NamespaceSymbol)@namespace);
+        }
+
         public override Cci.ITypeReference MapReference(Cci.ITypeReference reference)
         {
-            var symbol = reference as Symbol;
-            if ((object)symbol != null)
+            if (reference is Symbol symbol)
             {
                 return (Cci.ITypeReference)_symbols.Visit(symbol);
             }
@@ -70,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        internal bool TryGetAnonymousTypeName(NamedTypeSymbol template, out string name, out int index)
+        internal override bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index)
         {
             return _symbols.TryGetAnonymousTypeName(template, out name, out index);
         }
@@ -150,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return null;
                 }
 
-                var topLevelTypes = this.GetTopLevelTypesByName();
+                var topLevelTypes = GetTopLevelTypesByName();
                 Cci.INamespaceTypeDefinition otherDef;
                 topLevelTypes.TryGetValue(def.Name, out otherDef);
                 return otherDef;
@@ -161,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if (_lazyTopLevelTypes == null)
                 {
                     var typesByName = new Dictionary<string, Cci.INamespaceTypeDefinition>(StringOrdinalComparer.Instance);
-                    foreach (var type in this.GetTopLevelTypes())
+                    foreach (var type in GetTopLevelTypes())
                     {
                         // All generated top-level types are assumed to be in the global namespace.
                         if (string.IsNullOrEmpty(type.NamespaceName))
@@ -169,8 +173,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             typesByName.Add(type.Name, type);
                         }
                     }
+
                     Interlocked.CompareExchange(ref _lazyTopLevelTypes, typesByName, null);
                 }
+
                 return _lazyTopLevelTypes;
             }
 
@@ -247,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             protected override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes()
             {
-                return _otherContext.Module.GetTopLevelTypes(_otherContext);
+                return _otherContext.Module.GetTopLevelTypeDefinitions(_otherContext);
             }
 
             protected override IEnumerable<Cci.INestedTypeDefinition> GetNestedTypes(Cci.ITypeDefinition def)
@@ -268,22 +274,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             // metadata or source assembly:
             private readonly AssemblySymbol _otherAssembly;
-            private readonly ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> _otherSynthesizedMembersOpt;
+
+            /// <summary>
+            /// Members that are not listed directly on their containing type or namespace symbol as they were synthesized in a lowering phase,
+            /// after the symbol has been created.
+            /// </summary>
+            private readonly ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> _otherSynthesizedMembersOpt;
 
             private readonly SymbolComparer _comparer;
             private readonly ConcurrentDictionary<Symbol, Symbol> _matches;
 
-            // A cache of members per type, populated when the first member for a given
-            // type is needed. Within each type, members are indexed by name. The reason
-            // for caching, and indexing by name, is to avoid searching sequentially
-            // through all members of a given kind each time a member is matched.
-            private readonly ConcurrentDictionary<NamedTypeSymbol, IReadOnlyDictionary<string, ImmutableArray<Cci.ITypeDefinitionMember>>> _otherTypeMembers;
+            /// <summary>
+            /// A cache of members per type, populated when the first member for a given
+            /// type is needed. Within each type, members are indexed by name. The reason
+            /// for caching, and indexing by name, is to avoid searching sequentially
+            /// through all members of a given kind each time a member is matched.
+            /// </summary>
+            private readonly ConcurrentDictionary<ISymbol, IReadOnlyDictionary<string, ImmutableArray<ISymbol>>> _otherMembers;
 
             public MatchSymbols(
                 IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
                 SourceAssemblySymbol sourceAssembly,
                 AssemblySymbol otherAssembly,
-                ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> otherSynthesizedMembersOpt,
+                ImmutableDictionary<ISymbol, ImmutableArray<ISymbol>> otherSynthesizedMembersOpt,
                 DeepTranslator deepTranslatorOpt)
             {
                 _anonymousTypeMap = anonymousTypeMap;
@@ -292,18 +305,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 _otherSynthesizedMembersOpt = otherSynthesizedMembersOpt;
                 _comparer = new SymbolComparer(this, deepTranslatorOpt);
                 _matches = new ConcurrentDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
-                _otherTypeMembers = new ConcurrentDictionary<NamedTypeSymbol, IReadOnlyDictionary<string, ImmutableArray<Cci.ITypeDefinitionMember>>>();
+                _otherMembers = new ConcurrentDictionary<ISymbol, IReadOnlyDictionary<string, ImmutableArray<ISymbol>>>(ReferenceEqualityComparer.Instance);
             }
 
-            internal bool TryGetAnonymousTypeName(NamedTypeSymbol type, out string name, out int index)
+            internal bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal type, out string name, out int index)
             {
-                AnonymousTypeValue otherType;
-                if (this.TryFindAnonymousType(type, out otherType))
+                if (TryFindAnonymousType(type, out var otherType))
                 {
                     name = otherType.Name;
                     index = otherType.UniqueIndex;
                     return true;
                 }
+
                 name = null;
                 index = -1;
                 return false;
@@ -327,11 +340,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
             {
                 var otherElementType = (TypeSymbol)this.Visit(symbol.ElementType);
-                if ((object)otherElementType == null)
+                if (otherElementType is null)
                 {
                     // For a newly added type, there is no match in the previous generation, so it could be null.
                     return null;
                 }
+
                 var otherModifiers = VisitCustomModifiers(symbol.ElementTypeWithAnnotations.CustomModifiers);
 
                 if (symbol.IsSZArray)
@@ -362,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitModule(ModuleSymbol module)
             {
                 var otherAssembly = (AssemblySymbol)Visit(module.ContainingAssembly);
-                if ((object)otherAssembly == null)
+                if (otherAssembly is null)
                 {
                     return null;
                 }
@@ -428,8 +442,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitNamespace(NamespaceSymbol @namespace)
             {
-                var otherContainer = this.Visit(@namespace.ContainingSymbol);
-                Debug.Assert((object)otherContainer != null);
+                var otherContainer = Visit(@namespace.ContainingSymbol);
+                Debug.Assert(otherContainer is object);
 
                 switch (otherContainer.Kind)
                 {
@@ -438,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return ((ModuleSymbol)otherContainer).GlobalNamespace;
 
                     case SymbolKind.Namespace:
-                        return FindMatchingNamespaceMember((NamespaceSymbol)otherContainer, @namespace, (s, o) => true);
+                        return FindMatchingMember(otherContainer, @namespace, AreNamespacesEqual);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(otherContainer.Kind);
@@ -458,8 +472,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     var typeArguments = sourceType.GetAllTypeArguments(ref useSiteDiagnostics);
 
-                    var otherDef = (NamedTypeSymbol)this.Visit(originalDef);
-                    if ((object)otherDef == null)
+                    var otherDef = (NamedTypeSymbol)Visit(originalDef);
+                    if (otherDef is null)
                     {
                         return null;
                     }
@@ -468,18 +482,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     bool translationFailed = false;
 
                     var otherTypeArguments = typeArguments.SelectAsArray((t, v) =>
-                                                                            {
-                                                                                var newType = (TypeSymbol)v.Visit(t.Type);
+                    {
+                        var newType = (TypeSymbol)v.Visit(t.Type);
 
-                                                                                if ((object)newType == null)
-                                                                                {
-                                                                                    // For a newly added type, there is no match in the previous generation, so it could be null.
-                                                                                    translationFailed = true;
-                                                                                    newType = t.Type;
-                                                                                }
+                        if (newType is null)
+                        {
+                            // For a newly added type, there is no match in the previous generation, so it could be null.
+                            translationFailed = true;
+                            newType = t.Type;
+                        }
 
-                                                                                return t.WithTypeAndModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers));
-                                                                            }, this);
+                        return t.WithTypeAndModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers));
+                    }, this);
 
                     if (translationFailed)
                     {
@@ -493,8 +507,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
                 else if (sourceType.IsTupleType)
                 {
-                    var otherDef = (NamedTypeSymbol)this.Visit(sourceType.TupleUnderlyingType);
-                    if ((object)otherDef == null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypesWithAnnotations.Length))
+                    var otherDef = (NamedTypeSymbol)Visit(sourceType.TupleUnderlyingType);
+                    if (otherDef is null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypesWithAnnotations.Length))
                     {
                         return null;
                     }
@@ -507,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var otherContainer = this.Visit(sourceType.ContainingSymbol);
                 // Containing type will be missing from other assembly
                 // if the type was added in the (newer) source assembly.
-                if ((object)otherContainer == null)
+                if (otherContainer is null)
                 {
                     return null;
                 }
@@ -515,24 +529,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 switch (otherContainer.Kind)
                 {
                     case SymbolKind.Namespace:
-                        if (AnonymousTypeManager.IsAnonymousTypeTemplate(sourceType))
+                        if (sourceType is IAnonymousTypeTemplateSymbolInternal template)
                         {
                             Debug.Assert((object)otherContainer == (object)_otherAssembly.GlobalNamespace);
-                            AnonymousTypeValue value;
-                            this.TryFindAnonymousType(sourceType, out value);
+                            TryFindAnonymousType(template, out var value);
                             return (NamedTypeSymbol)value.Type;
                         }
-                        else if (sourceType.IsAnonymousType)
+
+                        if (sourceType.IsAnonymousType)
                         {
-                            return this.Visit(AnonymousTypeManager.TranslateAnonymousTypeSymbol(sourceType));
-                        }
-                        else
-                        {
-                            return FindMatchingNamespaceMember((NamespaceSymbol)otherContainer, sourceType, AreNamedTypesEqual);
+                            return Visit(AnonymousTypeManager.TranslateAnonymousTypeSymbol(sourceType));
                         }
 
+                        return FindMatchingMember(otherContainer, sourceType, AreNamedTypesEqual);
+
                     case SymbolKind.NamedType:
-                        return FindMatchingNamedTypeMember((NamedTypeSymbol)otherContainer, sourceType, AreNamedTypesEqual);
+                        return FindMatchingMember(otherContainer, sourceType, AreNamedTypesEqual);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(otherContainer.Kind);
@@ -547,8 +559,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitPointerType(PointerTypeSymbol symbol)
             {
-                var otherPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType);
-                if ((object)otherPointedAtType == null)
+                var otherPointedAtType = (TypeSymbol)Visit(symbol.PointedAtType);
+                if (otherPointedAtType is null)
                 {
                     // For a newly added type, there is no match in the previous generation, so it could be null.
                     return null;
@@ -604,65 +616,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     CSharpCustomModifier.CreateRequired(type);
             }
 
-            internal bool TryFindAnonymousType(NamedTypeSymbol type, out AnonymousTypeValue otherType)
+            internal bool TryFindAnonymousType(IAnonymousTypeTemplateSymbolInternal type, out AnonymousTypeValue otherType)
             {
                 Debug.Assert((object)type.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
-                Debug.Assert(AnonymousTypeManager.IsAnonymousTypeTemplate(type));
 
-                var key = AnonymousTypeManager.GetAnonymousTypeKey(type);
-                return _anonymousTypeMap.TryGetValue(key, out otherType);
-            }
-
-            private static T FindMatchingNamespaceMember<T>(NamespaceSymbol otherNamespace, T sourceMember, Func<T, T, bool> predicate)
-                where T : Symbol
-            {
-                Debug.Assert(!string.IsNullOrEmpty(sourceMember.Name));
-
-                foreach (var otherMember in otherNamespace.GetMembers(sourceMember.Name))
-                {
-                    if (sourceMember.Kind != otherMember.Kind)
-                    {
-                        continue;
-                    }
-
-                    var other = (T)otherMember;
-                    if (predicate(sourceMember, other))
-                    {
-                        return other;
-                    }
-                }
-
-                return null;
+                return _anonymousTypeMap.TryGetValue(type.GetAnonymousTypeKey(), out otherType);
             }
 
             private Symbol VisitNamedTypeMember<T>(T member, Func<T, T, bool> predicate)
                 where T : Symbol
             {
-                var otherType = (NamedTypeSymbol)this.Visit(member.ContainingType);
+                var otherType = (NamedTypeSymbol)Visit(member.ContainingType);
+
                 // Containing type may be null for synthesized
                 // types such as iterators.
-                if ((object)otherType == null)
+                if (otherType is null)
                 {
                     return null;
                 }
 
-                return FindMatchingNamedTypeMember(otherType, member, predicate);
+                return FindMatchingMember(otherType, member, predicate);
             }
 
-            private T FindMatchingNamedTypeMember<T>(NamedTypeSymbol otherType, T sourceMember, Func<T, T, bool> predicate)
+            private T FindMatchingMember<T>(ISymbol otherTypeOrNamespace, T sourceMember, Func<T, T, bool> predicate)
                 where T : Symbol
             {
                 Debug.Assert(!string.IsNullOrEmpty(sourceMember.MetadataName));
 
-                var otherMembersByName = _otherTypeMembers.GetOrAdd(otherType, GetOtherTypeMembers);
-
-                ImmutableArray<Cci.ITypeDefinitionMember> otherMembers;
-                if (otherMembersByName.TryGetValue(sourceMember.MetadataName, out otherMembers))
+                var otherMembersByName = _otherMembers.GetOrAdd(otherTypeOrNamespace, GetAllEmittedMembers);
+                if (otherMembersByName.TryGetValue(sourceMember.MetadataName, out var otherMembers))
                 {
                     foreach (var otherMember in otherMembers)
                     {
-                        T other = otherMember as T;
-                        if (other != null && predicate(sourceMember, other))
+                        if (otherMember is T other && predicate(sourceMember, other))
                         {
                             return other;
                         }
@@ -726,7 +712,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private bool AreNamedTypesEqual(NamedTypeSymbol type, NamedTypeSymbol other)
             {
-                Debug.Assert(StringOrdinalComparer.Equals(type.Name, other.Name));
+                Debug.Assert(StringOrdinalComparer.Equals(type.MetadataName, other.MetadataName));
+
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
                 Debug.Assert(type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
                 Debug.Assert(other.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
@@ -736,6 +723,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(!other.IsTupleType);
 
                 return type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, AreTypesEqual);
+            }
+
+            private bool AreNamespacesEqual(NamespaceSymbol @namespace, NamespaceSymbol other)
+            {
+                Debug.Assert(StringOrdinalComparer.Equals(@namespace.MetadataName, other.MetadataName));
+                return true;
             }
 
             private bool AreParametersEqual(ParameterSymbol parameter, ParameterSymbol other)
@@ -812,23 +805,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
 
-            private IReadOnlyDictionary<string, ImmutableArray<Cci.ITypeDefinitionMember>> GetOtherTypeMembers(NamedTypeSymbol otherType)
+            private IReadOnlyDictionary<string, ImmutableArray<ISymbol>> GetAllEmittedMembers(ISymbol symbol)
             {
-                var members = ArrayBuilder<Cci.ITypeDefinitionMember>.GetInstance();
+                var members = ArrayBuilder<ISymbol>.GetInstance();
 
-                members.AddRange(otherType.GetEventsToEmit());
-                members.AddRange(otherType.GetFieldsToEmit());
-                members.AddRange(otherType.GetMethodsToEmit());
-                members.AddRange(otherType.GetTypeMembers());
-                members.AddRange(otherType.GetPropertiesToEmit());
+                if (symbol.Kind == SymbolKind.NamedType)
+                {
+                    var type = (NamedTypeSymbol)symbol;
+                    members.AddRange(type.GetEventsToEmit());
+                    members.AddRange(type.GetFieldsToEmit());
+                    members.AddRange(type.GetMethodsToEmit());
+                    members.AddRange(type.GetTypeMembers());
+                    members.AddRange(type.GetPropertiesToEmit());
+                }
+                else
+                {
+                    members.AddRange(((NamespaceSymbol)symbol).GetMembers());
+                }
 
-                ImmutableArray<Cci.ITypeDefinitionMember> synthesizedMembers;
-                if (_otherSynthesizedMembersOpt != null && _otherSynthesizedMembersOpt.TryGetValue(otherType, out synthesizedMembers))
+                if (_otherSynthesizedMembersOpt != null && _otherSynthesizedMembersOpt.TryGetValue(symbol, out var synthesizedMembers))
                 {
                     members.AddRange(synthesizedMembers);
                 }
 
-                var result = members.ToDictionary(s => ((Symbol)s).MetadataName, StringOrdinalComparer.Instance);
+                var result = members.ToDictionary(s => s.MetadataName, StringOrdinalComparer.Instance);
                 members.Free();
                 return result;
             }

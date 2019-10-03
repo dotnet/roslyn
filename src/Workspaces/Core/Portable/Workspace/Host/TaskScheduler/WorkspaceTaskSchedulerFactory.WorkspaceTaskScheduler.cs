@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Host
                 string taskName, Func<TTask> taskCreator)
                 where TTask : Task
             {
-                taskName = taskName ?? GetType().Name + ".ScheduleTask";
+                taskName ??= GetType().Name + ".ScheduleTask";
                 var asyncToken = _factory.BeginAsyncOperation(taskName);
 
                 var task = taskCreator();

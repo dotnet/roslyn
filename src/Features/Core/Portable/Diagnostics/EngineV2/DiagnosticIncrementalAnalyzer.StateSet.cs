@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,14 +58,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public DiagnosticAnalyzer Analyzer => _analyzer;
             public VersionStamp AnalyzerVersion => _analyzerVersion;
 
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
             public bool ContainsAnyDocumentOrProjectDiagnostics(ProjectId projectId)
             {
-                foreach (var state in GetActiveFileStates(projectId))
+                if (ContainsAnyDocumentDiagnostics(_activeFileStates, projectId))
                 {
-                    if (!state.IsEmpty)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
 
                 if (!_projectStates.TryGetValue(projectId, out var projectState))
@@ -73,6 +72,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 return !projectState.IsEmpty();
+
+                static bool ContainsAnyDocumentDiagnostics(ConcurrentDictionary<DocumentId, ActiveFileState> activeFileStates, ProjectId projectId)
+                {
+                    foreach (var kvp in activeFileStates)
+                    {
+                        var documentId = kvp.Key;
+                        if (documentId.ProjectId == projectId)
+                        {
+                            var state = kvp.Value;
+                            if (!state.IsEmpty)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
+                }
             }
 
             public IEnumerable<ProjectId> GetProjectsWithDiagnostics()
@@ -103,29 +120,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                                            .Select(kv => kv.Key)));
             }
 
-            public IEnumerable<DocumentId> GetDocumentsWithDiagnostics(ProjectId projectId)
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
+            public void CollectDocumentsWithDiagnostics(ProjectId projectId, HashSet<DocumentId> set)
             {
-                HashSet<DocumentId> set = null;
-                foreach (var state in GetActiveFileStates(projectId))
+                Debug.Assert(set != null);
+
+                // Collect active documents with diagnostics
+                foreach (var kvp in _activeFileStates)
                 {
-                    set = set ?? new HashSet<DocumentId>();
-                    set.Add(state.DocumentId);
+                    if (kvp.Key.ProjectId == projectId)
+                    {
+                        set.Add(kvp.Value.DocumentId);
+                    }
                 }
 
-                if (!_projectStates.TryGetValue(projectId, out var projectState) || projectState.IsEmpty())
+                if (_projectStates.TryGetValue(projectId, out var projectState) && !projectState.IsEmpty())
                 {
-                    return set ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
+                    set.UnionWith(projectState.GetDocumentsWithDiagnostics());
                 }
-
-                set = set ?? new HashSet<DocumentId>();
-                set.UnionWith(projectState.GetDocumentsWithDiagnostics());
-
-                return set;
-            }
-
-            private IEnumerable<ActiveFileState> GetActiveFileStates(ProjectId projectId)
-            {
-                return _activeFileStates.Where(kv => kv.Key.ProjectId == projectId).Select(kv => kv.Value);
             }
 
             public bool IsActiveFile(DocumentId documentId)

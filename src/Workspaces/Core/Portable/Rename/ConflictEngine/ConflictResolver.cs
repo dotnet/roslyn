@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             return isConflict;
         }
 
-        private static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds, CancellationToken cancellationToken)
+        private static bool IsIdentifierValid_Worker(Solution solution, string replacementText, IEnumerable<ProjectId> projectIds)
         {
             foreach (var language in projectIds.Select(p => solution.GetProject(p).Language).Distinct())
             {
@@ -308,11 +308,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             var renameDeclarationLocations = new RenameDeclarationLocationReference[symbols.Count()];
 
-            int symbolIndex = 0;
+            var symbolIndex = 0;
             foreach (var symbol in symbols)
             {
                 var locations = symbol.Locations;
-                bool overriddenFromMetadata = false;
+                var overriddenFromMetadata = false;
 
                 if (symbol.IsOverride)
                 {
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             var index = 0;
             index = newMetadataName.IndexOf(replacementText, 0);
-            StringBuilder newMetadataNameBuilder = new StringBuilder();
+            var newMetadataNameBuilder = new StringBuilder();
 
             // Every loop updates the newMetadataName to resemble the oldMetadataName
             while (index != -1 && index < oldMetadataName.Length)
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             int index)
         {
             Debug.Assert(index <= str1.Length && index <= str2.Length, "Index cannot be greater than the string");
-            int currentIndex = 0;
+            var currentIndex = 0;
             while (currentIndex < index)
             {
                 if (str1[currentIndex] != str2[currentIndex])

@@ -10,8 +10,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
+using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionItemFilter> matchingFilters = null)
+            string inlineDescription = null, List<CompletionFilter> matchingFilters = null)
         {
             await VerifyAtPositionAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
@@ -437,28 +439,26 @@ class C
 class C
 {
 }";
-            using (var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }))
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text });
+            var called = false;
+            var provider = new CrefCompletionProvider(testSpeculativeNodeCallbackOpt: n =>
             {
-                var called = false;
-                var provider = new CrefCompletionProvider(testSpeculativeNodeCallbackOpt: n =>
-                {
-                    // asserts that we aren't be asked speculate on nodes inside documentation trivia.
-                    // This verifies that the provider is asking for a speculative SemanticModel
-                    // by walking to the node the documentation is attached to. 
+                // asserts that we aren't be asked speculate on nodes inside documentation trivia.
+                // This verifies that the provider is asking for a speculative SemanticModel
+                // by walking to the node the documentation is attached to. 
 
-                    called = true;
-                    var parent = n.GetAncestor<DocumentationCommentTriviaSyntax>();
-                    Assert.Null(parent);
-                });
+                called = true;
+                var parent = n.GetAncestor<DocumentationCommentTriviaSyntax>();
+                Assert.Null(parent);
+            });
 
-                var hostDocument = workspace.DocumentWithCursor;
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var service = CreateCompletionService(workspace,
-                    ImmutableArray.Create<CompletionProvider>(provider));
-                var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Invoke);
+            var hostDocument = workspace.DocumentWithCursor;
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var service = CreateCompletionService(workspace,
+                ImmutableArray.Create<CompletionProvider>(provider));
+            var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, RoslynTrigger.Invoke);
 
-                Assert.True(called);
-            }
+            Assert.True(called);
         }
 
         [WorkItem(16060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/16060")]

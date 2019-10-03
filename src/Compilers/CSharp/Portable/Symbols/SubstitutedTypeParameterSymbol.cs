@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         foreach (TypeWithAnnotations constraintType in constraintTypes)
                         {
-                            if (!ConstraintsHelper.IsObjectConstraintSignificant(IsNotNullableIfReferenceTypeFromConstraintType(constraintType, out _), bestObjectConstraint))
+                            if (!ConstraintsHelper.IsObjectConstraintSignificant(IsNotNullableFromConstraintType(constraintType, out _), bestObjectConstraint))
                             {
                                 bestObjectConstraint = default;
                                 break;
@@ -149,22 +149,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return constraintTypes.ToImmutableAndFree();
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        internal override bool? IsNotNullable
         {
             get
             {
                 if (_underlyingTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
                 {
-                    return _underlyingTypeParameter.IsNotNullableIfReferenceType;
+                    return _underlyingTypeParameter.IsNotNullable;
                 }
                 else if (!HasNotNullConstraint && !HasValueTypeConstraint && !HasReferenceTypeConstraint)
                 {
                     var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                     _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty), constraintTypes, null);
-                    return IsNotNullableIfReferenceTypeFromConstraintTypes(constraintTypes.ToImmutableAndFree());
+                    return IsNotNullableFromConstraintTypes(constraintTypes.ToImmutableAndFree());
                 }
 
-                return CalculateIsNotNullableIfReferenceType();
+                return CalculateIsNotNullable();
             }
         }
 

@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly bool _elastic;
 
-            public Whitespace(OptionSet optionSet, int space, bool elastic, string language) :
-                this(optionSet, lineBreaks: 0, indentation: space, elastic: elastic, language: language)
+            public Whitespace(OptionSet optionSet, int space, bool elastic, string language)
+                : this(optionSet, lineBreaks: 0, indentation: space, elastic: elastic, language: language)
             {
                 Contract.ThrowIfFalse(space >= 0);
             }

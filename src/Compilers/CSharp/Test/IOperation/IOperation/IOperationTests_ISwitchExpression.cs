@@ -68,16 +68,13 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (0 arms) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch { }')
+ISwitchExpressionOperation (0 arms) (OperationKind.SwitchExpression, Type: System.Object) (Syntax: 'x switch { }')
   Value: 
-    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?, IsInvalid) (Syntax: 'x')
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,23): error CS8506: No best type was found for the switch expression.
-                //         y = /*<bind>*/x switch { }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "x switch { }").WithLocation(7, 23),
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25)
             };
@@ -113,7 +110,7 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25),
                 // file.cs(7,34): error CS8504: Pattern missing
@@ -173,7 +170,7 @@ ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: Syste
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact]
-        public void SwitchExpression_NoCommonType()
+        public void SwitchExpression_NoCommonType_01()
         {
             string source = @"
 using System;
@@ -186,33 +183,75 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch {  ...  _ => ""Z"" }')
+ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Object) (Syntax: 'x switch {  ...  _ => ""Z"" }')
   Value: 
-    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?, IsInvalid) (Syntax: 'x')
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(2):
-      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => 2')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => 2')
         Pattern: 
-          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32?)
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32?)
             Value: 
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Value: 
-          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: '2')
-            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '2')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
-      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => ""Z""')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => ""Z""')
         Pattern: 
-          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32?)
+          IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32?)
         Value: 
-          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: '""Z""')
-            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '""Z""')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             Operand: 
-              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Z"", IsInvalid) (Syntax: '""Z""')
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Z"") (Syntax: '""Z""')
 ";
-            var expectedDiagnostics = new[] {
-                // file.cs(7,23): error CS8506: No best type was found for the switch expression.
-                //         y = /*<bind>*/x switch { 1 => 2, _ => "Z" }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, @"x switch { 1 => 2, _ => ""Z"" }").WithLocation(7, 23)
+            var expectedDiagnostics = new DiagnosticDescription[] { };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_NoCommonType_02()
+        {
+            string source = @"
+using System;
+class X
+{
+    void M(int? x, object y)
+    {
+        var z = /*<bind>*/x switch { 1 => 2, _ => ""Z"" }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+    ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch {  ...  _ => ""Z"" }')
+      Value: 
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+      Arms(2):
+          ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '1 => 2')
+            Pattern: 
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Int32?)
+                Value: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Value: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '2')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+          ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null) (Syntax: '_ => ""Z""')
+            Pattern: 
+              IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Int32?)
+            Value: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '""Z""')
+                Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Z"") (Syntax: '""Z""')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,29): error CS8506: No best type was found for the switch expression.
+                //         var z = /*<bind>*/x switch { 1 => 2, _ => "Z" }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(7, 29)
             };
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -316,7 +355,7 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { NotFound => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25),
                 // file.cs(7,34): error CS0103: The name 'NotFound' does not exist in the current context
@@ -473,7 +512,7 @@ ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { 1 => 2, _ when false => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25)
             };
@@ -550,7 +589,7 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { _ when NotFound => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25),
                 // file.cs(7,41): error CS0103: The name 'NotFound' does not exist in the current context
@@ -597,7 +636,7 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
           Local_2: System.Int32 z
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         y = /*<bind>*/x switch { int z when x is int z => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25),
                 // file.cs(7,54): error CS0128: A local variable or function named 'z' is already defined in this scope

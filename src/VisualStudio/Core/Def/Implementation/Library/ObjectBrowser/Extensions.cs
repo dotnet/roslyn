@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     var solution = (IVsSolution3)ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
                     if (solution != null)
                     {
-                        if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out string name)) && name != null)
+                        if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out var name)) && name != null)
                         {
                             return name;
                         }
@@ -72,8 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         public static bool IsVenus(this Project project)
         {
-            var workspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            if (workspace == null)
+            if (!(project.Solution.Workspace is VisualStudioWorkspaceImpl workspace))
             {
                 return false;
             }
@@ -97,8 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             var result = project.Name;
 
-            var workspace = project.Solution.Workspace as VisualStudioWorkspace;
-            if (workspace == null)
+            if (!(project.Solution.Workspace is VisualStudioWorkspace workspace))
             {
                 return result;
             }

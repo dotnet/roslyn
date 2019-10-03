@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
@@ -71,11 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 originalNodes,
                 t =>
                 {
-                    var additionalNodesToTrack = ArrayBuilder<SyntaxNode>.GetInstance(2);
+                    using var additionalNodesToTrackDisposer = ArrayBuilder<SyntaxNode>.GetInstance(capacity: 2, out var additionalNodesToTrack);
                     additionalNodesToTrack.Add(t.identifier);
                     additionalNodesToTrack.Add(t.declarator);
 
-                    return (t.invocationOrCreation, additionalNodesToTrack.ToImmutableAndFree());
+                    return (t.invocationOrCreation, additionalNodesToTrack.ToImmutable());
                 },
                 (_1, _2, _3) => true,
                 (semanticModel, currentRoot, t, currentNode)
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // Try to find a predecessor Statement on the same line that isn't going to be removed
                 StatementSyntax priorStatementSyntax = null;
                 var localDeclarationToken = localDeclarationStatement.GetFirstToken();
-                for (int i = declarationIndex - 1; i >= 0; i--)
+                for (var i = declarationIndex - 1; i >= 0; i--)
                 {
                     var statementSyntax = block.Statements[i];
                     if (declarationsToRemove.Contains(statementSyntax))
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     // We initialize this to null here but we must see at least the statement
                     // into which the declaration is going to be inlined so this will be not null
                     StatementSyntax nextStatementSyntax = null;
-                    for (int i = declarationIndex + 1; i < block.Statements.Count; i++)
+                    for (var i = declarationIndex + 1; i < block.Statements.Count; i++)
                     {
                         var statement = block.Statements[i];
                         if (!declarationsToRemove.Contains(statement))

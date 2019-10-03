@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics.First();
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                     (currentDeclaration, generator) =>
                     {
                         return generator.GetAccessibility(currentDeclaration) == Accessibility.NotApplicable
-                                    ? generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) // No accessibilty was declared, we need to add it
+                                    ? generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) // No accessibility was declared, we need to add it
                                     : generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable); // There was an accessibility, so remove it                       
                     });
             }
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             public MyCodeAction(CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Add_accessibility_modifiers, createChangedDocument, FeaturesResources.Add_accessibility_modifiers)
             {
-                this.Priority = priority;
+                Priority = priority;
             }
 
             internal override CodeActionPriority Priority { get; }

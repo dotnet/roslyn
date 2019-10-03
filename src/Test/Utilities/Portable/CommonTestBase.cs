@@ -394,6 +394,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public static string WithWindowsLineBreaks(string source)
+            => source.Replace(Environment.NewLine, "\r\n");
+
         #endregion
 
         #region IL Verification

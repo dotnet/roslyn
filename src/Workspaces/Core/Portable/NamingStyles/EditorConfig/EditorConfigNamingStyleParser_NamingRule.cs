@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             IReadOnlyDictionary<string, string> conventionsDictionary,
             out ReportDiagnostic severity)
         {
-            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.severity", out string result))
+            if (conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.severity", out var result))
             {
                 severity = ParseEnforcementLevel(result ?? string.Empty);
                 return true;

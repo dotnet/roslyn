@@ -55,7 +55,7 @@ namespace Roslyn.Utilities
         private static char[] ConvertToLowercaseArray(string text)
         {
             var array = ArrayPool<char>.GetArray(text.Length);
-            for (int i = 0; i < text.Length; i++)
+            for (var i = 0; i < text.Length; i++)
             {
                 array[i] = CaseInsensitiveComparison.ToLower(text[i]);
             }
@@ -72,10 +72,8 @@ namespace Roslyn.Utilities
 
         public static int GetEditDistance(string source, string target, int threshold = int.MaxValue)
         {
-            using (var editDistance = new EditDistance(source))
-            {
-                return editDistance.GetEditDistance(target, threshold);
-            }
+            using var editDistance = new EditDistance(source);
+            return editDistance.GetEditDistance(target, threshold);
         }
 
         public static int GetEditDistance(char[] source, char[] target, int threshold = int.MaxValue)
@@ -147,7 +145,7 @@ namespace Roslyn.Utilities
             var width = matrix.GetLength(0);
             var height = matrix.GetLength(1);
 
-            for (int i = 0; i < width; i++)
+            for (var i = 0; i < width; i++)
             {
                 matrix[i, 0] = Infinity;
 
@@ -157,7 +155,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            for (int j = 0; j < height; j++)
+            for (var j = 0; j < height; j++)
             {
                 matrix[0, j] = Infinity;
 
@@ -322,7 +320,7 @@ namespace Roslyn.Utilities
             // Given the edit distance rules we observe edit distance at any point (i,j) in the matrix will
             // always be greater than or equal to the value in (i-1, j-1).  i.e. the edit distance of
             // any two strings is going to be *at best* equal to the edit distance of those two strings
-            // without their final characters.  If their final characters are the same, they'll ahve the
+            // without their final characters.  If their final characters are the same, they'll have the
             // same edit distance.  If they are different, the edit distance will be greater.  Given 
             // that we know the final edit distance is in the lower right, we can discover something 
             // useful in the matrix.
@@ -494,7 +492,7 @@ namespace Roslyn.Utilities
             var characterToLastSeenIndex_inSource = t_lastSeenIndexPool.Value;
             Array.Clear(characterToLastSeenIndex_inSource, 0, LastSeenIndexLength);
 
-            for (int i = 1; i <= sourceLength; i++)
+            for (var i = 1; i <= sourceLength; i++)
             {
                 var lastMatchIndex_inTarget = 0;
                 var sourceChar = source[i - 1];
@@ -517,7 +515,7 @@ namespace Roslyn.Utilities
                     matrix[i + 1, jEnd + 2] = Infinity;
                 }
 
-                for (int j = jStart; j <= jEnd; j++)
+                for (var j = jStart; j <= jEnd; j++)
                 {
                     var targetChar = target[j - 1];
 

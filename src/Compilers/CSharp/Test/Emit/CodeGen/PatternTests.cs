@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class PatternTests : EmitMetadataTestBase
     {
+        #region Miscellaneous
+
         [Fact, WorkItem(18811, "https://github.com/dotnet/roslyn/issues/18811")]
         public void MissingNullable_01()
         {
@@ -568,34 +570,31 @@ public class C
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1",
 @"{
-  // Code size       39 (0x27)
+  // Code size       37 (0x25)
   .maxstack  6
   .locals init (bool V_0,
-                decimal V_1,
-                int V_2)
+                int V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       ""decimal C.M(decimal)""
-  IL_0007:  stloc.1
-  IL_0008:  ldloc.1
-  IL_0009:  ldc.i4.s   10
+  IL_0007:  ldc.i4.s   10
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
   IL_000b:  ldc.i4.0
-  IL_000c:  ldc.i4.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldc.i4.1
-  IL_000f:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
-  IL_0014:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_0019:  stloc.0
-  IL_001a:  ldloc.0
-  IL_001b:  brfalse.s  IL_0021
-  IL_001d:  ldc.i4.1
-  IL_001e:  stloc.2
-  IL_001f:  br.s       IL_0025
-  IL_0021:  ldc.i4.0
-  IL_0022:  stloc.2
-  IL_0023:  br.s       IL_0025
-  IL_0025:  ldloc.2
-  IL_0026:  ret
+  IL_000c:  ldc.i4.1
+  IL_000d:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0012:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  brfalse.s  IL_001f
+  IL_001b:  ldc.i4.1
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0023
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.1
+  IL_0021:  br.s       IL_0023
+  IL_0023:  ldloc.1
+  IL_0024:  ret
 }");
             compVerifier.VerifyIL("C.M2",
 @"{
@@ -2882,7 +2881,6 @@ static class Program
 }");
         }
 
-        // https://github.com/dotnet/roslyn/issues/35010 Support deconstruction assignment
         [Fact]
         public void DoNotShareInputForMutatingWhenClause()
         {
@@ -3028,7 +3026,7 @@ static class C {
 ";
             var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify(
-                // (9,38): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
                 );
@@ -3038,7 +3036,7 @@ static class C {
                 // (9,36): error CS0656: Missing compiler required member 'System.InvalidOperationException..ctor'
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i switch { 1 => true }").WithArguments("System.InvalidOperationException", ".ctor").WithLocation(9, 36),
-                // (9,38): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
                 );
@@ -3167,48 +3165,45 @@ public class Program
 }
 ";
             var v = CompileAndVerify(source, options: TestOptions.DebugExe);
-            v.VerifyIL(qualifiedMethodName: "Program.Main",
-@"{
-  // Code size       55 (0x37)
-  .maxstack  2
-  .locals init (int V_0, //i
-                Program V_1, //y
-                Program V_2,
-                Program V_3)
-  // sequence point: {
-  IL_0000:  nop
-  // sequence point: int i = 0;
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  // sequence point: var y = (i s ...   }).Chain()
-  IL_0003:  ldloc.0
-  IL_0004:  brfalse.s  IL_000e
-  IL_0006:  br.s       IL_0008
-  IL_0008:  ldloc.0
-  IL_0009:  ldc.i4.1
-  IL_000a:  beq.s      IL_0016
-  IL_000c:  br.s       IL_001e
-  IL_000e:  newobj     ""Program..ctor()""
-  IL_0013:  stloc.2
-  IL_0014:  br.s       IL_0026
-  IL_0016:  newobj     ""Program..ctor()""
-  IL_001b:  stloc.2
-  IL_001c:  br.s       IL_0026
-  IL_001e:  newobj     ""Program..ctor()""
-  IL_0023:  stloc.2
-  IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.2
-  IL_0027:  stloc.3
-  IL_0028:  ldloc.3
-  IL_0029:  callvirt   ""Program Program.Chain()""
-  IL_002e:  stloc.1
-  // sequence point: y.Chain2();
-  IL_002f:  ldloc.1
-  IL_0030:  callvirt   ""Program Program.Chain2()""
-  IL_0035:  pop
-  // sequence point: }
-  IL_0036:  ret
-}
+            v.VerifyIL(qualifiedMethodName: "Program.Main", @"
+    {
+      // Code size       53 (0x35)
+      .maxstack  2
+      .locals init (int V_0, //i
+                    Program V_1, //y
+                    Program V_2)
+      // sequence point: {
+      IL_0000:  nop
+      // sequence point: int i = 0;
+      IL_0001:  ldc.i4.0
+      IL_0002:  stloc.0
+      // sequence point: var y = (i s ...   }).Chain()
+      IL_0003:  ldloc.0
+      IL_0004:  brfalse.s  IL_000e
+      IL_0006:  br.s       IL_0008
+      IL_0008:  ldloc.0
+      IL_0009:  ldc.i4.1
+      IL_000a:  beq.s      IL_0016
+      IL_000c:  br.s       IL_001e
+      IL_000e:  newobj     ""Program..ctor()""
+      IL_0013:  stloc.2
+      IL_0014:  br.s       IL_0026
+      IL_0016:  newobj     ""Program..ctor()""
+      IL_001b:  stloc.2
+      IL_001c:  br.s       IL_0026
+      IL_001e:  newobj     ""Program..ctor()""
+      IL_0023:  stloc.2
+      IL_0024:  br.s       IL_0026
+      IL_0026:  ldloc.2
+      IL_0027:  callvirt   ""Program Program.Chain()""
+      IL_002c:  stloc.1
+      // sequence point: y.Chain2();
+      IL_002d:  ldloc.1
+      IL_002e:  callvirt   ""Program Program.Chain2()""
+      IL_0033:  pop
+      // sequence point: }
+      IL_0034:  ret
+    }
 ", sequencePoints: "Program.Main", source: source);
         }
 
@@ -3238,39 +3233,37 @@ public class Class1
                 var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
                 if (options.OptimizationLevel == OptimizationLevel.Debug)
                 {
-                    compVerifier.VerifyIL("Class1.M",
-@"{
-  // Code size       39 (0x27)
-  .maxstack  2
-  .locals init (bool V_0,
-                int V_1,
-                bool V_2,
-                bool V_3)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int""
-  IL_0007:  brfalse.s  IL_001b
-  IL_0009:  ldarg.0
-  IL_000a:  unbox.any  ""int""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
-  IL_0011:  ldc.i4.s   42
-  IL_0013:  beq.s      IL_0017
-  IL_0015:  br.s       IL_001b
-  IL_0017:  ldc.i4.1
-  IL_0018:  stloc.0
-  IL_0019:  br.s       IL_001f
-  IL_001b:  ldc.i4.0
-  IL_001c:  stloc.0
-  IL_001d:  br.s       IL_001f
-  IL_001f:  ldloc.0
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  stloc.3
-  IL_0023:  br.s       IL_0025
-  IL_0025:  ldloc.3
-  IL_0026:  ret
-}");
+                    compVerifier.VerifyIL("Class1.M", @"
+{
+      // Code size       37 (0x25)
+      .maxstack  2
+      .locals init (bool V_0,
+                    int V_1,
+                    bool V_2)
+      IL_0000:  nop
+      IL_0001:  ldarg.0
+      IL_0002:  isinst     ""int""
+      IL_0007:  brfalse.s  IL_001b
+      IL_0009:  ldarg.0
+      IL_000a:  unbox.any  ""int""
+      IL_000f:  stloc.1
+      IL_0010:  ldloc.1
+      IL_0011:  ldc.i4.s   42
+      IL_0013:  beq.s      IL_0017
+      IL_0015:  br.s       IL_001b
+      IL_0017:  ldc.i4.1
+      IL_0018:  stloc.0
+      IL_0019:  br.s       IL_001f
+      IL_001b:  ldc.i4.0
+      IL_001c:  stloc.0
+      IL_001d:  br.s       IL_001f
+      IL_001f:  ldloc.0
+      IL_0020:  stloc.2
+      IL_0021:  br.s       IL_0023
+      IL_0023:  ldloc.2
+      IL_0024:  ret
+    }
+");
                 }
                 else
                 {
@@ -3715,5 +3708,443 @@ byte[]
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        [WorkItem(36496, "https://github.com/dotnet/roslyn/issues/36496")]
+        public void EmptyVarPatternVsDeconstruct()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(M(new C()));
+        Console.Write(M(null));
+    }
+    public static bool M(C c)
+    {
+        return c is var ();
+    }
+    public void Deconstruct() { }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "TrueFalse");
+            compVerifier.VerifyIL("C.M(C)",
+@"
+{
+    // Code size        5 (0x5)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldnull
+    IL_0002:  cgt.un
+    IL_0004:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(36496, "https://github.com/dotnet/roslyn/issues/36496")]
+        public void EmptyPositionalPatternVsDeconstruct()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(M(new C()));
+        Console.Write(M(null));
+    }
+    public static bool M(C c)
+    {
+        return c is ();
+    }
+    public void Deconstruct() { }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "TrueFalse");
+            compVerifier.VerifyIL("C.M(C)",
+@"
+{
+    // Code size        5 (0x5)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldnull
+    IL_0002:  cgt.un
+    IL_0004:  ret
+}
+");
+        }
+
+        #endregion Miscellaneous
+
+        #region Target Typed Switch
+
+        [Fact]
+        public void TargetTypedSwitch_Assignment()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M(false));
+        Console.Write(M(true));
+    }
+    static object M(bool b)
+    {
+        int result = b switch { false => new A(), true => new B() };
+        return result;
+    }
+}
+class A
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"42";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Return()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M(false));
+        Console.Write(M(true));
+    }
+    static long M(bool b)
+    {
+        return b switch { false => new A(), true => new B() };
+    }
+}
+class A
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"42";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Argument_01()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M1(false));
+        Console.Write(M1(true));
+    }
+    static object M1(bool b)
+    {
+        return M2(b switch { false => new A(), true => new B() });
+    }
+    static Exception M2(Exception ex) => ex;
+    static int M2(int i) => i;
+    static int M2(string s) => s.Length;
+}
+class A : Exception
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B : Exception
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                    // (12,16): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(Exception)' and 'Program.M2(int)'
+                    //         return M2(b switch { false => new A(), true => new B() });
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("Program.M2(System.Exception)", "Program.M2(int)").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Argument_02()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M1(false));
+        Console.Write(M1(true));
+    }
+    static object M1(bool b)
+    {
+        return M2(b switch { false => new A(), true => new B() });
+    }
+    // static Exception M2(Exception ex) => ex;
+    static int M2(int i) => i;
+    static int M2(string s) => s.Length;
+}
+class A : Exception
+{
+    public static implicit operator int(A a) => (a == null) ? throw null : 4;
+    public static implicit operator B(A a) => throw null;
+}
+class B : Exception
+{
+    public static implicit operator int(B b) => (b == null) ? throw null : 2;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"42";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void TargetTypedSwitch_Arglist()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.WriteLine(M1(false));
+        Console.WriteLine(M1(true));
+    }
+    static object M1(bool b)
+    {
+        return M2(__arglist(b switch { false => new A(), true => new B() }));
+    }
+    static int M2(__arglist) => 1;
+}
+class A
+{
+    public A() { Console.Write(""new A; ""); }
+    public static implicit operator B(A a) { Console.Write(""A->""); return new B(); }
+}
+class B
+{
+    public B() { Console.Write(""new B; ""); }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"new A; A->new B; 1
+new B; 1";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_StackallocSize()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        M1(false);
+        M1(true);
+    }
+    static void M1(bool b)
+    {
+        Span<int> s = stackalloc int[b switch { false => new A(), true => new B() }];
+        Console.WriteLine(s.Length);
+    }
+}
+class A
+{
+    public A() { Console.Write(""new A; ""); }
+    public static implicit operator int(A a) { Console.Write(""A->int; ""); return 4; }
+}
+class B
+{
+    public B() { Console.Write(""new B; ""); }
+    public static implicit operator int(B b) { Console.Write(""B->int; ""); return 2; }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"new A; A->int; 4
+new B; B->int; 2";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_Attribute()
+        {
+            var source = @"
+using System;
+class Program
+{
+    [My(1 switch { 1 => 1, _ => 2 })]
+    public static void M1() { }
+
+    [My(1 switch { 1 => new A(), _ => new B() })]
+    public static void M2() { }
+
+    [My(1 switch { 1 => 1, _ => string.Empty })]
+    public static void M3() { }
+}
+public class MyAttribute : Attribute
+{
+    public MyAttribute(int Value) { }
+}
+public class A
+{
+    public static implicit operator int(A a) => 4;
+}
+public class B
+{
+    public static implicit operator int(B b) => 2;
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (5,9): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                    //     [My(1 switch { 1 => 1, _ => 2 })]
+                    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => 1, _ => 2 }").WithLocation(5, 9),
+                    // (8,9): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                    //     [My(1 switch { 1 => new A(), _ => new B() })]
+                    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => new A(), _ => new B() }").WithLocation(8, 9),
+                    // (11,9): error CS1503: Argument 1: cannot convert from '<switch expression>' to 'int'
+                    //     [My(1 switch { 1 => 1, _ => string.Empty })]
+                    Diagnostic(ErrorCode.ERR_BadArgType, "1 switch { 1 => 1, _ => string.Empty }").WithArguments("1", "<switch expression>", "int").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_As()
+        {
+            var source = @"
+class Program
+{
+    public static void M(int i, string s)
+    {
+        // we do not target-type the left-hand-side of an as expression
+        _ = i switch { 1 => i, _ => s } as object;
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,15): error CS8506: No best type was found for the switch expression.
+                //         _ = i switch { 1 => i, _ => s } as object;
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(7, 15)
+                );
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_DoubleConversion()
+        {
+            var source = @"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        M(false);
+        M(true);
+    }
+    public static void M(bool b)
+    {
+        C c = b switch { false => new A(), true => new B() };
+        Console.WriteLine(""."");
+    }
+}
+class A
+{
+    public A()
+    {
+        Console.Write(""new A; "");
+    }
+    public static implicit operator B(A a)
+    {
+        Console.Write(""A->"");
+        return new B();
+    }
+}
+class B
+{
+    public B()
+    {
+        Console.Write(""new B; "");
+    }
+    public static implicit operator C(B a)
+    {
+        Console.Write(""B->"");
+        return new C();
+    }
+}
+class C
+{
+    public C()
+    {
+        Console.Write(""new C; "");
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"new A; A->new B; B->new C; .
+new B; B->new C; .";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_StringInsert()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write($""{false switch { false => new A(), true => new B() }}"");
+        Console.Write($""{true switch { false => new A(), true => new B() }}"");
+    }
+}
+class A
+{
+}
+class B
+{
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "AB");
+        }
+
+        #endregion Target Typed Switch
     }
 }

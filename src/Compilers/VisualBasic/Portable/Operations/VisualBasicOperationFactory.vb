@@ -1167,6 +1167,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                      statementInfo.GetEnumeratorMethod,
                                                      statementInfo.CurrentProperty,
                                                      statementInfo.MoveNextMethod,
+                                                     isAsynchronous:=False,
                                                      boundForEachStatement.EnumeratorInfo.NeedToDispose,
                                                      knownToImplementIDisposable:=boundForEachStatement.EnumeratorInfo.NeedToDispose AndAlso
                                                                                   boundForEachStatement.EnumeratorInfo.IsOrInheritsFromOrImplementsIDisposable,
@@ -1581,7 +1582,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
             Dim isImplicit As Boolean = boundAnonymousTypePropertyAccess.WasCompilerGenerated
-            Return New PropertyReferenceOperation([property], instance, arguments, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New PropertyReferenceOperation([property], arguments, instance, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateAnonymousTypePropertyAccessImplicitReceiverOperation(propertySym As IPropertySymbol, syntax As SyntaxNode) As InstanceReferenceOperation

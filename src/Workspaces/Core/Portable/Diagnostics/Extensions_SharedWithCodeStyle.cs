@@ -76,24 +76,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// If <paramref name="diagnosticSeverity"/> is not one of the expected values.
         /// </exception>
         public static ReportDiagnostic ToReportDiagnostic(this DiagnosticSeverity diagnosticSeverity)
-        {
-            switch (diagnosticSeverity)
+            => diagnosticSeverity switch
             {
-                case DiagnosticSeverity.Hidden:
-                    return ReportDiagnostic.Hidden;
-
-                case DiagnosticSeverity.Info:
-                    return ReportDiagnostic.Info;
-
-                case DiagnosticSeverity.Warning:
-                    return ReportDiagnostic.Warn;
-
-                case DiagnosticSeverity.Error:
-                    return ReportDiagnostic.Error;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity);
-            }
-        }
+                DiagnosticSeverity.Hidden => ReportDiagnostic.Hidden,
+                DiagnosticSeverity.Info => ReportDiagnostic.Info,
+                DiagnosticSeverity.Warning => ReportDiagnostic.Warn,
+                DiagnosticSeverity.Error => ReportDiagnostic.Error,
+                _ => throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity),
+            };
     }
 }

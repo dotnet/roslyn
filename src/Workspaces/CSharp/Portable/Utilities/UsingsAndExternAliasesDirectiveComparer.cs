@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             //  * using statics
             //  * aliases
 
-            int directiveKindDifference = directive1Kind - directive2Kind;
+            var directiveKindDifference = directive1Kind - directive2Kind;
             if (directiveKindDifference != 0)
             {
                 return directiveKindDifference;

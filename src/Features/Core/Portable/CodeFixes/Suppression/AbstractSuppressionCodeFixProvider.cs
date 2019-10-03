@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,15 +16,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
-    internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
+    internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
         public const string SuppressMessageAttributeName = "System.Diagnostics.CodeAnalysis.SuppressMessage";
         private const string s_globalSuppressionsFileName = "GlobalSuppressions";
         private const string s_suppressionsFileCommentTemplate =
-@"
-{0} This file is used by Code Analysis to maintain SuppressMessage 
+@"{0} This file is used by Code Analysis to maintain SuppressMessage
 {0} attributes that are applied to this project.
-{0} Project-level suppressions either have no target or are given 
+{0} Project-level suppressions either have no target or are given
 {0} a specific target and scoped to a namespace, type, member, etc.
 
 ";
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return SuppressionFixAllProvider.Instance;
         }
 
-        public bool CanBeSuppressedOrUnsuppressed(Diagnostic diagnostic)
+        public bool IsFixableDiagnostic(Diagnostic diagnostic)
         {
             return SuppressionHelpers.CanBeSuppressed(diagnostic) || SuppressionHelpers.CanBeUnsuppressed(diagnostic);
         }
@@ -60,8 +60,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             get
             {
-                return string.Format(s_suppressionsFileCommentTemplate, this.SingleLineCommentStart);
+                return string.Format(s_suppressionsFileCommentTemplate, SingleLineCommentStart);
             }
+        }
+
+        protected string GetOrMapDiagnosticId(Diagnostic diagnostic, out bool includeTitle)
+        {
+            if (diagnostic.Id == IDEDiagnosticIds.FormattingDiagnosticId)
+            {
+                includeTitle = false;
+                return FormattingDiagnosticIds.FormatDocumentControlDiagnosticId;
+            }
+
+            includeTitle = true;
+            return diagnostic.Id;
         }
 
         protected virtual SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
@@ -74,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return token;
         }
 
-        public Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
+        public Task<ImmutableArray<CodeFix>> GetFixesAsync(
             Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             return GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
@@ -103,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 skipUnsuppress: skipUnsuppress, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
+        public async Task<ImmutableArray<CodeFix>> GetFixesAsync(
             Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
@@ -123,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
         {
             // We only care about diagnostics that can be suppressed/unsuppressed.
-            diagnostics = diagnostics.Where(CanBeSuppressedOrUnsuppressed);
+            diagnostics = diagnostics.Where(IsFixableDiagnostic);
             if (diagnostics.IsEmpty())
             {
                 return ImmutableArray<CodeFix>.Empty;
@@ -149,13 +161,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     }
 
                     // SuppressMessageAttribute suppression is not supported for compiler diagnostics.
-                    if (!skipSuppressMessage && !SuppressionHelpers.IsCompilerDiagnostic(diagnostic))
+                    if (!skipSuppressMessage && SuppressionHelpers.CanBeSuppressedWithAttribute(diagnostic))
                     {
                         // global assembly-level suppress message attribute.
                         nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, project, diagnostic, this));
 
                         // local suppress message attribute
-                        // please note that in order to avoid issues with exising unit tests referencing the code fix
+                        // please note that in order to avoid issues with existing unit tests referencing the code fix
                         // by their index this needs to be the last added to nestedActions
                         if (suppressionTargetInfo.TargetMemberNode != null && suppressionTargetInfo.TargetSymbol.Kind != SymbolKind.Namespace)
                         {

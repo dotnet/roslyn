@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             {
                 get
                 {
-                    return this.CanImplementImplicitly
+                    return CanImplementImplicitly
                         ? ImmutableArray.Create<IMethodSymbol>()
                         : _symbol.ExplicitInterfaceImplementations;
                 }
@@ -100,13 +100,18 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ImmutableArray<ITypeSymbol> TypeArguments => _symbol.TypeArguments;
 
-            public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => _symbol.TypeArgumentsNullableAnnotations;
+            public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _symbol.TypeArgumentNullableAnnotations;
 
             public ImmutableArray<ITypeParameterSymbol> TypeParameters => _symbol.TypeParameters;
 
             public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
             {
                 return _symbol.Construct(typeArguments);
+            }
+
+            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+            {
+                return _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
             }
 
             public DllImportData GetDllImportData()
@@ -123,6 +128,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsVararg => _symbol.IsVararg;
 
             public bool IsCheckedBuiltin => _symbol.IsCheckedBuiltin;
+
+            public bool IsConditional => _symbol.IsConditional;
         }
     }
 }

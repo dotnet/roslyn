@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags = tags.Add(WellKnownTags.Warning);
             }
 
-            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties ??= ImmutableDictionary<string, string>.Empty;
             if (!description.IsDefault && description.Length > 0)
             {
                 properties = properties.Add("Description", EncodeDescription(description));
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private static char[] s_descriptionSeparators = new char[] { '|' };
+        private static readonly char[] s_descriptionSeparators = new char[] { '|' };
 
         private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
         {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var parts = encoded.Split(s_descriptionSeparators).Select(t => t.Unescape('\\')).ToArray();
 
             var builder = ImmutableArray<TaggedText>.Empty.ToBuilder();
-            for (int i = 0; i < parts.Length; i += 2)
+            for (var i = 0; i < parts.Length; i += 2)
             {
                 builder.Add(new TaggedText(parts[i], parts[i + 1]));
             }

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
             .WhereAsArray(constructor => constructor.Parameters.Length == args.Count)
             .WhereAsArray(constructor =>
             {
-                for (int i = 0; i < constructor.Parameters.Length; i++)
+                for (var i = 0; i < constructor.Parameters.Length; i++)
                 {
                     var typeInfo = model.GetTypeInfo(args[i].Expression);
                     if (!constructor.Parameters[i].Type.Equals(typeInfo.ConvertedType))

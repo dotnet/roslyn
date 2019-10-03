@@ -7,21 +7,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class DiscardSymbol : Symbol, IDiscardSymbol
     {
-        public DiscardSymbol(TypeSymbol type)
+        public DiscardSymbol(TypeWithAnnotations typeWithAnnotations)
         {
-            Debug.Assert((object)type != null);
-            Type = type;
+            Debug.Assert(typeWithAnnotations.Type is object);
+            TypeWithAnnotations = typeWithAnnotations;
         }
 
-        ITypeSymbol IDiscardSymbol.Type => Type;
-        // https://github.com/dotnet/roslyn/issues/35036: Implement
-        CodeAnalysis.NullableAnnotation IDiscardSymbol.NullableAnnotation => default;
-        public TypeSymbol Type { get; }
-
-        /// <summary>
-        /// Produce a fresh discard symbol for testing.
-        /// </summary>
-        internal static DiscardSymbol CreateForTest(ITypeSymbol type) => new DiscardSymbol((TypeSymbol)type);
+        ITypeSymbol IDiscardSymbol.Type => TypeWithAnnotations.Type;
+        CodeAnalysis.NullableAnnotation IDiscardSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
+        public TypeWithAnnotations TypeWithAnnotations { get; }
 
         public override Symbol ContainingSymbol => null;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
@@ -42,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override void Accept(CSharpSymbolVisitor visitor) => visitor.VisitDiscard(this);
         public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor) => visitor.VisitDiscard(this);
 
-        public override bool Equals(object obj) => obj is DiscardSymbol other && this.Type.Equals(other.Type);
-        public override int GetHashCode() => this.Type.GetHashCode();
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind) => obj is DiscardSymbol other && this.TypeWithAnnotations.Equals(other.TypeWithAnnotations, compareKind);
+        public override int GetHashCode() => this.TypeWithAnnotations.GetHashCode();
     }
 }

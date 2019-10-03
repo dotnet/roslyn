@@ -1082,7 +1082,7 @@ new object[] { x, y, z }
         public void AwaitVoid()
         {
             var task = CSharpScript.EvaluateAsync<object>("await System.Threading.Tasks.Task.Run(() => { })");
-            Assert.Equal(null, task.Result);
+            Assert.Null(task.Result);
             Assert.Equal(TaskStatus.RanToCompletion, task.Status);
         }
 
@@ -1385,7 +1385,7 @@ d
         {
             Assert.Equal(2, CSharpScript.EvaluateAsync<int>("1+1").Result);
 
-            Assert.Equal(null, CSharpScript.EvaluateAsync<string>("null").Result);
+            Assert.Null(CSharpScript.EvaluateAsync<string>("null").Result);
 
             try
             {
@@ -1402,9 +1402,9 @@ d
             var options = ScriptOptions.Default.AddReferences(HostAssembly);
 
             var cint = CSharpScript.EvaluateAsync<C<int>>("null", options).Result;
-            Assert.Equal(null, cint);
+            Assert.Null(cint);
 
-            Assert.Equal(null, CSharpScript.EvaluateAsync<int?>("null", options).Result);
+            Assert.Null(CSharpScript.EvaluateAsync<int?>("null", options).Result);
 
             try
             {
@@ -1442,7 +1442,7 @@ using System.Collections.Generic;
 new List<ArgumentException>()
 ").Result;
 
-            Assert.Equal(null, value.FirstOrDefault());
+            Assert.Null(value.FirstOrDefault());
         }
 
         public class B
@@ -1499,7 +1499,7 @@ new List<ArgumentException>()
         {
             var m = new M<string>();
             var result = CSharpScript.EvaluateAsync<string>("G()", globals: m);
-            Assert.Equal(null, result.Result);
+            Assert.Null(result.Result);
         }
 
         [Fact]

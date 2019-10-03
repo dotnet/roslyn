@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
         public override ImmutableArray<string> FixableDiagnosticIds =>
             ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTypeDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(new MyCodeAction(
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             if (parensDesignation is null)
             {
-                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded()).ConvertedType;
+                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded()).GetConvertedTypeWithAnnotatedNullability();
 
                 // We're going to be passed through the simplifier.  Tell it to not just convert
                 // this back to var (as that would defeat the purpose of this refactoring entirely).
@@ -118,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             var elements = ((INamedTypeSymbol)typeSymbol).TupleElements;
             Debug.Assert(elements.Length == parensDesignation.Variables.Count);
 
-            var builder = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length);
-            for (int i = 0; i < elements.Length; i++)
+            using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length, out var builder);
+            for (var i = 0; i < elements.Length; i++)
             {
                 var designation = parensDesignation.Variables[i];
                 var type = elements[i].Type;
@@ -149,17 +151,17 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             return SyntaxFactory.TupleExpression(
                 SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTrailingTrivia(),
-                SyntaxFactory.SeparatedList(builder.ToImmutableAndFree(), separatorBuilder.ToImmutableAndFree()),
+                SyntaxFactory.SeparatedList(builder.ToImmutable(), separatorBuilder.ToImmutableAndFree()),
                 SyntaxFactory.Token(SyntaxKind.CloseParenToken))
                 .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
-                     createChangedDocument,
-                     CSharpFeaturesResources.Use_explicit_type_instead_of_var)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Use_explicit_type_instead_of_var,
+                       createChangedDocument,
+                       CSharpFeaturesResources.Use_explicit_type_instead_of_var)
             {
             }
         }

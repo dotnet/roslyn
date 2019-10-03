@@ -1141,7 +1141,7 @@ namespace N
                 resultProperties: out resultProperties,
                 error: out error,
                 includeSymbols: false);
-            Assert.Equal(error, "error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)");
+            Assert.Equal("error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)", error);
 
             // With symbols, type reference inside namespace.
             testData = Evaluate(

@@ -430,14 +430,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool? IsNotNullableIfReferenceTypeFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes)
+        internal static bool? IsNotNullableFromConstraintTypes(ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefaultOrEmpty);
 
             bool? result = false;
             foreach (TypeWithAnnotations constraintType in constraintTypes)
             {
-                bool? fromType = IsNotNullableIfReferenceTypeFromConstraintType(constraintType, out _);
+                bool? fromType = IsNotNullableFromConstraintType(constraintType, out _);
                 if (fromType == true)
                 {
                     return true;
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeWithAnnotations constraintType, out bool isNonNullableValueType)
+        internal static bool? IsNotNullableFromConstraintType(TypeWithAnnotations constraintType, out bool isNonNullableValueType)
         {
             if (constraintType.Type.IsNonNullableValueType())
             {
@@ -468,13 +468,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (constraintType.TypeKind == TypeKind.TypeParameter)
             {
-                bool? isNotNullableIfReferenceType = ((TypeParameterSymbol)constraintType.Type).IsNotNullableIfReferenceType;
+                bool? isNotNullable = ((TypeParameterSymbol)constraintType.Type).IsNotNullable;
 
-                if (isNotNullableIfReferenceType == false)
+                if (isNotNullable == false)
                 {
                     return false;
                 }
-                else if (isNotNullableIfReferenceType == null)
+                else if (isNotNullable == null)
                 {
                     return null;
                 }
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        protected bool? CalculateIsNotNullableIfReferenceType()
+        protected bool? CalculateIsNotNullable()
         {
             bool? fromNonTypeConstraints = CalculateIsNotNullableFromNonTypeConstraints();
 
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return fromNonTypeConstraints;
             }
 
-            bool? fromTypes = IsNotNullableIfReferenceTypeFromConstraintTypes(constraintTypes);
+            bool? fromTypes = IsNotNullableFromConstraintTypes(constraintTypes);
 
             if (fromTypes == true || fromNonTypeConstraints == false)
             {
@@ -556,8 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        // https://github.com/dotnet/roslyn/issues/26198 Should this API be exposed through ITypeParameterSymbol?
-        internal abstract bool? IsNotNullableIfReferenceType { get; }
+        internal abstract bool? IsNotNullable { get; }
 
         public sealed override bool IsValueType
         {
@@ -683,10 +682,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation =>
             ReferenceTypeConstraintIsNullable switch
             {
-                false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.NotApplicable,
+                false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.None,
                 false => CodeAnalysis.NullableAnnotation.NotAnnotated,
                 true => CodeAnalysis.NullableAnnotation.Annotated,
-                null => CodeAnalysis.NullableAnnotation.Disabled,
+                null => CodeAnalysis.NullableAnnotation.None,
             };
 #pragma warning restore IDE0055 // Fix formatting
 
@@ -716,10 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<CodeAnalysis.NullableAnnotation> ITypeParameterSymbol.ConstraintNullableAnnotations
-        {
-            get => this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => c.NullableAnnotation.ToPublicAnnotation());
-        }
+        ImmutableArray<CodeAnalysis.NullableAnnotation> ITypeParameterSymbol.ConstraintNullableAnnotations =>
+            ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => c.ToPublicAnnotation());
 
         ITypeParameterSymbol ITypeParameterSymbol.OriginalDefinition
         {

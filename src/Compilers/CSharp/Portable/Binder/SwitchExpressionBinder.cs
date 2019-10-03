@@ -34,14 +34,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundInputExpression = InputExpression;
             diagnostics.AddRange(InputExpressionDiagnostics);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = BindSwitchExpressionArms(node, originalBinder, diagnostics);
-            TypeSymbol resultType = InferResultType(switchArms, diagnostics);
-            switchArms = AddConversionsToArms(switchArms, resultType, diagnostics);
-            bool reportedNonexhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol defaultLabel, diagnostics);
+            TypeSymbol naturalType = InferResultType(switchArms, diagnostics);
+            bool reportedNotExhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol defaultLabel, diagnostics);
 
             // When the input is constant, we use that to reshape the decision dag that is returned
             // so that flow analysis will see that some of the cases may be unreachable.
             decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundInputExpression);
-            return new BoundSwitchExpression(node, boundInputExpression, switchArms, decisionDag, defaultLabel, reportedNonexhaustive, resultType);
+
+            return new BoundUnconvertedSwitchExpression(
+                node, boundInputExpression, switchArms, decisionDag,
+                defaultLabel: defaultLabel, reportedNotExhaustive: reportedNotExhaustive, type: naturalType);
         }
 
         /// <summary>
@@ -114,50 +116,43 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Infer the result type of the switch expression by looking for a common type.
+        /// Infer the result type of the switch expression by looking for a common type
+        /// to which every arm's expression can be converted.
         /// </summary>
         private TypeSymbol InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, DiagnosticBag diagnostics)
         {
-            var seenTypes = PooledHashSet<TypeSymbol>.GetInstance();
+            var seenTypes = SpecializedCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
             var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
             foreach (var @case in switchCases)
             {
                 var type = @case.Value.Type;
-                if (!(type is null) && seenTypes.Add(type))
+                if (type is object && seenTypes.Add(type))
                 {
                     typesInOrder.Add(type);
                 }
             }
 
+            seenTypes.Free();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteDiagnostics);
+            typesInOrder.Free();
+
+            // We've found a candidate common type among those arms that have a type.  Also check that every arm's
+            // expression (even those without a type) can be converted to that type.
+            if (commonType is object)
+            {
+                foreach (var @case in switchCases)
+                {
+                    if (!this.Conversions.ClassifyImplicitConversionFromExpression(@case.Value, commonType, ref useSiteDiagnostics).Exists)
+                    {
+                        commonType = null;
+                        break;
+                    }
+                }
+            }
+
             diagnostics.Add(SwitchExpressionSyntax, useSiteDiagnostics);
-            if (commonType is null)
-            {
-                diagnostics.Add(ErrorCode.ERR_SwitchExpressionNoBestType, SwitchExpressionSyntax.Location);
-                commonType = CreateErrorType();
-            }
-
-            seenTypes.Free();
             return commonType;
-        }
-
-        /// <summary>
-        /// Rewrite the expressions in the switch expression cases to add a conversion to the result (common) type.
-        /// </summary>
-        private ImmutableArray<BoundSwitchExpressionArm> AddConversionsToArms(ImmutableArray<BoundSwitchExpressionArm> switchCases, TypeSymbol resultType, DiagnosticBag diagnostics)
-        {
-            var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance();
-            foreach (var oldCase in switchCases)
-            {
-                var oldValue = oldCase.Value;
-                var newValue = GenerateConversionForAssignment(resultType, oldValue, diagnostics);
-                var newCase = (oldValue == newValue) ? oldCase :
-                    new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
-                builder.Add(newCase);
-            }
-
-            return builder.ToImmutableAndFree();
         }
 
         private ImmutableArray<BoundSwitchExpressionArm> BindSwitchExpressionArms(SwitchExpressionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
@@ -211,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindSwitchGoverningExpression(DiagnosticBag diagnostics)
         {
-            var switchGoverningExpression = BindValue(SwitchExpressionSyntax.GoverningExpression, diagnostics, BindValueKind.RValue);
+            var switchGoverningExpression = BindRValueWithoutTargetType(SwitchExpressionSyntax.GoverningExpression, diagnostics);
             if (switchGoverningExpression.Type == (object)null || switchGoverningExpression.Type.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_BadPatternExpression, SwitchExpressionSyntax.GoverningExpression.Location, switchGoverningExpression.Display);

@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     CancellationToken cancellationToken)
                 {
                     // Compute all descendant operations in basic block range.
-                    for (int i = firstBlockOrdinal; i <= lastBlockOrdinal; i++)
+                    for (var i = firstBlockOrdinal; i <= lastBlockOrdinal; i++)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         foreach (var operation in cfg.Blocks[i].DescendantOperations())
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                                 }
                                 else if (invocation.TargetMethod.IsLocalFunction())
                                 {
-                                    var localFunctionGraph = cfg.GetLocalFunctionControlFlowGraphInScope(invocation.TargetMethod);
+                                    var localFunctionGraph = cfg.GetLocalFunctionControlFlowGraphInScope(invocation.TargetMethod.OriginalDefinition);
                                     if (localFunctionGraph != null)
                                     {
                                         AddDescendantOperationsInLambdaOrLocalFunctionGraph(localFunctionGraph);
@@ -275,6 +275,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     ControlFlowGraph TryGetLocalFunctionControlFlowGraphInScope(IMethodSymbol localFunction)
                     {
                         Debug.Assert(localFunction.IsLocalFunction());
+
+                        // Use the original definition of the local function for flow analysis.
+                        localFunction = localFunction.OriginalDefinition;
+
                         if (_localFunctionTargetsToAccessingCfgMap.TryGetValue(localFunction, out var localFunctionAccessingCfg))
                         {
                             var localFunctionCfg = localFunctionAccessingCfg.GetLocalFunctionControlFlowGraphInScope(localFunction);
@@ -378,7 +382,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 public void SetBlockAnalysisDataFrom(BasicBlock basicBlock, BasicBlockAnalysisData data, CancellationToken cancellationToken)
                     => GetOrCreateBlockAnalysisData(basicBlock, cancellationToken).SetAnalysisDataFrom(data);
 
-                public void SetAnalysisDataOnExitBlockEnd()
+                public void SetAnalysisDataOnMethodExit()
                 {
                     if (SymbolsWriteBuilder.Count == 0)
                     {
@@ -514,7 +518,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     //
                     Debug.Assert(localFunctionTarget.Method.IsLocalFunction());
                     SetReachingDelegateTargetCore(write, localFunctionTarget);
-                    _localFunctionTargetsToAccessingCfgMap[localFunctionTarget.Method] = ControlFlowGraph;
+                    _localFunctionTargetsToAccessingCfgMap[localFunctionTarget.Method.OriginalDefinition] = ControlFlowGraph;
                 }
 
                 public override void SetEmptyInvocationTargetsForDelegate(IOperation write)

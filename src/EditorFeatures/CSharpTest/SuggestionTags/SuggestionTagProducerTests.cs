@@ -26,28 +26,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
         [WpfFact, Trait(Traits.Feature, Traits.Features.SuggestionTags)]
         public async Task SuggestionTagTest1()
         {
-            var spansAndSelection = await GetTagSpansAndSelectionAsync(
+            var (spans, selection) = await GetTagSpansAndSelectionAsync(
 @"class C {
     void M() {
         var v = [|ne|]w X();
         v.Y = 1;
     }
 }");
-            Assert.Equal(1, spansAndSelection.spans.Length);
-            Assert.Equal(spansAndSelection.selection, spansAndSelection.spans.Single().Span.Span.ToTextSpan());
+            Assert.Equal(1, spans.Length);
+            Assert.Equal(selection, spans.Single().Span.Span.ToTextSpan());
         }
 
         private async Task<(ImmutableArray<ITagSpan<IErrorTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(content))
-            {
-                var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>()
+            using var workspace = TestWorkspace.CreateCSharp(content);
+            var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>()
                 {
                     { LanguageNames.CSharp, new DiagnosticAnalyzer[] { new CSharpUseObjectInitializerDiagnosticAnalyzer() } }
                 };
-                var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2;
-                return (spans, workspace.Documents.Single().SelectedSpans.Single());
-            }
+            var spans = (await _producer.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2;
+            return (spans, workspace.Documents.Single().SelectedSpans.Single());
         }
     }
 }

@@ -2715,11 +2715,14 @@ class C<U>
     S<int> f2;
     S<U>.R f3;
     S<int>.R f4;
+    S<U>.R2 f5;
+    S<int>.R2 f6;
 }
 
 struct S<T>
 {
     struct R { }
+    internal struct R2 { }
 }
 ";
             var compilation = CreateCompilation(text);
@@ -2734,6 +2737,11 @@ struct S<T>
             Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f3").Type.ManagedKind);
             Assert.True(type.GetMember<FieldSymbol>("f4").Type.IsManagedType);
             Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f4").Type.ManagedKind);
+
+            Assert.False(type.GetMember<FieldSymbol>("f5").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f5").Type.ManagedKind);
+            Assert.False(type.GetMember<FieldSymbol>("f6").Type.IsManagedType);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f6").Type.ManagedKind);
         }
 
         [Fact]
@@ -3051,7 +3059,7 @@ public unsafe struct S2
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
                 //     public S1* s; //CS0523
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S1*").WithArguments("S1"));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S1"));
         }
 
         [Fact]
@@ -3077,13 +3085,13 @@ public unsafe struct A
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A')
                 //             public A*[,][] aa; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A*").WithArguments("A"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "aa").WithArguments("A"),
                 // (9,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A.B.C')
                 //         public C*[] cc; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("A.B.C"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "cc").WithArguments("A.B.C"),
                 // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A.B')
                 //     public B** bb; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "B*").WithArguments("A.B"));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "bb").WithArguments("A.B"));
         }
 
         [Fact]
@@ -3101,7 +3109,7 @@ public unsafe struct S
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     public Alias* s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "Alias*").WithArguments("S"));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S"));
         }
 
         [Fact()]
@@ -3125,22 +3133,22 @@ public unsafe struct S
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     S* M() { return M(); }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "M").WithArguments("S"),
                 // (5,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     void M(S* p) { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "p").WithArguments("S"),
                 // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     S* P { get; set; }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "P").WithArguments("S"),
                 // (9,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     S* this[int x] { get { return M(); } set { } }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "this").WithArguments("S"),
                 // (10,14): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     int this[S* p] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "p").WithArguments("S"),
                 // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     public S* s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S"));
         }
 
         [WorkItem(10195, "https://github.com/dotnet/roslyn/issues/10195")]
@@ -6929,9 +6937,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (13,26): error CS8652: The feature 'unmanaged constructed types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,26): error CS8652: The feature 'unmanaged constructed types' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         fixed (void* p = a)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("unmanaged constructed types").WithLocation(13, 26));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "a").WithArguments("unmanaged constructed types", "8.0").WithLocation(13, 26));
         }
 
         [Fact]
@@ -8054,9 +8062,9 @@ unsafe class C
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (4,14): error CS8652: The feature 'stackalloc in nested expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,14): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     int* p = stackalloc int[1];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc").WithArguments("stackalloc in nested expressions").WithLocation(4, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(4, 14)
                 );
             CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (4,14): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'int*' is not possible.
@@ -8255,16 +8263,11 @@ class A
 }
 class C<T> : A
 {
-    // BREAKING: Dev10 (incorrectly) does not report ERR_ManagedAddr here.
     private static C<T*[]>.B b;
 }
 ";
             var expected = new[]
             {
-                // (8,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-                //     private static C<T*[]>.B b;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"),
-
                 // (8,30): warning CS0169: The field 'C<T>.b' is never used
                 //     private static C<T*[]>.B b;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b")
@@ -8286,7 +8289,7 @@ class A
 }
 class C<T> : A
 {
-    // BREAKING: Dev10 does not report an error here because it does not look for ERR_ManagedAddr until
+    // Dev10 and Roslyn both do not report an error here because they don't look for ERR_ManagedAddr until
     // late in the binding process - at which point the type has been resolved to A.B.
     private static C<T*[]>.B b;
 
@@ -8300,12 +8303,9 @@ class C<T> : A
 ";
             var expected = new[]
             {
-                // (10,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-                //     private static C<T*[]>.B b;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"),
                 // (17,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
                 //     private static C<T*[]> c;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("T"),
 
                 // (10,30): warning CS0169: The field 'C<T>.b' is never used
                 //     private static C<T*[]>.B b;
@@ -8337,7 +8337,7 @@ class A
 }
 class C<T> : A
 {
-    // BREAKING: Dev10 does not report an error here because it does not look for ERR_ManagedAddr until
+    // Dev10 and Roslyn both do not report an error here because they don't look for ERR_ManagedAddr until
     // late in the binding process - at which point the type has been resolved to A.B.
     private static C<string*[]>.B b;
 
@@ -8347,12 +8347,9 @@ class C<T> : A
 ";
             var expected = new[]
             {
-                // (10,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
-                //     private static C<T*[]>.B b;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "string*").WithArguments("string"),
                 // (15,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
                 //     private static C<T*[]> c;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "string*").WithArguments("string"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("string"),
 
                 // (10,30): warning CS0169: The field 'C<T>.b' is never used
                 //     private static C<T*[]>.B b;
@@ -8364,6 +8361,25 @@ class C<T> : A
 
             CreateCompilation(text).VerifyDiagnostics(expected);
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        [WorkItem(37051, "https://github.com/dotnet/roslyn/issues/37051")]
+        public void GenericPointer_Override()
+        {
+            var csharp = @"
+public unsafe class A
+{
+    public virtual T* M<T>() where T : unmanaged => throw null!;
+}
+
+public unsafe class B : A
+{
+    public override T* M<T>() => throw null!;
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
         }
 
         #endregion PointerTypes tests

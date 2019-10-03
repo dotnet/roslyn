@@ -16,17 +16,18 @@ namespace System.Runtime.CompilerServices
         AttributeTargets.Parameter |
         AttributeTargets.Property |
         AttributeTargets.ReturnValue,
-        AllowMultiple = false)]
+        AllowMultiple = false,
+        Inherited = false)]
     public sealed class NullableAttribute : Attribute
     {
-        public readonly byte[] Flags;
+        public readonly byte[] NullableFlags;
         public NullableAttribute(byte flag)
         {
-            Flags = new byte[] { flag };
+            NullableFlags = new byte[] { flag };
         }
         public NullableAttribute(byte[] flags)
         {
-            Flags = flags;
+            NullableFlags = flags;
         }
     }
 }
@@ -77,7 +78,6 @@ Each type parameter definition may have an associated `NullableAttribute` with a
 namespace System.Runtime.CompilerServices
 {
     [System.AttributeUsage(
-        AttributeTargets.Module |
         AttributeTargets.Class |
         AttributeTargets.Delegate |
         AttributeTargets.Interface |
@@ -101,7 +101,7 @@ The type declaration is synthesized by the compiler if not already included in t
 
 The `NullableContextAttribute` is optional - nullable annotations can be represented in metadata with full fidelity using `NullableAttribute` only.
 
-`NullableContextAttribute` is valid in metadata at the module level and at type and method declarations.
+`NullableContextAttribute` is valid in metadata on type and method declarations.
 The `byte` value represents the implicit `NullableAttribute` value for type references within that scope
 that do not have an explicit `NullableAttribute` and would not otherwise be represented by an empty `byte[]`.
 The nearest `NullableContextAttribute` in the metadata hierarchy applies.
@@ -120,8 +120,6 @@ and any `NullableContextAttribute` attributes on immediate children.
 If there are no single `byte` values, there are no changes.
 Otherwise, a `NullableContext(value)` attribute is created at that level where `value` is most common
 value (preferring `0` over `1` and preferring `1` over `2`), and all `NullableAttribute` and `NullableContextAttribute` attributes with that value are removed.
-That iterative process continues up to the module level.
-If the common value at the module level is a value other than `0` (the default), a module level `NullableContext(value)` attribute is emitted.
 
 Note that an assembly compiled with C#8 where all reference types are oblivious will have no
 `NullableContextAttribute` and no `NullableAttribute` attributes emitted.
@@ -148,11 +146,15 @@ for members that are inaccessible outside the assembly (`private` members, and a
 if the assembly does not contain `InternalsVisibleToAttribute` attributes).
 
 The compiler behavior is configured from a command-line flag.
-For now a feature flag is used: `-feature:nullablePublicOnly`.
+For now a feature flag is used: `-features:nullablePublicOnly`.
 
 If private member attributes are dropped, the compiler will emit a `[module: NullablePublicOnly]` attribute.
 The presence or absence of the `NullablePublicOnlyAttribute` can be used by tools to interpret
 the nullability of private members that do not have an associated `NullableAttribute` attribute.
+
+For members that do not have explicit accessibility in metadata
+(specifically for parameters, type parameters, events, and properties),
+the compiler uses the accessibility of the container to determine whether to emit nullable attributes. 
 
 ```C#
 namespace System.Runtime.CompilerServices
@@ -160,12 +162,19 @@ namespace System.Runtime.CompilerServices
     [System.AttributeUsage(AttributeTargets.Module, AllowMultiple = false)]
     public sealed class NullablePublicOnlyAttribute : Attribute
     {
+        public readonly bool IncludesInternals;
+        public NullablePublicOnlyAttribute(bool includesInternals)
+        {
+            IncludesInternals = includesInternals;
+        }
     }
 }
 ```
 
 The `NullablePublicOnlyAttribute` type is for compiler use only - it is not permitted in source.
 The type declaration is synthesized by the compiler if not already included in the compilation.
+
+`IncludesInternal` is true if `internal` members are annotated in addition to `public` and `protected` members.
 
 ## Compatibility
 

@@ -27,10 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.BuildTool,
             StandardTableColumnDefinitions.ErrorSource,
             StandardTableColumnDefinitions.DetailsExpander,
-            SuppressionStateColumnDefinition.ColumnName
+            StandardTableColumnDefinitions.SuppressionState
         };
 
-        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
+        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, ITableManagerProvider provider) :
             base(workspace, provider, StandardTables.ErrorsTable)
         {
         }
@@ -40,17 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public static __VSERRORCATEGORY GetErrorCategory(DiagnosticSeverity severity)
         {
             // REVIEW: why is it using old interface for new API?
-            switch (severity)
+            return severity switch
             {
-                case DiagnosticSeverity.Error:
-                    return __VSERRORCATEGORY.EC_ERROR;
-                case DiagnosticSeverity.Warning:
-                    return __VSERRORCATEGORY.EC_WARNING;
-                case DiagnosticSeverity.Info:
-                    return __VSERRORCATEGORY.EC_MESSAGE;
-                default:
-                    return Contract.FailWithReturn<__VSERRORCATEGORY>();
-            }
+                DiagnosticSeverity.Error => __VSERRORCATEGORY.EC_ERROR,
+                DiagnosticSeverity.Warning => __VSERRORCATEGORY.EC_WARNING,
+                DiagnosticSeverity.Info => __VSERRORCATEGORY.EC_MESSAGE,
+                _ => Contract.FailWithReturn<__VSERRORCATEGORY>(),
+            };
         }
 
         public static string GetHelpLink(Workspace workspace, DiagnosticData data)
@@ -112,8 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override bool Equals(object obj)
             {
-                var other = obj as AggregatedKey;
-                if (other == null)
+                if (!(obj is AggregatedKey other))
                 {
                     return false;
                 }

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// </summary>
     internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
     {
-        private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
+        private readonly ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase =
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         public SymbolSearchUpdateEngine(
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
-            if (!_sourceToDatabase.TryGetValue(NugetOrgSourceName, out var databaseWrapper))
+            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out var databaseWrapper))
             {
                 // Don't have a database to search.  
                 return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();

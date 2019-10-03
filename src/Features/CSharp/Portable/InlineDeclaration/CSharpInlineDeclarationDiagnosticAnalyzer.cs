@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
@@ -32,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         public CSharpInlineDeclarationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
+                   CodeStyleOptions.PreferInlinedVariableDeclaration,
                    new LocalizableResourceString(nameof(FeaturesResources.Inline_variable_declaration), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Variable_declaration_can_be_inlined), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -92,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
-            var argumentList = argumentNode.Parent as ArgumentListSyntax;
-            if (argumentList == null)
+            if (!(argumentNode.Parent is ArgumentListSyntax argumentList))
             {
                 return;
             }
@@ -125,8 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var semanticModel = context.SemanticModel;
-            var outLocalSymbol = semanticModel.GetSymbolInfo(argumentExpression, cancellationToken).Symbol as ILocalSymbol;
-            if (outLocalSymbol == null)
+            if (!(semanticModel.GetSymbolInfo(argumentExpression, cancellationToken).Symbol is ILocalSymbol outLocalSymbol))
             {
                 // The out-argument wasn't referencing a local.  So we don't have an local
                 // declaration that we can attempt to inline here.
@@ -138,15 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // esoteric and would make us have to write a lot more complex code to support
             // that scenario.
             var localReference = outLocalSymbol.DeclaringSyntaxReferences.FirstOrDefault();
-            var localDeclarator = localReference?.GetSyntax(cancellationToken) as VariableDeclaratorSyntax;
-            if (localDeclarator == null)
+            if (!(localReference?.GetSyntax(cancellationToken) is VariableDeclaratorSyntax localDeclarator))
             {
                 return;
             }
 
             var localDeclaration = localDeclarator.Parent as VariableDeclarationSyntax;
-            var localStatement = localDeclaration?.Parent as LocalDeclarationStatementSyntax;
-            if (localStatement == null)
+            if (!(localDeclaration?.Parent is LocalDeclarationStatementSyntax localStatement))
             {
                 return;
             }
@@ -175,8 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // for references to the local to make sure that no reads/writes happen before
             // the out-argument.  If there are any reads/writes we can't inline as those
             // accesses will become invalid.
-            var enclosingBlockOfLocalStatement = localStatement.Parent as BlockSyntax;
-            if (enclosingBlockOfLocalStatement == null)
+            if (!(localStatement.Parent is BlockSyntax enclosingBlockOfLocalStatement))
             {
                 return;
             }

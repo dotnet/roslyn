@@ -62,11 +62,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public TestParameters WithParseOptions(ParseOptions parseOptions)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
 
+            public TestParameters WithOptions(IDictionary<OptionKey, object> options)
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
+
             public TestParameters WithFixProviderData(object fixProviderData)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
 
             public TestParameters WithIndex(int index)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
+
+            public TestParameters WithRetainNonFixableDiagnostics(bool retainNonFixableDiagnostics)
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title, retainNonFixableDiagnostics: retainNonFixableDiagnostics);
         }
 
         protected abstract string GetLanguage();
@@ -238,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedDocumentName,
             CodeAction action)
         {
-            var operations = await VerifyActionAndGetOperationsAsync(action, default);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
             return await TestAddDocument(
                 workspace,
                 expectedMarkup,
@@ -395,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<TextSpan> navigationSpans,
             TestParameters parameters)
         {
-            var operations = await VerifyActionAndGetOperationsAsync(action, parameters);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, parameters);
             return await TestOperationsAsync(
                 workspace, expected, operations, conflictSpans, renameSpans,
                 warningSpans, navigationSpans, expectedChangedDocumentId: null, parseOptions: parameters.parseOptions);
@@ -429,14 +435,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             // To help when a user just writes a test (and supplied no 'expectedText') just print
             // out the entire 'actualText' (without any trimming).  in the case that we have both,
-            // call the normal Assert helper which will print out a good trimmed diff.
+            // call the normal AssertEx helper which will print out a good diff.
             if (expectedText == "")
             {
                 Assert.Equal((object)expectedText, actualText);
             }
             else
             {
-                Assert.Equal(expectedText, actualText);
+                AssertEx.EqualOrDiff(expectedText, actualText);
             }
 
             TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
@@ -499,25 +505,52 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                         var root = await doc.GetSyntaxRootAsync();
                         var expectedDocument = expectedProject.Documents.Single(d => d.Name == doc.Name);
                         var expectedRoot = await expectedDocument.GetSyntaxRootAsync();
-
-                        var expected = expectedRoot.ToFullString();
-                        if (expected == "")
-                        {
-                            Assert.Equal((object)expected, root.ToFullString());
-                        }
-                        else
-                        {
-                            Assert.Equal(expected, root.ToFullString());
-                        }
+                        VerifyExpectedDocumentText(expectedRoot.ToFullString(), root.ToFullString());
                     }
+
+                    foreach (var additionalDoc in project.AdditionalDocuments)
+                    {
+                        var root = await additionalDoc.GetTextAsync();
+                        var expectedDocument = expectedProject.AdditionalDocuments.Single(d => d.Name == additionalDoc.Name);
+                        var expectedRoot = await expectedDocument.GetTextAsync();
+                        VerifyExpectedDocumentText(expectedRoot.ToString(), root.ToString());
+                    }
+
+                    foreach (var analyzerConfigDoc in project.AnalyzerConfigDocuments)
+                    {
+                        var root = await analyzerConfigDoc.GetTextAsync();
+                        var expectedDocument = expectedProject.AnalyzerConfigDocuments.Single(d => d.FilePath == analyzerConfigDoc.FilePath);
+                        var expectedRoot = await expectedDocument.GetTextAsync();
+                        VerifyExpectedDocumentText(expectedRoot.ToString(), root.ToString());
+                    }
+                }
+            }
+
+            return;
+
+            // Local functions.
+            static void VerifyExpectedDocumentText(string expected, string actual)
+            {
+                if (expected == "")
+                {
+                    Assert.Equal((object)expected, actual);
+                }
+                else
+                {
+                    Assert.Equal(expected, actual);
                 }
             }
         }
 
-        internal static Task<ImmutableArray<CodeActionOperation>> VerifyActionAndGetOperationsAsync(
-            CodeAction action, TestParameters parameters)
+        internal async Task<ImmutableArray<CodeActionOperation>> VerifyActionAndGetOperationsAsync(
+            TestWorkspace workspace, CodeAction action, TestParameters parameters)
         {
-            Assert.False(action is null, "No action was offered when one was expected.");
+            if (action is null)
+            {
+                var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters.WithRetainNonFixableDiagnostics(true));
+
+                throw new Exception("No action was offered when one was expected. Diagnostics from the compilation: " + string.Join("", diagnostics.Select(d => Environment.NewLine + d.ToString())));
+            }
 
             if (parameters.priority != null)
             {
@@ -529,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 Assert.Equal(parameters.title, action.Title);
             }
 
-            return action.GetOperationsAsync(CancellationToken.None);
+            return await action.GetOperationsAsync(CancellationToken.None);
         }
 
         protected Tuple<Solution, Solution> ApplyOperationsAndGetSolution(
@@ -641,7 +674,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters,
             params string[] outputs)
         {
-            for (int index = 0; index < outputs.Length; index++)
+            for (var index = 0; index < outputs.Length; index++)
             {
                 var output = outputs[index];
                 await TestInRegularAndScript1Async(input, output, index, parameters: parameters);

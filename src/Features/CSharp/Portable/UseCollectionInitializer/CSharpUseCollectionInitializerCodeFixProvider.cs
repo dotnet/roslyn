@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
             var nodesAndTokens = new List<SyntaxNodeOrToken>();
-            for (int i = 0; i < matches.Length; i++)
+            for (var i = 0; i < matches.Length; i++)
             {
                 var expressionStatement = matches[i];
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             if (arguments.Count == 1)
             {
                 // Assignment expressions in a collection initializer will cause the compiler to 
-                // report an error.  This is because { a = b } is teh form for an object initializer,
+                // report an error.  This is because { a = b } is the form for an object initializer,
                 // and the two forms are not allowed to mix/match.  Parenthesize the assignment to
                 // avoid the ambiguity.
                 var expression = arguments[0].Expression;

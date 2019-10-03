@@ -89,6 +89,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return context;
         }
 
+        /// <summary>
+        /// Returns true if any of the NullableContexts in this map enable annotations, warnings, or both.
+        /// This does not include any restore directives.
+        /// </summary>
+        internal bool HasNullableEnables()
+        {
+            foreach (var context in _contexts)
+            {
+                if (context.AnnotationsState == true || context.WarningsState == true)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static ImmutableArray<NullableContextState> GetContexts(SyntaxTree tree, bool isGeneratedCode)
         {
             var previousContext = GetContextForFileStart(position: 0, isGeneratedCode: isGeneratedCode);

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     {
         private class DocumentOptions : IDocumentOptions
         {
-            private ICodingConventionsSnapshot _codingConventionSnapshot;
+            private readonly ICodingConventionsSnapshot _codingConventionSnapshot;
             private readonly IErrorLoggerService _errorLogger;
             private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, string>> s_convertedDictionaryCache =
                 new ConditionalWeakTable<IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, string>>();
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     return false;
                 }
 
-                // Temporarly map our old Dictionary<string, object> to a Dictionary<string, string>. This can go away once we either
+                // Temporarily map our old Dictionary<string, object> to a Dictionary<string, string>. This can go away once we either
                 // eliminate the legacy editorconfig support, or we change IEditorConfigStorageLocation.TryGetOption to take
                 // some interface that lets us pass both the Dictionary<string, string> we get from the new system, and the
                 // Dictionary<string, object> from the old system.
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                 public bool TryGetValue(string key, out string value)
                 {
-                    if (_underlyingDictionary.TryGetValue(key, out object objectValue))
+                    if (_underlyingDictionary.TryGetValue(key, out var objectValue))
                     {
                         value = objectValue?.ToString();
                         return true;

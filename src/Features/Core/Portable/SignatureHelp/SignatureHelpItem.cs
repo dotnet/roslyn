@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 throw new ArgumentException(FeaturesResources.Variadic_SignatureHelpItem_must_have_at_least_one_parameter);
             }
 
-            this.IsVariadic = isVariadic;
-            this.DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
-            this.PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
-            this.SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
-            this.SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();
-            this.Parameters = parameters.ToImmutableArrayOrEmpty();
-            this.DescriptionParts = descriptionParts.ToImmutableArrayOrEmpty();
+            IsVariadic = isVariadic;
+            DocumentationFactory = documentationFactory ?? s_emptyDocumentationFactory;
+            PrefixDisplayParts = prefixParts.ToImmutableArrayOrEmpty();
+            SeparatorDisplayParts = separatorParts.ToImmutableArrayOrEmpty();
+            SuffixDisplayParts = suffixParts.ToImmutableArrayOrEmpty();
+            Parameters = parameters.ToImmutableArrayOrEmpty();
+            DescriptionParts = descriptionParts.ToImmutableArrayOrEmpty();
         }
 
         // Constructor kept for back compat

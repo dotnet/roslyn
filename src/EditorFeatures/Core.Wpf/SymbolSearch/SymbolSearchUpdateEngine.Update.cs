@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         internal const string ChecksumAttributeName = "checksum";
         internal const string UpToDateAttributeName = "upToDate";
         internal const string TooOldAttributeName = "tooOld";
-        internal const string NugetOrgSourceName = "nuget.org";
-        internal const string NugetOrgSourceUri = "https://api.nuget.org/v3/index.json";
+        internal const string NugetOrgSource = "nuget.org";
 
         public const string HostId = "RoslynNuGetSearch";
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             internal async Task UpdateInBackgroundAsync()
             {
                 // We only support this single source currently.
-                if (_source != NugetOrgSourceUri)
+                if (_source != NugetOrgSource)
                 {
                     return;
                 }
@@ -276,9 +275,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 await _service.LogInfoAsync("Processing full database element").ConfigureAwait(false);
 
                 // Convert the database contents in the XML to a byte[].
-                var result = await TryParseDatabaseElementAsync(element).ConfigureAwait(false);
+                var (succeeded, contentBytes) = await TryParseDatabaseElementAsync(element).ConfigureAwait(false);
 
-                if (!result.succeeded)
+                if (!succeeded)
                 {
                     // Something was wrong with the full database.  Trying again soon after won't
                     // really help.  We'll just get the same busted XML from the remote service
@@ -290,7 +289,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return (succeeded: false, failureDelay);
                 }
 
-                var bytes = result.contentBytes;
+                var bytes = contentBytes;
 
                 // Make a database out of that and set it to our in memory database that we'll be 
                 // searching.
@@ -529,27 +528,26 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 //         minutes ago, then the client will attempt to download the file.
                 //         In the interim period null will be returned from client.ReadFile.
                 var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
-                using (var client = _service._remoteControlService.CreateClient(HostId, serverPath, pollingMinutes))
+                using var client = _service._remoteControlService.CreateClient(HostId, serverPath, pollingMinutes);
+
+                await _service.LogInfoAsync("Creating download client completed").ConfigureAwait(false);
+
+                // Poll the client every minute until we get the file.
+                while (true)
                 {
-                    await _service.LogInfoAsync("Creating download client completed").ConfigureAwait(false);
+                    _service._updateCancellationToken.ThrowIfCancellationRequested();
 
-                    // Poll the client every minute until we get the file.
-                    while (true)
+                    var resultOpt = await TryDownloadFileAsync(client).ConfigureAwait(false);
+                    if (resultOpt == null)
                     {
-                        _service._updateCancellationToken.ThrowIfCancellationRequested();
-
-                        var resultOpt = await TryDownloadFileAsync(client).ConfigureAwait(false);
-                        if (resultOpt == null)
-                        {
-                            var delay = _service._delayService.CachePollDelay;
-                            await _service.LogInfoAsync($"File not downloaded. Trying again in {delay}").ConfigureAwait(false);
-                            await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            // File was downloaded.  
-                            return resultOpt;
-                        }
+                        var delay = _service._delayService.CachePollDelay;
+                        await _service.LogInfoAsync($"File not downloaded. Trying again in {delay}").ConfigureAwait(false);
+                        await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // File was downloaded.  
+                        return resultOpt;
                     }
                 }
             }
@@ -561,33 +559,32 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                 // "ReturnsNull": Only return a file if we have it locally *and* it's not older than our polling time (1 day).
 
-                using (var stream = await client.ReadFileAsync(BehaviorOnStale.ReturnNull).ConfigureAwait(false))
+                using var stream = await client.ReadFileAsync(BehaviorOnStale.ReturnNull).ConfigureAwait(false);
+
+                if (stream == null)
                 {
-                    if (stream == null)
-                    {
-                        await _service.LogInfoAsync("Read file completed. Client returned no data").ConfigureAwait(false);
-                        return null;
-                    }
-
-                    await _service.LogInfoAsync("Read file completed. Client returned data").ConfigureAwait(false);
-                    await _service.LogInfoAsync("Converting data to XElement").ConfigureAwait(false);
-
-                    // We're reading in our own XML file, but even so, use conservative settings
-                    // just to be on the safe side.  First, disallow DTDs entirely (we will never
-                    // have one ourself).  And also, prevent any external resolution of files when
-                    // processing the XML.
-                    var settings = new XmlReaderSettings
-                    {
-                        DtdProcessing = DtdProcessing.Prohibit,
-                        XmlResolver = null
-                    };
-                    using (var reader = XmlReader.Create(stream, settings))
-                    {
-                        var result = XElement.Load(reader);
-                        await _service.LogInfoAsync("Converting data to XElement completed").ConfigureAwait(false);
-                        return result;
-                    }
+                    await _service.LogInfoAsync("Read file completed. Client returned no data").ConfigureAwait(false);
+                    return null;
                 }
+
+                await _service.LogInfoAsync("Read file completed. Client returned data").ConfigureAwait(false);
+                await _service.LogInfoAsync("Converting data to XElement").ConfigureAwait(false);
+
+                // We're reading in our own XML file, but even so, use conservative settings
+                // just to be on the safe side.  First, disallow DTDs entirely (we will never
+                // have one ourself).  And also, prevent any external resolution of files when
+                // processing the XML.
+                var settings = new XmlReaderSettings
+                {
+                    DtdProcessing = DtdProcessing.Prohibit,
+                    XmlResolver = null
+                };
+
+                using var reader = XmlReader.Create(stream, settings);
+
+                var result = XElement.Load(reader);
+                await _service.LogInfoAsync("Converting data to XElement completed").ConfigureAwait(false);
+                return result;
             }
 
             private async Task RepeatIOAsync(Func<Task> action)
@@ -657,19 +654,18 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var text = contentsAttribute.Value;
                 var compressedBytes = Convert.FromBase64String(text);
 
-                using (var outStream = new MemoryStream())
+                using var outStream = new MemoryStream();
+
+                using (var inStream = new MemoryStream(compressedBytes))
+                using (var deflateStream = new DeflateStream(inStream, CompressionMode.Decompress))
                 {
-                    using (var inStream = new MemoryStream(compressedBytes))
-                    using (var deflateStream = new DeflateStream(inStream, CompressionMode.Decompress))
-                    {
-                        await deflateStream.CopyToAsync(outStream).ConfigureAwait(false);
-                    }
-
-                    var bytes = outStream.ToArray();
-
-                    await _service.LogInfoAsync($"Parsing complete. bytes.length={bytes.Length}").ConfigureAwait(false);
-                    return bytes;
+                    await deflateStream.CopyToAsync(outStream).ConfigureAwait(false);
                 }
+
+                var bytes = outStream.ToArray();
+
+                await _service.LogInfoAsync($"Parsing complete. bytes.length={bytes.Length}").ConfigureAwait(false);
+                return bytes;
             }
         }
     }

@@ -405,7 +405,7 @@ class C
             Assert.Equal(WellKnownMemberNames.DestructorName, finalizeSyntax.ToString());
 
             var info = model.GetSymbolInfo(finalizeSyntax);
-            Assert.NotNull(info);
+            Assert.NotEqual(default, info);
             Assert.Equal(destructor, info.Symbol);
 
             var lookupSymbols = model.LookupSymbols(finalizeSyntax.SpanStart, name: WellKnownMemberNames.DestructorName);

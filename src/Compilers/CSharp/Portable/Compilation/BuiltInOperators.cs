@@ -696,15 +696,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNullOrDefault, TypeSymbol rightType, bool rightIsNullOrDefault, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, bool leftIsDefault, TypeSymbol rightType, bool rightIsNull, bool rightIsDefault, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: The predefined reference type equality operators require one of the following:
 
-            // SPEC: (1) Both operands are a value of a type known to be a reference-type or the literal null. 
-            // SPEC:     Furthermore, an explicit reference conversion exists from the type of either 
+            // SPEC: (1) Both operands are a value of a type known to be a reference-type or the literal null.
+            // SPEC:     Furthermore, an explicit reference conversion exists from the type of either
             // SPEC:     operand to the type of the other operand. Or:
             // SPEC: (2) One operand is a value of type T where T is a type-parameter and the other operand is 
             // SPEC:     the literal null. Furthermore T does not have the value type constraint.
+            // SPEC: (3) One operand is the literal default and the other operand is a reference-type.
 
             // SPEC ERROR: Notice that the spec calls out that an explicit reference conversion must exist;
             // SPEC ERROR: in fact it should say that an explicit reference conversion, implicit reference
@@ -720,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (((object)leftType != null) && leftType.IsTypeParameter())
             {
-                if (leftType.IsValueType || (!leftType.IsReferenceType && !rightIsNullOrDefault))
+                if (leftType.IsValueType || (!leftType.IsReferenceType && !rightIsNull))
                 {
                     return false;
                 }
@@ -731,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (((object)rightType != null) && rightType.IsTypeParameter())
             {
-                if (rightType.IsValueType || (!rightType.IsReferenceType && !leftIsNullOrDefault))
+                if (rightType.IsValueType || (!rightType.IsReferenceType && !leftIsNull))
                 {
                     return false;
                 }
@@ -741,19 +742,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var leftIsReferenceType = ((object)leftType != null) && leftType.IsReferenceType;
-            if (!leftIsReferenceType && !leftIsNullOrDefault)
+            if (!leftIsReferenceType && !leftIsNull && !leftIsDefault)
             {
                 return false;
             }
 
             var rightIsReferenceType = ((object)rightType != null) && rightType.IsReferenceType;
-            if (!rightIsReferenceType && !rightIsNullOrDefault)
+            if (!rightIsReferenceType && !rightIsNull && !rightIsDefault)
             {
                 return false;
             }
 
-            // If at least one side is null then clearly a conversion exists.
-            if (leftIsNullOrDefault || rightIsNullOrDefault)
+            if (leftIsDefault && rightIsDefault)
+            {
+                return false;
+            }
+
+            if (leftIsDefault && rightIsNull)
+            {
+                return false;
+            }
+
+            if (leftIsNull && rightIsDefault)
+            {
+                return false;
+            }
+
+            // If at least one side is null or default then clearly a conversion exists.
+            if (leftIsNull || rightIsNull || leftIsDefault || rightIsDefault)
             {
                 return true;
             }

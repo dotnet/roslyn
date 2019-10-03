@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -41,11 +40,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             Contract.ThrowIfNull(owner);
 
-            this.Owner = owner;
-            this.Workspace = workspace;
-            this.HostAnalyzerManager = hostAnalyzerManager;
-            this.HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            this.DiagnosticLogAggregator = new DiagnosticLogAggregator(owner);
+            Owner = owner;
+            Workspace = workspace;
+            HostAnalyzerManager = hostAnalyzerManager;
+            HostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            DiagnosticLogAggregator = new DiagnosticLogAggregator(owner);
 
             _correlationId = correlationId;
 
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return stateSet.IsCompilationEndAnalyzer(project, compilation);
         }
 
-        public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)
+        public bool ContainsDiagnostics(ProjectId projectId)
         {
             foreach (var stateSet in _stateManager.GetStateSets(projectId))
             {
@@ -117,14 +116,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 var handleActiveFile = true;
+                var documentSet = PooledHashSet<DocumentId>.GetInstance();
+
                 foreach (var stateSet in stateSets)
                 {
                     var projectIds = stateSet.GetProjectsWithDiagnostics();
                     foreach (var projectId in projectIds)
                     {
-                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, stateSet.GetDocumentsWithDiagnostics(projectId), handleActiveFile, raiseEvents);
+                        stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
+                        RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentSet, handleActiveFile, raiseEvents);
+                        documentSet.Clear();
                     }
                 }
+
+                documentSet.Free();
             });
         }
 
@@ -133,6 +138,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
             {
                 var handleActiveFile = true;
+                var documentSet = PooledHashSet<DocumentId>.GetInstance();
+
                 foreach (var stateSet in stateSets)
                 {
                     // PERF: don't fire events for ones that we dont have any diagnostics on
@@ -141,8 +148,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    RaiseProjectDiagnosticsRemoved(stateSet, projectId, stateSet.GetDocumentsWithDiagnostics(projectId), handleActiveFile, raiseEvents);
+                    stateSet.CollectDocumentsWithDiagnostics(projectId, documentSet);
+                    RaiseProjectDiagnosticsRemoved(stateSet, projectId, documentSet, handleActiveFile, raiseEvents);
+                    documentSet.Clear();
                 }
+
+                documentSet.Free();
             });
         }
 
@@ -237,17 +248,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return ImmutableArray<DiagnosticData>.Empty;
             }
 
-            switch (kind)
+            return kind switch
             {
-                case AnalysisKind.Syntax:
-                    return result.GetResultOrEmpty(result.SyntaxLocals, id);
-                case AnalysisKind.Semantic:
-                    return result.GetResultOrEmpty(result.SemanticLocals, id);
-                case AnalysisKind.NonLocal:
-                    return result.GetResultOrEmpty(result.NonLocals, id);
-                default:
-                    return Contract.FailWithReturn<ImmutableArray<DiagnosticData>>("shouldn't reach here");
-            }
+                AnalysisKind.Syntax => result.GetResultOrEmpty(result.SyntaxLocals, id),
+                AnalysisKind.Semantic => result.GetResultOrEmpty(result.SemanticLocals, id),
+                AnalysisKind.NonLocal => result.GetResultOrEmpty(result.NonLocals, id),
+                _ => Contract.FailWithReturn<ImmutableArray<DiagnosticData>>("shouldn't reach here"),
+            };
         }
 
         public void LogAnalyzerCountSummary()

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -12,19 +13,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     /// </summary>
     internal sealed class NullableAttributesVisitor : CSharpSymbolVisitor
     {
-        internal static string GetString(Symbol symbol)
+        internal static string GetString(PEModuleSymbol module)
         {
             var builder = new StringBuilder();
-            var visitor = new NullableAttributesVisitor(builder);
-            visitor.Visit(symbol);
+            var visitor = new NullableAttributesVisitor(module, builder);
+            visitor.Visit(module);
             return builder.ToString();
         }
 
+        private readonly PEModuleSymbol _module;
         private readonly StringBuilder _builder;
         private readonly HashSet<Symbol> _reported;
+        private CSharpAttributeData _nullableContext;
 
-        private NullableAttributesVisitor(StringBuilder builder)
+        private NullableAttributesVisitor(PEModuleSymbol module, StringBuilder builder)
         {
+            _module = module;
             _builder = builder;
             _reported = new HashSet<Symbol>();
         }
@@ -46,19 +50,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public override void VisitNamedType(NamedTypeSymbol type)
         {
+            var previousContext = _nullableContext;
+            _nullableContext = GetNullableContextAttribute(type.GetAttributes()) ?? _nullableContext;
+
             ReportSymbol(type);
             VisitList(type.TypeParameters);
-            VisitList(type.GetMembers());
+
+            foreach (var member in type.GetMembers())
+            {
+                // Skip accessors since those are covered by associated symbol.
+                if (member.IsAccessor()) continue;
+                Visit(member);
+            }
+
+            _nullableContext = previousContext;
         }
 
         public override void VisitMethod(MethodSymbol method)
         {
-            // Skip accessors since those are covered by associated symbol.
-            if (method.IsAccessor()) return;
+            var previousContext = _nullableContext;
+            _nullableContext = GetNullableContextAttribute(method.GetAttributes()) ?? _nullableContext;
 
             ReportSymbol(method);
             VisitList(method.TypeParameters);
             VisitList(method.Parameters);
+
+            _nullableContext = previousContext;
+        }
+
+        public override void VisitEvent(EventSymbol @event)
+        {
+            ReportSymbol(@event);
+            Visit(@event.AddMethod);
+            Visit(@event.RemoveMethod);
+        }
+
+        public override void VisitProperty(PropertySymbol property)
+        {
+            ReportSymbol(property);
+            VisitList(property.Parameters);
+            Visit(property.GetMethod);
+            Visit(property.SetMethod);
         }
 
         public override void VisitTypeParameter(TypeParameterSymbol typeParameter)
@@ -74,13 +106,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
         }
 
+        /// <summary>
+        /// Return the containing symbol used in the hierarchy here. Specifically, the
+        /// hierarchy contains types, members, and parameters only, and accessors are
+        /// considered members of the associated symbol rather than the type.
+        /// </summary>
+        private static Symbol GetContainingSymbol(Symbol symbol)
+        {
+            if (symbol.IsAccessor())
+            {
+                return ((MethodSymbol)symbol).AssociatedSymbol;
+            }
+            var containingSymbol = symbol.ContainingSymbol;
+            return containingSymbol?.Kind == SymbolKind.Namespace ? null : containingSymbol;
+        }
+
         private static string GetIndentString(Symbol symbol)
         {
             int level = 0;
             while (true)
             {
-                symbol = symbol.ContainingSymbol;
-                if (symbol.Kind == SymbolKind.Namespace)
+                symbol = GetContainingSymbol(symbol);
+                if (symbol is null)
                 {
                     break;
                 }
@@ -98,7 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private void ReportContainingSymbols(Symbol symbol)
         {
-            if (symbol.Kind == SymbolKind.Namespace)
+            symbol = GetContainingSymbol(symbol);
+            if (symbol is null)
             {
                 return;
             }
@@ -106,26 +154,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 return;
             }
-            ReportContainingSymbols(symbol.ContainingSymbol);
-            ReportSymbol(symbol, includeAlways: true);
+            ReportContainingSymbols(symbol);
+            _builder.Append(GetIndentString(symbol));
+            _builder.AppendLine(symbol.ToDisplayString(_displayFormat));
+            _reported.Add(symbol);
         }
 
-        private void ReportSymbol(Symbol symbol, bool includeAlways = false)
+        private void ReportSymbol(Symbol symbol)
         {
-            var attributes = (symbol is MethodSymbol method) ? method.GetReturnTypeAttributes() : symbol.GetAttributes();
-            var nullableAttribute = GetAttribute(attributes, "System.Runtime.CompilerServices", "NullableAttribute");
-            if (!includeAlways && nullableAttribute == null)
+            var nullableContextAttribute = GetNullableContextAttribute(symbol.GetAttributes());
+            var nullableAttribute = GetNullableAttribute((symbol is MethodSymbol method) ? method.GetReturnTypeAttributes() : symbol.GetAttributes());
+
+            if (nullableContextAttribute == null && nullableAttribute == null)
             {
-                return;
+                if (_nullableContext == null)
+                {
+                    // No explicit attributes on this symbol or above.
+                    return;
+                }
+                // No explicit attributes on this symbol. Check if nullability metadata was dropped.
+                if (!_module.ShouldDecodeNullableAttributes(GetAccessSymbol(symbol)))
+                {
+                    return;
+                }
             }
-            ReportContainingSymbols(symbol.ContainingSymbol);
+
+            ReportContainingSymbols(symbol);
             _builder.Append(GetIndentString(symbol));
+
+            if (nullableContextAttribute != null)
+            {
+                _builder.Append($"{ReportAttribute(nullableContextAttribute)} ");
+            }
+
             if (nullableAttribute != null)
             {
                 _builder.Append($"{ReportAttribute(nullableAttribute)} ");
             }
+
             _builder.AppendLine(symbol.ToDisplayString(_displayFormat));
             _reported.Add(symbol);
+        }
+
+        private static Symbol GetAccessSymbol(Symbol symbol)
+        {
+            while (true)
+            {
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Parameter:
+                    case SymbolKind.TypeParameter:
+                        symbol = symbol.ContainingSymbol;
+                        break;
+                    default:
+                        return symbol;
+                }
+            }
         }
 
         private static string ReportAttribute(CSharpAttributeData attribute)
@@ -174,6 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 }
             }
         }
+
+        private static CSharpAttributeData GetNullableContextAttribute(ImmutableArray<CSharpAttributeData> attributes) =>
+            GetAttribute(attributes, "System.Runtime.CompilerServices", "NullableContextAttribute");
+
+        private static CSharpAttributeData GetNullableAttribute(ImmutableArray<CSharpAttributeData> attributes) =>
+            GetAttribute(attributes, "System.Runtime.CompilerServices", "NullableAttribute");
 
         private static CSharpAttributeData GetAttribute(ImmutableArray<CSharpAttributeData> attributes, string namespaceName, string name)
         {

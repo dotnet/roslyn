@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
-        <target state="new">'{0}': abstract event cannot use event accessor syntax</target>
+        <target state="translated">'{0}': soyut olay, olay erişeni söz dizimini kullanamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
         <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
-        <target state="translated">İlişkilendirilmiş tam bir dize için '$@' yerine '@$' kullanmak istiyorsanız lütfen '{0}' veya üzeri bir dil sürümü kullanın.</target>
+        <target state="translated">İlişkilendirilmiş tam bir dize için '$@' yerine '@$' kullanmak amacıyla lütfen '{0}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -39,17 +39,17 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="new">Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</target>
+        <target state="translated">'{0}' özniteliği olay erişimcilerinde geçerli değil. Bu öznitelik yalnızca '{1}' bildirimlerinde geçerlidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
-        <target state="new">Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</target>
+        <target state="translated">Otomatik olarak uygulanan '{0}' özelliği 'set' erişimcisine sahip olduğundan 'readonly' olarak işaretlenemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
-        <target state="new">Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</target>
+        <target state="translated">Otomatik olarak uygulanan '{0}' 'set' erişimcisi, 'readonly' olarak işaretlenemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,17 +69,22 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="needs-review-translation">/nullable için geçersiz '{0}' seçeneği; 'disable', 'enable', 'safeonly', 'warnings' veya 'safeonlywarnings' olmalıdır</target>
+        <target state="translated">/nullable için geçersiz '{0}' seçeneği; 'disable', 'enable', 'warnings' veya 'annotations' olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
         <source>The typeof operator cannot be used on a nullable reference type</source>
-        <target state="new">The typeof operator cannot be used on a nullable reference type</target>
+        <target state="translated">Boş değer atanabilir tür üzerinde typeof işleci kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Desen eşleşmesi için işlenen geçersiz. Değer gerekiyordu ancak '{0}' bulundu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -94,7 +99,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstantPatternVsOpenType">
         <source>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</source>
-        <target state="new">An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</target>
+        <target state="translated">'{0}' türünde bir ifade, '{1}' türünde bir desen tarafından işlenemez. Lütfen açık bir türü sabit bir desenle eşleştirmek için '{2}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
@@ -104,7 +109,12 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="translated">{0}' türünün soyut olmayan bir üyesi olduğundan tür eklenemiyor. 'Embed Interop Types' özelliğini false olarak ayarlamayı deneyin.</target>
+        <target state="translated">{0}' türünün soyut olmayan bir üyesi olduğundan bu tür eklenemiyor. 'Embed Interop Types' özelliğini false olarak ayarlamayı deneyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultLiteralNoTargetType">
+        <source>There is no target type for the default literal.</source>
+        <target state="new">There is no target type for the default literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -122,9 +132,14 @@
         <target state="translated">'{0}' bir defadan fazla açıkça uygulanmış.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateNullSuppression">
+        <source>Duplicate null suppression operator ('!')</source>
+        <target state="translated">Yinelenen null gizleme işleci ('!')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
-        <target state="new">Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</target>
+        <target state="translated">'readonly' değiştiricileri, '{0}' özelliğinin veya dizin oluşturucusunun her iki erişimcisinde de belirtilemez. Bunun yerine özelliğin kendisine bir 'readonly' değiştiricisi koyun.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -184,7 +199,7 @@
       </trans-unit>
       <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
         <source>Field-like event '{0}' cannot be 'readonly'.</source>
-        <target state="new">Field-like event '{0}' cannot be 'readonly'.</target>
+        <target state="translated">Alan benzeri '{0}' olayı 'readonly' olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
@@ -217,6 +232,11 @@
         <target state="translated">'{0}' bir __arglist parametresine sahip olduğundan '{2}' türünde '{1}' arabirim üyesini uygulayamıyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InternalError">
+        <source>Internal error in the C# compiler.</source>
+        <target state="new">Internal error in the C# compiler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Geçersiz karma algoritması adı: '{0}'</target>
@@ -229,7 +249,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
         <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
-        <target state="new">Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</target>
+        <target state="translated">'readonly' değiştiricileri '{0}' özelliğinin veya dizin oluşturucusunun her ikisiyle birlikte erişimcilerinde de değiştirilemez. Bunlardan birini kaldırın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidStackAllocArray">
@@ -259,12 +279,12 @@
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">Birden çok çözümleyici yapılandırma dosyası aynı dizinde ('{0}') olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
         <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
-        <target state="new">The attribute [EnumeratorCancellation] cannot be used on multiple parameters</target>
+        <target state="translated">[EnumeratorCancellation] özniteliği birden çok parametre üzerinde kullanılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -284,22 +304,22 @@
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
-        <target state="new">The 'notnull' constraint must come before any other constraints</target>
+        <target state="translated">'notnull' kısıtlaması diğer kısıtlamalardan önce gelmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'disable', or 'restore'</source>
-        <target state="needs-review-translation">'enable', 'safeonly', 'disable' veya 'restore' bekleniyordu</target>
+        <target state="translated">'enable', 'disable' veya 'restore' bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">'Uyarılar', 'ek açıklama' veya yönergenin sonu bekleniyordu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
         <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">C# {2} için geçersiz '{0}' değeri: '{1}'. Lütfen '{3}' veya üzeri bir dil sürümü kullanın.</target>
+        <target state="translated">C# {2} için geçersiz '{0}' değeri: '{1}'. Lütfen '{3}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -314,17 +334,17 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
-        <target state="new">Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</target>
+        <target state="translated">'{0}' yöntemi, '{1}' tür parametresi için bir 'class' kısıtlaması belirtiyor, ancak geçersiz kılınan veya açıkça uygulanan '{3}' yönteminin karşılık gelen '{2}' tür parametresi bir başvuru türü değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
-        <target state="new">Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</target>
+        <target state="translated">'{0}' yöntemi, '{1}' tür parametresi için bir 'struct' kısıtlaması belirtiyor, ancak geçersiz kılınan veya açıkça uygulanan '{3}' yönteminin karşılık gelen '{2}' tür parametresi boş değer atanamaz bir tip değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReadOnlyDifference">
         <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="new">Both partial method declarations must be readonly or neither may be readonly</target>
+        <target state="translated">İki kısmi yöntem bildiriminin de saltokunur olması ya da hiçbirinin saltokunur olmaması gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -347,9 +367,14 @@
         <target state="translated">Bir özellik alt deseni, özellik veya alan başvurusunun eşleşmesini gerektiriyor, ör. '{{ Name: {0} }}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReadOnlyModMissingAccessor">
         <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
-        <target state="new">'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</target>
+        <target state="translated">'{0}': 'readonly' erişimcilerde yalnızca özellik veya dizin oluşturucusu hem alma hem ayarlama erişimcisine sahipse kullanılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -364,7 +389,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
         <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
-        <target state="translated">Hedef çalışma zamanı, bir arabirimin üyesi için 'protected', 'protected internal' veya 'private protected' erişilebilirliğini desteklemiyor.</target>
+        <target state="translated">Hedef çalışma zamanı, bir arabirim üyesi için 'protected', 'protected internal' veya 'private protected' erişilebilirliğini desteklemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
@@ -384,7 +409,7 @@
       </trans-unit>
       <trans-unit id="ERR_StaticMemberCantBeReadOnly">
         <source>Static member '{0}' cannot be marked 'readonly'.</source>
-        <target state="new">Static member '{0}' cannot be marked 'readonly'.</target>
+        <target state="translated">'{0}' statik üyesi 'readonly' olarak işaretlenemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -532,8 +557,11 @@
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Specify a file to log all compiler and analyzer
                               diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
 
@@ -544,12 +572,14 @@
                               form: -d)
 -langversion:?                Display the allowed values for language version
 -langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
                               `latest` (latest version, including minor versions),
+                              `default` (same as `latest`),
+                              `latestmajor` (latest version, excluding minor versions),
+                              `preview` (latest version, including features in unsupported preview),
                               or specific versions like `6` or `7.1`
 -nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|warnings}
-                              Specify nullable context option enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Specify nullable context option enable|disable|warnings|annotations.
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -604,154 +634,160 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
-                              Visual C# Derleyici Seçenekleri
+        <target state="translated">
+                             Visual C# Derleyici Seçenekleri
 
-                        - ÇIKIŞ DOSYALARI -
--out:&lt;file&gt;                   Çıkış dosyası adı belirtin (varsayılan: ana sınıfı
-                               içeren dosyanın veya ilk dosyanın temel adı)
--target:exe                   Çalıştırılabilir konsol dosyası oluştur (varsayılan) (Kısa
-                               biçim: -t:exe)
--target:winexe                Windows yürütülebilir dosyası oluştur (Kısa biçim:
-                               -t:winexe)
--target:library               Kitaplık oluştur (Kısa biçim: -t:library)
--target:module                Başka bir derlemeye eklenebilir bir modül
-                               oluştur (Kısa biçim: -t:module)
--target:appcontainerexe       Bir Appcontainer yürütülebilir dosyası oluştur (Kısa biçim:
-                               -t:appcontainerexe)
--target:winmdobj              WinMDExp tarafından kullanılan bir
-                               Windows Çalışma Zamanı ara dosyası oluştur (Kısa biçim: -t:winmdobj)
--doc:&lt;file&gt;                   Oluşturulacak XML Belgeleri dosyası
--refout:&lt;file&gt;                Oluşturulacak başvuru derlemesi çıkışı
--platform:&lt;string&gt;            Bu kodun üstünde çalışacağı platformları sınırlar: x86,
-                               Itanium, x64, arm, arm64, anycpu32bitpreferred, or
-                               anycpu. Varsayılan anycpu.
+                       - ÇIKIŞ DOSYALARI -
+-out:&lt;dosya&gt;                   Çıkış dosyası adını belirtin (varsayılan: ana sınıfı
+                              içeren dosyanın veya ilk dosyanın temel adı)
+-target:exe                   Konsol yürütülebilir dosyası oluşturun (varsayılan) (Kısa
+                              biçim: -t:exe)
+-target:winexe                Windows yürütülebilir dosyası oluşturun (Kısa biçim:
+                              -t:winexe)
+-target:library               Kitaplık derleyin (Kısa biçim: -t:library)
+-target:module                Başka bir derlemeye eklenebilecek bir
+                              modül oluşturun (Kısa biçim: -t:module)
+-target:appcontainerexe       Appcontainer yürütülebilir dosyası oluşturun (Kısa biçim:
+                              -t:appcontainerexe)
+-target:winmdobj              WinMDExp tarafından kullanılan bir Windows Çalışma Zamanı
+                              ara dosyası oluşturun (Kısa biçim: -t:winmdobj)
+-doc:&lt;dosya&gt;                   Oluşturulacak XML Belgesi dosyası
+-refout:&lt;dosya&gt;                Oluşturulacak başvuru derlemesi çıkışı
+-platform:&lt;dize&gt;            Bu kodun çalıştırılabileceği platformları sınırlandırın: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred veya
+                              anycpu. Varsayılan: anycpu.
 
-                        - GİRİŞ DOSYALARI -
--recurse:&lt;wildcard&gt;           Geçerli dizindeki ve
-                                alt dizinlerdeki tüm dosyaları joker karakteri
-                               belirtimlerine göre ekle
--reference:&lt;alias&gt;=&lt;file&gt;     Verilen diğer adı kullanarak belirtilen
-                               derlemedeki meta verilere başvur (Kısa biçim: -r)
--reference:&lt;file list&gt;        Belirtilen derleme dosyasındaki meta verilere
-                               başvur (Kısa biçim: -r)
--addmodule:&lt;file list&gt;        Belirtilen modülleri bu derlemeye bağla
--link:&lt;file list&gt;             Belirtilen birlikte çalışma derleme dosyalarından
-                               meta veri ekleyin (Kısa biçim: -l)
--analyzer:&lt;file list&gt;         Çözümleyicileri bu derlemeden çalıştır
-                               (Kısa biçim: -a)
--additionalfile:&lt;file list&gt;   Kod oluşumunu doğrudan etkilemeyen ama çözümleyiciler
-                               tarafından hata veya uyarı oluşturmada
-                               kullanılabilen ek dosyalar.
--embed                        Tüm kaynak dosyalarını PDB'ye ekle.
--embed:&lt;file list&gt;            Belirli dosyaları PDB'ye ekle
+                       - GİRİŞ DOSYALARI -
+-recurse:&lt;joker karakter&gt;           Joker karakter belirtimlerine göre, geçerli
+                              dizindeki ve alt dizinlerdeki tüm dosyaları
+                              dahil edin
+-reference:&lt;diğer ad&gt;=&lt;dosya&gt;     Verilen diğer adı kullanan belirtilen derleme dosyasındaki
+                               meta verilere başvurun (Kısa biçim: -r)
+-reference:&lt;dosya listesi&gt;        Belirtilen derleme dosyalarındaki meta verilere
+                              başvurun (Kısa biçim: -r)
+-addmodule:&lt;dosya listesi&gt;        Belirtilen modülleri bu derlemeye bağlayın
+-link:&lt;dosya listesi&gt;             Belirtilen birlikte çalışma derleme dosyalarındaki
+                              meta verileri ekleyin (Kısa biçim: -l)
+-analyzer:&lt;dosya listesi&gt;         Çözümleyicileri bu derlemeden çalıştırın
+                              (Kısa biçim: -a)
+-additionalfile:&lt;dosya listesi&gt;   Kod oluşturmayı doğrudan etkilemeyen ancak hata
+                              ve uyarılar oluşturmak için çözümleyicilerin
+                              kullanabileceği ek dosyalar.
+-embed                        Tüm kaynak dosyalarını PDB'ye ekleyin.
+-embed:&lt;dosya listesi&gt;            Belirli dosyaları PDB'ye ekleyin.
 
                         - KAYNAKLAR -
--win32res:&lt;file&gt;              Bir Win32 kaynak dosyası (.res) belirt
--win32icon:&lt;file&gt;             Çıkış için bu simgeyi kullan
--win32manifest:&lt;file&gt;         Bir Win32 bildirim dosyası (.xml) belirt
--nowin32manifest              Varsayılan Win32 bildirimini dahil etme
--resource:&lt;resinfo&gt;           Belirtilen kaynağı ekle (Kısa biçim: -res)
--linkresource:&lt;resinfo&gt;       Belirtilen kaynağı bu bütünleştirilmiş koda bağla
-                               (Kısa biçim: -linkres) Kaynak bilgisi biçimi:
-                                &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+-win32res:&lt;dosya&gt;              Bir Win32 kaynak dosyası (.res) belirtin
+-win32icon:&lt;dosya&gt;             Çıkış için bu simgeyi kullanın
+-win32manifest:&lt;dosya&gt;         Bir Win32 bildirim dosyası (.xml) belirtin
+-nowin32manifest              Varsayılan Win32 bildirimini dahil etmeyin
+-resource:&lt;kaynak bilgileri&gt;           Belirtilen kaynağı ekleyin (Kısa biçim: -res)
+-linkresource:&lt;kaynak bilgileri&gt;       Belirtilen kaynağı bu derlemeye bağlayın
+                              (Kısa biçim: -linkres) Kaynak bilgisi biçimi 
+                              &lt;dosya&gt;[,&lt;dize adı&gt;[,public|private]] olduğunda
 
                         - KOD OLUŞTURMA -
--debug[+|-]                   Hata ayıklama bilgilerini yayımla
+-debug[+|-]                   Hata ayıklama bilgilerini yayımlayın
 -debug:{full|pdbonly|portable|embedded}
-                               Hata ayıklama türünü belirt (varsayılan: 'full',
-                               'portable' platformlar arası bir biçim,
-                               'embedded' hedef .dll veya .exe dosyasına
-                               eklenmiş platformlar arası bir biçim
--optimize[+|-]                İyileştirmeleri etkinleştir (Kısa biçim: -o)
--deterministic                Belirlenimci bir bütünleştirilmiş kod oluştur
-                               (modül sürümü GUID'i ve zaman damgası dahil)
--refonly                      Ana çıkışın yerine başvuru derlemesi oluştur
+                              Hata ayıklama türünü belirtin ('full' varsayılan,
+                              'portable' platformlar arası biçim,
+                              'embedded' ise hedef .dll veya .exe dosyasına
+                              eklenmiş platformlar arası bir biçimdir)
+-optimize[+|-]                İyileştirmeleri etkinleştirin (Kısa biçim: -o)
+-deterministic                Belirlenimci bir derleme oluşturun
+                              (modül sürümü GUID'si ve zaman damgası dahil)
+-refonly                      Ana çıkış yerine bir başvuru derlemesi oluşturun
 -instrument:TestCoverage      Kapsam bilgilerini toplamak üzere
-                               işaretlenen bir bütünleştirilmiş kod üret
--sourcelink:&lt;file&gt;            PDB'ye eklenecek kaynak bağlantı bilgisi.
+                              izleme eklenmiş bir derleme oluşturun
+-sourcelink:&lt;dosya&gt;            PDB'ye eklenecek kaynak bağlantı bilgileri.
 
                         - HATALAR VE UYARILAR -
--warnaserror[+|-]             Tüm uyarıları hata olarak bildir
--warnaserror[+|-]:&lt;warn list&gt; Belirli uyarıları hata olarak bildir
--warn:&lt;n&gt;                     Uyarı düzeyi ayarla (0-4) (Kısa biçim: -w)
--nowarn:&lt;warn list&gt;           Belirli uyarı iletilerini devre dışı bırak
--ruleset:&lt;file&gt;               Belirli tanılamaları devre dışı bırakan bir
-                                kural kümesi dosyası belirt.
--errorlog:&lt;file&gt;              Bütün derleyici ve çözümleyici tanılamalarını günlüğe kaydetmek için
-                               bir dosya belirt.
--reportanalyzer               Yürütme zamanı gibi ek yürütme
-                               bilgilerini bildir.
+-warnaserror[+|-]             Tüm uyarıları hata olarak bildirin
+-warnaserror[+|-]:&lt;uyarı listesi&gt; Belirli uyarıları hata olarak bildirin
+-warn:&lt;n&gt;                     Uyarı düzeyini ayarlayın (0-4) (Kısa biçim: -w)
+-nowarn:&lt;uyarı listesi&gt;           Belirli uyarı iletilerini devre dışı bırakın
+-ruleset:&lt;dosya&gt;               Belirli tanılamaları devre dışı bırakan bir
+                              kural kümesi dosyası belirtin.
+-errorlog:&lt;dosya&gt;              Tüm derleyici ve çözümleyici tanılamalarını günlüğe kaydetmek için
+                              bir dosya belirtin.
+-reportanalyzer               Yürütme zamanı gibi ek çözümleyici
+                              bilgilerini bildirin.
 
                         - DİL -
--checked[+|-]                 Taşma denetimleri oluştur
--unsafe[+|-]                  'Unsafe' koda izin ver
--define:&lt;symbol list&gt;         Koşullu derleme sembolleri tanımla (Kısa
-                               biçim: -d)
--langversion:?                Dil sürümü için izin verilen değerleri görüntüle
--langversion:&lt;string&gt;         Dil sürümünü belirt. Örneğin:
-                               `default` (en son birincil sürüm), or
-                               `latest` (daha küçük sürümleri de içeren en son sürüm),
-                               veya `6` ya da `7.1` gibi belirli sürümler
--nullable[+|-]                Boş değer atanabilir bağlam seçeneğini belirtin enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Boş değer atanabilir bağlam seçeneğini belirtin enable|disable|safeonly|warnings|safeonlywarnings.
+-checked[+|-]                 Taşma denetimleri oluşturun
+-unsafe[+|-]                  'Güvensiz' koda izin verin
+-define:&lt;sembol listesi&gt;         Koşullu derleme sembolleri tanımlayın (Kısa
+                              biçim: -d)
+-langversion:?                Dil sürümü için izin verilen değerleri görüntüleyin
+-langversion:&lt;dize&gt;         `latest` (alt sürümlerin dahil olduğu en son sürüm),
+                              `default` (`latest` ile aynı)
+                              `latestmajor` (alt sürümler hariç en son sürüm),
+                              `preview` (desteklenmeyen önizleme sürümündeki özellikleri içeren en son sürüm)
+                              ya da `6` veya `7.1`
+                              gibi belirli sürümleri belirtin
+-nullable[+|-]                Null değer atanabilir bağlam seçeneğini enable|disable olarak belirtin.
+-nullable:{enable|disable|warnings|annotations}
+                              Null değer atanabilir bağlam seçeneğini enable|disable|warnings|annotations olarak belirtin.
 
-                        - GÜVENLİK -
--delaysign[+|-]               Derlemeyi kesin ad anahtarının yalnızca ortak
-                               kısmını kullanarak gecikmeli imzala
--publicsign[+|-]              Bütünleştirilmiş kodu, güçlü adlı anahtarın yalnızca genel
-                               kısmını kullanarak genel olarak imzala
--keyfile:&lt;file&gt;               Güçlü ad anahtarı dosyası belirt
--keycontainer:&lt;string&gt;        Güçlü ad anahtarı kapsayıcısı belirt
--highentropyva[+|-]           Yüksek entropili ASLR'yi etkinleştir
+                       - GÜVENLİK -
+-delaysign[+|-]               Derlemeyi, tanımlayıcı ad anahtarının yalnızca genel 
+                              kısmını kullanarak gecikmeli imzalayın
+-publicsign[+|-]              Derlemeyi, tanımlayıcı ad anahtarının yalnızca genel
+                              kısmını kullanarak genel olarak imzalayın
+-keyfile:&lt;dosya&gt;               Bir tanımlayıcı ad anahtarı dosyası belirtin
+-keycontainer:&lt;dize&gt;        Bir tanımlayıcı ad anahtarı kapsayıcısı belirtin
+-highentropyva[+|-]           Yüksek entropili ASLR'yi etkinleştirin
 
-                        - DİĞER -
- @&lt;file&gt;                       Daha fazla seçenek için yanıt dosyasını okuyun
--help                         Bu kullanım iletisini görüntüle (Kısa biçim: -?)
--nologo                       Derleyici telif hakkı iletisini gösterme
--noconfig                     CSC.RSP dosyasını otomatik olarak dahil etme
+                        - ÇEŞİTLİ -
+@&lt;dosya&gt;                       Daha fazla seçenek için yanıt dosyasının okunmasını sağlayın
+-help                         Bu kullanım iletisini gösterin (Kısa biçim: -?)
+-nologo                       Derleyici telif hakkı iletisini gösterilmemesini sağlayın
+-noconfig                     CSC.RSP dosyasını otomatik olarak dahil etmeyin
 -parallel[+|-]                Eşzamanlı derleme.
--version                      Derleyici sürüm numarasını görüntüle ve çık.
+-version                      Derleyici sürüm numarasını görüntüleyin ve çıkın.
 
                         - GELİŞMİŞ -
--baseaddress:&lt;address&gt;        Derlenecek kitaplığın temel adresi
--checksumalgorithm:&lt;alg&gt;      PDB'de depolanan kaynak dosya sağlama toplamını
-                               hesaplama algoritmasını belirtin. Desteklenen değerler:
-                               SHA1 or SHA256 (varsayılan).
--codepage:&lt;n&gt;                 Kaynak dosyalarını açarken kullanılacak kod sayfasını
-                               belirtin
--utf8output                   Derleyici iletilerini UTF-8 ana kodlamasında
--görüntüle:&lt;type&gt;                  Giriş noktasını içeren türü belirtin
-                               (diğer tüm olası girdi noktalarını yoksayar) (Kısa
-                               biçim: -m)
--fullpaths                    Derleyici, tamamen nitelikli yollar oluşturur
--filealign:&lt;n&gt;                Çıkış dosyası bölümleri için kullanılan hizalamayı
-                               belirtin
--pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Derleyici tarafından gösterilen kaynak yolu adları için bir eşleme
-                               belirtin.
--pdb:&lt;file&gt;                   Hata ayıklama bilgileri dosyasının adını belirtin (varsayılan:
-                               .pdb uzantılı çıkış dosyası adı)
+-baseaddress:&lt;adres&gt;        Oluşturulacak kitaplığın taban adresi
+-checksumalgorithm:&lt;alg&gt;      PDB'de depolanan kaynak dosyanın sağlama toplamını
+                              hesaplama algoritmasını belirtin. Desteklenen değerler:
+                              SHA1 veya SHA256 (varsayılan).
+-codepage:&lt;n&gt;                 Kaynak dosyalarını açarken kullanılacak kod
+                              sayfasını belirtin
+-utf8output                   Derleyici iletilerini UTF-8 kodlamasında görüntüleyin
+-main:&lt;tür&gt;                  Giriş noktasını içeren türü belirtin
+                              (diğer tüm olası giriş noktalarını yoksayar) (Kısa
+                              biçim: -m)
+-fullpaths                    Derleyici, tam yollar oluşturur
+-filealign:&lt;n&gt;                Çıkış dosyasının bölümleri için kullanılan
+                              hizalamayı belirtin
+-pathmap:&lt;A1&gt;=&lt;D1&gt;,&lt;A2&gt;=&lt;D2&gt;,...
+                              Derleyici tarafından gösterilen kaynak yolu adları için bir eşleme
+                              belirtin.
+-pdb:&lt;dosya&gt;                   Hata ayıklama bilgileri dosyasının adını belirtin (varsayılan:
+                              .pdb uzantılı çıkış dosyasının adı)
 -errorendlocation             Her hatanın bitiş konumunun satır ve sütununu
-                               göster
--preferreduilang              Tercih edilen çıkış dilini belirtin.
--nosdkpath                    Standart kitaplık bütünleştirilmiş kodlarında varsayılan SDK yolunu
-							  aramayı devre dışı bırakın.
--nostdlib[+|-]                Standard kitaplığa (mscorlib.dll) başvurma
--subsystemversion:&lt;string&gt;    Bu bütünleştirilmiş kodun alt sistem sürümünü belirtin
--lib:&lt;file list&gt;              İçinde başvuruların aranacağı ek dizinleri
-                               belirtin
--errorreport:&lt;string&gt;         İç derleyici hatalarının nasıl işleneceğini belirtin:
-                               prompt, send, queue veya none. Varsayılan:
-                               queue.
--appconfig:&lt;file&gt;             Bütünleştirilmiş kod bağlama ayarlarını içeren bir uygulama
-                               yapılandırma dosyası belirtin
--moduleassemblyname:&lt;string&gt;  Bu modülün parçası olacağı bütünleştirilmiş kodun
-                               adı
--modulename:&lt;string&gt;          Kaynak modülün adını belirtin
+                              gösterin
+-preferreduilang              Tercih edilen çıkış dilinin adını belirtin.
+-nosdkpath                    Standart kitaplık derlemeleri için varsayılan SDK yolunu aramayı devre dışı bırakın.
+-nostdlib[+|-]                Standart kitaplığa (mscorlib.dll) başvuru yapmayın
+-subsystemversion:&lt;dize&gt;    Bu derlemenin alt sistem sürümünü belirtin
+-lib:&lt;dosya listesi&gt;              İçinde başvuruların aranacağı ek dizinleri
+                              belirtin
+-errorreport:&lt;dize&gt;         İç derleyici hatalarının nasıl işleneceğini belirtin:
+                              sor, gönder, kuyruğa al veya hiçbiri. Varsayılan olarak
+                              kuyruğa alınır.
+-appconfig:&lt;dosya&gt;             Derleme bağlama ayarlarını içeren
+                              bir uygulama yapılandırma dosyası belirtin
+-moduleassemblyname:&lt;dize&gt;  Bu modülün parçası olacağı derlemenin
+                              adı
+-modulename:&lt;dize&gt;          Kaynak modülün adını belirtin
 </target>
         <note>Visual C# Compiler Options</note>
+      </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="translated">varsayılan arabirim uygulaması</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
@@ -805,12 +841,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNestedStackalloc">
         <source>stackalloc in nested expressions</source>
-        <target state="new">stackalloc in nested expressions</target>
+        <target state="translated">iç içe geçmiş ifadelerde stackalloc</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNotNullGenericTypeConstraint">
         <source>notnull generic type constraint</source>
-        <target state="new">notnull generic type constraint</target>
+        <target state="translated">notnull genel tür kısıtlaması</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -820,12 +856,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
         <source>obsolete on property accessor</source>
-        <target state="new">obsolete on property accessor</target>
+        <target state="translated">özellik erişimcisinde geçersiz</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnable">
         <source>warning action enable</source>
-        <target state="new">warning action enable</target>
+        <target state="translated">enable uyarı eylemi</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -835,7 +871,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureReadOnlyMembers">
         <source>readonly members</source>
-        <target state="new">readonly members</target>
+        <target state="translated">saltokunur üyeler</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
@@ -873,6 +909,11 @@
         <target state="translated">statik yerel işlevler</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureSwitchExpression">
+        <source>&lt;switch expression&gt;</source>
+        <target state="translated">&lt;switch expression&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">demet eşitliği</target>
@@ -905,7 +946,7 @@
       </trans-unit>
       <trans-unit id="IDS_OverrideWithConstraints">
         <source>constraints for override and explicit interface implementation methods</source>
-        <target state="new">constraints for override and explicit interface implementation methods</target>
+        <target state="translated">geçersiz kılma ve açık arabirim uygulama yöntemleri için kısıtlamalar</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -925,7 +966,7 @@
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED">
         <source>&lt;!-- Badly formed XML comment ignored for member "{0}" --&gt;</source>
-        <target state="translated">&lt;!-- Kötü biçimli XML yorumu "{0}" üyesi için yoksayıldı --&gt;</target>
+        <target state="translated">&lt;!-- Badly formed XML comment ignored for member "{0}" --&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_XMLIGNORED2">
@@ -1285,12 +1326,12 @@
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull">
         <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}' boş değer atanamaz bir başvuru türü olduğunda, 'as' işleci null bir değer oluşturabilir.</target>
+        <target state="translated">'{0}' boş değer atanamayan bir başvuru türü olduğunda 'as' işleci null bir değer üretebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
         <source>The 'as' operator may produce a null value for a type parameter.</source>
-        <target state="translated">'as' işleci, bir tür parametresi için null bir değer oluşturabilir.</target>
+        <target state="translated">'as' işleci bir tür parametresi için null bir değer üretebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
@@ -1305,12 +1346,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull">
         <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}' boş değer atanamaz bir başvuru türü olduğunda, koşullu erişim null bir değer oluşturabilir.</target>
+        <target state="translated">'{0}' boş değer atanamayan bir başvuru türü olduğunda koşullu erişim null bir değer üretebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
         <source>Conditional access may produce a null value for a type parameter.</source>
-        <target state="translated">Koşullu erişim, bir tür parametresi için null bir değer oluşturabilir.</target>
+        <target state="translated">Koşullu erişim, tür parametresi için null bir değer üretebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
@@ -1325,22 +1366,22 @@
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
         <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}' boş değer atanamaz bir başvuru türü olduğunda, varsayılan bir ifade tarafından null bir değer ortaya çıkarılır.</target>
+        <target state="translated">'{0}' boş değer atanamayan bir başvuru türü olduğunda varsayılan bir ifade null değer sağlar.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
         <source>A default expression introduces a null value for a type parameter.</source>
-        <target state="translated">Varsayılan bir ifade, bir tür parametresi için null bir değer ortaya çıkarır.</target>
+        <target state="translated">Varsayılan bir ifade, bir tür parametresi için null değer sağlar.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">Olası bir null değer, [DisallowNull] özniteliğiyle işaretlenmiş bir hedefe geçirilemez</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="new">A possible null value may not be passed to a target marked with the [DisallowNull] attribute</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">Olası bir null değer, [DisallowNull] özniteliğiyle işaretlenmiş bir hedefe geçirilemez</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1351,6 +1392,16 @@
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
         <source>Interface is already listed in the interface list with different nullability of reference types.</source>
         <target state="translated">Arabirim, arabirim listesinde farklı başvuru türleri boş değer atanabilirliği ile zaten listelenmiş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExpressionMayIntroduceNullT">
+        <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
+        <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
+        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1375,12 +1426,12 @@
       </trans-unit>
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
         <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
-        <target state="new">Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</target>
+        <target state="translated">'readonly' üyesinden saltokunur olmayan '{0}' üyesine yapılan çağrı, '{1}' öğesinin örtük bir kopyası ile sonuçlanır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
         <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
-        <target state="new">Call to non-readonly member from a 'readonly' member results in an implicit copy.</target>
+        <target state="translated">'readonly' üyesinden saltokunur olmayan üyeye yapılan çağrı, örtülü bir kopya ile sonuçlanır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -1395,32 +1446,42 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
+        <target state="translated">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' ek açıklama bağlamı içinde kullanılmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title">
+        <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</source>
+        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="needs-review-translation">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' bağlamı içinde kullanılmalıdır.</target>
+        <target state="translated">Boş değer atanabilir başvuru türleri için ek açıklama kodda yalnızca bir '#nullable' ek açıklama bağlamı içinde kullanılmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Null sabit değer, boş değer atanamaz başvuru türüne dönüştürülemiyor.</target>
+        <target state="translated">Null sabit değer, boş değer atanamayan başvuru türüne dönüştürülemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">Null sabit değer, boş değer atanamaz başvuru türüne dönüştürülemiyor.</target>
+        <target state="translated">Null sabit değer, boş değer atanamayan başvuru türüne dönüştürülemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
         <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
-        <target state="translated">'{0}' boş değer atanamaz bir başvuru türü olduğunda null bir sabit değer tarafından null bir değer ortaya çıkarılır.</target>
+        <target state="translated">'{0}' boş değer atanamayan bir başvuru türü olduğunda null sabit değer, bir null değer sağlar.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
         <source>A null literal introduces a null value for a type parameter.</source>
-        <target state="translated">Null bir sabit değer, bir tür parametresi için null bir değer ortaya çıkarır.</target>
+        <target state="translated">Null sabit değer, tür parametresi için bir null değer sağlar.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
@@ -1443,24 +1504,34 @@
         <target state="translated">Olası null başvuru ataması.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer">
+        <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer_Title">
+        <source>Object or collection initializer implicitly dereferences possibly null member.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
         <source>Possible null reference assignment to iteration variable</source>
-        <target state="new">Possible null reference assignment to iteration variable</target>
+        <target state="translated">Yineleme değişkenine olası null başvuru ataması</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable_Title">
         <source>Possible null reference assignment to iteration variable</source>
-        <target state="new">Possible null reference assignment to iteration variable</target>
+        <target state="translated">Yineleme değişkenine olası null başvuru ataması</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
         <source>Dereference of a possibly null reference.</source>
-        <target state="translated">Null olabilecek bir başvuruya yönelik başvuru.</target>
+        <target state="translated">Olası bir null başvurunun başvurma işlemi.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver_Title">
         <source>Dereference of a possibly null reference.</source>
-        <target state="translated">Null olabilecek bir başvuruya yönelik başvuru.</target>
+        <target state="translated">Olası bir null başvurunun başvurma işlemi.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
@@ -1475,22 +1546,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
         <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="translated">Başvuru türlerinin boş değer atanabilirliğindeki farklılıklar nedeniyle, '{3}' içinde '{1}' türündeki '{2}' parametresi için '{0}' türündeki bağımsız değişken kullanılamaz.</target>
+        <target state="translated">'{0}' türündeki bağımsız değişken, başvuru türlerinin null atanabilirlik farklılıkları nedeniyle '{3}' içinde '{1}' türündeki '{2}' parametresi için kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
         <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
-        <target state="translated">'{0}' türündeki bağımsız değişken, başvuru türlerinin boş değer atanabilirliğindeki farklılıklar nedeniyle '{3}' içinde '{2}' parametresi için '{1}' türünde bir çıkış olarak kullanılamaz.</target>
+        <target state="translated">'{0}' türündeki bağımsız değişken, başvuru türlerinin null atanabilirlik farklılıkları nedeniyle '{3}' içinde '{2}' parametresi için '{1}' türündeki bir çıkış olarak kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
         <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
-        <target state="translated">Başvuru türlerinin boş değer atanabilirliğindeki farklılıklar nedeniyle, bağımsız değişken parametre için bir çıkış olarak kullanılamaz.</target>
+        <target state="translated">Bağımsız değişken, başvuru türlerinin null atanabilirlik farklılıkları nedeniyle parametre için çıkış olarak kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
         <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
-        <target state="translated">Başvuru türlerinin boş değer atanabilirliğindeki farklılıklar nedeniyle, bağımsız değişken parametre için kullanılamaz.</target>
+        <target state="translated">Bağımsız değişken, başvuru türlerinin null atanabilirlik farklılıkları nedeniyle parametre için kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -1515,12 +1586,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation">
         <source>Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent nullability in constraints for type parameter '{1}'</target>
+        <target state="translated">'{0}' öğesinin kısmi metot bildirimleri kısıtlamalarında '{1}' tür parametresi için tutarsız boş değer atanabilirlik durumu var</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInConstraintsOnPartialImplementation_Title">
         <source>Partial method declarations have inconsistent nullability in constraints for type parameter</source>
-        <target state="new">Partial method declarations have inconsistent nullability in constraints for type parameter</target>
+        <target state="translated">Kısmi metot bildirimlerinin tür parametresi kısıtlamalarında tutarsız boş değer atanabilirlik durumu var</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInExplicitlyImplementedInterface">
@@ -1564,8 +1635,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
-        <source>Nullability of reference types in type of parameter '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="translated">'{0}' parametre türündeki başvuru türlerinin boş değer atanabilirliği, örtük olarak uygulanan '{1}' üyesi ile eşleşmiyor.</target>
+        <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
+        <target state="translated">'{1}' içinde '{0}' parametre türündeki başvuru türlerinin boş değer atanabilirliği, örtük olarak uygulanan '{2}' üyesi ile eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1614,8 +1685,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
-        <source>Nullability of reference types in return type doesn't match implicitly implemented member '{0}'.</source>
-        <target state="translated">Dönüş türündeki başvuru türlerinin boş değer atanabilirliği, örtük olarak uygulanan '{0}' üyesi ile eşleşmiyor.</target>
+        <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="translated">'{0}' dönüş türündeki başvuru türlerinin boş değer atanabilirliği, örtük olarak uygulanan '{1}' üyesi ile eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1644,13 +1715,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
-        <source>Nullability of reference types in type doesn't match implicitly implemented member '{0}'.</source>
-        <target state="translated">Türdeki başvuru türlerinin boş değer atanabilirliği, örtük olarak uygulanan '{0}' üyesi ile eşleşmiyor.</target>
+        <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
+        <target state="translated">'{0}' türündeki başvuru türlerinin boş değer atanabilirliği, örtük olarak uygulanan '{1}' üyesi ile eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
         <source>Nullability of reference types in type doesn't match implicitly implemented member.</source>
         <target state="translated">Türdeki başvuru türlerinin boş değer atanabilirliği, örtük olarak uygulanan üye ile eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="translated">Türdeki başvuru türlerinin boş değer atanabilirliği, geçersiz kılınan üye ile eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
+        <source>Nullability of reference types in type doesn't match overridden member.</source>
+        <target state="translated">Türdeki başvuru türlerinin boş değer atanabilirliği, geçersiz kılınan üye ile eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1665,12 +1746,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint">
         <source>The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</source>
-        <target state="new">The type '{2}' cannot be used as type parameter '{1}' in the generic type or method '{0}'. Nullability of type argument '{2}' doesn't match 'notnull' constraint.</target>
+        <target state="translated">'{2}' türü, '{0}' genel türü veya metodu için '{1}' tür parametresi olarak kullanılamıyor. '{2}' tür bağımsız değişkeninin boş değer atanabilirliği, 'notnull' kısıtlamasıyla eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterNotNullConstraint_Title">
         <source>The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</source>
-        <target state="new">The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.</target>
+        <target state="translated">Tür, genel tür veya metot için tür parametresi olarak kullanılamıyor. Tür bağımsız değişkeninin boş değer atanabilirliği, 'notnull' kısıtlamasıyla eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint">
@@ -1694,8 +1775,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">Switch ifadesi tüm olası girişleri işlemiyor (tam kapsamlı değil).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">Switch ifadesi tüm olası girişleri işlemiyor (tam kapsamlı değil).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1709,18 +1790,18 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">Switch ifadesi tüm olası girişleri işlemiyor (tam kapsamlı değil).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">Switch ifadesi tüm olası girişleri işlemiyor (tam kapsamlı değil).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
         <source>Thrown value may be null.</source>
-        <target state="new">Thrown value may be null.</target>
+        <target state="translated">Oluşturulan değer null olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull_Title">
         <source>Thrown value may be null.</source>
-        <target state="new">Thrown value may be null.</target>
+        <target state="translated">Oluşturulan değer null olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
@@ -1745,42 +1826,42 @@
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
         <source>Unboxing a possibly null value.</source>
-        <target state="new">Unboxing a possibly null value.</target>
+        <target state="translated">Olası bir null değeri kutudan çıkarma.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull_Title">
         <source>Unboxing a possibly null value.</source>
-        <target state="new">Unboxing a possibly null value.</target>
+        <target state="translated">Olası bir null değeri kutudan çıkarma.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage">
         <source>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
-        <target state="new">The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <target state="translated">'{0}' parametresine uygulanan EnumeratorCancellationAttribute hiçbir etkiye sahip olmayacak. Öznitelik yalnızca, IAsyncEnumerable döndüren bir async-iterator yönteminde bulunan CancellationToken türündeki bir parametre üzerinde etkilidir</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnconsumedEnumeratorCancellationAttributeUsage_Title">
         <source>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</source>
-        <target state="new">The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</target>
+        <target state="translated">EnumeratorCancellationAttribute hiçbir etkiye sahip olmayacak. Öznitelik yalnızca, IAsyncEnumerable döndüren bir async-iterator yönteminde bulunan CancellationToken türündeki bir parametre üzerinde etkilidir</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter">
         <source>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">Zaman uyumsuz '{0}' yineleyicisinde 'CancellationToken' türünde bir veya daha fazla parametre var ancak bunların hiçbiri 'EnumeratorCancellation' özniteliği ile dekore edilmemiş, bu nedenle oluşturulan 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' öğesindeki iptal belirteci parametresi tüketilmeyecek</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
-        <target state="new">Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</target>
+        <target state="translated">Zaman uyumsuz yineleyici üyesinde 'CancellationToken' türünde bir veya daha fazla parametre var ancak bunların hiçbiri 'EnumeratorCancellation' özniteliği ile dekore edilmemiş, bu nedenle oluşturulan 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' öğesindeki iptal belirteci parametresi tüketilmeyecek</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' is uninitialized.</source>
-        <target state="translated">Boş değer atanamaz {0} '{1}' başlatılmadı.</target>
+        <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
+        <target state="translated">Null değer atanamayan {0} '{1}' başlatılmadı. {0} alanını null değer atanabilir olarak tanımlamayı deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field is uninitialized.</source>
-        <target state="translated">Boş değer atanamaz alan başlatılmadı.</target>
+        <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
+        <target state="translated">Null değer atanamayan alan başlatılmadı. Bunu null değer atanabilir olarak tanımlamayı deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -2100,7 +2181,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceEventInitializer">
         <source>'{0}': instance event in interface cannot have initializer</source>
-        <target state="translated">'{0}': arabirimdeki nesne olayının başlatıcısı olamaz</target>
+        <target state="translated">'{0}': arabirimdeki örnek olayın başlatıcısı olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -2840,7 +2921,7 @@
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
         <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
-        <target state="translated">'{0}' önceden tanımlanmış bir boyuta sahip olmadığından, sizeof yalnızca güvenli olmayan bir bağlamda kullanılabilir</target>
+        <target state="translated">'{0}' öğesi önceden tanımlı boyuta sahip değil, bu nedenle sizeof yalnızca güvenli olmayan bir bağlamda kullanılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
@@ -3480,7 +3561,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
         <source>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</source>
-        <target state="needs-review-translation">Geçersiz kılma ve açık arabirim uygulama yöntemlerinin kısıtlamaları temel yöntemden devralınır ve bu nedenle doğrudan belirtilemez</target>
+        <target state="translated">Geçersiz kılma ve açık arabirim uygulama yöntemlerinin kısıtlamaları temel yöntemden devralınır ve bu nedenle, bir 'class' veya 'struct' kısıtlaması dışında doğrudan belirtilemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbigOverride">
@@ -3684,12 +3765,12 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainFields">
         <source>Interfaces cannot contain instance fields</source>
-        <target state="translated">Arabirimler örnek alanları içeremez</target>
+        <target state="translated">Arabirimler örnek alan içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
         <source>Interfaces cannot contain instance constructors</source>
-        <target state="translated">Arabirimler örnek oluşturucuları içeremez</target>
+        <target state="translated">Arabirimler örnek oluşturucu içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">
@@ -3749,7 +3830,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
         <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="translated">'{0}': açık arabirim bildirimi yalnızca bir sınıf, yapı veya arabirim içinde bildirilebilir</target>
+        <target state="translated">'{0}': açık arabirim bildirimi yalnızca bir sınıf, yapı birimi veya arabirim içinde bildirilebilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -4694,7 +4775,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
         <source>Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</source>
-        <target state="new">Partial method declarations of '{0}' have inconsistent constraints for type parameter '{1}'</target>
+        <target state="translated">'{0}' öğesinin kısmi metot bildirimleri, '{1}' tür parametresi için tutarsız kısıtlamalara sahip</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodToDelegate">
@@ -5403,7 +5484,7 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
         <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="translated">Main yöntemi için belirtilen '{0}', genel olmayan bir sınıf, yapı veya arabirim olmalıdır</target>
+        <target state="translated">Main yöntemi için belirtilen '{0}' genel olmayan sınıf, yapı veya arabirim olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -5802,13 +5883,13 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
-        <source>Expected disable, restore or enable</source>
-        <target state="needs-review-translation">Disable, restore, enable veya safeonly beklendi</target>
+        <source>Expected 'disable' or 'restore'</source>
+        <target state="translated">Beklenen: 'disable' veya 'restore'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
-        <source>Expected disable, restore or enable after #pragma warning</source>
-        <target state="needs-review-translation">#pragma uyarısından sonra disable, restore, enable veya safeonly beklendi</target>
+        <source>Expected 'disable' or 'restore' after #pragma warning</source>
+        <target state="translated">#pragma uyarısından sonra beklenen: 'disable' veya 'restore'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -8061,7 +8142,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
 Birlikte çalışma türü bilgilerini her iki derlemeden de katıştırmak için, her bir derlemeye başvurular için /link kullanın (Birlikte Çalışma Türlerini Katıştır özelliğini True olarak ayarlayın).
 
-Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma Türlerini Katıştır özelliğini False olarak ayarlayın). Bu durumda, birincil birlikte çalışma derlemesi (PIA) birlikte çalışma türü bilgilerini sağlar.</target>
+Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma Türlerini Katıştır özelliğini False olarak ayarlayın). Bu durumda, birincil birlikte çalışma bütünleştirilmiş kodu (PIA), birlikte çalışma türü bilgilerini sağlar.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericsUsedAcrossAssemblies">
@@ -8865,8 +8946,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstantStringTooLong">
-        <source>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</source>
-        <target state="translated">Dize Uzunluğu sabiti geçerli hafıza sınırını aşıyor. Dizeyi birden fazla sabit içine bölmeyi deneyin.</target>
+        <source>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</source>
+        <target state="needs-review-translation">Dize Uzunluğu sabiti geçerli hafıza sınırını aşıyor. Dizeyi birden fazla sabit içine bölmeyi deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleTooFewElements">
@@ -9076,7 +9157,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
         <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Başvuru koşullu işlecinin dalları, bildirim kapsamı uyumsuz olan değişkenlere başvuruda bulunamaz</target>
+        <target state="translated">Başvuru koşullu işlecinin dalları, uyumsuz bildirim kapsamları olan değişkenlere başvuramaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">
@@ -9419,11 +9500,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">Bir desende 'dynamic' türünün kullanılmasına izin verilmiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadDynamicMethodArgDefaultLiteral">
-        <source>Cannot use a default literal as an argument to a dynamically dispatched operation.</source>
-        <target state="translated">Dinamik olarak gönderilen işleme yönelik bağımsız değişken olarak varsayılan bir sabit değer kullanılamaz.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDocumentationMode">
         <source>Provided documentation mode is unsupported or invalid: '{0}'.</source>
         <target state="translated">Sağlanan belge modu desteklenmiyor veya geçersiz: '{0}'.</target>
@@ -9551,7 +9627,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
         <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="translated">'{0}' 'in' genişletme yönteminin ilk parametresi, somut (genel olmayan) bir değer türünde olmalıdır.</target>
+        <target state="translated">'{0}' 'in' genişletme yönteminin ilk parametresi, somut (genel olmayan) bir değer türü olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
@@ -9624,11 +9700,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">':' ilişkilendirmeyi sonlandırdığından koşullu ifade bir dize ilişkilendirmesi içinde doğrudan kullanılamaz. Koşullu ifadeyi parantez içine alın.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DefaultInSwitch">
-        <source>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</source>
-        <target state="translated">'default' varsayılan sabit değeri bir case sabiti olarak geçerli değil. Uygun olan başka bir sabit değeri (ör. '0' veya 'null') kullanın. Varsayılan etiketi yazmak istediyseniz, 'case' olmadan 'default:' kullanın.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
         <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
         <target state="translated">Bir özellikte 'System.Runtime.CompilerServices.FixedBuffer' özniteliğini kullanmayın</target>
@@ -9674,11 +9745,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">Arabirimler dönüştürme, eşitlik veya eşitsizlik işleçleri içeremez</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_DefaultInterfaceImplementation">
-        <source>default interface implementation</source>
-        <target state="translated">varsayılan arabirim uygulaması</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">Hedef çalışma zamanı varsayılan arabirim uygulamasını desteklemiyor.</target>
@@ -9686,27 +9752,27 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
-        <target state="translated">Hedef çalışma zamanı varsayılan arabirim uygulamasını desteklemediğinden '{0}', '{2}' türünde '{1}' arabirim üyesini uygulayamıyor.</target>
+        <target state="translated">Hedef çalışma zamanı varsayılan arabirim uygulamasını desteklemediğinden '{0}', '{1}' arabirim üyesini '{2}' türünde uygulayamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">C# {1} sürümünde, bu öğe için '{0}' değiştiricisi geçerli değil. Lütfen '{2}' veya üzeri bir dil sürümü kullanın.</target>
+        <target state="translated">'{0}' değiştiricisi bu öğe için C# {1} sürümünde geçerli değil. Lütfen '{2}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">'{0}', '{1}' arabirim üyesini uygulamaz. '{2}', ortak olmayan bir üyeyi örtük olarak uygulayamaz.</target>
+        <target state="translated">'{0}, '{1}' arabirim üyesini uygulamıyor. '{2}' genel olmayan bir üyeyi örtük olarak uygulayamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
-        <target state="translated">'{0}' arabirim öğesinin en belirgin uygulaması yoktur. Ne '{1}' ne de '{2}' en belirgindir.</target>
+        <target state="translated">'{0}' arabirim üyesinin en belirgin bir uygulaması yok. Ne '{1} ', ne de '{2}' en belirgin değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">C# {4} sürümünde '{3}' özelliği kullanılamadığından, '{0}' tarafından '{2}' türünde '{1}' arabirim üyesi uygulanamaz. Lütfen '{5}' veya üzeri bir dil sürümü kullanın.</target>
+        <target state="translated">'{3}' özelliği C# {4} sürümünde kullanılamadığından '{0}', '{2}' türündeki '{1}' arabirim üyesini uygulayamaz. Lütfen '{5}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
     </body>

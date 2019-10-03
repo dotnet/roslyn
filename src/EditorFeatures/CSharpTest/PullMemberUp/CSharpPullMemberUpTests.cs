@@ -29,22 +29,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
             string initialMarkup,
             TestParameters parameters = default)
         {
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+            if (actions.Length == 1)
             {
-                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
-                if (actions.Length == 1)
-                {
-                    // The dialog shows up, not quick action
-                    Assert.Equal(actions.First().Title, FeaturesResources.Pull_members_up_to_base_type);
-                }
-                else if (actions.Length > 1)
-                {
-                    Assert.True(false, "Pull Members Up is provided via quick action");
-                }
-                else
-                {
-                    Assert.True(true);
-                }
+                // The dialog shows up, not quick action
+                Assert.Equal(actions.First().Title, FeaturesResources.Pull_members_up_to_base_type);
+            }
+            else if (actions.Length > 1)
+            {
+                Assert.True(false, "Pull Members Up is provided via quick action");
+            }
+            else
+            {
+                Assert.True(true);
             }
         }
 
@@ -2266,5 +2264,713 @@ namespace PushUpTest
         }
 
         #endregion Dialog
+
+        #region Selections and caret position
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestArgsIsPartOfHeader()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [Test]
+        [Test2]
+        void C([||])
+        {
+        }
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+        [Test]
+        [Test2]
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringCaretBeforeAttributes()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [||][Test]
+        [Test2]
+        void C()
+        {
+        }
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+        [Test]
+        [Test2]
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMissingRefactoringCaretBetweenAttributes()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [Test]
+        [||][Test2]
+        void C()
+        {
+        }
+    }
+}";
+            await TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelectionWithAttributes1()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [Test]
+        [|void C()
+        {
+        }|]
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+        [Test]
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelectionWithAttributes2()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [|[Test]
+        void C()
+        {
+        }|]
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+        [Test]
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelectionWithAttributes3()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [Test][|
+        void C()
+        {
+        }
+        |]
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+        [Test]
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMissingRefactoringInAttributeList()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [[||]Test]
+        void C()
+        {
+        }
+    }
+}";
+            await TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMissingRefactoringSelectionAttributeList()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [|[Test]
+        [Test2]|]
+        void C()
+        {
+        }
+    }
+}";
+            await TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMissingRefactoringCaretInAttributeList()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [[||]Test]
+        [Test2]
+        void C()
+        {
+        }
+    }
+}";
+            await TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMissingRefactoringCaretBetweenAttributeLists()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [Test]
+        [||][Test2]
+        void C()
+        {
+        }
+    }
+}";
+            await TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMissingRefactoringSelectionAttributeList2()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [|[Test]|]
+        [Test2]
+        void C()
+        {
+        }
+    }
+}";
+            await TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestMissingRefactoringSelectAttributeList()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [|[Test]|]
+        void C()
+        {
+        }
+    }
+}";
+            await TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringCaretLocAfterAttributes1()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [Test]
+        [||]void C()
+        {
+        }
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    public class A
+    {
+        [Test]
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringCaretLocAfterAttributes2()
+        {
+            var testText = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [Test]
+        // Comment1
+        [Test2]
+        // Comment2
+        [||]void C()
+        {
+        }
+    }
+}";
+            var expected = @"
+using System;
+
+namespace PushUpTest
+{
+    class TestAttribute : Attribute { }
+    class Test2Attribute : Attribute { }
+    public class A
+    {
+        [Test]
+        // Comment1
+        [Test2]
+        // Comment2
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringCaretLoc1()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [||]void C()
+        {
+        }
+    }
+}";
+            var expected = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelection()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class A
+    {
+    }
+
+    public class B : A
+    {
+        [|void C()
+        {
+        }|]
+    }
+}";
+            var expected = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelectionComments()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class A
+    {
+    }
+
+    public class B : A
+    {  [|
+        // Comment1
+        void C()
+        {
+        }|]
+    }
+}";
+            var expected = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        // Comment1
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelectionComments2()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class A
+    {
+    }
+
+    public class B : A
+    {  
+        [|/// <summary>
+        /// Test
+        /// </summary>
+        void C()
+        {
+        }|]
+    }
+}";
+            var expected = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        /// <summary>
+        /// Test
+        /// </summary>
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        public async Task TestRefactoringSelectionComments3()
+        {
+            var testText = @"
+namespace PushUpTest
+{
+    public class A
+    {
+    }
+
+    public class B : A
+    {  
+        /// <summary>
+        [|/// Test
+        /// </summary>
+        void C()
+        {
+        }|]
+    }
+}";
+            var expected = @"
+namespace PushUpTest
+{
+    public class A
+    {
+        /// <summary>
+        /// Test
+        /// </summary>
+        void C()
+        {
+        }
+    }
+
+    public class B : A
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        #endregion
     }
 }

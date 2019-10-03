@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public class NoOpClient : RemoteHostClient
         {
-            public NoOpClient(Workspace workspace) :
-                base(workspace)
+            public NoOpClient(Workspace workspace)
+                : base(workspace)
             {
             }
 

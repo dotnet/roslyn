@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // PERF: Avoid parsing XML unless the text contains the word "completionlist".
-            string xmlText = type.GetDocumentationCommentXml();
+            var xmlText = type.GetDocumentationCommentXml();
             if (xmlText == null || !xmlText.Contains(DocumentationCommentXmlNames.CompletionListElementName))
             {
                 return null;

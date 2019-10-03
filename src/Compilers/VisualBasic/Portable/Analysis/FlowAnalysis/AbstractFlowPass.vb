@@ -691,6 +691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        <DebuggerStepThrough>
         Private Shadows Function VisitWithStackGuard(node As BoundNode) As BoundNode
             Dim expression = TryCast(node, BoundExpression)
 
@@ -701,6 +702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MyBase.Visit(node)
         End Function
 
+        <DebuggerStepThrough>
         Protected Overrides Function VisitExpressionWithoutStackGuard(node As BoundExpression) As BoundExpression
             Return DirectCast(MyBase.Visit(node), BoundExpression)
         End Function

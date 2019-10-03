@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -55,7 +56,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
-        private bool ShouldIncludeInTargetTypedCompletionList(ISymbol symbol, ImmutableArray<ITypeSymbol> inferredTypes, SemanticModel semanticModel, int position)
+        /// <param name="inferredTypes">Should not inlcude nullability information</param>
+        private bool ShouldIncludeInTargetTypedCompletionList(
+            ISymbol symbol,
+            ImmutableArray<ITypeSymbol> inferredTypes,
+            SemanticModel semanticModel,
+            int position,
+            Dictionary<ITypeSymbol, bool> typeConvertibilityCache)
         {
             // When searching for identifiers of type C, exclude the symbol for the `C` type itself.
             if (symbol.Kind == SymbolKind.NamedType)
@@ -86,9 +93,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
-            foreach (var inferredType in inferredTypes)
+            type = type.WithoutNullability();
+
+            if (typeConvertibilityCache.TryGetValue(type, out var isConvertible))
             {
-                if (semanticModel.Compilation.ClassifyCommonConversion(type.WithoutNullability(), inferredType.WithoutNullability()).IsImplicit)
+                return isConvertible;
+            }
+
+            typeConvertibilityCache[type] = IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
+            return typeConvertibilityCache[type];
+        }
+
+        private bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, ImmutableArray<ITypeSymbol> targetTypes)
+        {
+            foreach (var targetType in targetTypes)
+            {
+                if (compilation.ClassifyCommonConversion(sourceType, targetType).IsImplicit)
                 {
                     return true;
                 }
@@ -107,7 +127,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect,
-            ImmutableArray<ITypeSymbol> inferredTypes)
+            Lazy<ImmutableArray<ITypeSymbol>> inferredTypes,
+            TelemetryCounter telemetryCounter)
         {
             var symbolGroups = from symbol in symbols
                                let texts = GetDisplayAndSuffixAndInsertionText(symbol, contextLookup(symbol))
@@ -115,6 +136,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                select g;
 
             var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>();
 
             foreach (var symbolGroup in symbolGroups)
             {
@@ -125,15 +147,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
+                    var tick = Environment.TickCount;
+                    var inferredTypesWithoutNullability = inferredTypes.Value.SelectAsArray(t => t.WithoutNullability());
+
                     foreach (var symbol in symbolGroup)
                     {
                         var syntaxContext = contextLookup(symbol);
-                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypes, syntaxContext.SemanticModel, syntaxContext.Position))
+                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypesWithoutNullability, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
                         {
                             item = item.AddTag(WellKnownTags.TargetTypeMatch);
                             break;
                         }
                     }
+
+                    telemetryCounter.AddTick(Environment.TickCount - tick);
                 }
 
                 itemListBuilder.Add(item);
@@ -240,13 +267,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 context.IsExclusive = IsExclusive();
 
                 using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
+                using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Workspace)))
                 {
                     var syntaxContext = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
+                    var inferredTypes = new Lazy<ImmutableArray<ITypeSymbol>>(() =>
+                    {
+                        var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
+                        return typeInferenceService.InferTypes(syntaxContext.SemanticModel, position, cancellationToken);
+                    });
 
-                    var regularItems = await GetItemsWorkerAsync(syntaxContext, document, position, options, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var regularItems = await GetItemsWorkerAsync(syntaxContext, document, position, inferredTypes, options, preselect: false, telemetryCounter, cancellationToken).ConfigureAwait(false);
                     context.AddItems(regularItems);
 
-                    var preselectedItems = await GetItemsWorkerAsync(syntaxContext, document, position, options, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var preselectedItems = await GetItemsWorkerAsync(syntaxContext, document, position, inferredTypes, options, preselect: true, telemetryCounter, cancellationToken).ConfigureAwait(false);
                     context.AddItems(preselectedItems);
                 }
             }
@@ -257,19 +290,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            SyntaxContext context, Document document, int position, OptionSet options, bool preselect, CancellationToken cancellationToken)
+            SyntaxContext context, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options, bool preselect, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
         {
             var relatedDocumentIds = GetRelatedDocumentIds(document, position);
 
             options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
-            var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
-            var inferredTypes = typeInferenceService.InferTypes(context.SemanticModel, position, cancellationToken);
-
             if (relatedDocumentIds.IsEmpty)
             {
                 var itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
-                return CreateItems(itemsForCurrentDocument, _ => context, invalidProjectMap: null, totalProjects: null, preselect, inferredTypes);
+                return CreateItems(itemsForCurrentDocument, _ => context, invalidProjectMap: null, totalProjects: null, preselect, inferredTypes, telemetryCounter);
             }
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
@@ -277,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
-            return CreateItems(symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, inferredTypes);
+            return CreateItems(symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, inferredTypes, telemetryCounter);
         }
 
         private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)
@@ -334,15 +364,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var result = new Dictionary<ISymbol, SyntaxContext>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
             // We don't care about assembly identity when creating the union.
-            foreach (var linkedContextSymbolList in linkedContextSymbolLists)
+            foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
                 // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
                 // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
-                foreach (var symbol in linkedContextSymbolList.symbols.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
+                foreach (var symbol in symbols.GroupBy(s => new { s.Name, s.Kind }).Select(g => g.First()))
                 {
                     if (!result.ContainsKey(symbol))
                     {
-                        result.Add(symbol, linkedContextSymbolList.syntaxContext);
+                        result.Add(symbol, syntaxContext);
                     }
                 }
             }
@@ -407,12 +437,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var missingSymbols = new Dictionary<ISymbol, List<ProjectId>>(LinkedFilesSymbolEquivalenceComparer.Instance);
 
-            foreach (var linkedContextSymbolList in linkedContextSymbolLists)
+            foreach (var (documentId, syntaxContext, symbols) in linkedContextSymbolLists)
             {
-                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(linkedContextSymbolList.symbols, LinkedFilesSymbolEquivalenceComparer.Instance);
+                var symbolsMissingInLinkedContext = symbolToContext.Keys.Except(symbols, LinkedFilesSymbolEquivalenceComparer.Instance);
                 foreach (var missingSymbol in symbolsMissingInLinkedContext)
                 {
-                    missingSymbols.GetOrAdd(missingSymbol, m => new List<ProjectId>()).Add(linkedContextSymbolList.documentId.ProjectId);
+                    missingSymbols.GetOrAdd(missingSymbol, m => new List<ProjectId>()).Add(documentId.ProjectId);
                 }
             }
 
@@ -439,6 +469,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual string GetInsertionText(CompletionItem item, char ch)
         {
             return SymbolCompletionItem.GetInsertionText(item);
+        }
+
+        // This is used to decide which provider we'd collect target type completion telemetry from.
+        protected virtual bool ShouldCollectTelemetryForTargetTypeCompletion => false;
+
+        private class TelemetryCounter : IDisposable
+        {
+            private readonly bool _shouldReport;
+            private int _tick;
+
+            public TelemetryCounter(bool shouldReport)
+            {
+                _shouldReport = shouldReport;
+            }
+
+            public void AddTick(int tick)
+            {
+                _tick += tick;
+            }
+
+            public void Dispose()
+            {
+                if (_shouldReport)
+                {
+                    CompletionProvidersLogger.LogTargetTypeCompletionTicksDataPoint(_tick);
+                }
+            }
         }
     }
 }

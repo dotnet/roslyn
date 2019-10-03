@@ -676,7 +676,7 @@ class B : A
                 // A is unrecognized since there were no direct references to AS1 or AS2.
                 testData = new CompilationTestData();
                 context.CompileExpression("new A()", out error, testData);
-                Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal("error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)", error);
                 testData = new CompilationTestData();
                 // B should be resolved to BS2.
                 context.CompileExpression("new B()", out error, testData);
@@ -743,7 +743,7 @@ IL_0005:  ret
                 // A is unrecognized since there were no direct references to AS1 or AS2.
                 testData = new CompilationTestData();
                 context.CompileExpression("new A()", out error, testData);
-                Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal("error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)", error);
                 testData = new CompilationTestData();
                 // B should be resolved to BS2.
                 context.CompileExpression("new B()", out error, testData);
@@ -1536,9 +1536,9 @@ namespace System
                 _objectType = new NamespaceTypeDefinitionNoBase(objectType);
             }
 
-            internal override IEnumerable<INamespaceTypeDefinition> GetTopLevelTypesCore(EmitContext context)
+            public override IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
             {
-                foreach (var type in base.GetTopLevelTypesCore(context))
+                foreach (var type in base.GetTopLevelSourceTypeDefinitions(context))
                 {
                     yield return (type == _objectType.UnderlyingType) ? _objectType : type;
                 }

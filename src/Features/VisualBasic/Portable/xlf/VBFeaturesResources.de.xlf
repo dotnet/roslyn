@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
-        <target state="translated">Schatten hinzufügen</target>
+        <target state="translated">"Shadows" hinzufügen</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="If_statement_can_be_simplified">
@@ -95,11 +95,6 @@
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">Unnötige Import-Direktiven entfernen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_Imports">
-        <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -342,16 +337,11 @@
         <target state="translated">&lt;neue Variable&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">Import-Direktiven &amp;entfernen und sortieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
         <source>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</source>
         <target state="translated">Erstellt eine Delegatprozedurinstanz, die auf die angegebene Prozedur verweist.
-AddressOf &lt;Prozedurname&gt;</target>
+AddressOf &lt;procedureName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Indicates_that_an_external_procedure_has_another_name_in_its_DLL">
@@ -902,7 +892,7 @@ Iterator Function(&lt;Parameterliste&gt;) As IEnumerable(Of &lt;T&gt;)</target>
         <source>Determines the run-time type of an object reference variable and compares it to a data type. Returns True or False depending, on whether the two types are compatible.
 &lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</source>
         <target state="translated">Bestimmt den Laufzeittyp einer Objektverweisvariablen und vergleicht ihn mit einem Datentyp. Gibt True oder False zurück, abhängig davon, ob die beiden Typen kompatibel sind.
-&lt;Ergebnis&gt; = TypeOf &lt;Objektausdruck&gt; Is &lt;Typname&gt;</target>
+&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_Specifies_that_Visual_Basic_should_marshal_all_strings_to_Unicode_values_in_a_call_into_an_external_procedure_and_should_look_up_the_procedure_without_modifying_its_name">
@@ -1365,7 +1355,7 @@ Option Strict {On | Off}</target>
         <source>Ensures that multiple threads do not execute the statement block at the same time.
 SyncLock &lt;object&gt;...End Synclock</source>
         <target state="translated">Stellt sicher, dass der Anweisungsblock nicht von mehreren Threads gleichzeitig ausgeführt wird.
-SyncLock &lt;Objekt&gt;...End Synclock</target>
+SyncLock &lt;object&gt;...End Synclock</target>
         <note />
       </trans-unit>
       <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
@@ -1431,14 +1421,14 @@ Using &lt;Ressource1&gt;[, &lt;Ressource2&gt;]...End Using</target>
         <source>Specifies the declaration of property initializations in an object initializer.
 New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</source>
         <target state="translated">Gibt die Deklaration von Eigenschafteninitialisierungen in einem Objektinitialisierer an.
-New &lt;Typname&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</target>
+New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</target>
         <note />
       </trans-unit>
       <trans-unit id="Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With">
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
         <target state="translated">Gibt eine Reihe von Anweisungen zurück, die auf ein Objekt oder eine Struktur verweisen.
-With &lt;Objekt&gt;...End With</target>
+With &lt;object&gt;...End With</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
@@ -1739,7 +1729,7 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       </trans-unit>
       <trans-unit id="Add_Overloads">
         <source>Add 'Overloads'</source>
-        <target state="translated">Überladungen hinzufügen</target>
+        <target state="translated">"Overloads" hinzufügen</target>
         <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">

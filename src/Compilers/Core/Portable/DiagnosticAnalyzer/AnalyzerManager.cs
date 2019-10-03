@@ -235,7 +235,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerExecutor analyzerExecutor)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
-            return analyzerExecutionContext.GetOrComputeDescriptors(analyzer, analyzerExecutor);
+            return analyzerExecutionContext.GetOrComputeDiagnosticDescriptors(analyzer, analyzerExecutor);
+        }
+
+        /// <summary>
+        /// Return <see cref="DiagnosticSuppressor.SupportedSuppressions"/> of given <paramref name="suppressor"/>.
+        /// </summary>
+        public ImmutableArray<SuppressionDescriptor> GetSupportedSuppressionDescriptors(
+            DiagnosticSuppressor suppressor,
+            AnalyzerExecutor analyzerExecutor)
+        {
+            var analyzerExecutionContext = GetAnalyzerExecutionContext(suppressor);
+            return analyzerExecutionContext.GetOrComputeSuppressionDescriptors(suppressor, analyzerExecutor);
         }
 
         internal bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer, AnalyzerExecutor analyzerExecutor)
@@ -297,10 +308,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
 
-                // If the user said something about it, that overrides the author.
+                // Compilation wide user settings from ruleset/nowarn/warnaserror overrides the analyzer author.
                 if (diagnosticOptions.TryGetValue(diag.Id, out var severity))
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
+                }
+
+                // Editorconfig user settings override compilation wide settings.
+                if (isSuppressed &&
+                    isEnabledWithAnalyzerConfigOptions(diag.Id, analyzerExecutor.Compilation))
+                {
+                    isSuppressed = false;
                 }
 
                 if (!isSuppressed)
@@ -309,7 +327,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            if (analyzer is DiagnosticSuppressor suppressor)
+            {
+                foreach (var suppressionDescriptor in GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor))
+                {
+                    if (!suppressionDescriptor.IsDisabled(options))
+                    {
+                        return false;
+                    }
+                }
+            }
+
             return true;
+
+            static bool isEnabledWithAnalyzerConfigOptions(string diagnosticId, Compilation compilation)
+            {
+                if (compilation != null)
+                {
+                    foreach (var tree in compilation.SyntaxTrees)
+                    {
+                        if (tree.DiagnosticOptions.TryGetValue(diagnosticId, out var configuredValue) &&
+                            configuredValue != ReportDiagnostic.Suppress)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
         }
 
         internal static bool HasNotConfigurableTag(IEnumerable<string> customTags)

@@ -401,7 +401,7 @@ G();
 
             Assert.Equal(1, members.Length);
             Assert.Equal("Goo", members[0].Name);
-            Assert.IsAssignableFrom(typeof(NamespaceSymbol), members[0]);
+            Assert.IsAssignableFrom<NamespaceSymbol>(members[0]);
             var ns = (NamespaceSymbol)members[0];
             members = ns.GetMembers();
 
@@ -595,7 +595,7 @@ this[1]
                     var type = (NamedTypeSymbol)symbol;
                     Assert.False(type.IsScriptClass);
                     Assert.False(type.IsSubmissionClass);
-                    Assert.NotEqual(type.TypeKind, TypeKind.Submission);
+                    Assert.NotEqual(TypeKind.Submission, type.TypeKind);
                 }
             }
 

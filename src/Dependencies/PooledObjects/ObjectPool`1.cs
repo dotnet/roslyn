@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             // Note that the initial read is optimistically not synchronized. That is intentional. 
             // We will interlock only when we have a candidate. in a worst case we may miss some
             // recently returned objects. Not a big deal.
-            T inst = _firstItem;
+            var inst = _firstItem;
             if (inst == null || inst != Interlocked.CompareExchange(ref _firstItem, null, inst))
             {
                 inst = AllocateSlow();
@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             var items = _items;
 
-            for (int i = 0; i < items.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
                 // Note that the initial read is optimistically not synchronized. That is intentional. 
                 // We will interlock only when we have a candidate. in a worst case we may miss some
                 // recently returned objects. Not a big deal.
-                T inst = items[i].Value;
+                var inst = items[i].Value;
                 if (inst != null)
                 {
                     if (inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private void FreeSlow(T obj)
         {
             var items = _items;
-            for (int i = 0; i < items.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
                 if (items[i].Value == null)
                 {
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             Debug.Assert(_firstItem != obj, "freeing twice?");
 
             var items = _items;
-            for (int i = 0; i < items.Length; i++)
+            for (var i = 0; i < items.Length; i++)
             {
                 var value = items[i].Value;
                 if (value == null)

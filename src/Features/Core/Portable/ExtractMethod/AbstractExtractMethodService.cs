@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            options = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var validator = this.CreateSelectionValidator(semanticDocument, textSpan, options);
+            var validator = CreateSelectionValidator(semanticDocument, textSpan, options);
 
             var selectionResult = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
             if (!selectionResult.ContainsValidContext)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             cancellationToken.ThrowIfCancellationRequested();
 
             // extract method
-            var extractor = this.CreateMethodExtractor((TResult)selectionResult);
+            var extractor = CreateMethodExtractor((TResult)selectionResult);
 
             return await extractor.ExtractMethodAsync(cancellationToken).ConfigureAwait(false);
         }

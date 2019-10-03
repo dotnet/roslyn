@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                if (!DisposeAnalysisHelper.TryCreate(compilationContext.Compilation, out DisposeAnalysisHelper disposeAnalysisHelper))
+                if (!DisposeAnalysisHelper.TryCreate(compilationContext.Compilation, out var disposeAnalysisHelper))
                 {
                     return;
                 }
@@ -89,7 +89,9 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
             // Compute dispose dataflow analysis result for the operation block.
             if (disposeAnalysisHelper.TryGetOrComputeResult(operationBlockContext, containingMethod,
-                s_disposeObjectsBeforeLosingScopeRule, trackInstanceFields: false,
+                s_disposeObjectsBeforeLosingScopeRule,
+                InterproceduralAnalysisKind.ContextSensitive,
+                trackInstanceFields: false,
                 out var disposeAnalysisResult, out var pointsToAnalysisResult,
                 interproceduralAnalysisPredicateOpt))
             {
@@ -98,10 +100,17 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 try
                 {
                     // Compute diagnostics for undisposed objects at exit block.
-                    var exitBlock = disposeAnalysisResult.ControlFlowGraph.GetExit();
+                    var exitBlock = disposeAnalysisResult.ControlFlowGraph.ExitBlock();
                     var disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
                     ComputeDiagnostics(disposeDataAtExit, notDisposedDiagnostics, mayBeNotDisposedDiagnostics,
                         disposeAnalysisResult, pointsToAnalysisResult);
+
+                    if (disposeAnalysisResult.ControlFlowGraph.OriginalOperation.HasAnyOperationDescendant(o => o.Kind == OperationKind.None))
+                    {
+                        // Workaround for https://github.com/dotnet/roslyn/issues/32100
+                        // Bail out in presence of OperationKind.None - not implemented IOperation.
+                        return;
+                    }
 
                     // Report diagnostics preferring *not* disposed diagnostics over may be not disposed diagnostics
                     // and avoiding duplicates.
@@ -161,8 +170,8 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
             {
                 foreach (var kvp in disposeData)
                 {
-                    AbstractLocation location = kvp.Key;
-                    DisposeAbstractValue disposeValue = kvp.Value;
+                    var location = kvp.Key;
+                    var disposeValue = kvp.Value;
 
                     // Ignore non-disposable locations and locations without a Creation operation.
                     if (disposeValue.Kind == DisposeAbstractValueKind.NotDisposable ||

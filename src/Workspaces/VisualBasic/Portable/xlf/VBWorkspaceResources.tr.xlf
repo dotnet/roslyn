@@ -12,6 +12,16 @@
         <target state="translated">Yalnızca öznitelikler, ifadeler veya deyimler açık hale getirilebilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_and_Sort_Imports">
+        <source>R&amp;emove and Sort Imports</source>
+        <target state="translated">Import'ları Kaldır &amp;ve Sırala</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">İçeri Aktarmaları &amp;Sırala</target>
+        <note />
+      </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>
         <target state="translated">&lt;event&gt;</target>

@@ -661,7 +661,7 @@ public class A {
 ";
             var comp = CreateCompilation(text);
             var v = comp.GlobalNamespace.GetTypeMembers("MyEnum", 0).Single();
-            Assert.NotEqual(null, v);
+            Assert.NotNull(v);
             Assert.Equal(Accessibility.Public, v.DeclaredAccessibility);
 
             var fields = v.GetMembers().OfType<FieldSymbol>().ToList();

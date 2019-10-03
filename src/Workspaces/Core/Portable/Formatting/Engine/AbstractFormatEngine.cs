@@ -251,15 +251,16 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            void beginningOfTreeTriviaInfoApplier(int i, TokenStream ts, TriviaData info)
-            {
-                ts.ApplyBeginningOfTreeChange(info);
-            }
-
             // remove all leading indentation
             var triviaInfo = context.TokenStream.GetTriviaDataAtBeginningOfTree().WithIndentation(0, context, _formattingRules, cancellationToken);
 
-            triviaInfo.Format(context, _formattingRules, beginningOfTreeTriviaInfoApplier, cancellationToken);
+            triviaInfo.Format(context, _formattingRules, BeginningOfTreeTriviaInfoApplier, cancellationToken);
+
+            return;
+
+            // local functions
+            static void BeginningOfTreeTriviaInfoApplier(int i, TokenStream ts, TriviaData info)
+                => ts.ApplyBeginningOfTreeChange(info);
         }
 
         private void ApplyEndOfTreeTriviaOperation(
@@ -270,40 +271,54 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            void endOfTreeTriviaInfoApplier(int i, TokenStream ts, TriviaData info)
+            if (context.IsFormattingDisabled(new TextSpan(context.TokenStream.LastTokenInStream.Token.SpanStart, 0)))
             {
-                ts.ApplyEndOfTreeChange(info);
+                // Formatting is suppressed in the document, and not restored before the end
+                return;
             }
 
             // remove all trailing indentation
             var triviaInfo = context.TokenStream.GetTriviaDataAtEndOfTree().WithIndentation(0, context, _formattingRules, cancellationToken);
 
-            triviaInfo.Format(context, _formattingRules, endOfTreeTriviaInfoApplier, cancellationToken);
+            triviaInfo.Format(context, _formattingRules, EndOfTreeTriviaInfoApplier, cancellationToken);
+
+            return;
+
+            // local functions
+            static void EndOfTreeTriviaInfoApplier(int i, TokenStream ts, TriviaData info)
+                => ts.ApplyEndOfTreeChange(info);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures = false)]
         private void ApplyTriviaOperations(FormattingContext context, CancellationToken cancellationToken)
         {
-            void regularApplier(int tokenPairIndex, TokenStream ts, TriviaData info)
+            for (var i = 0; i < context.TokenStream.TokenCount - 1; i++)
             {
-                ts.ApplyChange(tokenPairIndex, info);
+                cancellationToken.ThrowIfCancellationRequested();
+                TriviaFormatter(i, context, _formattingRules, cancellationToken);
             }
 
-            void triviaFormatter(int tokenPairIndex, FormattingContext ctx, ChainedFormattingRules formattingRules, CancellationToken ct)
+            return;
+
+            // local functions
+
+            static void RegularApplier(int tokenPairIndex, TokenStream ts, TriviaData info)
+                => ts.ApplyChange(tokenPairIndex, info);
+
+            static void TriviaFormatter(int tokenPairIndex, FormattingContext ctx, ChainedFormattingRules formattingRules, CancellationToken ct)
             {
+                if (ctx.IsFormattingDisabled(tokenPairIndex))
+                {
+                    return;
+                }
+
                 var triviaInfo = ctx.TokenStream.GetTriviaData(tokenPairIndex);
                 triviaInfo.Format(
                     ctx,
                     formattingRules,
-                    (int tokenPairIndex1, TokenStream ts, TriviaData info) => regularApplier(tokenPairIndex1, ts, info),
+                    (tokenPairIndex1, ts, info) => RegularApplier(tokenPairIndex1, ts, info),
                     ct,
                     tokenPairIndex);
-            }
-
-            for (var i = 0; i < context.TokenStream.TokenCount - 1; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                triviaFormatter(i, context, _formattingRules, cancellationToken);
             }
         }
 
@@ -408,16 +423,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             using (Logger.LogBlock(FunctionId.Formatting_ApplySpaceAndLine, cancellationToken))
             {
-                // go through each token pairs and apply operations. operations don't need to be applied in order
-                var partitioner = new Partitioner(context, tokenOperations);
-
-                // always create task 1 more than current processor count
-                var partitions = partitioner.GetPartitions(partitionCount: 1, cancellationToken);
-
-                foreach (var partition in partitions)
+                // go through each token pairs and apply operations
+                foreach (var operationPair in tokenOperations)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    partition.Do(operationPair => ApplySpaceAndWrappingOperationsBody(context, operationPair, applier, cancellationToken));
+                    ApplySpaceAndWrappingOperationsBody(context, operationPair, applier, cancellationToken);
                 }
             }
         }

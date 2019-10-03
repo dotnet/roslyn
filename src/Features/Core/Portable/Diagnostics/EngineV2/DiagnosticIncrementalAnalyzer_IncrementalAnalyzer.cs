@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // we don't have actual snapshot (we have no idea what sources out of proc build has picked up)
                     // so we might be out of sync.
                     // example of such cases will be changing anything about solution while building is going on.
-                    // it can be user explict actions such as unloading project, deleting a file, but also it can be 
+                    // it can be user explicit actions such as unloading project, deleting a file, but also it can be 
                     // something project system or roslyn workspace does such as populating workspace right after
                     // solution is loaded.
                     continue;
@@ -478,33 +478,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using (var pooledObject = SharedPools.Default<Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>>().GetPooledObject())
+                using var pooledObject = SharedPools.Default<Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>>().GetPooledObject();
+
+                var containsData = false;
+                foreach (var analyzer in analyzerDriverOpt.Analyzers)
                 {
-                    var containsData = false;
-                    foreach (var analyzer in analyzerDriverOpt.Analyzers)
+                    var telemetryInfo = await analyzerDriverOpt.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    if (!containsData && telemetryInfo.ExecutionTime.Ticks > 0)
                     {
-                        var telemetryInfo = await analyzerDriverOpt.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                        if (!containsData && telemetryInfo.ExecutionTime.Ticks > 0)
-                        {
-                            // this is unfortunate tweak due to how GetAnalyzerTelemetryInfoAsync works when analyzers are asked
-                            // one by one rather than in bulk.
-                            containsData = true;
-                        }
-
-                        pooledObject.Object.Add(analyzer, telemetryInfo);
+                        // this is unfortunate tweak due to how GetAnalyzerTelemetryInfoAsync works when analyzers are asked
+                        // one by one rather than in bulk.
+                        containsData = true;
                     }
 
-                    if (!containsData)
-                    {
-                        // looks like there is no new data from driver. skip reporting.
-                        return;
-                    }
-
-                    await client.TryRunCodeAnalysisRemoteAsync(
-                        nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
-                        new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(Owner), /* unit count */ 1 },
-                        cancellationToken).ConfigureAwait(false);
+                    pooledObject.Object.Add(analyzer, telemetryInfo);
                 }
+
+                if (!containsData)
+                {
+                    // looks like there is no new data from driver. skip reporting.
+                    return;
+                }
+
+                await client.TryRunCodeAnalysisRemoteAsync(
+                    nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
+                    new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(Owner), /* unit count */ 1 },
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
             {

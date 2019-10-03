@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Completion
     [DebuggerDisplay("{DisplayText}")]
     public sealed class CompletionItem : IComparable<CompletionItem>
     {
+        private readonly string _filterText;
+
         /// <summary>
         /// The text that is displayed to the user.
         /// </summary>
@@ -37,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The text used to determine if the item matches the filter and is show in the list.
         /// This is often the same as <see cref="DisplayText"/> but may be different in certain circumstances.
         /// </summary>
-        public string FilterText { get; }
+        public string FilterText => _filterText ?? DisplayText;
+
+        internal bool HasDifferentFilterText => _filterText != null;
 
         /// <summary>
         /// The text used to determine the order that the item appears in the list.
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// be short as it will show up in the UI.  Display will present this in a way to distinguish
         /// this from the normal text (for example, by fading out and right-aligning).
         /// </summary>
-        internal string InlineDescription { get; }
+        public string InlineDescription { get; }
 
         /// <summary>
         /// The span of the syntax element associated with this item.
@@ -85,14 +89,12 @@ namespace Microsoft.CodeAnalysis.Completion
         internal string ProviderName { get; set; }
 
         /// <summary>
-        /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
-        /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
-        /// other data correspodning to this item.
-        ///
-        /// TODO: Revisit the approach we used for caching VS items.
-        ///       https://github.com/dotnet/roslyn/issues/35160
+        /// The automation text to use when narrating the completion item. If set to
+        /// null, narration will use the <see cref="DisplayText"/> instead.
         /// </summary>
-        internal bool IsCached { get; set; }
+        internal string AutomationText { get; set; }
+
+        internal CompletionItemFlags Flags { get; set; }
 
         private CompletionItem(
             string displayText,
@@ -106,16 +108,20 @@ namespace Microsoft.CodeAnalysis.Completion
             string displayTextSuffix,
             string inlineDescription)
         {
-            this.DisplayText = displayText ?? "";
-            this.DisplayTextPrefix = displayTextPrefix ?? "";
-            this.DisplayTextSuffix = displayTextSuffix ?? "";
-            this.FilterText = filterText ?? this.DisplayText;
-            this.SortText = sortText ?? this.DisplayText;
-            this.InlineDescription = inlineDescription ?? "";
-            this.Span = span;
-            this.Properties = properties ?? ImmutableDictionary<string, string>.Empty;
-            this.Tags = tags.NullToEmpty();
-            this.Rules = rules ?? CompletionItemRules.Default;
+            DisplayText = displayText ?? "";
+            DisplayTextPrefix = displayTextPrefix ?? "";
+            DisplayTextSuffix = displayTextSuffix ?? "";
+            SortText = sortText ?? DisplayText;
+            InlineDescription = inlineDescription ?? "";
+            Span = span;
+            Properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            Tags = tags.NullToEmpty();
+            Rules = rules ?? CompletionItemRules.Default;
+
+            if (!DisplayText.Equals(filterText, StringComparison.Ordinal))
+            {
+                _filterText = filterText;
+            }
         }
 
         // binary back compat overload
@@ -215,27 +221,27 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> displayTextSuffix = default,
             Optional<string> inlineDescription = default)
         {
-            var newSpan = span.HasValue ? span.Value : this.Span;
-            var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;
-            var newFilterText = filterText.HasValue ? filterText.Value : this.FilterText;
-            var newSortText = sortText.HasValue ? sortText.Value : this.SortText;
-            var newInlineDescription = inlineDescription.HasValue ? inlineDescription.Value : this.InlineDescription;
-            var newProperties = properties.HasValue ? properties.Value : this.Properties;
-            var newTags = tags.HasValue ? tags.Value : this.Tags;
-            var newRules = rules.HasValue ? rules.Value : this.Rules;
-            var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : this.DisplayTextPrefix;
-            var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : this.DisplayTextSuffix;
+            var newSpan = span.HasValue ? span.Value : Span;
+            var newDisplayText = displayText.HasValue ? displayText.Value : DisplayText;
+            var newFilterText = filterText.HasValue ? filterText.Value : FilterText;
+            var newSortText = sortText.HasValue ? sortText.Value : SortText;
+            var newInlineDescription = inlineDescription.HasValue ? inlineDescription.Value : InlineDescription;
+            var newProperties = properties.HasValue ? properties.Value : Properties;
+            var newTags = tags.HasValue ? tags.Value : Tags;
+            var newRules = rules.HasValue ? rules.Value : Rules;
+            var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : DisplayTextPrefix;
+            var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : DisplayTextSuffix;
 
-            if (newSpan == this.Span &&
-                newDisplayText == this.DisplayText &&
-                newFilterText == this.FilterText &&
-                newSortText == this.SortText &&
-                newProperties == this.Properties &&
-                newTags == this.Tags &&
-                newRules == this.Rules &&
-                newDisplayTextPrefix == this.DisplayTextPrefix &&
-                newDisplayTextSuffix == this.DisplayTextSuffix &&
-                newInlineDescription == this.InlineDescription)
+            if (newSpan == Span &&
+                newDisplayText == DisplayText &&
+                newFilterText == FilterText &&
+                newSortText == SortText &&
+                newProperties == Properties &&
+                newTags == Tags &&
+                newRules == Rules &&
+                newDisplayTextPrefix == DisplayTextPrefix &&
+                newDisplayTextSuffix == DisplayTextSuffix &&
+                newInlineDescription == InlineDescription)
             {
                 return this;
             }
@@ -252,7 +258,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayTextSuffix: newDisplayTextSuffix,
                 inlineDescription: newInlineDescription)
             {
-                ProviderName = ProviderName
+                AutomationText = AutomationText,
+                ProviderName = ProviderName,
+                Flags = Flags,
             };
         }
 
@@ -315,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem AddProperty(string name, string value)
         {
-            return With(properties: this.Properties.Add(name, value));
+            return With(properties: Properties.Add(name, value));
         }
 
         /// <summary>
@@ -336,13 +344,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 throw new ArgumentNullException(nameof(tag));
             }
 
-            if (this.Tags.Contains(tag))
+            if (Tags.Contains(tag))
             {
                 return this;
             }
             else
             {
-                return With(tags: this.Tags.Add(tag));
+                return With(tags: Tags.Add(tag));
             }
         }
 
@@ -358,10 +366,10 @@ namespace Microsoft.CodeAnalysis.Completion
 
         int IComparable<CompletionItem>.CompareTo(CompletionItem other)
         {
-            var result = StringComparer.OrdinalIgnoreCase.Compare(this.SortText, other.SortText);
+            var result = StringComparer.OrdinalIgnoreCase.Compare(SortText, other.SortText);
             if (result == 0)
             {
-                result = StringComparer.OrdinalIgnoreCase.Compare(this.GetEntireDisplayText(), other.GetEntireDisplayText());
+                result = StringComparer.OrdinalIgnoreCase.Compare(GetEntireDisplayText(), other.GetEntireDisplayText());
             }
 
             return result;
