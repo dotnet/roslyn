@@ -6,8 +6,6 @@
     <IsPackable>true</IsPackable>
     <NuspecPackageId>Microsoft.NETCore.Compilers</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <!-- https://github.com/NuGet/Home/issues/8583 -->
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageDescription>
       CoreCLR-compatible versions of the C# and VB compilers for use in MSBuild.
