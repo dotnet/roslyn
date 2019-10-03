@@ -6,10 +6,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.Attributes)]
-    public class AttributeParsingTests : ParsingTests
+    [CompilerTrait(CompilerFeature.StatementAttributes)]
+    public class StatementAttributeParsingTests : ParsingTests
     {
-        public AttributeParsingTests(ITestOutputHelper output) : base(output) { }
+        public StatementAttributeParsingTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void AttributeOnBlock()
