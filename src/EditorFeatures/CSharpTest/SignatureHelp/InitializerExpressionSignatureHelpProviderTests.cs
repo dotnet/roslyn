@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
             => new InitializerExpressionSignatureHelpProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task NotForSingleParamAddMethods()
+        public async Task WithSingleParamAddMethods()
         {
             var markup = @"
 using System.Collections.Generic;
@@ -36,6 +36,7 @@ class C
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void List<int>.Add(int item)", currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems);
         }
@@ -150,7 +151,8 @@ class C
 ";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("void Bar.Add(int i, string s)", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void Bar.Add(int i)", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void Bar.Add(int i, string s)", currentParameterIndex: 0, isSelected: true));
             expectedOrderedItems.Add(new SignatureHelpTestItem("void Bar.Add(int i, string s, bool b)", currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems);
@@ -206,7 +208,8 @@ class C
 ";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s)", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void Bar.Add(int i)", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s)", currentParameterIndex: 0, isSelected: true));
             expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s, bool b)", currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);

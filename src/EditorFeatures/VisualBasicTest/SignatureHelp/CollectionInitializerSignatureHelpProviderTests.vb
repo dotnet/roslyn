@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
-        Public Async Function NotForSingleParamAddMethods() As Task
+        Public Async Function ForSingleParamAddMethods() As Task
             Dim markup = "
 imports System.Collections.Generic
 
@@ -29,6 +29,7 @@ class C
 end class"
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("List(Of Integer).Add(item As Integer)", currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
         End Function
@@ -105,7 +106,8 @@ class C
 "
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem("Bar.Add(i As Integer, s As String)", currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Bar.Add(i As Integer)", currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("Bar.Add(i As Integer, s As String)", currentParameterIndex:=0, isSelected:=True))
             expectedOrderedItems.Add(New SignatureHelpTestItem("Bar.Add(i As Integer, s As String, b As Boolean)", currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -162,7 +164,8 @@ class C
 "
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
-            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Extensions.Add(i As Integer, s As String)", currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Extensions.Add(i As Integer)", currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Extensions.Add(i As Integer, s As String)", currentParameterIndex:=0, isSelected:=True))
             expectedOrderedItems.Add(New SignatureHelpTestItem($"<{VBFeaturesResources.Extension}> Extensions.Add(i As Integer, s As String, b As Boolean)", currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems, sourceCodeKind:=SourceCodeKind.Regular)

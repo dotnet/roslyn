@@ -181,24 +181,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             var addSymbols = semanticModel.LookupSymbols(
                 position, parentType, WellKnownMemberNames.CollectionInitializerAddMethodName, includeReducedExtensionMethods: true);
 
-            // We want all the accessible '.Add' methods that take at least two arguments. For
-            // example, say there is:
-            //
-            //      new JObject { { $$ } }
-            //
-            // Technically, the user could be calling the `.Add(object)` overload in this case.
-            // However, normally in that case, they would just supply the value directly like so:
-            //
-            //      new JObject { new JProperty(...), new JProperty(...) }
-            //
-            // So, it's a strong signal when they're inside another `{ $$ }` that they want to
-            // call the .Add methods that take multiple args, like so:
-            //
-            //      new JObject { { propName, propValue }, { propName, propValue } }
-
             var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
             var addMethods = addSymbols.OfType<IMethodSymbol>()
-                                       .Where(m => m.Parameters.Length >= 2)
+                                       .Where(m => m.Parameters.Length >= 1)
                                        .ToImmutableArray()
                                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
                                        .Sort(symbolDisplayService, semanticModel, position);
