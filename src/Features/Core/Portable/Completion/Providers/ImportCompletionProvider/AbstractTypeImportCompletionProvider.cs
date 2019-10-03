@@ -152,8 +152,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Skip reference with only non-global alias.
                 var metadataReference = compilation.GetMetadataReference(referencedAssemblySymbol);
 
-                if (metadataReference.Properties.Aliases.IsEmpty ||
-                    metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias))
+                // metadataReference can be null for script compilation, because compilations of previous 
+                // submissions are treated as referenced assemblies. We don't need to check for unimported
+                // type from those previous submissions since namespace declarations is not allowed in script.
+
+                if (metadataReference != null &&
+                    (metadataReference.Properties.Aliases.IsEmpty ||
+                     metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias)))
                 {
                     var assemblyProject = project.Solution.GetProject(referencedAssemblySymbol, cancellationToken);
                     if (assemblyProject != null && assemblyProject.SupportsCompilation)
