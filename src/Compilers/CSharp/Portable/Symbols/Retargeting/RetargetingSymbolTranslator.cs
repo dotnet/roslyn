@@ -451,7 +451,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (type.IsTupleType)
                 {
+#nullable disable // Can 'type.TupleUnderlyingType' be null here?
                     var newUnderlyingType = Retarget(type.TupleUnderlyingType, options);
+#nullable enable
                     if (newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(type.TupleElementTypesWithAnnotations.Length))
                     {
                         return ((TupleTypeSymbol)type).WithUnderlyingType(newUnderlyingType);
@@ -642,7 +644,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         var namedType = (NamedTypeSymbol)symbol;
                         if (namedType.IsTupleType)
                         {
-                            namedType = namedType.TupleUnderlyingType;
+#nullable disable // Can 'namedType.TupleUnderlyingType' be null here?
+                            namedType = namedType.TupleUnderlyingType!;
+#nullable enable
                         }
 
                         if ((object)symbol.OriginalDefinition.ContainingModule == (object)_retargetingModule.UnderlyingModule &&
