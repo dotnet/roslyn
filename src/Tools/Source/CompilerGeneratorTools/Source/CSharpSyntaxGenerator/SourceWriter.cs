@@ -1495,16 +1495,14 @@ namespace CSharpSyntaxGenerator
                 var baseType = GetHighestBaseTypeWithField(node, field.Name);
                 if (baseType != null)
                 {
-                    WriteLine("    internal override {0} Add{1}Core(params {2}[] items) => Add{1}(items);", baseType.Name, field.Name, argType);
+                    WriteLine("internal override {0} Add{1}Core(params {2}[] items) => Add{1}(items);", baseType.Name, field.Name, argType);
                     isNew = true;
                 }
             }
 
-            WriteLine();
-            WriteLine($"    public{(isNew ? " new " : " ")}{node.Name} Add{field.Name}(params {argType}[] items)");
-            WriteLine("    {");
-            WriteLine("        return this.With{0}(this.{1}.AddRange(items));", StripPost(field.Name, "Opt"), field.Name);
-            WriteLine("    }");
+            WriteLine(
+                $"public{(isNew ? " new " : " ")}{node.Name} Add{field.Name}(params {argType}[] items) => " +
+                "With{0}(this.{1}.AddRange(items));", StripPost(field.Name, "Opt"), field.Name);
         }
 
         private void WriteRedNestedListHelperMethods(Node node, Field field, Node referencedNode, Field referencedNodeField)
