@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(this.Kind != SymbolKind.Assembly);
 
             ImmutableArray<CSharpAttributeData> userDefined;
-            ArrayBuilder<SynthesizedAttributeData> synthesized = null;
+            ArrayBuilder<SynthesizedAttributeData>? synthesized = null;
             userDefined = this.GetAttributes();
             this.AddSynthesizedAttributes(moduleBuilder, ref synthesized);
 
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(
             ImmutableArray<CSharpAttributeData> userDefined,
-            ArrayBuilder<SynthesizedAttributeData> synthesized,
+            ArrayBuilder<SynthesizedAttributeData>? synthesized,
             bool isReturnType,
             bool emittingAssemblyAttributesInNetModule)
         {
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private IEnumerable<CSharpAttributeData> GetCustomAttributesToEmitIterator(
             ImmutableArray<CSharpAttributeData> userDefined,
-            ArrayBuilder<SynthesizedAttributeData> synthesized,
+            ArrayBuilder<SynthesizedAttributeData>? synthesized,
             bool isReturnType,
             bool emittingAssemblyAttributesInNetModule)
         {

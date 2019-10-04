@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
-        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public sealed override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {

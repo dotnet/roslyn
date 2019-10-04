@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public sealed override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj)
             {

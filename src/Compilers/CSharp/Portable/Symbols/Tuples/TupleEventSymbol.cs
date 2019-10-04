@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             DiagnosticInfo? result = base.GetUseSiteDiagnostic();
             MergeUseSiteDiagnostics(ref result, _underlyingEvent.GetUseSiteDiagnostic());

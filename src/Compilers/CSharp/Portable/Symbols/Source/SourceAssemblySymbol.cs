@@ -2020,7 +2020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DiagnosticInfo useSiteDiagnostic = forwardedType.GetUseSiteDiagnostic();
+            DiagnosticInfo? useSiteDiagnostic = forwardedType.GetUseSiteDiagnostic();
             if (useSiteDiagnostic != null &&
                 useSiteDiagnostic.Code != (int)ErrorCode.ERR_UnexpectedUnboundGenericName &&
                 Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, arguments.Diagnostics, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt)))

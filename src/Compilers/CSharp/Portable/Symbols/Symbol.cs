@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
-        internal virtual void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal virtual void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
             // must be overridden by source symbols, no-op for other symbols
             Debug.Assert(!this.RequiresCompletion);
@@ -90,24 +92,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get the symbol that logically contains this symbol. 
         /// </summary>
+#nullable disable // Excluded from first pass
         public abstract Symbol ContainingSymbol { get; }
+#nullable enable
 
         /// <summary>
         /// Returns the nearest lexically enclosing type, or null if there is none.
         /// </summary>
+#nullable disable // Excluded from first pass
         public virtual NamedTypeSymbol ContainingType
+#nullable enable
         {
             get
             {
                 Symbol container = this.ContainingSymbol;
 
-                NamedTypeSymbol containerAsType = container as NamedTypeSymbol;
+                NamedTypeSymbol? containerAsType = container as NamedTypeSymbol;
 
                 // NOTE: container could be null, so we do not check 
                 //       whether containerAsType is not null, but 
                 //       instead check if it did not change after 
                 //       the cast.
-                if ((object)containerAsType == (object)container)
+                if ((object?)containerAsType == (object)container)
                 {
                     // this should be relatively uncommon
                     // most symbols that may be contained in a type
@@ -126,14 +132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the nearest enclosing namespace for this namespace or type. For a nested type,
         /// returns the namespace that contains its container.
         /// </summary>
+#nullable disable // Excluded from first pass
         public virtual NamespaceSymbol ContainingNamespace
+#nullable enable
         {
             get
             {
                 for (var container = this.ContainingSymbol; (object)container != null; container = container.ContainingSymbol)
                 {
                     var ns = container as NamespaceSymbol;
-                    if ((object)ns != null)
+                    if ((object?)ns != null)
                     {
                         return ns;
                     }
@@ -147,7 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns the assembly containing this symbol. If this symbol is shared across multiple
         /// assemblies, or doesn't belong to an assembly, returns null.
         /// </summary>
+#nullable disable // Excluded from first pass
         public virtual AssemblySymbol ContainingAssembly
+#nullable enable
         {
             get
             {
@@ -171,7 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// Remarks, not "ContainingCompilation" because it isn't transitive.
         /// </remarks>
+#nullable disable // Excluded from first pass
         internal virtual CSharpCompilation DeclaringCompilation
+#nullable enable
         {
             get
             {
@@ -188,18 +200,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var sourceModuleSymbol = this.ContainingModule as SourceModuleSymbol;
-                return (object)sourceModuleSymbol == null ? null : sourceModuleSymbol.DeclaringCompilation;
+                return (object?)sourceModuleSymbol == null ? null : sourceModuleSymbol.DeclaringCompilation;
             }
         }
 
+#nullable disable // Excluded from first pass
         Compilation ISymbolInternal.DeclaringCompilation
             => DeclaringCompilation;
+#nullable enable
 
         /// <summary>
         /// Returns the module containing this symbol. If this symbol is shared across multiple
         /// modules, or doesn't belong to a module, returns null.
         /// </summary>
+#nullable disable // Excluded from first pass
         internal virtual ModuleSymbol ContainingModule
+#nullable enable
         {
             get
             {
@@ -550,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Compare two symbol objects to see if they refer to the same symbol. You should always
         /// use <see cref="operator =="/> and <see cref="operator !="/>, or the <see cref="Equals(object)"/> method, to compare two symbols for equality.
         /// </summary>
-        public static bool operator ==(Symbol left, Symbol right)
+        public static bool operator ==(Symbol? left, Symbol? right)
         {
             //PERF: this function is often called with
             //      1) left referencing same object as the right 
@@ -565,14 +581,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // this part is expected to disappear when inlining "someSymbol == null"
-            return (object)left == (object)right || right.Equals(left);
+            return (object?)left == (object)right || right.Equals(left);
         }
 
         /// <summary>
         /// Compare two symbol objects to see if they refer to the same symbol. You should always
         /// use == and !=, or the Equals method, to compare two symbols for equality.
         /// </summary>
-        public static bool operator !=(Symbol left, Symbol right)
+        public static bool operator !=(Symbol? left, Symbol? right)
         {
             //PERF: this function is often called with
             //      1) left referencing same object as the right 
@@ -590,31 +606,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // this part is expected to disappear when inlining "someSymbol != null"
-            return (object)left != (object)right && !right.Equals(left);
+            return (object?)left != (object)right && !right.Equals(left);
         }
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(object? obj)
         {
             return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
-        bool IEquatable<ISymbol>.Equals(ISymbol other)
+        bool IEquatable<ISymbol?>.Equals(ISymbol? other)
         {
             return this.Equals(other as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
-        bool ISymbol.Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
+        bool ISymbol.Equals(ISymbol? other, SymbolEqualityComparer equalityComparer)
         {
             return equalityComparer.Equals(this, other);
         }
 
-        bool ISymbolInternal.Equals(ISymbol other, TypeCompareKind compareKind)
+        bool ISymbolInternal.Equals(ISymbol? other, TypeCompareKind compareKind)
         {
             return this.Equals(other as Symbol, compareKind);
         }
 
         // By default we don't consider the compareKind, and do reference equality. This can be overridden.
-        public virtual bool Equals(Symbol other, TypeCompareKind compareKind)
+        public virtual bool Equals(Symbol? other, TypeCompareKind compareKind)
         {
             return (object)this == other;
         }
@@ -665,14 +681,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Build and add synthesized attributes for this symbol.
         /// </summary>
-        internal virtual void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal virtual void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData>? attributes)
         {
         }
 
         /// <summary>
         /// Convenience helper called by subclasses to add a synthesized attribute to a collection of attributes.
         /// </summary>
-        internal static void AddSynthesizedAttribute(ref ArrayBuilder<SynthesizedAttributeData> attributes, SynthesizedAttributeData attribute)
+        internal static void AddSynthesizedAttribute(ref ArrayBuilder<SynthesizedAttributeData>? attributes, SynthesizedAttributeData attribute)
         {
             if (attribute != null)
             {
@@ -747,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static void ForceCompleteMemberByLocation(SourceLocation locationOpt, Symbol member, CancellationToken cancellationToken)
+        internal static void ForceCompleteMemberByLocation(SourceLocation? locationOpt, Symbol member, CancellationToken cancellationToken)
         {
             if (locationOpt == null || member.IsDefinedInSourceTree(locationOpt.SourceTree, locationOpt.SourceSpan, cancellationToken))
             {
@@ -760,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns the Documentation Comment ID for the symbol, or null if the symbol doesn't
         /// support documentation comments.
         /// </summary>
-        public virtual string GetDocumentationCommentId()
+        public virtual string? GetDocumentationCommentId()
         {
             // NOTE: we're using a try-finally here because there's a test that specifically
             // triggers an exception here to confirm that some symbols don't have documentation
@@ -787,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">Optionally, allow cancellation of documentation comment retrieval.</param>
         /// <returns>The XML that would be written to the documentation file for the symbol.</returns>
         public virtual string GetDocumentationCommentXml(
-            CultureInfo preferredCulture = null,
+            CultureInfo? preferredCulture = null,
             bool expandIncludes = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -808,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!diagnostics.IsEmptyWithoutResolution)
             {
                 CSharpCompilation compilation = this.DeclaringCompilation;
-                Debug.Assert(compilation != null);
+                RoslynDebug.Assert(compilation != null);
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
             }
         }
@@ -830,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns diagnostic info that should be reported at the use site of the symbol, or null if there is none.
         /// </summary>
-        internal virtual DiagnosticInfo GetUseSiteDiagnostic()
+        internal virtual DiagnosticInfo? GetUseSiteDiagnostic()
         {
             return null;
         }
@@ -874,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()
+        internal DiagnosticInfo? GetUseSiteDiagnosticForSymbolOrContainingType()
         {
             var info = this.GetUseSiteDiagnostic();
             if (info != null && info.Severity == DiagnosticSeverity.Error)
@@ -888,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Merges given diagnostic to the existing result diagnostic.
         /// </summary>
-        internal bool MergeUseSiteDiagnostics(ref DiagnosticInfo result, DiagnosticInfo info)
+        internal bool MergeUseSiteDiagnostics(ref DiagnosticInfo? result, DiagnosticInfo? info)
         {
             if (info == null)
             {
@@ -941,9 +957,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Derive error info from a type symbol.
         /// </summary>
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeSymbol type)
+        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo? result, TypeSymbol type)
         {
-            DiagnosticInfo info = type.GetUseSiteDiagnostic();
+            DiagnosticInfo? info = type.GetUseSiteDiagnostic();
             if (info != null)
             {
                 if (info.Code == (int)ErrorCode.ERR_BogusType)
@@ -963,19 +979,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type)
+        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo? result, TypeWithAnnotations type)
         {
             return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
+        internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo? result, ParameterSymbol param)
         {
             return DeriveUseSiteDiagnosticFromType(ref result, param.TypeWithAnnotations) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromParameters(ref DiagnosticInfo result, ImmutableArray<ParameterSymbol> parameters)
+        internal bool DeriveUseSiteDiagnosticFromParameters(ref DiagnosticInfo? result, ImmutableArray<ParameterSymbol> parameters)
         {
             foreach (ParameterSymbol param in parameters)
             {
@@ -988,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool DeriveUseSiteDiagnosticFromCustomModifiers(ref DiagnosticInfo result, ImmutableArray<CustomModifier> customModifiers)
+        internal bool DeriveUseSiteDiagnosticFromCustomModifiers(ref DiagnosticInfo? result, ImmutableArray<CustomModifier> customModifiers)
         {
             foreach (CustomModifier modifier in customModifiers)
             {
@@ -1112,14 +1128,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
         /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal abstract ObsoleteAttributeData ObsoleteAttributeData { get; }
+        internal abstract ObsoleteAttributeData? ObsoleteAttributeData { get; }
 
         /// <summary>
         /// Returns true and a <see cref="string"/> from the first <see cref="GuidAttribute"/> on the symbol, 
         /// the string might be null or an invalid guid representation. False, 
         /// if there is no <see cref="GuidAttribute"/> with string argument.
         /// </summary>
-        internal bool GetGuidStringDefaultImplementation(out string guidString)
+        internal bool GetGuidStringDefaultImplementation(out string? guidString)
         {
             foreach (var attrData in this.GetAttributes())
             {
@@ -1136,12 +1152,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public string ToDisplayString(SymbolDisplayFormat format = null)
+        public string ToDisplayString(SymbolDisplayFormat? format = null)
         {
             return SymbolDisplay.ToDisplayString(this, format);
         }
 
-        public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
+        public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat? format = null)
         {
             return SymbolDisplay.ToDisplayParts(this, format);
         }
@@ -1149,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public string ToMinimalDisplayString(
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             return SymbolDisplay.ToMinimalDisplayString(this, semanticModel, position, format);
         }
@@ -1157,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null)
+            SymbolDisplayFormat? format = null)
         {
             return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
         }
@@ -1188,7 +1204,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void ReportExplicitUseOfNullabilityAttribute(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, AttributeDescription attributeDescription)
         {
             // Attribute should not be set explicitly.
+#nullable disable // Can 'arguments.AttributeSyntaxOpt' be null?
             arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, attributeDescription.FullName);
+#nullable enable
         }
 
         internal virtual byte? GetNullableContextValue()
@@ -1342,12 +1360,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Name; }
         }
 
-        string ISymbol.ToDisplayString(SymbolDisplayFormat format)
+        string ISymbol.ToDisplayString(SymbolDisplayFormat? format)
         {
             return SymbolDisplay.ToDisplayString(this, format);
         }
 
-        ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat format)
+        ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat? format)
         {
             return SymbolDisplay.ToDisplayParts(this, format);
         }
@@ -1355,7 +1373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         string ISymbol.ToMinimalDisplayString(
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format)
+            SymbolDisplayFormat? format)
         {
             var csharpModel = semanticModel as CSharpSemanticModel;
             if (csharpModel == null)
@@ -1369,7 +1387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format)
+            SymbolDisplayFormat? format)
         {
             var csharpModel = semanticModel as CSharpSemanticModel;
             if (csharpModel == null)

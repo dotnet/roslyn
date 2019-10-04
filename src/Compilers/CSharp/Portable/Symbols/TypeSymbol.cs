@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ReferenceEquals(this, t2);
         }
 
-        public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
+        public sealed override bool Equals(Symbol? other, TypeCompareKind compareKind)
         {
             var t2 = other as TypeSymbol;
             if (t2 is null)
@@ -570,8 +570,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
+                DiagnosticInfo? info = GetUseSiteDiagnostic();
+                return (object?)info != null && info.Code == (int)ErrorCode.ERR_BogusType;
             }
         }
 
@@ -1953,7 +1953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                DiagnosticInfo useSiteDiagnostic;
+                DiagnosticInfo? useSiteDiagnostic;
                 if ((object)interfaceMemberReturnType != null &&
                     (useSiteDiagnostic = interfaceMemberReturnType.GetUseSiteDiagnostic()) != null &&
                     useSiteDiagnostic.DefaultSeverity == DiagnosticSeverity.Error)

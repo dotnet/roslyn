@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return _reducedFrom.ObsoleteAttributeData; }
         }
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj) return true;
 
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
+            public sealed override bool Equals(Symbol? obj, TypeCompareKind compareKind)
             {
                 if ((object)this == obj)
                 {

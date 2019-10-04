@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
+        internal sealed override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             var type = this.TypeWithAnnotations;
             DiagnosticInfo? result = null;

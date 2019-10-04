@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// the Assembly Manager might decide to use another reference if it matches except for version 
         /// (it unifies the version with the existing reference).  
         /// </remarks>
-        internal abstract bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo result, TypeSymbol dependentType);
+        internal abstract bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo? result, TypeSymbol dependentType);
 
         /// <summary>
         /// Lookup a top level type referenced from metadata, names should be

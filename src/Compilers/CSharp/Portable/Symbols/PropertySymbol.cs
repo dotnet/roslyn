@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Equality
 
-        public override bool Equals(Symbol symbol, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? symbol, TypeCompareKind compareKind)
         {
             PropertySymbol? other = symbol as PropertySymbol;
 

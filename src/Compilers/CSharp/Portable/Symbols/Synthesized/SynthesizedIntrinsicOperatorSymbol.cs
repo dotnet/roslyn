@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+            public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
             {
                 if (obj == (object)this)
                 {

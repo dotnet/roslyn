@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _backingField; }
             }
 
-            public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+            public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
             {
                 if (obj == null)
                 {

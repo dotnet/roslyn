@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingField.GetAttributes();
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             DiagnosticInfo? result = base.GetUseSiteDiagnostic();
             MergeUseSiteDiagnostics(ref result, _underlyingField.GetUseSiteDiagnostic());
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override sealed bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override sealed bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             var other = obj as TupleFieldSymbol;
 
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _cannotUse = cannotUse;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             if (_cannotUse)
             {

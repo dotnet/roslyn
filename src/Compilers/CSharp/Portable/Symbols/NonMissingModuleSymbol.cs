@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return GetUnifiedAssemblies().Length > 0; }
         }
 
-        internal override bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo result, TypeSymbol dependentType)
+        internal override bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo? result, TypeSymbol dependentType)
         {
             AssertReferencesInitialized();
 
