@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             // we are getting unexpected exception from service hub. rather than doing hard crash on unexpected exception,
             // we decided to do soft crash where we show info bar to users saying "VS got corrupted and users should save
-            // thier works and close VS"
+            // their works and close VS"
             ThrowSoftCrashException(ex, cancellationToken);
         }
 
