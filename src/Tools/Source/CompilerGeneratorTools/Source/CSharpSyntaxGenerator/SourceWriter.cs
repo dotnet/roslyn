@@ -1698,27 +1698,27 @@ namespace CSharpSyntaxGenerator
             var valueFields = nd.Fields.Where(n => IsValueField(n)).ToList();
             var nodeFields = nd.Fields.Where(n => !IsValueField(n)).ToList();
 
-            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
+            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "");
 
-            Write("    {0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
+            Write("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
             WriteRedFactoryParameters(nd);
 
             WriteLine(")");
-            WriteLine("    {");
+            OpenBlock();
 
             // validate kinds
             if (nd.Kinds.Count > 1)
             {
-                WriteLine("      switch (kind)");
-                WriteLine("      {");
+                WriteLine("switch (kind)");
+                OpenBlock();
                 foreach (var kind in nd.Kinds)
                 {
-                    WriteLine("        case SyntaxKind.{0}:", kind.Name);
+                    WriteLine("case SyntaxKind.{0}:", kind.Name);
                 }
-                WriteLine("          break;");
-                WriteLine("        default:");
-                WriteLine("          throw new ArgumentException(nameof(kind));");
-                WriteLine("      }");
+                WriteLine("    break;");
+                WriteLine("default:");
+                WriteLine("    throw new ArgumentException(nameof(kind));");
+                CloseBlock();
             }
 
             // validate parameters
@@ -1731,30 +1731,30 @@ namespace CSharpSyntaxGenerator
                 {
                     if (field.Kinds != null && field.Kinds.Count > 0)
                     {
-                        WriteLine("      switch ({0}.Kind())", pname);
-                        WriteLine("      {");
+                        WriteLine("switch ({0}.Kind())", pname);
+                        OpenBlock();
                         foreach (var kind in field.Kinds)
                         {
-                            WriteLine("        case SyntaxKind.{0}:", kind.Name);
+                            WriteLine("case SyntaxKind.{0}:", kind.Name);
                         }
                         if (IsOptional(field))
                         {
-                            WriteLine("        case SyntaxKind.None:");
+                            WriteLine("case SyntaxKind.None:");
                         }
-                        WriteLine("          break;");
-                        WriteLine("        default:");
-                        WriteLine("          throw new ArgumentException(nameof({0}));", pname);
-                        WriteLine("      }");
+                        WriteLine("    break;");
+                        WriteLine("default:");
+                        WriteLine("throw new ArgumentException(nameof({0}));", pname);
+                        CloseBlock();
                     }
                 }
                 else if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
-                    WriteLine("      if ({0} == null)", CamelCase(field.Name));
-                    WriteLine("        throw new ArgumentNullException(nameof({0}));", CamelCase(field.Name));
+                    WriteLine("if ({0} == null)", CamelCase(field.Name));
+                    WriteLine("    throw new ArgumentNullException(nameof({0}));", CamelCase(field.Name));
                 }
             }
 
-            Write("      return ({0})Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.{1}(", nd.Name, StripPost(nd.Name, "Syntax"));
+            Write("return ({0})Syntax.InternalSyntax.SyntaxFactory.{1}(", nd.Name, StripPost(nd.Name, "Syntax"));
             if (nd.Kinds.Count > 1)
             {
                 Write("kind, ");
@@ -1770,23 +1770,23 @@ namespace CSharpSyntaxGenerator
                 }
                 else if (field.Type == "SyntaxList<SyntaxToken>")
                 {
-                    Write("{0}.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxToken>()", CamelCase(field.Name));
+                    Write("{0}.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>()", CamelCase(field.Name));
                 }
                 else if (IsNodeList(field.Type))
                 {
-                    Write("{0}.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{1}>()", CamelCase(field.Name), GetElementType(field.Type));
+                    Write("{0}.Node.ToGreenList<Syntax.InternalSyntax.{1}>()", CamelCase(field.Name), GetElementType(field.Type));
                 }
                 else if (IsSeparatedNodeList(field.Type))
                 {
-                    Write("{0}.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{1}>()", CamelCase(field.Name), GetElementType(field.Type));
+                    Write("{0}.Node.ToGreenSeparatedList<Syntax.InternalSyntax.{1}>()", CamelCase(field.Name), GetElementType(field.Type));
                 }
                 else if (field.Type == "SyntaxNodeOrTokenList")
                 {
-                    Write("{0}.Node.ToGreenList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode>()", CamelCase(field.Name));
+                    Write("{0}.Node.ToGreenList<Syntax.InternalSyntax.CSharpSyntaxNode>()", CamelCase(field.Name));
                 }
                 else
                 {
-                    Write("{0} == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{1}){0}.Green", CamelCase(field.Name), field.Type);
+                    Write("{0} == null ? null : (Syntax.InternalSyntax.{1}){0}.Green", CamelCase(field.Name), field.Type);
                 }
             }
 
@@ -1799,9 +1799,7 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteLine(").CreateRed();");
-            WriteLine("    }");
-
-            this.WriteLine();
+            CloseBlock();
         }
 
         private void WriteRedFactoryParameters(Node nd)
