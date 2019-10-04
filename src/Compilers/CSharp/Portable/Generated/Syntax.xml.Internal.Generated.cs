@@ -56,26 +56,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal IdentifierNameSyntax(SyntaxKind kind, SyntaxToken identifier, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         internal IdentifierNameSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         internal IdentifierNameSyntax(SyntaxKind kind, SyntaxToken identifier)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         /// <summary>SyntaxToken representing the keyword for the kind of the identifier name.</summary>
@@ -147,38 +147,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal QualifiedNameSyntax(SyntaxKind kind, NameSyntax left, SyntaxToken dotToken, SimpleNameSyntax right, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(left);
-                    this.left = left;
-                    this.AdjustFlagsAndWidth(dotToken);
-                    this.dotToken = dotToken;
-                    this.AdjustFlagsAndWidth(right);
-                    this.right = right;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(dotToken);
+            this.dotToken = dotToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
         internal QualifiedNameSyntax(SyntaxKind kind, NameSyntax left, SyntaxToken dotToken, SimpleNameSyntax right, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(left);
-                    this.left = left;
-                    this.AdjustFlagsAndWidth(dotToken);
-                    this.dotToken = dotToken;
-                    this.AdjustFlagsAndWidth(right);
-                    this.right = right;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(dotToken);
+            this.dotToken = dotToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
         internal QualifiedNameSyntax(SyntaxKind kind, NameSyntax left, SyntaxToken dotToken, SimpleNameSyntax right)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(left);
-                    this.left = left;
-                    this.AdjustFlagsAndWidth(dotToken);
-                    this.dotToken = dotToken;
-                    this.AdjustFlagsAndWidth(right);
-                    this.right = right;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(dotToken);
+            this.dotToken = dotToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
         /// <summary>NameSyntax node representing the name on the left side of the dot token of the qualified name.</summary>
@@ -273,32 +273,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal GenericNameSyntax(SyntaxKind kind, SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(typeArgumentList);
-                    this.typeArgumentList = typeArgumentList;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(typeArgumentList);
+            this.typeArgumentList = typeArgumentList;
         }
 
         internal GenericNameSyntax(SyntaxKind kind, SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(typeArgumentList);
-                    this.typeArgumentList = typeArgumentList;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(typeArgumentList);
+            this.typeArgumentList = typeArgumentList;
         }
 
         internal GenericNameSyntax(SyntaxKind kind, SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(typeArgumentList);
-                    this.typeArgumentList = typeArgumentList;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(typeArgumentList);
+            this.typeArgumentList = typeArgumentList;
         }
 
         /// <summary>SyntaxToken representing the name of the identifier of the generic name.</summary>
@@ -384,47 +384,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TypeArgumentListSyntax(SyntaxKind kind, SyntaxToken lessThanToken, GreenNode arguments, SyntaxToken greaterThanToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         internal TypeArgumentListSyntax(SyntaxKind kind, SyntaxToken lessThanToken, GreenNode arguments, SyntaxToken greaterThanToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         internal TypeArgumentListSyntax(SyntaxKind kind, SyntaxToken lessThanToken, GreenNode arguments, SyntaxToken greaterThanToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         /// <summary>SyntaxToken representing less than.</summary>
@@ -520,38 +520,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AliasQualifiedNameSyntax(SyntaxKind kind, IdentifierNameSyntax alias, SyntaxToken colonColonToken, SimpleNameSyntax name, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(alias);
-                    this.alias = alias;
-                    this.AdjustFlagsAndWidth(colonColonToken);
-                    this.colonColonToken = colonColonToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(alias);
+            this.alias = alias;
+            this.AdjustFlagsAndWidth(colonColonToken);
+            this.colonColonToken = colonColonToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         internal AliasQualifiedNameSyntax(SyntaxKind kind, IdentifierNameSyntax alias, SyntaxToken colonColonToken, SimpleNameSyntax name, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(alias);
-                    this.alias = alias;
-                    this.AdjustFlagsAndWidth(colonColonToken);
-                    this.colonColonToken = colonColonToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(alias);
+            this.alias = alias;
+            this.AdjustFlagsAndWidth(colonColonToken);
+            this.colonColonToken = colonColonToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         internal AliasQualifiedNameSyntax(SyntaxKind kind, IdentifierNameSyntax alias, SyntaxToken colonColonToken, SimpleNameSyntax name)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(alias);
-                    this.alias = alias;
-                    this.AdjustFlagsAndWidth(colonColonToken);
-                    this.colonColonToken = colonColonToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(alias);
+            this.alias = alias;
+            this.AdjustFlagsAndWidth(colonColonToken);
+            this.colonColonToken = colonColonToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         /// <summary>IdentifierNameSyntax node representing the name of the alias</summary>
@@ -664,26 +664,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal PredefinedTypeSyntax(SyntaxKind kind, SyntaxToken keyword, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
         }
 
         internal PredefinedTypeSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
         }
 
         internal PredefinedTypeSyntax(SyntaxKind kind, SyntaxToken keyword)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
         }
 
         /// <summary>SyntaxToken which represents the keyword corresponding to the predefined type.</summary>
@@ -754,41 +754,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ArrayTypeSyntax(SyntaxKind kind, TypeSyntax elementType, GreenNode rankSpecifiers, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elementType);
-                    this.elementType = elementType;
-                    if (rankSpecifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(rankSpecifiers);
-                        this.rankSpecifiers = rankSpecifiers;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elementType);
+            this.elementType = elementType;
+            if (rankSpecifiers != null)
+            {
+                this.AdjustFlagsAndWidth(rankSpecifiers);
+                this.rankSpecifiers = rankSpecifiers;
+            }
         }
 
         internal ArrayTypeSyntax(SyntaxKind kind, TypeSyntax elementType, GreenNode rankSpecifiers, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elementType);
-                    this.elementType = elementType;
-                    if (rankSpecifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(rankSpecifiers);
-                        this.rankSpecifiers = rankSpecifiers;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elementType);
+            this.elementType = elementType;
+            if (rankSpecifiers != null)
+            {
+                this.AdjustFlagsAndWidth(rankSpecifiers);
+                this.rankSpecifiers = rankSpecifiers;
+            }
         }
 
         internal ArrayTypeSyntax(SyntaxKind kind, TypeSyntax elementType, GreenNode rankSpecifiers)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elementType);
-                    this.elementType = elementType;
-                    if (rankSpecifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(rankSpecifiers);
-                        this.rankSpecifiers = rankSpecifiers;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elementType);
+            this.elementType = elementType;
+            if (rankSpecifiers != null)
+            {
+                this.AdjustFlagsAndWidth(rankSpecifiers);
+                this.rankSpecifiers = rankSpecifiers;
+            }
         }
 
         /// <summary>TypeSyntax node representing the type of the element of the array.</summary>
@@ -873,47 +873,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ArrayRankSpecifierSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode sizes, SyntaxToken closeBracketToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (sizes != null)
-                    {
-                        this.AdjustFlagsAndWidth(sizes);
-                        this.sizes = sizes;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (sizes != null)
+            {
+                this.AdjustFlagsAndWidth(sizes);
+                this.sizes = sizes;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         internal ArrayRankSpecifierSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode sizes, SyntaxToken closeBracketToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (sizes != null)
-                    {
-                        this.AdjustFlagsAndWidth(sizes);
-                        this.sizes = sizes;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (sizes != null)
+            {
+                this.AdjustFlagsAndWidth(sizes);
+                this.sizes = sizes;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         internal ArrayRankSpecifierSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode sizes, SyntaxToken closeBracketToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (sizes != null)
-                    {
-                        this.AdjustFlagsAndWidth(sizes);
-                        this.sizes = sizes;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (sizes != null)
+            {
+                this.AdjustFlagsAndWidth(sizes);
+                this.sizes = sizes;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         public SyntaxToken OpenBracketToken => this.openBracketToken;
@@ -1005,32 +1005,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal PointerTypeSyntax(SyntaxKind kind, TypeSyntax elementType, SyntaxToken asteriskToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elementType);
-                    this.elementType = elementType;
-                    this.AdjustFlagsAndWidth(asteriskToken);
-                    this.asteriskToken = asteriskToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elementType);
+            this.elementType = elementType;
+            this.AdjustFlagsAndWidth(asteriskToken);
+            this.asteriskToken = asteriskToken;
         }
 
         internal PointerTypeSyntax(SyntaxKind kind, TypeSyntax elementType, SyntaxToken asteriskToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elementType);
-                    this.elementType = elementType;
-                    this.AdjustFlagsAndWidth(asteriskToken);
-                    this.asteriskToken = asteriskToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elementType);
+            this.elementType = elementType;
+            this.AdjustFlagsAndWidth(asteriskToken);
+            this.asteriskToken = asteriskToken;
         }
 
         internal PointerTypeSyntax(SyntaxKind kind, TypeSyntax elementType, SyntaxToken asteriskToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elementType);
-                    this.elementType = elementType;
-                    this.AdjustFlagsAndWidth(asteriskToken);
-                    this.asteriskToken = asteriskToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elementType);
+            this.elementType = elementType;
+            this.AdjustFlagsAndWidth(asteriskToken);
+            this.asteriskToken = asteriskToken;
         }
 
         /// <summary>TypeSyntax node that represents the element type of the pointer.</summary>
@@ -1115,32 +1115,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal NullableTypeSyntax(SyntaxKind kind, TypeSyntax elementType, SyntaxToken questionToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elementType);
-                    this.elementType = elementType;
-                    this.AdjustFlagsAndWidth(questionToken);
-                    this.questionToken = questionToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elementType);
+            this.elementType = elementType;
+            this.AdjustFlagsAndWidth(questionToken);
+            this.questionToken = questionToken;
         }
 
         internal NullableTypeSyntax(SyntaxKind kind, TypeSyntax elementType, SyntaxToken questionToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elementType);
-                    this.elementType = elementType;
-                    this.AdjustFlagsAndWidth(questionToken);
-                    this.questionToken = questionToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elementType);
+            this.elementType = elementType;
+            this.AdjustFlagsAndWidth(questionToken);
+            this.questionToken = questionToken;
         }
 
         internal NullableTypeSyntax(SyntaxKind kind, TypeSyntax elementType, SyntaxToken questionToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elementType);
-                    this.elementType = elementType;
-                    this.AdjustFlagsAndWidth(questionToken);
-                    this.questionToken = questionToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elementType);
+            this.elementType = elementType;
+            this.AdjustFlagsAndWidth(questionToken);
+            this.questionToken = questionToken;
         }
 
         /// <summary>TypeSyntax node representing the type of the element.</summary>
@@ -1226,47 +1226,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TupleTypeSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode elements, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (elements != null)
-                    {
-                        this.AdjustFlagsAndWidth(elements);
-                        this.elements = elements;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (elements != null)
+            {
+                this.AdjustFlagsAndWidth(elements);
+                this.elements = elements;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal TupleTypeSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode elements, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (elements != null)
-                    {
-                        this.AdjustFlagsAndWidth(elements);
-                        this.elements = elements;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (elements != null)
+            {
+                this.AdjustFlagsAndWidth(elements);
+                this.elements = elements;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal TupleTypeSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode elements, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (elements != null)
-                    {
-                        this.AdjustFlagsAndWidth(elements);
-                        this.elements = elements;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (elements != null)
+            {
+                this.AdjustFlagsAndWidth(elements);
+                this.elements = elements;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing the open parenthesis.</summary>
@@ -1360,41 +1360,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TupleElementSyntax(SyntaxKind kind, TypeSyntax type, SyntaxToken identifier, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (identifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(identifier);
-                        this.identifier = identifier;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (identifier != null)
+            {
+                this.AdjustFlagsAndWidth(identifier);
+                this.identifier = identifier;
+            }
         }
 
         internal TupleElementSyntax(SyntaxKind kind, TypeSyntax type, SyntaxToken identifier, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (identifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(identifier);
-                        this.identifier = identifier;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (identifier != null)
+            {
+                this.AdjustFlagsAndWidth(identifier);
+                this.identifier = identifier;
+            }
         }
 
         internal TupleElementSyntax(SyntaxKind kind, TypeSyntax type, SyntaxToken identifier)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (identifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(identifier);
-                        this.identifier = identifier;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (identifier != null)
+            {
+                this.AdjustFlagsAndWidth(identifier);
+                this.identifier = identifier;
+            }
         }
 
         /// <summary>Gets the type of the tuple element.</summary>
@@ -1478,26 +1478,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal OmittedTypeArgumentSyntax(SyntaxKind kind, SyntaxToken omittedTypeArgumentToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(omittedTypeArgumentToken);
-                    this.omittedTypeArgumentToken = omittedTypeArgumentToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(omittedTypeArgumentToken);
+            this.omittedTypeArgumentToken = omittedTypeArgumentToken;
         }
 
         internal OmittedTypeArgumentSyntax(SyntaxKind kind, SyntaxToken omittedTypeArgumentToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(omittedTypeArgumentToken);
-                    this.omittedTypeArgumentToken = omittedTypeArgumentToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(omittedTypeArgumentToken);
+            this.omittedTypeArgumentToken = omittedTypeArgumentToken;
         }
 
         internal OmittedTypeArgumentSyntax(SyntaxKind kind, SyntaxToken omittedTypeArgumentToken)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(omittedTypeArgumentToken);
-                    this.omittedTypeArgumentToken = omittedTypeArgumentToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(omittedTypeArgumentToken);
+            this.omittedTypeArgumentToken = omittedTypeArgumentToken;
         }
 
         /// <summary>SyntaxToken representing the omitted type argument.</summary>
@@ -1569,47 +1569,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal RefTypeSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(refKeyword);
-                    this.refKeyword = refKeyword;
-                    if (readOnlyKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(readOnlyKeyword);
-                        this.readOnlyKeyword = readOnlyKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(refKeyword);
+            this.refKeyword = refKeyword;
+            if (readOnlyKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(readOnlyKeyword);
+                this.readOnlyKeyword = readOnlyKeyword;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         internal RefTypeSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(refKeyword);
-                    this.refKeyword = refKeyword;
-                    if (readOnlyKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(readOnlyKeyword);
-                        this.readOnlyKeyword = readOnlyKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(refKeyword);
+            this.refKeyword = refKeyword;
+            if (readOnlyKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(readOnlyKeyword);
+                this.readOnlyKeyword = readOnlyKeyword;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         internal RefTypeSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(refKeyword);
-                    this.refKeyword = refKeyword;
-                    if (readOnlyKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(readOnlyKeyword);
-                        this.readOnlyKeyword = readOnlyKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(refKeyword);
+            this.refKeyword = refKeyword;
+            if (readOnlyKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(readOnlyKeyword);
+                this.readOnlyKeyword = readOnlyKeyword;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         public SyntaxToken RefKeyword => this.refKeyword;
@@ -1722,38 +1722,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ParenthesizedExpressionSyntax(SyntaxKind kind, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal ParenthesizedExpressionSyntax(SyntaxKind kind, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal ParenthesizedExpressionSyntax(SyntaxKind kind, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing the open parenthesis.</summary>
@@ -1849,47 +1849,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TupleExpressionSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode arguments, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal TupleExpressionSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode arguments, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal TupleExpressionSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode arguments, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing the open parenthesis.</summary>
@@ -1984,32 +1984,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal PrefixUnaryExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, ExpressionSyntax operand, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(operand);
-                    this.operand = operand;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(operand);
+            this.operand = operand;
         }
 
         internal PrefixUnaryExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, ExpressionSyntax operand, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(operand);
-                    this.operand = operand;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(operand);
+            this.operand = operand;
         }
 
         internal PrefixUnaryExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, ExpressionSyntax operand)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(operand);
-                    this.operand = operand;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(operand);
+            this.operand = operand;
         }
 
         /// <summary>SyntaxToken representing the kind of the operator of the prefix unary expression.</summary>
@@ -2094,32 +2094,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AwaitExpressionSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(awaitKeyword);
-                    this.awaitKeyword = awaitKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(awaitKeyword);
+            this.awaitKeyword = awaitKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal AwaitExpressionSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(awaitKeyword);
-                    this.awaitKeyword = awaitKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(awaitKeyword);
+            this.awaitKeyword = awaitKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal AwaitExpressionSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(awaitKeyword);
-                    this.awaitKeyword = awaitKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(awaitKeyword);
+            this.awaitKeyword = awaitKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         /// <summary>SyntaxToken representing the kind "await" keyword.</summary>
@@ -2204,32 +2204,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal PostfixUnaryExpressionSyntax(SyntaxKind kind, ExpressionSyntax operand, SyntaxToken operatorToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(operand);
-                    this.operand = operand;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operand);
+            this.operand = operand;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
         }
 
         internal PostfixUnaryExpressionSyntax(SyntaxKind kind, ExpressionSyntax operand, SyntaxToken operatorToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(operand);
-                    this.operand = operand;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operand);
+            this.operand = operand;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
         }
 
         internal PostfixUnaryExpressionSyntax(SyntaxKind kind, ExpressionSyntax operand, SyntaxToken operatorToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(operand);
-                    this.operand = operand;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operand);
+            this.operand = operand;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
         }
 
         /// <summary>ExpressionSyntax representing the operand of the postfix unary expression.</summary>
@@ -2315,38 +2315,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal MemberAccessExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         internal MemberAccessExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         internal MemberAccessExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         /// <summary>ExpressionSyntax node representing the object that the member belongs to.</summary>
@@ -2442,38 +2442,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ConditionalAccessExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(whenNotNull);
-                    this.whenNotNull = whenNotNull;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(whenNotNull);
+            this.whenNotNull = whenNotNull;
         }
 
         internal ConditionalAccessExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(whenNotNull);
-                    this.whenNotNull = whenNotNull;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(whenNotNull);
+            this.whenNotNull = whenNotNull;
         }
 
         internal ConditionalAccessExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(whenNotNull);
-                    this.whenNotNull = whenNotNull;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(whenNotNull);
+            this.whenNotNull = whenNotNull;
         }
 
         /// <summary>ExpressionSyntax node representing the object conditionally accessed.</summary>
@@ -2568,32 +2568,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal MemberBindingExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, SimpleNameSyntax name, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         internal MemberBindingExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, SimpleNameSyntax name, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         internal MemberBindingExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, SimpleNameSyntax name)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
         }
 
         /// <summary>SyntaxToken representing dot.</summary>
@@ -2677,26 +2677,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ElementBindingExpressionSyntax(SyntaxKind kind, BracketedArgumentListSyntax argumentList, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal ElementBindingExpressionSyntax(SyntaxKind kind, BracketedArgumentListSyntax argumentList, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal ElementBindingExpressionSyntax(SyntaxKind kind, BracketedArgumentListSyntax argumentList)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         /// <summary>BracketedArgumentListSyntax node representing the list of arguments of the element binding expression.</summary>
@@ -2768,56 +2768,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal RangeExpressionSyntax(SyntaxKind kind, ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    if (leftOperand != null)
-                    {
-                        this.AdjustFlagsAndWidth(leftOperand);
-                        this.leftOperand = leftOperand;
-                    }
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    if (rightOperand != null)
-                    {
-                        this.AdjustFlagsAndWidth(rightOperand);
-                        this.rightOperand = rightOperand;
-                    }
+            this.SlotCount = 3;
+            if (leftOperand != null)
+            {
+                this.AdjustFlagsAndWidth(leftOperand);
+                this.leftOperand = leftOperand;
+            }
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            if (rightOperand != null)
+            {
+                this.AdjustFlagsAndWidth(rightOperand);
+                this.rightOperand = rightOperand;
+            }
         }
 
         internal RangeExpressionSyntax(SyntaxKind kind, ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    if (leftOperand != null)
-                    {
-                        this.AdjustFlagsAndWidth(leftOperand);
-                        this.leftOperand = leftOperand;
-                    }
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    if (rightOperand != null)
-                    {
-                        this.AdjustFlagsAndWidth(rightOperand);
-                        this.rightOperand = rightOperand;
-                    }
+            this.SlotCount = 3;
+            if (leftOperand != null)
+            {
+                this.AdjustFlagsAndWidth(leftOperand);
+                this.leftOperand = leftOperand;
+            }
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            if (rightOperand != null)
+            {
+                this.AdjustFlagsAndWidth(rightOperand);
+                this.rightOperand = rightOperand;
+            }
         }
 
         internal RangeExpressionSyntax(SyntaxKind kind, ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    if (leftOperand != null)
-                    {
-                        this.AdjustFlagsAndWidth(leftOperand);
-                        this.leftOperand = leftOperand;
-                    }
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    if (rightOperand != null)
-                    {
-                        this.AdjustFlagsAndWidth(rightOperand);
-                        this.rightOperand = rightOperand;
-                    }
+            this.SlotCount = 3;
+            if (leftOperand != null)
+            {
+                this.AdjustFlagsAndWidth(leftOperand);
+                this.leftOperand = leftOperand;
+            }
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            if (rightOperand != null)
+            {
+                this.AdjustFlagsAndWidth(rightOperand);
+                this.rightOperand = rightOperand;
+            }
         }
 
         /// <summary>ExpressionSyntax node representing the expression on the left of the range operator.</summary>
@@ -2911,26 +2911,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ImplicitElementAccessSyntax(SyntaxKind kind, BracketedArgumentListSyntax argumentList, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal ImplicitElementAccessSyntax(SyntaxKind kind, BracketedArgumentListSyntax argumentList, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal ImplicitElementAccessSyntax(SyntaxKind kind, BracketedArgumentListSyntax argumentList)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         /// <summary>BracketedArgumentListSyntax node representing the list of arguments of the implicit element access expression.</summary>
@@ -3002,38 +3002,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal BinaryExpressionSyntax(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(left);
-                    this.left = left;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(right);
-                    this.right = right;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
         internal BinaryExpressionSyntax(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(left);
-                    this.left = left;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(right);
-                    this.right = right;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
         internal BinaryExpressionSyntax(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(left);
-                    this.left = left;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(right);
-                    this.right = right;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
         /// <summary>ExpressionSyntax node representing the expression on the left of the binary operator.</summary>
@@ -3129,38 +3129,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AssignmentExpressionSyntax(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(left);
-                    this.left = left;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(right);
-                    this.right = right;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
         internal AssignmentExpressionSyntax(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(left);
-                    this.left = left;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(right);
-                    this.right = right;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
         internal AssignmentExpressionSyntax(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(left);
-                    this.left = left;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(right);
-                    this.right = right;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(left);
+            this.left = left;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(right);
+            this.right = right;
         }
 
         /// <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
@@ -3258,50 +3258,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ConditionalExpressionSyntax(SyntaxKind kind, ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(questionToken);
-                    this.questionToken = questionToken;
-                    this.AdjustFlagsAndWidth(whenTrue);
-                    this.whenTrue = whenTrue;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(whenFalse);
-                    this.whenFalse = whenFalse;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(questionToken);
+            this.questionToken = questionToken;
+            this.AdjustFlagsAndWidth(whenTrue);
+            this.whenTrue = whenTrue;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(whenFalse);
+            this.whenFalse = whenFalse;
         }
 
         internal ConditionalExpressionSyntax(SyntaxKind kind, ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(questionToken);
-                    this.questionToken = questionToken;
-                    this.AdjustFlagsAndWidth(whenTrue);
-                    this.whenTrue = whenTrue;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(whenFalse);
-                    this.whenFalse = whenFalse;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(questionToken);
+            this.questionToken = questionToken;
+            this.AdjustFlagsAndWidth(whenTrue);
+            this.whenTrue = whenTrue;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(whenFalse);
+            this.whenFalse = whenFalse;
         }
 
         internal ConditionalExpressionSyntax(SyntaxKind kind, ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(questionToken);
-                    this.questionToken = questionToken;
-                    this.AdjustFlagsAndWidth(whenTrue);
-                    this.whenTrue = whenTrue;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(whenFalse);
-                    this.whenFalse = whenFalse;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(questionToken);
+            this.questionToken = questionToken;
+            this.AdjustFlagsAndWidth(whenTrue);
+            this.whenTrue = whenTrue;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(whenFalse);
+            this.whenFalse = whenFalse;
         }
 
         /// <summary>ExpressionSyntax node representing the condition of the conditional expression.</summary>
@@ -3434,26 +3434,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ThisExpressionSyntax(SyntaxKind kind, SyntaxToken token, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(token);
-                    this.token = token;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(token);
+            this.token = token;
         }
 
         internal ThisExpressionSyntax(SyntaxKind kind, SyntaxToken token, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(token);
-                    this.token = token;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(token);
+            this.token = token;
         }
 
         internal ThisExpressionSyntax(SyntaxKind kind, SyntaxToken token)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(token);
-                    this.token = token;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(token);
+            this.token = token;
         }
 
         /// <summary>SyntaxToken representing the this keyword.</summary>
@@ -3523,26 +3523,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal BaseExpressionSyntax(SyntaxKind kind, SyntaxToken token, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(token);
-                    this.token = token;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(token);
+            this.token = token;
         }
 
         internal BaseExpressionSyntax(SyntaxKind kind, SyntaxToken token, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(token);
-                    this.token = token;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(token);
+            this.token = token;
         }
 
         internal BaseExpressionSyntax(SyntaxKind kind, SyntaxToken token)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(token);
-                    this.token = token;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(token);
+            this.token = token;
         }
 
         /// <summary>SyntaxToken representing the base keyword.</summary>
@@ -3612,26 +3612,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal LiteralExpressionSyntax(SyntaxKind kind, SyntaxToken token, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(token);
-                    this.token = token;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(token);
+            this.token = token;
         }
 
         internal LiteralExpressionSyntax(SyntaxKind kind, SyntaxToken token, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(token);
-                    this.token = token;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(token);
+            this.token = token;
         }
 
         internal LiteralExpressionSyntax(SyntaxKind kind, SyntaxToken token)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(token);
-                    this.token = token;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(token);
+            this.token = token;
         }
 
         /// <summary>SyntaxToken representing the keyword corresponding to the kind of the literal expression.</summary>
@@ -3704,44 +3704,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal MakeRefExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal MakeRefExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal MakeRefExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing the MakeRefKeyword.</summary>
@@ -3848,44 +3848,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal RefTypeExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal RefTypeExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal RefTypeExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing the RefTypeKeyword.</summary>
@@ -3994,56 +3994,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal RefValueExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken comma, TypeSyntax type, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 6;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(comma);
-                    this.comma = comma;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(comma);
+            this.comma = comma;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal RefValueExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken comma, TypeSyntax type, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 6;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(comma);
-                    this.comma = comma;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(comma);
+            this.comma = comma;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal RefValueExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken comma, TypeSyntax type, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 6;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(comma);
-                    this.comma = comma;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(comma);
+            this.comma = comma;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing the RefValueKeyword.</summary>
@@ -4170,44 +4170,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CheckedExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal CheckedExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal CheckedExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing the checked or unchecked keyword.</summary>
@@ -4314,44 +4314,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DefaultExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal DefaultExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal DefaultExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing the DefaultKeyword.</summary>
@@ -4458,44 +4458,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TypeOfExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal TypeOfExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal TypeOfExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing the TypeOfKeyword.</summary>
@@ -4602,44 +4602,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SizeOfExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal SizeOfExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal SizeOfExpressionSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing the SizeOfKeyword.</summary>
@@ -4744,32 +4744,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal InvocationExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, ArgumentListSyntax argumentList, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal InvocationExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, ArgumentListSyntax argumentList, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal InvocationExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, ArgumentListSyntax argumentList)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         /// <summary>ExpressionSyntax node representing the expression part of the invocation.</summary>
@@ -4854,32 +4854,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ElementAccessExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, BracketedArgumentListSyntax argumentList, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal ElementAccessExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, BracketedArgumentListSyntax argumentList, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal ElementAccessExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, BracketedArgumentListSyntax argumentList)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         /// <summary>ExpressionSyntax node representing the expression which is accessing the element.</summary>
@@ -4987,47 +4987,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ArgumentListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode arguments, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal ArgumentListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode arguments, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal ArgumentListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode arguments, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>SyntaxToken representing open parenthesis.</summary>
@@ -5123,47 +5123,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal BracketedArgumentListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode arguments, SyntaxToken closeBracketToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         internal BracketedArgumentListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode arguments, SyntaxToken closeBracketToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         internal BracketedArgumentListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode arguments, SyntaxToken closeBracketToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         /// <summary>SyntaxToken representing open bracket.</summary>
@@ -5259,56 +5259,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ArgumentSyntax(SyntaxKind kind, NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    if (nameColon != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameColon);
-                        this.nameColon = nameColon;
-                    }
-                    if (refKindKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(refKindKeyword);
-                        this.refKindKeyword = refKindKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 3;
+            if (nameColon != null)
+            {
+                this.AdjustFlagsAndWidth(nameColon);
+                this.nameColon = nameColon;
+            }
+            if (refKindKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(refKindKeyword);
+                this.refKindKeyword = refKindKeyword;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal ArgumentSyntax(SyntaxKind kind, NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    if (nameColon != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameColon);
-                        this.nameColon = nameColon;
-                    }
-                    if (refKindKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(refKindKeyword);
-                        this.refKindKeyword = refKindKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 3;
+            if (nameColon != null)
+            {
+                this.AdjustFlagsAndWidth(nameColon);
+                this.nameColon = nameColon;
+            }
+            if (refKindKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(refKindKeyword);
+                this.refKindKeyword = refKindKeyword;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal ArgumentSyntax(SyntaxKind kind, NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    if (nameColon != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameColon);
-                        this.nameColon = nameColon;
-                    }
-                    if (refKindKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(refKindKeyword);
-                        this.refKindKeyword = refKindKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 3;
+            if (nameColon != null)
+            {
+                this.AdjustFlagsAndWidth(nameColon);
+                this.nameColon = nameColon;
+            }
+            if (refKindKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(refKindKeyword);
+                this.refKindKeyword = refKindKeyword;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         /// <summary>NameColonSyntax node representing the optional name arguments.</summary>
@@ -5403,32 +5403,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal NameColonSyntax(SyntaxKind kind, IdentifierNameSyntax name, SyntaxToken colonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal NameColonSyntax(SyntaxKind kind, IdentifierNameSyntax name, SyntaxToken colonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal NameColonSyntax(SyntaxKind kind, IdentifierNameSyntax name, SyntaxToken colonToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         /// <summary>IdentifierNameSyntax representing the identifier name.</summary>
@@ -5513,32 +5513,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DeclarationExpressionSyntax(SyntaxKind kind, TypeSyntax type, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(designation);
-                    this.designation = designation;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
         }
 
         internal DeclarationExpressionSyntax(SyntaxKind kind, TypeSyntax type, VariableDesignationSyntax designation, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(designation);
-                    this.designation = designation;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
         }
 
         internal DeclarationExpressionSyntax(SyntaxKind kind, TypeSyntax type, VariableDesignationSyntax designation)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(designation);
-                    this.designation = designation;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
         }
 
         public TypeSyntax Type => this.type;
@@ -5624,44 +5624,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CastExpressionSyntax(SyntaxKind kind, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal CastExpressionSyntax(SyntaxKind kind, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal CastExpressionSyntax(SyntaxKind kind, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         /// <summary>SyntaxToken representing the open parenthesis.</summary>
@@ -5803,77 +5803,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AnonymousMethodExpressionSyntax(SyntaxKind kind, SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    if (asyncKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(asyncKeyword);
-                        this.asyncKeyword = asyncKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(delegateKeyword);
-                    this.delegateKeyword = delegateKeyword;
-                    if (parameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameterList);
-                        this.parameterList = parameterList;
-                    }
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
+            this.SlotCount = 5;
+            if (asyncKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(asyncKeyword);
+                this.asyncKeyword = asyncKeyword;
+            }
+            this.AdjustFlagsAndWidth(delegateKeyword);
+            this.delegateKeyword = delegateKeyword;
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
         }
 
         internal AnonymousMethodExpressionSyntax(SyntaxKind kind, SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    if (asyncKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(asyncKeyword);
-                        this.asyncKeyword = asyncKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(delegateKeyword);
-                    this.delegateKeyword = delegateKeyword;
-                    if (parameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameterList);
-                        this.parameterList = parameterList;
-                    }
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
+            this.SlotCount = 5;
+            if (asyncKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(asyncKeyword);
+                this.asyncKeyword = asyncKeyword;
+            }
+            this.AdjustFlagsAndWidth(delegateKeyword);
+            this.delegateKeyword = delegateKeyword;
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
         }
 
         internal AnonymousMethodExpressionSyntax(SyntaxKind kind, SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    if (asyncKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(asyncKeyword);
-                        this.asyncKeyword = asyncKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(delegateKeyword);
-                    this.delegateKeyword = delegateKeyword;
-                    if (parameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameterList);
-                        this.parameterList = parameterList;
-                    }
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
+            this.SlotCount = 5;
+            if (asyncKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(asyncKeyword);
+                this.asyncKeyword = asyncKeyword;
+            }
+            this.AdjustFlagsAndWidth(delegateKeyword);
+            this.delegateKeyword = delegateKeyword;
+            if (parameterList != null)
+            {
+                this.AdjustFlagsAndWidth(parameterList);
+                this.parameterList = parameterList;
+            }
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
         }
 
         /// <summary>Gets the "async" token.</summary>
@@ -6019,77 +6019,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SimpleLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    if (asyncKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(asyncKeyword);
-                        this.asyncKeyword = asyncKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(parameter);
-                    this.parameter = parameter;
-                    this.AdjustFlagsAndWidth(arrowToken);
-                    this.arrowToken = arrowToken;
-                    if (block != null)
-                    {
-                        this.AdjustFlagsAndWidth(block);
-                        this.block = block;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
+            this.SlotCount = 5;
+            if (asyncKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(asyncKeyword);
+                this.asyncKeyword = asyncKeyword;
+            }
+            this.AdjustFlagsAndWidth(parameter);
+            this.parameter = parameter;
+            this.AdjustFlagsAndWidth(arrowToken);
+            this.arrowToken = arrowToken;
+            if (block != null)
+            {
+                this.AdjustFlagsAndWidth(block);
+                this.block = block;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
         }
 
         internal SimpleLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    if (asyncKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(asyncKeyword);
-                        this.asyncKeyword = asyncKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(parameter);
-                    this.parameter = parameter;
-                    this.AdjustFlagsAndWidth(arrowToken);
-                    this.arrowToken = arrowToken;
-                    if (block != null)
-                    {
-                        this.AdjustFlagsAndWidth(block);
-                        this.block = block;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
+            this.SlotCount = 5;
+            if (asyncKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(asyncKeyword);
+                this.asyncKeyword = asyncKeyword;
+            }
+            this.AdjustFlagsAndWidth(parameter);
+            this.parameter = parameter;
+            this.AdjustFlagsAndWidth(arrowToken);
+            this.arrowToken = arrowToken;
+            if (block != null)
+            {
+                this.AdjustFlagsAndWidth(block);
+                this.block = block;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
         }
 
         internal SimpleLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    if (asyncKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(asyncKeyword);
-                        this.asyncKeyword = asyncKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(parameter);
-                    this.parameter = parameter;
-                    this.AdjustFlagsAndWidth(arrowToken);
-                    this.arrowToken = arrowToken;
-                    if (block != null)
-                    {
-                        this.AdjustFlagsAndWidth(block);
-                        this.block = block;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
+            this.SlotCount = 5;
+            if (asyncKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(asyncKeyword);
+                this.asyncKeyword = asyncKeyword;
+            }
+            this.AdjustFlagsAndWidth(parameter);
+            this.parameter = parameter;
+            this.AdjustFlagsAndWidth(arrowToken);
+            this.arrowToken = arrowToken;
+            if (block != null)
+            {
+                this.AdjustFlagsAndWidth(block);
+                this.block = block;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
         }
 
         /// <summary>Gets the "async" token.</summary>
@@ -6209,32 +6209,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal RefExpressionSyntax(SyntaxKind kind, SyntaxToken refKeyword, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(refKeyword);
-                    this.refKeyword = refKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(refKeyword);
+            this.refKeyword = refKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal RefExpressionSyntax(SyntaxKind kind, SyntaxToken refKeyword, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(refKeyword);
-                    this.refKeyword = refKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(refKeyword);
+            this.refKeyword = refKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal RefExpressionSyntax(SyntaxKind kind, SyntaxToken refKeyword, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(refKeyword);
-                    this.refKeyword = refKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(refKeyword);
+            this.refKeyword = refKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         public SyntaxToken RefKeyword => this.refKeyword;
@@ -6320,77 +6320,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    if (asyncKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(asyncKeyword);
-                        this.asyncKeyword = asyncKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    this.AdjustFlagsAndWidth(arrowToken);
-                    this.arrowToken = arrowToken;
-                    if (block != null)
-                    {
-                        this.AdjustFlagsAndWidth(block);
-                        this.block = block;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
+            this.SlotCount = 5;
+            if (asyncKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(asyncKeyword);
+                this.asyncKeyword = asyncKeyword;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            this.AdjustFlagsAndWidth(arrowToken);
+            this.arrowToken = arrowToken;
+            if (block != null)
+            {
+                this.AdjustFlagsAndWidth(block);
+                this.block = block;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
         }
 
         internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    if (asyncKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(asyncKeyword);
-                        this.asyncKeyword = asyncKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    this.AdjustFlagsAndWidth(arrowToken);
-                    this.arrowToken = arrowToken;
-                    if (block != null)
-                    {
-                        this.AdjustFlagsAndWidth(block);
-                        this.block = block;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
+            this.SlotCount = 5;
+            if (asyncKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(asyncKeyword);
+                this.asyncKeyword = asyncKeyword;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            this.AdjustFlagsAndWidth(arrowToken);
+            this.arrowToken = arrowToken;
+            if (block != null)
+            {
+                this.AdjustFlagsAndWidth(block);
+                this.block = block;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
         }
 
         internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    if (asyncKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(asyncKeyword);
-                        this.asyncKeyword = asyncKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    this.AdjustFlagsAndWidth(arrowToken);
-                    this.arrowToken = arrowToken;
-                    if (block != null)
-                    {
-                        this.AdjustFlagsAndWidth(block);
-                        this.block = block;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
+            this.SlotCount = 5;
+            if (asyncKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(asyncKeyword);
+                this.asyncKeyword = asyncKeyword;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            this.AdjustFlagsAndWidth(arrowToken);
+            this.arrowToken = arrowToken;
+            if (block != null)
+            {
+                this.AdjustFlagsAndWidth(block);
+                this.block = block;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
         }
 
         /// <summary>Gets the "async" token.</summary>
@@ -6512,47 +6512,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal InitializerExpressionSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode expressions, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (expressions != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressions);
-                        this.expressions = expressions;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (expressions != null)
+            {
+                this.AdjustFlagsAndWidth(expressions);
+                this.expressions = expressions;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal InitializerExpressionSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode expressions, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (expressions != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressions);
-                        this.expressions = expressions;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (expressions != null)
+            {
+                this.AdjustFlagsAndWidth(expressions);
+                this.expressions = expressions;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal InitializerExpressionSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode expressions, SyntaxToken closeBraceToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (expressions != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressions);
-                        this.expressions = expressions;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (expressions != null)
+            {
+                this.AdjustFlagsAndWidth(expressions);
+                this.expressions = expressions;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         /// <summary>SyntaxToken representing the open brace.</summary>
@@ -6649,62 +6649,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax argumentList, InitializerExpressionSyntax initializer, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (argumentList != null)
-                    {
-                        this.AdjustFlagsAndWidth(argumentList);
-                        this.argumentList = argumentList;
-                    }
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (argumentList != null)
+            {
+                this.AdjustFlagsAndWidth(argumentList);
+                this.argumentList = argumentList;
+            }
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         internal ObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax argumentList, InitializerExpressionSyntax initializer, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (argumentList != null)
-                    {
-                        this.AdjustFlagsAndWidth(argumentList);
-                        this.argumentList = argumentList;
-                    }
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (argumentList != null)
+            {
+                this.AdjustFlagsAndWidth(argumentList);
+                this.argumentList = argumentList;
+            }
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         internal ObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax argumentList, InitializerExpressionSyntax initializer)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (argumentList != null)
-                    {
-                        this.AdjustFlagsAndWidth(argumentList);
-                        this.argumentList = argumentList;
-                    }
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (argumentList != null)
+            {
+                this.AdjustFlagsAndWidth(argumentList);
+                this.argumentList = argumentList;
+            }
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         /// <summary>SyntaxToken representing the new keyword.</summary>
@@ -6808,41 +6808,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AnonymousObjectMemberDeclaratorSyntax(SyntaxKind kind, NameEqualsSyntax nameEquals, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    if (nameEquals != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameEquals);
-                        this.nameEquals = nameEquals;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            if (nameEquals != null)
+            {
+                this.AdjustFlagsAndWidth(nameEquals);
+                this.nameEquals = nameEquals;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal AnonymousObjectMemberDeclaratorSyntax(SyntaxKind kind, NameEqualsSyntax nameEquals, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    if (nameEquals != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameEquals);
-                        this.nameEquals = nameEquals;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            if (nameEquals != null)
+            {
+                this.AdjustFlagsAndWidth(nameEquals);
+                this.nameEquals = nameEquals;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal AnonymousObjectMemberDeclaratorSyntax(SyntaxKind kind, NameEqualsSyntax nameEquals, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    if (nameEquals != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameEquals);
-                        this.nameEquals = nameEquals;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            if (nameEquals != null)
+            {
+                this.AdjustFlagsAndWidth(nameEquals);
+                this.nameEquals = nameEquals;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         /// <summary>NameEqualsSyntax representing the optional name of the member being initialized.</summary>
@@ -6929,53 +6929,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AnonymousObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, SyntaxToken openBraceToken, GreenNode initializers, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (initializers != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializers);
-                        this.initializers = initializers;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (initializers != null)
+            {
+                this.AdjustFlagsAndWidth(initializers);
+                this.initializers = initializers;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal AnonymousObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, SyntaxToken openBraceToken, GreenNode initializers, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (initializers != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializers);
-                        this.initializers = initializers;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (initializers != null)
+            {
+                this.AdjustFlagsAndWidth(initializers);
+                this.initializers = initializers;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal AnonymousObjectCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, SyntaxToken openBraceToken, GreenNode initializers, SyntaxToken closeBraceToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (initializers != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializers);
-                        this.initializers = initializers;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (initializers != null)
+            {
+                this.AdjustFlagsAndWidth(initializers);
+                this.initializers = initializers;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         /// <summary>SyntaxToken representing the new keyword.</summary>
@@ -7081,47 +7081,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, ArrayTypeSyntax type, InitializerExpressionSyntax initializer, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         internal ArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, ArrayTypeSyntax type, InitializerExpressionSyntax initializer, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         internal ArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, ArrayTypeSyntax type, InitializerExpressionSyntax initializer)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         /// <summary>SyntaxToken representing the new keyword.</summary>
@@ -7219,59 +7219,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ImplicitArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, SyntaxToken openBracketToken, GreenNode commas, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (commas != null)
-                    {
-                        this.AdjustFlagsAndWidth(commas);
-                        this.commas = commas;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
-                    this.AdjustFlagsAndWidth(initializer);
-                    this.initializer = initializer;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (commas != null)
+            {
+                this.AdjustFlagsAndWidth(commas);
+                this.commas = commas;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
+            this.AdjustFlagsAndWidth(initializer);
+            this.initializer = initializer;
         }
 
         internal ImplicitArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, SyntaxToken openBracketToken, GreenNode commas, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (commas != null)
-                    {
-                        this.AdjustFlagsAndWidth(commas);
-                        this.commas = commas;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
-                    this.AdjustFlagsAndWidth(initializer);
-                    this.initializer = initializer;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (commas != null)
+            {
+                this.AdjustFlagsAndWidth(commas);
+                this.commas = commas;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
+            this.AdjustFlagsAndWidth(initializer);
+            this.initializer = initializer;
         }
 
         internal ImplicitArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken newKeyword, SyntaxToken openBracketToken, GreenNode commas, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (commas != null)
-                    {
-                        this.AdjustFlagsAndWidth(commas);
-                        this.commas = commas;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
-                    this.AdjustFlagsAndWidth(initializer);
-                    this.initializer = initializer;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (commas != null)
+            {
+                this.AdjustFlagsAndWidth(commas);
+                this.commas = commas;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
+            this.AdjustFlagsAndWidth(initializer);
+            this.initializer = initializer;
         }
 
         /// <summary>SyntaxToken representing the new keyword.</summary>
@@ -7387,47 +7387,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal StackAllocArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(stackAllocKeyword);
-                    this.stackAllocKeyword = stackAllocKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(stackAllocKeyword);
+            this.stackAllocKeyword = stackAllocKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         internal StackAllocArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(stackAllocKeyword);
-                    this.stackAllocKeyword = stackAllocKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(stackAllocKeyword);
+            this.stackAllocKeyword = stackAllocKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         internal StackAllocArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(stackAllocKeyword);
-                    this.stackAllocKeyword = stackAllocKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(stackAllocKeyword);
+            this.stackAllocKeyword = stackAllocKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         /// <summary>SyntaxToken representing the stackalloc keyword.</summary>
@@ -7524,44 +7524,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ImplicitStackAllocArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(stackAllocKeyword);
-                    this.stackAllocKeyword = stackAllocKeyword;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
-                    this.AdjustFlagsAndWidth(initializer);
-                    this.initializer = initializer;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(stackAllocKeyword);
+            this.stackAllocKeyword = stackAllocKeyword;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
+            this.AdjustFlagsAndWidth(initializer);
+            this.initializer = initializer;
         }
 
         internal ImplicitStackAllocArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(stackAllocKeyword);
-                    this.stackAllocKeyword = stackAllocKeyword;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
-                    this.AdjustFlagsAndWidth(initializer);
-                    this.initializer = initializer;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(stackAllocKeyword);
+            this.stackAllocKeyword = stackAllocKeyword;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
+            this.AdjustFlagsAndWidth(initializer);
+            this.initializer = initializer;
         }
 
         internal ImplicitStackAllocArrayCreationExpressionSyntax(SyntaxKind kind, SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(stackAllocKeyword);
-                    this.stackAllocKeyword = stackAllocKeyword;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
-                    this.AdjustFlagsAndWidth(initializer);
-                    this.initializer = initializer;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(stackAllocKeyword);
+            this.stackAllocKeyword = stackAllocKeyword;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
+            this.AdjustFlagsAndWidth(initializer);
+            this.initializer = initializer;
         }
 
         /// <summary>SyntaxToken representing the stackalloc keyword.</summary>
@@ -7701,32 +7701,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal QueryExpressionSyntax(SyntaxKind kind, FromClauseSyntax fromClause, QueryBodySyntax body, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(fromClause);
-                    this.fromClause = fromClause;
-                    this.AdjustFlagsAndWidth(body);
-                    this.body = body;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(fromClause);
+            this.fromClause = fromClause;
+            this.AdjustFlagsAndWidth(body);
+            this.body = body;
         }
 
         internal QueryExpressionSyntax(SyntaxKind kind, FromClauseSyntax fromClause, QueryBodySyntax body, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(fromClause);
-                    this.fromClause = fromClause;
-                    this.AdjustFlagsAndWidth(body);
-                    this.body = body;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(fromClause);
+            this.fromClause = fromClause;
+            this.AdjustFlagsAndWidth(body);
+            this.body = body;
         }
 
         internal QueryExpressionSyntax(SyntaxKind kind, FromClauseSyntax fromClause, QueryBodySyntax body)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(fromClause);
-                    this.fromClause = fromClause;
-                    this.AdjustFlagsAndWidth(body);
-                    this.body = body;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(fromClause);
+            this.fromClause = fromClause;
+            this.AdjustFlagsAndWidth(body);
+            this.body = body;
         }
 
         public FromClauseSyntax FromClause => this.fromClause;
@@ -7809,56 +7809,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal QueryBodySyntax(SyntaxKind kind, GreenNode clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax continuation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    if (clauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(clauses);
-                        this.clauses = clauses;
-                    }
-                    this.AdjustFlagsAndWidth(selectOrGroup);
-                    this.selectOrGroup = selectOrGroup;
-                    if (continuation != null)
-                    {
-                        this.AdjustFlagsAndWidth(continuation);
-                        this.continuation = continuation;
-                    }
+            this.SlotCount = 3;
+            if (clauses != null)
+            {
+                this.AdjustFlagsAndWidth(clauses);
+                this.clauses = clauses;
+            }
+            this.AdjustFlagsAndWidth(selectOrGroup);
+            this.selectOrGroup = selectOrGroup;
+            if (continuation != null)
+            {
+                this.AdjustFlagsAndWidth(continuation);
+                this.continuation = continuation;
+            }
         }
 
         internal QueryBodySyntax(SyntaxKind kind, GreenNode clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax continuation, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    if (clauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(clauses);
-                        this.clauses = clauses;
-                    }
-                    this.AdjustFlagsAndWidth(selectOrGroup);
-                    this.selectOrGroup = selectOrGroup;
-                    if (continuation != null)
-                    {
-                        this.AdjustFlagsAndWidth(continuation);
-                        this.continuation = continuation;
-                    }
+            this.SlotCount = 3;
+            if (clauses != null)
+            {
+                this.AdjustFlagsAndWidth(clauses);
+                this.clauses = clauses;
+            }
+            this.AdjustFlagsAndWidth(selectOrGroup);
+            this.selectOrGroup = selectOrGroup;
+            if (continuation != null)
+            {
+                this.AdjustFlagsAndWidth(continuation);
+                this.continuation = continuation;
+            }
         }
 
         internal QueryBodySyntax(SyntaxKind kind, GreenNode clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax continuation)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    if (clauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(clauses);
-                        this.clauses = clauses;
-                    }
-                    this.AdjustFlagsAndWidth(selectOrGroup);
-                    this.selectOrGroup = selectOrGroup;
-                    if (continuation != null)
-                    {
-                        this.AdjustFlagsAndWidth(continuation);
-                        this.continuation = continuation;
-                    }
+            this.SlotCount = 3;
+            if (clauses != null)
+            {
+                this.AdjustFlagsAndWidth(clauses);
+                this.clauses = clauses;
+            }
+            this.AdjustFlagsAndWidth(selectOrGroup);
+            this.selectOrGroup = selectOrGroup;
+            if (continuation != null)
+            {
+                this.AdjustFlagsAndWidth(continuation);
+                this.continuation = continuation;
+            }
         }
 
         public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax> Clauses => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax>(this.clauses);
@@ -7952,59 +7952,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal FromClauseSyntax(SyntaxKind kind, SyntaxToken fromKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(fromKeyword);
-                    this.fromKeyword = fromKeyword;
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(fromKeyword);
+            this.fromKeyword = fromKeyword;
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal FromClauseSyntax(SyntaxKind kind, SyntaxToken fromKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(fromKeyword);
-                    this.fromKeyword = fromKeyword;
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(fromKeyword);
+            this.fromKeyword = fromKeyword;
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal FromClauseSyntax(SyntaxKind kind, SyntaxToken fromKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(fromKeyword);
-                    this.fromKeyword = fromKeyword;
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(fromKeyword);
+            this.fromKeyword = fromKeyword;
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         public SyntaxToken FromKeyword => this.fromKeyword;
@@ -8116,44 +8116,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal LetClauseSyntax(SyntaxKind kind, SyntaxToken letKeyword, SyntaxToken identifier, SyntaxToken equalsToken, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(letKeyword);
-                    this.letKeyword = letKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(letKeyword);
+            this.letKeyword = letKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal LetClauseSyntax(SyntaxKind kind, SyntaxToken letKeyword, SyntaxToken identifier, SyntaxToken equalsToken, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(letKeyword);
-                    this.letKeyword = letKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(letKeyword);
+            this.letKeyword = letKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal LetClauseSyntax(SyntaxKind kind, SyntaxToken letKeyword, SyntaxToken identifier, SyntaxToken equalsToken, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(letKeyword);
-                    this.letKeyword = letKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(letKeyword);
+            this.letKeyword = letKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         public SyntaxToken LetKeyword => this.letKeyword;
@@ -8262,98 +8262,98 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal JoinClauseSyntax(SyntaxKind kind, SyntaxToken joinKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax inExpression, SyntaxToken onKeyword, ExpressionSyntax leftExpression, SyntaxToken equalsKeyword, ExpressionSyntax rightExpression, JoinIntoClauseSyntax into, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 10;
-                    this.AdjustFlagsAndWidth(joinKeyword);
-                    this.joinKeyword = joinKeyword;
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(inExpression);
-                    this.inExpression = inExpression;
-                    this.AdjustFlagsAndWidth(onKeyword);
-                    this.onKeyword = onKeyword;
-                    this.AdjustFlagsAndWidth(leftExpression);
-                    this.leftExpression = leftExpression;
-                    this.AdjustFlagsAndWidth(equalsKeyword);
-                    this.equalsKeyword = equalsKeyword;
-                    this.AdjustFlagsAndWidth(rightExpression);
-                    this.rightExpression = rightExpression;
-                    if (into != null)
-                    {
-                        this.AdjustFlagsAndWidth(into);
-                        this.into = into;
-                    }
+            this.SlotCount = 10;
+            this.AdjustFlagsAndWidth(joinKeyword);
+            this.joinKeyword = joinKeyword;
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(inExpression);
+            this.inExpression = inExpression;
+            this.AdjustFlagsAndWidth(onKeyword);
+            this.onKeyword = onKeyword;
+            this.AdjustFlagsAndWidth(leftExpression);
+            this.leftExpression = leftExpression;
+            this.AdjustFlagsAndWidth(equalsKeyword);
+            this.equalsKeyword = equalsKeyword;
+            this.AdjustFlagsAndWidth(rightExpression);
+            this.rightExpression = rightExpression;
+            if (into != null)
+            {
+                this.AdjustFlagsAndWidth(into);
+                this.into = into;
+            }
         }
 
         internal JoinClauseSyntax(SyntaxKind kind, SyntaxToken joinKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax inExpression, SyntaxToken onKeyword, ExpressionSyntax leftExpression, SyntaxToken equalsKeyword, ExpressionSyntax rightExpression, JoinIntoClauseSyntax into, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 10;
-                    this.AdjustFlagsAndWidth(joinKeyword);
-                    this.joinKeyword = joinKeyword;
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(inExpression);
-                    this.inExpression = inExpression;
-                    this.AdjustFlagsAndWidth(onKeyword);
-                    this.onKeyword = onKeyword;
-                    this.AdjustFlagsAndWidth(leftExpression);
-                    this.leftExpression = leftExpression;
-                    this.AdjustFlagsAndWidth(equalsKeyword);
-                    this.equalsKeyword = equalsKeyword;
-                    this.AdjustFlagsAndWidth(rightExpression);
-                    this.rightExpression = rightExpression;
-                    if (into != null)
-                    {
-                        this.AdjustFlagsAndWidth(into);
-                        this.into = into;
-                    }
+            this.SlotCount = 10;
+            this.AdjustFlagsAndWidth(joinKeyword);
+            this.joinKeyword = joinKeyword;
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(inExpression);
+            this.inExpression = inExpression;
+            this.AdjustFlagsAndWidth(onKeyword);
+            this.onKeyword = onKeyword;
+            this.AdjustFlagsAndWidth(leftExpression);
+            this.leftExpression = leftExpression;
+            this.AdjustFlagsAndWidth(equalsKeyword);
+            this.equalsKeyword = equalsKeyword;
+            this.AdjustFlagsAndWidth(rightExpression);
+            this.rightExpression = rightExpression;
+            if (into != null)
+            {
+                this.AdjustFlagsAndWidth(into);
+                this.into = into;
+            }
         }
 
         internal JoinClauseSyntax(SyntaxKind kind, SyntaxToken joinKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax inExpression, SyntaxToken onKeyword, ExpressionSyntax leftExpression, SyntaxToken equalsKeyword, ExpressionSyntax rightExpression, JoinIntoClauseSyntax into)
           : base(kind)
         {
-                    this.SlotCount = 10;
-                    this.AdjustFlagsAndWidth(joinKeyword);
-                    this.joinKeyword = joinKeyword;
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(inExpression);
-                    this.inExpression = inExpression;
-                    this.AdjustFlagsAndWidth(onKeyword);
-                    this.onKeyword = onKeyword;
-                    this.AdjustFlagsAndWidth(leftExpression);
-                    this.leftExpression = leftExpression;
-                    this.AdjustFlagsAndWidth(equalsKeyword);
-                    this.equalsKeyword = equalsKeyword;
-                    this.AdjustFlagsAndWidth(rightExpression);
-                    this.rightExpression = rightExpression;
-                    if (into != null)
-                    {
-                        this.AdjustFlagsAndWidth(into);
-                        this.into = into;
-                    }
+            this.SlotCount = 10;
+            this.AdjustFlagsAndWidth(joinKeyword);
+            this.joinKeyword = joinKeyword;
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(inExpression);
+            this.inExpression = inExpression;
+            this.AdjustFlagsAndWidth(onKeyword);
+            this.onKeyword = onKeyword;
+            this.AdjustFlagsAndWidth(leftExpression);
+            this.leftExpression = leftExpression;
+            this.AdjustFlagsAndWidth(equalsKeyword);
+            this.equalsKeyword = equalsKeyword;
+            this.AdjustFlagsAndWidth(rightExpression);
+            this.rightExpression = rightExpression;
+            if (into != null)
+            {
+                this.AdjustFlagsAndWidth(into);
+                this.into = into;
+            }
         }
 
         public SyntaxToken JoinKeyword => this.joinKeyword;
@@ -8508,32 +8508,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal JoinIntoClauseSyntax(SyntaxKind kind, SyntaxToken intoKeyword, SyntaxToken identifier, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(intoKeyword);
-                    this.intoKeyword = intoKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(intoKeyword);
+            this.intoKeyword = intoKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         internal JoinIntoClauseSyntax(SyntaxKind kind, SyntaxToken intoKeyword, SyntaxToken identifier, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(intoKeyword);
-                    this.intoKeyword = intoKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(intoKeyword);
+            this.intoKeyword = intoKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         internal JoinIntoClauseSyntax(SyntaxKind kind, SyntaxToken intoKeyword, SyntaxToken identifier)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(intoKeyword);
-                    this.intoKeyword = intoKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(intoKeyword);
+            this.intoKeyword = intoKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         public SyntaxToken IntoKeyword => this.intoKeyword;
@@ -8616,32 +8616,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal WhereClauseSyntax(SyntaxKind kind, SyntaxToken whereKeyword, ExpressionSyntax condition, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(whereKeyword);
-                    this.whereKeyword = whereKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(whereKeyword);
+            this.whereKeyword = whereKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
         }
 
         internal WhereClauseSyntax(SyntaxKind kind, SyntaxToken whereKeyword, ExpressionSyntax condition, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(whereKeyword);
-                    this.whereKeyword = whereKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(whereKeyword);
+            this.whereKeyword = whereKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
         }
 
         internal WhereClauseSyntax(SyntaxKind kind, SyntaxToken whereKeyword, ExpressionSyntax condition)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(whereKeyword);
-                    this.whereKeyword = whereKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(whereKeyword);
+            this.whereKeyword = whereKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
         }
 
         public SyntaxToken WhereKeyword => this.whereKeyword;
@@ -8723,41 +8723,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal OrderByClauseSyntax(SyntaxKind kind, SyntaxToken orderByKeyword, GreenNode orderings, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(orderByKeyword);
-                    this.orderByKeyword = orderByKeyword;
-                    if (orderings != null)
-                    {
-                        this.AdjustFlagsAndWidth(orderings);
-                        this.orderings = orderings;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(orderByKeyword);
+            this.orderByKeyword = orderByKeyword;
+            if (orderings != null)
+            {
+                this.AdjustFlagsAndWidth(orderings);
+                this.orderings = orderings;
+            }
         }
 
         internal OrderByClauseSyntax(SyntaxKind kind, SyntaxToken orderByKeyword, GreenNode orderings, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(orderByKeyword);
-                    this.orderByKeyword = orderByKeyword;
-                    if (orderings != null)
-                    {
-                        this.AdjustFlagsAndWidth(orderings);
-                        this.orderings = orderings;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(orderByKeyword);
+            this.orderByKeyword = orderByKeyword;
+            if (orderings != null)
+            {
+                this.AdjustFlagsAndWidth(orderings);
+                this.orderings = orderings;
+            }
         }
 
         internal OrderByClauseSyntax(SyntaxKind kind, SyntaxToken orderByKeyword, GreenNode orderings)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(orderByKeyword);
-                    this.orderByKeyword = orderByKeyword;
-                    if (orderings != null)
-                    {
-                        this.AdjustFlagsAndWidth(orderings);
-                        this.orderings = orderings;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(orderByKeyword);
+            this.orderByKeyword = orderByKeyword;
+            if (orderings != null)
+            {
+                this.AdjustFlagsAndWidth(orderings);
+                this.orderings = orderings;
+            }
         }
 
         public SyntaxToken OrderByKeyword => this.orderByKeyword;
@@ -8839,41 +8839,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal OrderingSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken ascendingOrDescendingKeyword, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    if (ascendingOrDescendingKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(ascendingOrDescendingKeyword);
-                        this.ascendingOrDescendingKeyword = ascendingOrDescendingKeyword;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            if (ascendingOrDescendingKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(ascendingOrDescendingKeyword);
+                this.ascendingOrDescendingKeyword = ascendingOrDescendingKeyword;
+            }
         }
 
         internal OrderingSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken ascendingOrDescendingKeyword, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    if (ascendingOrDescendingKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(ascendingOrDescendingKeyword);
-                        this.ascendingOrDescendingKeyword = ascendingOrDescendingKeyword;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            if (ascendingOrDescendingKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(ascendingOrDescendingKeyword);
+                this.ascendingOrDescendingKeyword = ascendingOrDescendingKeyword;
+            }
         }
 
         internal OrderingSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken ascendingOrDescendingKeyword)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    if (ascendingOrDescendingKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(ascendingOrDescendingKeyword);
-                        this.ascendingOrDescendingKeyword = ascendingOrDescendingKeyword;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            if (ascendingOrDescendingKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(ascendingOrDescendingKeyword);
+                this.ascendingOrDescendingKeyword = ascendingOrDescendingKeyword;
+            }
         }
 
         public ExpressionSyntax Expression => this.expression;
@@ -8955,32 +8955,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SelectClauseSyntax(SyntaxKind kind, SyntaxToken selectKeyword, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(selectKeyword);
-                    this.selectKeyword = selectKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(selectKeyword);
+            this.selectKeyword = selectKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal SelectClauseSyntax(SyntaxKind kind, SyntaxToken selectKeyword, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(selectKeyword);
-                    this.selectKeyword = selectKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(selectKeyword);
+            this.selectKeyword = selectKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal SelectClauseSyntax(SyntaxKind kind, SyntaxToken selectKeyword, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(selectKeyword);
-                    this.selectKeyword = selectKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(selectKeyword);
+            this.selectKeyword = selectKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         public SyntaxToken SelectKeyword => this.selectKeyword;
@@ -9064,44 +9064,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal GroupClauseSyntax(SyntaxKind kind, SyntaxToken groupKeyword, ExpressionSyntax groupExpression, SyntaxToken byKeyword, ExpressionSyntax byExpression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(groupKeyword);
-                    this.groupKeyword = groupKeyword;
-                    this.AdjustFlagsAndWidth(groupExpression);
-                    this.groupExpression = groupExpression;
-                    this.AdjustFlagsAndWidth(byKeyword);
-                    this.byKeyword = byKeyword;
-                    this.AdjustFlagsAndWidth(byExpression);
-                    this.byExpression = byExpression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(groupKeyword);
+            this.groupKeyword = groupKeyword;
+            this.AdjustFlagsAndWidth(groupExpression);
+            this.groupExpression = groupExpression;
+            this.AdjustFlagsAndWidth(byKeyword);
+            this.byKeyword = byKeyword;
+            this.AdjustFlagsAndWidth(byExpression);
+            this.byExpression = byExpression;
         }
 
         internal GroupClauseSyntax(SyntaxKind kind, SyntaxToken groupKeyword, ExpressionSyntax groupExpression, SyntaxToken byKeyword, ExpressionSyntax byExpression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(groupKeyword);
-                    this.groupKeyword = groupKeyword;
-                    this.AdjustFlagsAndWidth(groupExpression);
-                    this.groupExpression = groupExpression;
-                    this.AdjustFlagsAndWidth(byKeyword);
-                    this.byKeyword = byKeyword;
-                    this.AdjustFlagsAndWidth(byExpression);
-                    this.byExpression = byExpression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(groupKeyword);
+            this.groupKeyword = groupKeyword;
+            this.AdjustFlagsAndWidth(groupExpression);
+            this.groupExpression = groupExpression;
+            this.AdjustFlagsAndWidth(byKeyword);
+            this.byKeyword = byKeyword;
+            this.AdjustFlagsAndWidth(byExpression);
+            this.byExpression = byExpression;
         }
 
         internal GroupClauseSyntax(SyntaxKind kind, SyntaxToken groupKeyword, ExpressionSyntax groupExpression, SyntaxToken byKeyword, ExpressionSyntax byExpression)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(groupKeyword);
-                    this.groupKeyword = groupKeyword;
-                    this.AdjustFlagsAndWidth(groupExpression);
-                    this.groupExpression = groupExpression;
-                    this.AdjustFlagsAndWidth(byKeyword);
-                    this.byKeyword = byKeyword;
-                    this.AdjustFlagsAndWidth(byExpression);
-                    this.byExpression = byExpression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(groupKeyword);
+            this.groupKeyword = groupKeyword;
+            this.AdjustFlagsAndWidth(groupExpression);
+            this.groupExpression = groupExpression;
+            this.AdjustFlagsAndWidth(byKeyword);
+            this.byKeyword = byKeyword;
+            this.AdjustFlagsAndWidth(byExpression);
+            this.byExpression = byExpression;
         }
 
         public SyntaxToken GroupKeyword => this.groupKeyword;
@@ -9202,38 +9202,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal QueryContinuationSyntax(SyntaxKind kind, SyntaxToken intoKeyword, SyntaxToken identifier, QueryBodySyntax body, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(intoKeyword);
-                    this.intoKeyword = intoKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(body);
-                    this.body = body;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(intoKeyword);
+            this.intoKeyword = intoKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(body);
+            this.body = body;
         }
 
         internal QueryContinuationSyntax(SyntaxKind kind, SyntaxToken intoKeyword, SyntaxToken identifier, QueryBodySyntax body, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(intoKeyword);
-                    this.intoKeyword = intoKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(body);
-                    this.body = body;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(intoKeyword);
+            this.intoKeyword = intoKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(body);
+            this.body = body;
         }
 
         internal QueryContinuationSyntax(SyntaxKind kind, SyntaxToken intoKeyword, SyntaxToken identifier, QueryBodySyntax body)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(intoKeyword);
-                    this.intoKeyword = intoKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(body);
-                    this.body = body;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(intoKeyword);
+            this.intoKeyword = intoKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(body);
+            this.body = body;
         }
 
         public SyntaxToken IntoKeyword => this.intoKeyword;
@@ -9325,26 +9325,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal OmittedArraySizeExpressionSyntax(SyntaxKind kind, SyntaxToken omittedArraySizeExpressionToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(omittedArraySizeExpressionToken);
-                    this.omittedArraySizeExpressionToken = omittedArraySizeExpressionToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(omittedArraySizeExpressionToken);
+            this.omittedArraySizeExpressionToken = omittedArraySizeExpressionToken;
         }
 
         internal OmittedArraySizeExpressionSyntax(SyntaxKind kind, SyntaxToken omittedArraySizeExpressionToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(omittedArraySizeExpressionToken);
-                    this.omittedArraySizeExpressionToken = omittedArraySizeExpressionToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(omittedArraySizeExpressionToken);
+            this.omittedArraySizeExpressionToken = omittedArraySizeExpressionToken;
         }
 
         internal OmittedArraySizeExpressionSyntax(SyntaxKind kind, SyntaxToken omittedArraySizeExpressionToken)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(omittedArraySizeExpressionToken);
-                    this.omittedArraySizeExpressionToken = omittedArraySizeExpressionToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(omittedArraySizeExpressionToken);
+            this.omittedArraySizeExpressionToken = omittedArraySizeExpressionToken;
         }
 
         /// <summary>SyntaxToken representing the omitted array size expression.</summary>
@@ -9415,47 +9415,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal InterpolatedStringExpressionSyntax(SyntaxKind kind, SyntaxToken stringStartToken, GreenNode contents, SyntaxToken stringEndToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(stringStartToken);
-                    this.stringStartToken = stringStartToken;
-                    if (contents != null)
-                    {
-                        this.AdjustFlagsAndWidth(contents);
-                        this.contents = contents;
-                    }
-                    this.AdjustFlagsAndWidth(stringEndToken);
-                    this.stringEndToken = stringEndToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(stringStartToken);
+            this.stringStartToken = stringStartToken;
+            if (contents != null)
+            {
+                this.AdjustFlagsAndWidth(contents);
+                this.contents = contents;
+            }
+            this.AdjustFlagsAndWidth(stringEndToken);
+            this.stringEndToken = stringEndToken;
         }
 
         internal InterpolatedStringExpressionSyntax(SyntaxKind kind, SyntaxToken stringStartToken, GreenNode contents, SyntaxToken stringEndToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(stringStartToken);
-                    this.stringStartToken = stringStartToken;
-                    if (contents != null)
-                    {
-                        this.AdjustFlagsAndWidth(contents);
-                        this.contents = contents;
-                    }
-                    this.AdjustFlagsAndWidth(stringEndToken);
-                    this.stringEndToken = stringEndToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(stringStartToken);
+            this.stringStartToken = stringStartToken;
+            if (contents != null)
+            {
+                this.AdjustFlagsAndWidth(contents);
+                this.contents = contents;
+            }
+            this.AdjustFlagsAndWidth(stringEndToken);
+            this.stringEndToken = stringEndToken;
         }
 
         internal InterpolatedStringExpressionSyntax(SyntaxKind kind, SyntaxToken stringStartToken, GreenNode contents, SyntaxToken stringEndToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(stringStartToken);
-                    this.stringStartToken = stringStartToken;
-                    if (contents != null)
-                    {
-                        this.AdjustFlagsAndWidth(contents);
-                        this.contents = contents;
-                    }
-                    this.AdjustFlagsAndWidth(stringEndToken);
-                    this.stringEndToken = stringEndToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(stringStartToken);
+            this.stringStartToken = stringStartToken;
+            if (contents != null)
+            {
+                this.AdjustFlagsAndWidth(contents);
+                this.contents = contents;
+            }
+            this.AdjustFlagsAndWidth(stringEndToken);
+            this.stringEndToken = stringEndToken;
         }
 
         /// <summary>The first part of an interpolated string, $" or $@"</summary>
@@ -9551,38 +9551,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal IsPatternExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken isKeyword, PatternSyntax pattern, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(isKeyword);
-                    this.isKeyword = isKeyword;
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(isKeyword);
+            this.isKeyword = isKeyword;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
         }
 
         internal IsPatternExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken isKeyword, PatternSyntax pattern, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(isKeyword);
-                    this.isKeyword = isKeyword;
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(isKeyword);
+            this.isKeyword = isKeyword;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
         }
 
         internal IsPatternExpressionSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken isKeyword, PatternSyntax pattern)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(isKeyword);
-                    this.isKeyword = isKeyword;
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(isKeyword);
+            this.isKeyword = isKeyword;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
         }
 
         /// <summary>ExpressionSyntax node representing the expression on the left of the "is" operator.</summary>
@@ -9675,32 +9675,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ThrowExpressionSyntax(SyntaxKind kind, SyntaxToken throwKeyword, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(throwKeyword);
-                    this.throwKeyword = throwKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(throwKeyword);
+            this.throwKeyword = throwKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal ThrowExpressionSyntax(SyntaxKind kind, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(throwKeyword);
-                    this.throwKeyword = throwKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(throwKeyword);
+            this.throwKeyword = throwKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal ThrowExpressionSyntax(SyntaxKind kind, SyntaxToken throwKeyword, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(throwKeyword);
-                    this.throwKeyword = throwKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(throwKeyword);
+            this.throwKeyword = throwKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         public SyntaxToken ThrowKeyword => this.throwKeyword;
@@ -9782,32 +9782,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal WhenClauseSyntax(SyntaxKind kind, SyntaxToken whenKeyword, ExpressionSyntax condition, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(whenKeyword);
-                    this.whenKeyword = whenKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(whenKeyword);
+            this.whenKeyword = whenKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
         }
 
         internal WhenClauseSyntax(SyntaxKind kind, SyntaxToken whenKeyword, ExpressionSyntax condition, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(whenKeyword);
-                    this.whenKeyword = whenKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(whenKeyword);
+            this.whenKeyword = whenKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
         }
 
         internal WhenClauseSyntax(SyntaxKind kind, SyntaxToken whenKeyword, ExpressionSyntax condition)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(whenKeyword);
-                    this.whenKeyword = whenKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(whenKeyword);
+            this.whenKeyword = whenKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
         }
 
         public SyntaxToken WhenKeyword => this.whenKeyword;
@@ -9906,26 +9906,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DiscardPatternSyntax(SyntaxKind kind, SyntaxToken underscoreToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(underscoreToken);
-                    this.underscoreToken = underscoreToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(underscoreToken);
+            this.underscoreToken = underscoreToken;
         }
 
         internal DiscardPatternSyntax(SyntaxKind kind, SyntaxToken underscoreToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(underscoreToken);
-                    this.underscoreToken = underscoreToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(underscoreToken);
+            this.underscoreToken = underscoreToken;
         }
 
         internal DiscardPatternSyntax(SyntaxKind kind, SyntaxToken underscoreToken)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(underscoreToken);
-                    this.underscoreToken = underscoreToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(underscoreToken);
+            this.underscoreToken = underscoreToken;
         }
 
         public SyntaxToken UnderscoreToken => this.underscoreToken;
@@ -9994,32 +9994,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DeclarationPatternSyntax(SyntaxKind kind, TypeSyntax type, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(designation);
-                    this.designation = designation;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
         }
 
         internal DeclarationPatternSyntax(SyntaxKind kind, TypeSyntax type, VariableDesignationSyntax designation, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(designation);
-                    this.designation = designation;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
         }
 
         internal DeclarationPatternSyntax(SyntaxKind kind, TypeSyntax type, VariableDesignationSyntax designation)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(designation);
-                    this.designation = designation;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
         }
 
         public TypeSyntax Type => this.type;
@@ -10101,32 +10101,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varKeyword, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(varKeyword);
-                    this.varKeyword = varKeyword;
-                    this.AdjustFlagsAndWidth(designation);
-                    this.designation = designation;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(varKeyword);
+            this.varKeyword = varKeyword;
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
         }
 
         internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varKeyword, VariableDesignationSyntax designation, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(varKeyword);
-                    this.varKeyword = varKeyword;
-                    this.AdjustFlagsAndWidth(designation);
-                    this.designation = designation;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(varKeyword);
+            this.varKeyword = varKeyword;
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
         }
 
         internal VarPatternSyntax(SyntaxKind kind, SyntaxToken varKeyword, VariableDesignationSyntax designation)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(varKeyword);
-                    this.varKeyword = varKeyword;
-                    this.AdjustFlagsAndWidth(designation);
-                    this.designation = designation;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(varKeyword);
+            this.varKeyword = varKeyword;
+            this.AdjustFlagsAndWidth(designation);
+            this.designation = designation;
         }
 
         public SyntaxToken VarKeyword => this.varKeyword;
@@ -10210,80 +10210,80 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal RecursivePatternSyntax(SyntaxKind kind, TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    if (positionalPatternClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(positionalPatternClause);
-                        this.positionalPatternClause = positionalPatternClause;
-                    }
-                    if (propertyPatternClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(propertyPatternClause);
-                        this.propertyPatternClause = propertyPatternClause;
-                    }
-                    if (designation != null)
-                    {
-                        this.AdjustFlagsAndWidth(designation);
-                        this.designation = designation;
-                    }
+            this.SlotCount = 4;
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            if (positionalPatternClause != null)
+            {
+                this.AdjustFlagsAndWidth(positionalPatternClause);
+                this.positionalPatternClause = positionalPatternClause;
+            }
+            if (propertyPatternClause != null)
+            {
+                this.AdjustFlagsAndWidth(propertyPatternClause);
+                this.propertyPatternClause = propertyPatternClause;
+            }
+            if (designation != null)
+            {
+                this.AdjustFlagsAndWidth(designation);
+                this.designation = designation;
+            }
         }
 
         internal RecursivePatternSyntax(SyntaxKind kind, TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    if (positionalPatternClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(positionalPatternClause);
-                        this.positionalPatternClause = positionalPatternClause;
-                    }
-                    if (propertyPatternClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(propertyPatternClause);
-                        this.propertyPatternClause = propertyPatternClause;
-                    }
-                    if (designation != null)
-                    {
-                        this.AdjustFlagsAndWidth(designation);
-                        this.designation = designation;
-                    }
+            this.SlotCount = 4;
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            if (positionalPatternClause != null)
+            {
+                this.AdjustFlagsAndWidth(positionalPatternClause);
+                this.positionalPatternClause = positionalPatternClause;
+            }
+            if (propertyPatternClause != null)
+            {
+                this.AdjustFlagsAndWidth(propertyPatternClause);
+                this.propertyPatternClause = propertyPatternClause;
+            }
+            if (designation != null)
+            {
+                this.AdjustFlagsAndWidth(designation);
+                this.designation = designation;
+            }
         }
 
         internal RecursivePatternSyntax(SyntaxKind kind, TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    if (positionalPatternClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(positionalPatternClause);
-                        this.positionalPatternClause = positionalPatternClause;
-                    }
-                    if (propertyPatternClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(propertyPatternClause);
-                        this.propertyPatternClause = propertyPatternClause;
-                    }
-                    if (designation != null)
-                    {
-                        this.AdjustFlagsAndWidth(designation);
-                        this.designation = designation;
-                    }
+            this.SlotCount = 4;
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            if (positionalPatternClause != null)
+            {
+                this.AdjustFlagsAndWidth(positionalPatternClause);
+                this.positionalPatternClause = positionalPatternClause;
+            }
+            if (propertyPatternClause != null)
+            {
+                this.AdjustFlagsAndWidth(propertyPatternClause);
+                this.propertyPatternClause = propertyPatternClause;
+            }
+            if (designation != null)
+            {
+                this.AdjustFlagsAndWidth(designation);
+                this.designation = designation;
+            }
         }
 
         public TypeSyntax Type => this.type;
@@ -10384,47 +10384,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal PositionalPatternClauseSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode subpatterns, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (subpatterns != null)
-                    {
-                        this.AdjustFlagsAndWidth(subpatterns);
-                        this.subpatterns = subpatterns;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (subpatterns != null)
+            {
+                this.AdjustFlagsAndWidth(subpatterns);
+                this.subpatterns = subpatterns;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal PositionalPatternClauseSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode subpatterns, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (subpatterns != null)
-                    {
-                        this.AdjustFlagsAndWidth(subpatterns);
-                        this.subpatterns = subpatterns;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (subpatterns != null)
+            {
+                this.AdjustFlagsAndWidth(subpatterns);
+                this.subpatterns = subpatterns;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal PositionalPatternClauseSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode subpatterns, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (subpatterns != null)
-                    {
-                        this.AdjustFlagsAndWidth(subpatterns);
-                        this.subpatterns = subpatterns;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (subpatterns != null)
+            {
+                this.AdjustFlagsAndWidth(subpatterns);
+                this.subpatterns = subpatterns;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         public SyntaxToken OpenParenToken => this.openParenToken;
@@ -10516,47 +10516,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal PropertyPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subpatterns, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (subpatterns != null)
-                    {
-                        this.AdjustFlagsAndWidth(subpatterns);
-                        this.subpatterns = subpatterns;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (subpatterns != null)
+            {
+                this.AdjustFlagsAndWidth(subpatterns);
+                this.subpatterns = subpatterns;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal PropertyPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subpatterns, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (subpatterns != null)
-                    {
-                        this.AdjustFlagsAndWidth(subpatterns);
-                        this.subpatterns = subpatterns;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (subpatterns != null)
+            {
+                this.AdjustFlagsAndWidth(subpatterns);
+                this.subpatterns = subpatterns;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal PropertyPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subpatterns, SyntaxToken closeBraceToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (subpatterns != null)
-                    {
-                        this.AdjustFlagsAndWidth(subpatterns);
-                        this.subpatterns = subpatterns;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (subpatterns != null)
+            {
+                this.AdjustFlagsAndWidth(subpatterns);
+                this.subpatterns = subpatterns;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         public SyntaxToken OpenBraceToken => this.openBraceToken;
@@ -10647,41 +10647,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    if (nameColon != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameColon);
-                        this.nameColon = nameColon;
-                    }
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
+            this.SlotCount = 2;
+            if (nameColon != null)
+            {
+                this.AdjustFlagsAndWidth(nameColon);
+                this.nameColon = nameColon;
+            }
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
         }
 
         internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    if (nameColon != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameColon);
-                        this.nameColon = nameColon;
-                    }
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
+            this.SlotCount = 2;
+            if (nameColon != null)
+            {
+                this.AdjustFlagsAndWidth(nameColon);
+                this.nameColon = nameColon;
+            }
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
         }
 
         internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    if (nameColon != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameColon);
-                        this.nameColon = nameColon;
-                    }
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
+            this.SlotCount = 2;
+            if (nameColon != null)
+            {
+                this.AdjustFlagsAndWidth(nameColon);
+                this.nameColon = nameColon;
+            }
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
         }
 
         public NameColonSyntax NameColon => this.nameColon;
@@ -10762,26 +10762,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ConstantPatternSyntax(SyntaxKind kind, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal ConstantPatternSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal ConstantPatternSyntax(SyntaxKind kind, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         /// <summary>ExpressionSyntax node representing the constant expression.</summary>
@@ -10868,26 +10868,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal InterpolatedStringTextSyntax(SyntaxKind kind, SyntaxToken textToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(textToken);
-                    this.textToken = textToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(textToken);
+            this.textToken = textToken;
         }
 
         internal InterpolatedStringTextSyntax(SyntaxKind kind, SyntaxToken textToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(textToken);
-                    this.textToken = textToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(textToken);
+            this.textToken = textToken;
         }
 
         internal InterpolatedStringTextSyntax(SyntaxKind kind, SyntaxToken textToken)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(textToken);
-                    this.textToken = textToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(textToken);
+            this.textToken = textToken;
         }
 
         /// <summary>The text contents of a part of the interpolated string.</summary>
@@ -10960,68 +10960,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal InterpolationSyntax(SyntaxKind kind, SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignmentClause, InterpolationFormatClauseSyntax formatClause, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    if (alignmentClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(alignmentClause);
-                        this.alignmentClause = alignmentClause;
-                    }
-                    if (formatClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(formatClause);
-                        this.formatClause = formatClause;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            if (alignmentClause != null)
+            {
+                this.AdjustFlagsAndWidth(alignmentClause);
+                this.alignmentClause = alignmentClause;
+            }
+            if (formatClause != null)
+            {
+                this.AdjustFlagsAndWidth(formatClause);
+                this.formatClause = formatClause;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal InterpolationSyntax(SyntaxKind kind, SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignmentClause, InterpolationFormatClauseSyntax formatClause, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    if (alignmentClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(alignmentClause);
-                        this.alignmentClause = alignmentClause;
-                    }
-                    if (formatClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(formatClause);
-                        this.formatClause = formatClause;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            if (alignmentClause != null)
+            {
+                this.AdjustFlagsAndWidth(alignmentClause);
+                this.alignmentClause = alignmentClause;
+            }
+            if (formatClause != null)
+            {
+                this.AdjustFlagsAndWidth(formatClause);
+                this.formatClause = formatClause;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal InterpolationSyntax(SyntaxKind kind, SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignmentClause, InterpolationFormatClauseSyntax formatClause, SyntaxToken closeBraceToken)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    if (alignmentClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(alignmentClause);
-                        this.alignmentClause = alignmentClause;
-                    }
-                    if (formatClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(formatClause);
-                        this.formatClause = formatClause;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            if (alignmentClause != null)
+            {
+                this.AdjustFlagsAndWidth(alignmentClause);
+                this.alignmentClause = alignmentClause;
+            }
+            if (formatClause != null)
+            {
+                this.AdjustFlagsAndWidth(formatClause);
+                this.formatClause = formatClause;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         public SyntaxToken OpenBraceToken => this.openBraceToken;
@@ -11130,32 +11130,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal InterpolationAlignmentClauseSyntax(SyntaxKind kind, SyntaxToken commaToken, ExpressionSyntax value, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(commaToken);
-                    this.commaToken = commaToken;
-                    this.AdjustFlagsAndWidth(value);
-                    this.value = value;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(commaToken);
+            this.commaToken = commaToken;
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
         }
 
         internal InterpolationAlignmentClauseSyntax(SyntaxKind kind, SyntaxToken commaToken, ExpressionSyntax value, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(commaToken);
-                    this.commaToken = commaToken;
-                    this.AdjustFlagsAndWidth(value);
-                    this.value = value;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(commaToken);
+            this.commaToken = commaToken;
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
         }
 
         internal InterpolationAlignmentClauseSyntax(SyntaxKind kind, SyntaxToken commaToken, ExpressionSyntax value)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(commaToken);
-                    this.commaToken = commaToken;
-                    this.AdjustFlagsAndWidth(value);
-                    this.value = value;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(commaToken);
+            this.commaToken = commaToken;
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
         }
 
         public SyntaxToken CommaToken => this.commaToken;
@@ -11237,32 +11237,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal InterpolationFormatClauseSyntax(SyntaxKind kind, SyntaxToken colonToken, SyntaxToken formatStringToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(formatStringToken);
-                    this.formatStringToken = formatStringToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(formatStringToken);
+            this.formatStringToken = formatStringToken;
         }
 
         internal InterpolationFormatClauseSyntax(SyntaxKind kind, SyntaxToken colonToken, SyntaxToken formatStringToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(formatStringToken);
-                    this.formatStringToken = formatStringToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(formatStringToken);
+            this.formatStringToken = formatStringToken;
         }
 
         internal InterpolationFormatClauseSyntax(SyntaxKind kind, SyntaxToken colonToken, SyntaxToken formatStringToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(formatStringToken);
-                    this.formatStringToken = formatStringToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(formatStringToken);
+            this.formatStringToken = formatStringToken;
         }
 
         public SyntaxToken ColonToken => this.colonToken;
@@ -11346,56 +11346,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal GlobalStatementSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 3;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal GlobalStatementSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, StatementSyntax statement, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 3;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal GlobalStatementSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, StatementSyntax statement)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 3;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -11506,47 +11506,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (statements != null)
-                    {
-                        this.AdjustFlagsAndWidth(statements);
-                        this.statements = statements;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (statements != null)
+            {
+                this.AdjustFlagsAndWidth(statements);
+                this.statements = statements;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (statements != null)
-                    {
-                        this.AdjustFlagsAndWidth(statements);
-                        this.statements = statements;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (statements != null)
+            {
+                this.AdjustFlagsAndWidth(statements);
+                this.statements = statements;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (statements != null)
-                    {
-                        this.AdjustFlagsAndWidth(statements);
-                        this.statements = statements;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (statements != null)
+            {
+                this.AdjustFlagsAndWidth(statements);
+                this.statements = statements;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         public SyntaxToken OpenBraceToken => this.openBraceToken;
@@ -11644,128 +11644,128 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal LocalFunctionStatementSyntax(SyntaxKind kind, GreenNode modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, GreenNode constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 9;
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal LocalFunctionStatementSyntax(SyntaxKind kind, GreenNode modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, GreenNode constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 9;
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal LocalFunctionStatementSyntax(SyntaxKind kind, GreenNode modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, GreenNode constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 9;
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
@@ -11915,77 +11915,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    if (usingKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(usingKeyword);
-                        this.usingKeyword = usingKeyword;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 5;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            if (usingKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(usingKeyword);
+                this.usingKeyword = usingKeyword;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    if (usingKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(usingKeyword);
-                        this.usingKeyword = usingKeyword;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 5;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            if (usingKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(usingKeyword);
+                this.usingKeyword = usingKeyword;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    if (usingKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(usingKeyword);
-                        this.usingKeyword = usingKeyword;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 5;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            if (usingKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(usingKeyword);
+                this.usingKeyword = usingKeyword;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public SyntaxToken AwaitKeyword => this.awaitKeyword;
@@ -12095,41 +12095,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal VariableDeclarationSyntax(SyntaxKind kind, TypeSyntax type, GreenNode variables, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (variables != null)
-                    {
-                        this.AdjustFlagsAndWidth(variables);
-                        this.variables = variables;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (variables != null)
+            {
+                this.AdjustFlagsAndWidth(variables);
+                this.variables = variables;
+            }
         }
 
         internal VariableDeclarationSyntax(SyntaxKind kind, TypeSyntax type, GreenNode variables, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (variables != null)
-                    {
-                        this.AdjustFlagsAndWidth(variables);
-                        this.variables = variables;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (variables != null)
+            {
+                this.AdjustFlagsAndWidth(variables);
+                this.variables = variables;
+            }
         }
 
         internal VariableDeclarationSyntax(SyntaxKind kind, TypeSyntax type, GreenNode variables)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (variables != null)
-                    {
-                        this.AdjustFlagsAndWidth(variables);
-                        this.variables = variables;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (variables != null)
+            {
+                this.AdjustFlagsAndWidth(variables);
+                this.variables = variables;
+            }
         }
 
         public TypeSyntax Type => this.type;
@@ -12212,56 +12212,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal VariableDeclaratorSyntax(SyntaxKind kind, SyntaxToken identifier, BracketedArgumentListSyntax argumentList, EqualsValueClauseSyntax initializer, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (argumentList != null)
-                    {
-                        this.AdjustFlagsAndWidth(argumentList);
-                        this.argumentList = argumentList;
-                    }
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (argumentList != null)
+            {
+                this.AdjustFlagsAndWidth(argumentList);
+                this.argumentList = argumentList;
+            }
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         internal VariableDeclaratorSyntax(SyntaxKind kind, SyntaxToken identifier, BracketedArgumentListSyntax argumentList, EqualsValueClauseSyntax initializer, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (argumentList != null)
-                    {
-                        this.AdjustFlagsAndWidth(argumentList);
-                        this.argumentList = argumentList;
-                    }
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (argumentList != null)
+            {
+                this.AdjustFlagsAndWidth(argumentList);
+                this.argumentList = argumentList;
+            }
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         internal VariableDeclaratorSyntax(SyntaxKind kind, SyntaxToken identifier, BracketedArgumentListSyntax argumentList, EqualsValueClauseSyntax initializer)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (argumentList != null)
-                    {
-                        this.AdjustFlagsAndWidth(argumentList);
-                        this.argumentList = argumentList;
-                    }
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (argumentList != null)
+            {
+                this.AdjustFlagsAndWidth(argumentList);
+                this.argumentList = argumentList;
+            }
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
         }
 
         /// <summary>Gets the identifier.</summary>
@@ -12353,32 +12353,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal EqualsValueClauseSyntax(SyntaxKind kind, SyntaxToken equalsToken, ExpressionSyntax value, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(value);
-                    this.value = value;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
         }
 
         internal EqualsValueClauseSyntax(SyntaxKind kind, SyntaxToken equalsToken, ExpressionSyntax value, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(value);
-                    this.value = value;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
         }
 
         internal EqualsValueClauseSyntax(SyntaxKind kind, SyntaxToken equalsToken, ExpressionSyntax value)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(value);
-                    this.value = value;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
         }
 
         public SyntaxToken EqualsToken => this.equalsToken;
@@ -12477,26 +12477,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SingleVariableDesignationSyntax(SyntaxKind kind, SyntaxToken identifier, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         internal SingleVariableDesignationSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         internal SingleVariableDesignationSyntax(SyntaxKind kind, SyntaxToken identifier)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         public SyntaxToken Identifier => this.identifier;
@@ -12564,26 +12564,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DiscardDesignationSyntax(SyntaxKind kind, SyntaxToken underscoreToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(underscoreToken);
-                    this.underscoreToken = underscoreToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(underscoreToken);
+            this.underscoreToken = underscoreToken;
         }
 
         internal DiscardDesignationSyntax(SyntaxKind kind, SyntaxToken underscoreToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(underscoreToken);
-                    this.underscoreToken = underscoreToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(underscoreToken);
+            this.underscoreToken = underscoreToken;
         }
 
         internal DiscardDesignationSyntax(SyntaxKind kind, SyntaxToken underscoreToken)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(underscoreToken);
-                    this.underscoreToken = underscoreToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(underscoreToken);
+            this.underscoreToken = underscoreToken;
         }
 
         public SyntaxToken UnderscoreToken => this.underscoreToken;
@@ -12653,47 +12653,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ParenthesizedVariableDesignationSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode variables, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (variables != null)
-                    {
-                        this.AdjustFlagsAndWidth(variables);
-                        this.variables = variables;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (variables != null)
+            {
+                this.AdjustFlagsAndWidth(variables);
+                this.variables = variables;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal ParenthesizedVariableDesignationSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode variables, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (variables != null)
-                    {
-                        this.AdjustFlagsAndWidth(variables);
-                        this.variables = variables;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (variables != null)
+            {
+                this.AdjustFlagsAndWidth(variables);
+                this.variables = variables;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal ParenthesizedVariableDesignationSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode variables, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (variables != null)
-                    {
-                        this.AdjustFlagsAndWidth(variables);
-                        this.variables = variables;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (variables != null)
+            {
+                this.AdjustFlagsAndWidth(variables);
+                this.variables = variables;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         public SyntaxToken OpenParenToken => this.openParenToken;
@@ -12784,32 +12784,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ExpressionStatementSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal ExpressionStatementSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal ExpressionStatementSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public ExpressionSyntax Expression => this.expression;
@@ -12890,26 +12890,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal EmptyStatementSyntax(SyntaxKind kind, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal EmptyStatementSyntax(SyntaxKind kind, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal EmptyStatementSyntax(SyntaxKind kind, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public SyntaxToken SemicolonToken => this.semicolonToken;
@@ -12980,38 +12980,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal LabeledStatementSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal LabeledStatementSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal LabeledStatementSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         /// <summary>Gets the identifier.</summary>
@@ -13109,62 +13109,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal GotoStatementSyntax(SyntaxKind kind, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(gotoKeyword);
-                    this.gotoKeyword = gotoKeyword;
-                    if (caseOrDefaultKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(caseOrDefaultKeyword);
-                        this.caseOrDefaultKeyword = caseOrDefaultKeyword;
-                    }
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(gotoKeyword);
+            this.gotoKeyword = gotoKeyword;
+            if (caseOrDefaultKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(caseOrDefaultKeyword);
+                this.caseOrDefaultKeyword = caseOrDefaultKeyword;
+            }
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal GotoStatementSyntax(SyntaxKind kind, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(gotoKeyword);
-                    this.gotoKeyword = gotoKeyword;
-                    if (caseOrDefaultKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(caseOrDefaultKeyword);
-                        this.caseOrDefaultKeyword = caseOrDefaultKeyword;
-                    }
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(gotoKeyword);
+            this.gotoKeyword = gotoKeyword;
+            if (caseOrDefaultKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(caseOrDefaultKeyword);
+                this.caseOrDefaultKeyword = caseOrDefaultKeyword;
+            }
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal GotoStatementSyntax(SyntaxKind kind, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(gotoKeyword);
-                    this.gotoKeyword = gotoKeyword;
-                    if (caseOrDefaultKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(caseOrDefaultKeyword);
-                        this.caseOrDefaultKeyword = caseOrDefaultKeyword;
-                    }
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(gotoKeyword);
+            this.gotoKeyword = gotoKeyword;
+            if (caseOrDefaultKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(caseOrDefaultKeyword);
+                this.caseOrDefaultKeyword = caseOrDefaultKeyword;
+            }
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         /// <summary>
@@ -13276,32 +13276,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal BreakStatementSyntax(SyntaxKind kind, SyntaxToken breakKeyword, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(breakKeyword);
-                    this.breakKeyword = breakKeyword;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(breakKeyword);
+            this.breakKeyword = breakKeyword;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal BreakStatementSyntax(SyntaxKind kind, SyntaxToken breakKeyword, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(breakKeyword);
-                    this.breakKeyword = breakKeyword;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(breakKeyword);
+            this.breakKeyword = breakKeyword;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal BreakStatementSyntax(SyntaxKind kind, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(breakKeyword);
-                    this.breakKeyword = breakKeyword;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(breakKeyword);
+            this.breakKeyword = breakKeyword;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public SyntaxToken BreakKeyword => this.breakKeyword;
@@ -13383,32 +13383,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ContinueStatementSyntax(SyntaxKind kind, SyntaxToken continueKeyword, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(continueKeyword);
-                    this.continueKeyword = continueKeyword;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(continueKeyword);
+            this.continueKeyword = continueKeyword;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal ContinueStatementSyntax(SyntaxKind kind, SyntaxToken continueKeyword, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(continueKeyword);
-                    this.continueKeyword = continueKeyword;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(continueKeyword);
+            this.continueKeyword = continueKeyword;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal ContinueStatementSyntax(SyntaxKind kind, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(continueKeyword);
-                    this.continueKeyword = continueKeyword;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(continueKeyword);
+            this.continueKeyword = continueKeyword;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public SyntaxToken ContinueKeyword => this.continueKeyword;
@@ -13491,47 +13491,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ReturnStatementSyntax(SyntaxKind kind, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(returnKeyword);
-                    this.returnKeyword = returnKeyword;
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(returnKeyword);
+            this.returnKeyword = returnKeyword;
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal ReturnStatementSyntax(SyntaxKind kind, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(returnKeyword);
-                    this.returnKeyword = returnKeyword;
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(returnKeyword);
+            this.returnKeyword = returnKeyword;
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal ReturnStatementSyntax(SyntaxKind kind, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(returnKeyword);
-                    this.returnKeyword = returnKeyword;
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(returnKeyword);
+            this.returnKeyword = returnKeyword;
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public SyntaxToken ReturnKeyword => this.returnKeyword;
@@ -13623,47 +13623,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ThrowStatementSyntax(SyntaxKind kind, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(throwKeyword);
-                    this.throwKeyword = throwKeyword;
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(throwKeyword);
+            this.throwKeyword = throwKeyword;
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal ThrowStatementSyntax(SyntaxKind kind, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(throwKeyword);
-                    this.throwKeyword = throwKeyword;
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(throwKeyword);
+            this.throwKeyword = throwKeyword;
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal ThrowStatementSyntax(SyntaxKind kind, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(throwKeyword);
-                    this.throwKeyword = throwKeyword;
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(throwKeyword);
+            this.throwKeyword = throwKeyword;
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public SyntaxToken ThrowKeyword => this.throwKeyword;
@@ -13756,53 +13756,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal YieldStatementSyntax(SyntaxKind kind, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(yieldKeyword);
-                    this.yieldKeyword = yieldKeyword;
-                    this.AdjustFlagsAndWidth(returnOrBreakKeyword);
-                    this.returnOrBreakKeyword = returnOrBreakKeyword;
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(yieldKeyword);
+            this.yieldKeyword = yieldKeyword;
+            this.AdjustFlagsAndWidth(returnOrBreakKeyword);
+            this.returnOrBreakKeyword = returnOrBreakKeyword;
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal YieldStatementSyntax(SyntaxKind kind, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(yieldKeyword);
-                    this.yieldKeyword = yieldKeyword;
-                    this.AdjustFlagsAndWidth(returnOrBreakKeyword);
-                    this.returnOrBreakKeyword = returnOrBreakKeyword;
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(yieldKeyword);
+            this.yieldKeyword = yieldKeyword;
+            this.AdjustFlagsAndWidth(returnOrBreakKeyword);
+            this.returnOrBreakKeyword = returnOrBreakKeyword;
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal YieldStatementSyntax(SyntaxKind kind, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(yieldKeyword);
-                    this.yieldKeyword = yieldKeyword;
-                    this.AdjustFlagsAndWidth(returnOrBreakKeyword);
-                    this.returnOrBreakKeyword = returnOrBreakKeyword;
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(yieldKeyword);
+            this.yieldKeyword = yieldKeyword;
+            this.AdjustFlagsAndWidth(returnOrBreakKeyword);
+            this.returnOrBreakKeyword = returnOrBreakKeyword;
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public SyntaxToken YieldKeyword => this.yieldKeyword;
@@ -13905,50 +13905,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal WhileStatementSyntax(SyntaxKind kind, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(whileKeyword);
-                    this.whileKeyword = whileKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(whileKeyword);
+            this.whileKeyword = whileKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal WhileStatementSyntax(SyntaxKind kind, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(whileKeyword);
-                    this.whileKeyword = whileKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(whileKeyword);
+            this.whileKeyword = whileKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal WhileStatementSyntax(SyntaxKind kind, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(whileKeyword);
-                    this.whileKeyword = whileKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(whileKeyword);
+            this.whileKeyword = whileKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         public SyntaxToken WhileKeyword => this.whileKeyword;
@@ -14062,62 +14062,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DoStatementSyntax(SyntaxKind kind, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 7;
-                    this.AdjustFlagsAndWidth(doKeyword);
-                    this.doKeyword = doKeyword;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
-                    this.AdjustFlagsAndWidth(whileKeyword);
-                    this.whileKeyword = whileKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 7;
+            this.AdjustFlagsAndWidth(doKeyword);
+            this.doKeyword = doKeyword;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
+            this.AdjustFlagsAndWidth(whileKeyword);
+            this.whileKeyword = whileKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal DoStatementSyntax(SyntaxKind kind, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 7;
-                    this.AdjustFlagsAndWidth(doKeyword);
-                    this.doKeyword = doKeyword;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
-                    this.AdjustFlagsAndWidth(whileKeyword);
-                    this.whileKeyword = whileKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 7;
+            this.AdjustFlagsAndWidth(doKeyword);
+            this.doKeyword = doKeyword;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
+            this.AdjustFlagsAndWidth(whileKeyword);
+            this.whileKeyword = whileKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal DoStatementSyntax(SyntaxKind kind, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 7;
-                    this.AdjustFlagsAndWidth(doKeyword);
-                    this.doKeyword = doKeyword;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
-                    this.AdjustFlagsAndWidth(whileKeyword);
-                    this.whileKeyword = whileKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 7;
+            this.AdjustFlagsAndWidth(doKeyword);
+            this.doKeyword = doKeyword;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
+            this.AdjustFlagsAndWidth(whileKeyword);
+            this.whileKeyword = whileKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public SyntaxToken DoKeyword => this.doKeyword;
@@ -14252,116 +14252,116 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ForStatementSyntax(SyntaxKind kind, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, GreenNode initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, GreenNode incrementors, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 10;
-                    this.AdjustFlagsAndWidth(forKeyword);
-                    this.forKeyword = forKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (declaration != null)
-                    {
-                        this.AdjustFlagsAndWidth(declaration);
-                        this.declaration = declaration;
-                    }
-                    if (initializers != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializers);
-                        this.initializers = initializers;
-                    }
-                    this.AdjustFlagsAndWidth(firstSemicolonToken);
-                    this.firstSemicolonToken = firstSemicolonToken;
-                    if (condition != null)
-                    {
-                        this.AdjustFlagsAndWidth(condition);
-                        this.condition = condition;
-                    }
-                    this.AdjustFlagsAndWidth(secondSemicolonToken);
-                    this.secondSemicolonToken = secondSemicolonToken;
-                    if (incrementors != null)
-                    {
-                        this.AdjustFlagsAndWidth(incrementors);
-                        this.incrementors = incrementors;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 10;
+            this.AdjustFlagsAndWidth(forKeyword);
+            this.forKeyword = forKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (declaration != null)
+            {
+                this.AdjustFlagsAndWidth(declaration);
+                this.declaration = declaration;
+            }
+            if (initializers != null)
+            {
+                this.AdjustFlagsAndWidth(initializers);
+                this.initializers = initializers;
+            }
+            this.AdjustFlagsAndWidth(firstSemicolonToken);
+            this.firstSemicolonToken = firstSemicolonToken;
+            if (condition != null)
+            {
+                this.AdjustFlagsAndWidth(condition);
+                this.condition = condition;
+            }
+            this.AdjustFlagsAndWidth(secondSemicolonToken);
+            this.secondSemicolonToken = secondSemicolonToken;
+            if (incrementors != null)
+            {
+                this.AdjustFlagsAndWidth(incrementors);
+                this.incrementors = incrementors;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal ForStatementSyntax(SyntaxKind kind, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, GreenNode initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, GreenNode incrementors, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 10;
-                    this.AdjustFlagsAndWidth(forKeyword);
-                    this.forKeyword = forKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (declaration != null)
-                    {
-                        this.AdjustFlagsAndWidth(declaration);
-                        this.declaration = declaration;
-                    }
-                    if (initializers != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializers);
-                        this.initializers = initializers;
-                    }
-                    this.AdjustFlagsAndWidth(firstSemicolonToken);
-                    this.firstSemicolonToken = firstSemicolonToken;
-                    if (condition != null)
-                    {
-                        this.AdjustFlagsAndWidth(condition);
-                        this.condition = condition;
-                    }
-                    this.AdjustFlagsAndWidth(secondSemicolonToken);
-                    this.secondSemicolonToken = secondSemicolonToken;
-                    if (incrementors != null)
-                    {
-                        this.AdjustFlagsAndWidth(incrementors);
-                        this.incrementors = incrementors;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 10;
+            this.AdjustFlagsAndWidth(forKeyword);
+            this.forKeyword = forKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (declaration != null)
+            {
+                this.AdjustFlagsAndWidth(declaration);
+                this.declaration = declaration;
+            }
+            if (initializers != null)
+            {
+                this.AdjustFlagsAndWidth(initializers);
+                this.initializers = initializers;
+            }
+            this.AdjustFlagsAndWidth(firstSemicolonToken);
+            this.firstSemicolonToken = firstSemicolonToken;
+            if (condition != null)
+            {
+                this.AdjustFlagsAndWidth(condition);
+                this.condition = condition;
+            }
+            this.AdjustFlagsAndWidth(secondSemicolonToken);
+            this.secondSemicolonToken = secondSemicolonToken;
+            if (incrementors != null)
+            {
+                this.AdjustFlagsAndWidth(incrementors);
+                this.incrementors = incrementors;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal ForStatementSyntax(SyntaxKind kind, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, GreenNode initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, GreenNode incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
           : base(kind)
         {
-                    this.SlotCount = 10;
-                    this.AdjustFlagsAndWidth(forKeyword);
-                    this.forKeyword = forKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (declaration != null)
-                    {
-                        this.AdjustFlagsAndWidth(declaration);
-                        this.declaration = declaration;
-                    }
-                    if (initializers != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializers);
-                        this.initializers = initializers;
-                    }
-                    this.AdjustFlagsAndWidth(firstSemicolonToken);
-                    this.firstSemicolonToken = firstSemicolonToken;
-                    if (condition != null)
-                    {
-                        this.AdjustFlagsAndWidth(condition);
-                        this.condition = condition;
-                    }
-                    this.AdjustFlagsAndWidth(secondSemicolonToken);
-                    this.secondSemicolonToken = secondSemicolonToken;
-                    if (incrementors != null)
-                    {
-                        this.AdjustFlagsAndWidth(incrementors);
-                        this.incrementors = incrementors;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 10;
+            this.AdjustFlagsAndWidth(forKeyword);
+            this.forKeyword = forKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (declaration != null)
+            {
+                this.AdjustFlagsAndWidth(declaration);
+                this.declaration = declaration;
+            }
+            if (initializers != null)
+            {
+                this.AdjustFlagsAndWidth(initializers);
+                this.initializers = initializers;
+            }
+            this.AdjustFlagsAndWidth(firstSemicolonToken);
+            this.firstSemicolonToken = firstSemicolonToken;
+            if (condition != null)
+            {
+                this.AdjustFlagsAndWidth(condition);
+                this.condition = condition;
+            }
+            this.AdjustFlagsAndWidth(secondSemicolonToken);
+            this.secondSemicolonToken = secondSemicolonToken;
+            if (incrementors != null)
+            {
+                this.AdjustFlagsAndWidth(incrementors);
+                this.incrementors = incrementors;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         public SyntaxToken ForKeyword => this.forKeyword;
@@ -14554,83 +14554,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ForEachStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 9;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(forEachKeyword);
-                    this.forEachKeyword = forEachKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 9;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            this.AdjustFlagsAndWidth(forEachKeyword);
+            this.forEachKeyword = forEachKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal ForEachStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 9;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(forEachKeyword);
-                    this.forEachKeyword = forEachKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 9;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            this.AdjustFlagsAndWidth(forEachKeyword);
+            this.forEachKeyword = forEachKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal ForEachStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
           : base(kind)
         {
-                    this.SlotCount = 9;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(forEachKeyword);
-                    this.forEachKeyword = forEachKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 9;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            this.AdjustFlagsAndWidth(forEachKeyword);
+            this.forEachKeyword = forEachKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         public override SyntaxToken AwaitKeyword => this.awaitKeyword;
@@ -14782,77 +14782,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ForEachVariableStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 8;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(forEachKeyword);
-                    this.forEachKeyword = forEachKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(variable);
-                    this.variable = variable;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 8;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            this.AdjustFlagsAndWidth(forEachKeyword);
+            this.forEachKeyword = forEachKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(variable);
+            this.variable = variable;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal ForEachVariableStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 8;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(forEachKeyword);
-                    this.forEachKeyword = forEachKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(variable);
-                    this.variable = variable;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 8;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            this.AdjustFlagsAndWidth(forEachKeyword);
+            this.forEachKeyword = forEachKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(variable);
+            this.variable = variable;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal ForEachVariableStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
           : base(kind)
         {
-                    this.SlotCount = 8;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(forEachKeyword);
-                    this.forEachKeyword = forEachKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(variable);
-                    this.variable = variable;
-                    this.AdjustFlagsAndWidth(inKeyword);
-                    this.inKeyword = inKeyword;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 8;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            this.AdjustFlagsAndWidth(forEachKeyword);
+            this.forEachKeyword = forEachKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(variable);
+            this.variable = variable;
+            this.AdjustFlagsAndWidth(inKeyword);
+            this.inKeyword = inKeyword;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         public override SyntaxToken AwaitKeyword => this.awaitKeyword;
@@ -14999,89 +14999,89 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal UsingStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 7;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(usingKeyword);
-                    this.usingKeyword = usingKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (declaration != null)
-                    {
-                        this.AdjustFlagsAndWidth(declaration);
-                        this.declaration = declaration;
-                    }
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 7;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (declaration != null)
+            {
+                this.AdjustFlagsAndWidth(declaration);
+                this.declaration = declaration;
+            }
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal UsingStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 7;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(usingKeyword);
-                    this.usingKeyword = usingKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (declaration != null)
-                    {
-                        this.AdjustFlagsAndWidth(declaration);
-                        this.declaration = declaration;
-                    }
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 7;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (declaration != null)
+            {
+                this.AdjustFlagsAndWidth(declaration);
+                this.declaration = declaration;
+            }
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal UsingStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
           : base(kind)
         {
-                    this.SlotCount = 7;
-                    if (awaitKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(awaitKeyword);
-                        this.awaitKeyword = awaitKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(usingKeyword);
-                    this.usingKeyword = usingKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (declaration != null)
-                    {
-                        this.AdjustFlagsAndWidth(declaration);
-                        this.declaration = declaration;
-                    }
-                    if (expression != null)
-                    {
-                        this.AdjustFlagsAndWidth(expression);
-                        this.expression = expression;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 7;
+            if (awaitKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(awaitKeyword);
+                this.awaitKeyword = awaitKeyword;
+            }
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (declaration != null)
+            {
+                this.AdjustFlagsAndWidth(declaration);
+                this.declaration = declaration;
+            }
+            if (expression != null)
+            {
+                this.AdjustFlagsAndWidth(expression);
+                this.expression = expression;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         public SyntaxToken AwaitKeyword => this.awaitKeyword;
@@ -15211,50 +15211,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal FixedStatementSyntax(SyntaxKind kind, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(fixedKeyword);
-                    this.fixedKeyword = fixedKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(fixedKeyword);
+            this.fixedKeyword = fixedKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal FixedStatementSyntax(SyntaxKind kind, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(fixedKeyword);
-                    this.fixedKeyword = fixedKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(fixedKeyword);
+            this.fixedKeyword = fixedKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal FixedStatementSyntax(SyntaxKind kind, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(fixedKeyword);
-                    this.fixedKeyword = fixedKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(fixedKeyword);
+            this.fixedKeyword = fixedKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         public SyntaxToken FixedKeyword => this.fixedKeyword;
@@ -15363,32 +15363,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CheckedStatementSyntax(SyntaxKind kind, SyntaxToken keyword, BlockSyntax block, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         internal CheckedStatementSyntax(SyntaxKind kind, SyntaxToken keyword, BlockSyntax block, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         internal CheckedStatementSyntax(SyntaxKind kind, SyntaxToken keyword, BlockSyntax block)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         public SyntaxToken Keyword => this.keyword;
@@ -15470,32 +15470,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal UnsafeStatementSyntax(SyntaxKind kind, SyntaxToken unsafeKeyword, BlockSyntax block, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(unsafeKeyword);
-                    this.unsafeKeyword = unsafeKeyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(unsafeKeyword);
+            this.unsafeKeyword = unsafeKeyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         internal UnsafeStatementSyntax(SyntaxKind kind, SyntaxToken unsafeKeyword, BlockSyntax block, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(unsafeKeyword);
-                    this.unsafeKeyword = unsafeKeyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(unsafeKeyword);
+            this.unsafeKeyword = unsafeKeyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         internal UnsafeStatementSyntax(SyntaxKind kind, SyntaxToken unsafeKeyword, BlockSyntax block)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(unsafeKeyword);
-                    this.unsafeKeyword = unsafeKeyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(unsafeKeyword);
+            this.unsafeKeyword = unsafeKeyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         public SyntaxToken UnsafeKeyword => this.unsafeKeyword;
@@ -15580,50 +15580,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal LockStatementSyntax(SyntaxKind kind, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(lockKeyword);
-                    this.lockKeyword = lockKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(lockKeyword);
+            this.lockKeyword = lockKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal LockStatementSyntax(SyntaxKind kind, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(lockKeyword);
-                    this.lockKeyword = lockKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(lockKeyword);
+            this.lockKeyword = lockKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal LockStatementSyntax(SyntaxKind kind, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(lockKeyword);
-                    this.lockKeyword = lockKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(lockKeyword);
+            this.lockKeyword = lockKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         public SyntaxToken LockKeyword => this.lockKeyword;
@@ -15739,65 +15739,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal IfStatementSyntax(SyntaxKind kind, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 6;
-                    this.AdjustFlagsAndWidth(ifKeyword);
-                    this.ifKeyword = ifKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
-                    if (@else != null)
-                    {
-                        this.AdjustFlagsAndWidth(@else);
-                        this.@else = @else;
-                    }
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(ifKeyword);
+            this.ifKeyword = ifKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
+            if (@else != null)
+            {
+                this.AdjustFlagsAndWidth(@else);
+                this.@else = @else;
+            }
         }
 
         internal IfStatementSyntax(SyntaxKind kind, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 6;
-                    this.AdjustFlagsAndWidth(ifKeyword);
-                    this.ifKeyword = ifKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
-                    if (@else != null)
-                    {
-                        this.AdjustFlagsAndWidth(@else);
-                        this.@else = @else;
-                    }
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(ifKeyword);
+            this.ifKeyword = ifKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
+            if (@else != null)
+            {
+                this.AdjustFlagsAndWidth(@else);
+                this.@else = @else;
+            }
         }
 
         internal IfStatementSyntax(SyntaxKind kind, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
           : base(kind)
         {
-                    this.SlotCount = 6;
-                    this.AdjustFlagsAndWidth(ifKeyword);
-                    this.ifKeyword = ifKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
-                    if (@else != null)
-                    {
-                        this.AdjustFlagsAndWidth(@else);
-                        this.@else = @else;
-                    }
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(ifKeyword);
+            this.ifKeyword = ifKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
+            if (@else != null)
+            {
+                this.AdjustFlagsAndWidth(@else);
+                this.@else = @else;
+            }
         }
 
         /// <summary>
@@ -15934,32 +15934,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ElseClauseSyntax(SyntaxKind kind, SyntaxToken elseKeyword, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elseKeyword);
-                    this.elseKeyword = elseKeyword;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elseKeyword);
+            this.elseKeyword = elseKeyword;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal ElseClauseSyntax(SyntaxKind kind, SyntaxToken elseKeyword, StatementSyntax statement, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elseKeyword);
-                    this.elseKeyword = elseKeyword;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elseKeyword);
+            this.elseKeyword = elseKeyword;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         internal ElseClauseSyntax(SyntaxKind kind, SyntaxToken elseKeyword, StatementSyntax statement)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(elseKeyword);
-                    this.elseKeyword = elseKeyword;
-                    this.AdjustFlagsAndWidth(statement);
-                    this.statement = statement;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(elseKeyword);
+            this.elseKeyword = elseKeyword;
+            this.AdjustFlagsAndWidth(statement);
+            this.statement = statement;
         }
 
         /// <summary>
@@ -16050,89 +16050,89 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SwitchStatementSyntax(SyntaxKind kind, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, GreenNode sections, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 7;
-                    this.AdjustFlagsAndWidth(switchKeyword);
-                    this.switchKeyword = switchKeyword;
-                    if (openParenToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(openParenToken);
-                        this.openParenToken = openParenToken;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    if (closeParenToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(closeParenToken);
-                        this.closeParenToken = closeParenToken;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (sections != null)
-                    {
-                        this.AdjustFlagsAndWidth(sections);
-                        this.sections = sections;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 7;
+            this.AdjustFlagsAndWidth(switchKeyword);
+            this.switchKeyword = switchKeyword;
+            if (openParenToken != null)
+            {
+                this.AdjustFlagsAndWidth(openParenToken);
+                this.openParenToken = openParenToken;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            if (closeParenToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeParenToken);
+                this.closeParenToken = closeParenToken;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (sections != null)
+            {
+                this.AdjustFlagsAndWidth(sections);
+                this.sections = sections;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal SwitchStatementSyntax(SyntaxKind kind, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, GreenNode sections, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 7;
-                    this.AdjustFlagsAndWidth(switchKeyword);
-                    this.switchKeyword = switchKeyword;
-                    if (openParenToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(openParenToken);
-                        this.openParenToken = openParenToken;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    if (closeParenToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(closeParenToken);
-                        this.closeParenToken = closeParenToken;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (sections != null)
-                    {
-                        this.AdjustFlagsAndWidth(sections);
-                        this.sections = sections;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 7;
+            this.AdjustFlagsAndWidth(switchKeyword);
+            this.switchKeyword = switchKeyword;
+            if (openParenToken != null)
+            {
+                this.AdjustFlagsAndWidth(openParenToken);
+                this.openParenToken = openParenToken;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            if (closeParenToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeParenToken);
+                this.closeParenToken = closeParenToken;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (sections != null)
+            {
+                this.AdjustFlagsAndWidth(sections);
+                this.sections = sections;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal SwitchStatementSyntax(SyntaxKind kind, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, GreenNode sections, SyntaxToken closeBraceToken)
           : base(kind)
         {
-                    this.SlotCount = 7;
-                    this.AdjustFlagsAndWidth(switchKeyword);
-                    this.switchKeyword = switchKeyword;
-                    if (openParenToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(openParenToken);
-                        this.openParenToken = openParenToken;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
-                    if (closeParenToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(closeParenToken);
-                        this.closeParenToken = closeParenToken;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (sections != null)
-                    {
-                        this.AdjustFlagsAndWidth(sections);
-                        this.sections = sections;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 7;
+            this.AdjustFlagsAndWidth(switchKeyword);
+            this.switchKeyword = switchKeyword;
+            if (openParenToken != null)
+            {
+                this.AdjustFlagsAndWidth(openParenToken);
+                this.openParenToken = openParenToken;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            if (closeParenToken != null)
+            {
+                this.AdjustFlagsAndWidth(closeParenToken);
+                this.closeParenToken = closeParenToken;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (sections != null)
+            {
+                this.AdjustFlagsAndWidth(sections);
+                this.sections = sections;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         /// <summary>
@@ -16281,50 +16281,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SwitchSectionSyntax(SyntaxKind kind, GreenNode labels, GreenNode statements, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    if (labels != null)
-                    {
-                        this.AdjustFlagsAndWidth(labels);
-                        this.labels = labels;
-                    }
-                    if (statements != null)
-                    {
-                        this.AdjustFlagsAndWidth(statements);
-                        this.statements = statements;
-                    }
+            this.SlotCount = 2;
+            if (labels != null)
+            {
+                this.AdjustFlagsAndWidth(labels);
+                this.labels = labels;
+            }
+            if (statements != null)
+            {
+                this.AdjustFlagsAndWidth(statements);
+                this.statements = statements;
+            }
         }
 
         internal SwitchSectionSyntax(SyntaxKind kind, GreenNode labels, GreenNode statements, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    if (labels != null)
-                    {
-                        this.AdjustFlagsAndWidth(labels);
-                        this.labels = labels;
-                    }
-                    if (statements != null)
-                    {
-                        this.AdjustFlagsAndWidth(statements);
-                        this.statements = statements;
-                    }
+            this.SlotCount = 2;
+            if (labels != null)
+            {
+                this.AdjustFlagsAndWidth(labels);
+                this.labels = labels;
+            }
+            if (statements != null)
+            {
+                this.AdjustFlagsAndWidth(statements);
+                this.statements = statements;
+            }
         }
 
         internal SwitchSectionSyntax(SyntaxKind kind, GreenNode labels, GreenNode statements)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    if (labels != null)
-                    {
-                        this.AdjustFlagsAndWidth(labels);
-                        this.labels = labels;
-                    }
-                    if (statements != null)
-                    {
-                        this.AdjustFlagsAndWidth(statements);
-                        this.statements = statements;
-                    }
+            this.SlotCount = 2;
+            if (labels != null)
+            {
+                this.AdjustFlagsAndWidth(labels);
+                this.labels = labels;
+            }
+            if (statements != null)
+            {
+                this.AdjustFlagsAndWidth(statements);
+                this.statements = statements;
+            }
         }
 
         /// <summary>
@@ -16444,53 +16444,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CasePatternSwitchLabelSyntax(SyntaxKind kind, SyntaxToken keyword, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken colonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
-                    if (whenClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(whenClause);
-                        this.whenClause = whenClause;
-                    }
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+            if (whenClause != null)
+            {
+                this.AdjustFlagsAndWidth(whenClause);
+                this.whenClause = whenClause;
+            }
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal CasePatternSwitchLabelSyntax(SyntaxKind kind, SyntaxToken keyword, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken colonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
-                    if (whenClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(whenClause);
-                        this.whenClause = whenClause;
-                    }
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+            if (whenClause != null)
+            {
+                this.AdjustFlagsAndWidth(whenClause);
+                this.whenClause = whenClause;
+            }
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal CasePatternSwitchLabelSyntax(SyntaxKind kind, SyntaxToken keyword, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken colonToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
-                    if (whenClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(whenClause);
-                        this.whenClause = whenClause;
-                    }
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+            if (whenClause != null)
+            {
+                this.AdjustFlagsAndWidth(whenClause);
+                this.whenClause = whenClause;
+            }
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         /// <summary>Gets the case keyword token.</summary>
@@ -16596,38 +16596,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CaseSwitchLabelSyntax(SyntaxKind kind, SyntaxToken keyword, ExpressionSyntax value, SyntaxToken colonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(value);
-                    this.value = value;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal CaseSwitchLabelSyntax(SyntaxKind kind, SyntaxToken keyword, ExpressionSyntax value, SyntaxToken colonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(value);
-                    this.value = value;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal CaseSwitchLabelSyntax(SyntaxKind kind, SyntaxToken keyword, ExpressionSyntax value, SyntaxToken colonToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(value);
-                    this.value = value;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(value);
+            this.value = value;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         /// <summary>Gets the case keyword token.</summary>
@@ -16723,32 +16723,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DefaultSwitchLabelSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken colonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal DefaultSwitchLabelSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken colonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal DefaultSwitchLabelSyntax(SyntaxKind kind, SyntaxToken keyword, SyntaxToken colonToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         /// <summary>Gets the default keyword token.</summary>
@@ -16834,59 +16834,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, GreenNode arms, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(governingExpression);
-                    this.governingExpression = governingExpression;
-                    this.AdjustFlagsAndWidth(switchKeyword);
-                    this.switchKeyword = switchKeyword;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (arms != null)
-                    {
-                        this.AdjustFlagsAndWidth(arms);
-                        this.arms = arms;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(governingExpression);
+            this.governingExpression = governingExpression;
+            this.AdjustFlagsAndWidth(switchKeyword);
+            this.switchKeyword = switchKeyword;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (arms != null)
+            {
+                this.AdjustFlagsAndWidth(arms);
+                this.arms = arms;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, GreenNode arms, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(governingExpression);
-                    this.governingExpression = governingExpression;
-                    this.AdjustFlagsAndWidth(switchKeyword);
-                    this.switchKeyword = switchKeyword;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (arms != null)
-                    {
-                        this.AdjustFlagsAndWidth(arms);
-                        this.arms = arms;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(governingExpression);
+            this.governingExpression = governingExpression;
+            this.AdjustFlagsAndWidth(switchKeyword);
+            this.switchKeyword = switchKeyword;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (arms != null)
+            {
+                this.AdjustFlagsAndWidth(arms);
+                this.arms = arms;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal SwitchExpressionSyntax(SyntaxKind kind, ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, GreenNode arms, SyntaxToken closeBraceToken)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(governingExpression);
-                    this.governingExpression = governingExpression;
-                    this.AdjustFlagsAndWidth(switchKeyword);
-                    this.switchKeyword = switchKeyword;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (arms != null)
-                    {
-                        this.AdjustFlagsAndWidth(arms);
-                        this.arms = arms;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(governingExpression);
+            this.governingExpression = governingExpression;
+            this.AdjustFlagsAndWidth(switchKeyword);
+            this.switchKeyword = switchKeyword;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (arms != null)
+            {
+                this.AdjustFlagsAndWidth(arms);
+                this.arms = arms;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         public ExpressionSyntax GoverningExpression => this.governingExpression;
@@ -16997,53 +16997,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SwitchExpressionArmSyntax(SyntaxKind kind, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
-                    if (whenClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(whenClause);
-                        this.whenClause = whenClause;
-                    }
-                    this.AdjustFlagsAndWidth(equalsGreaterThanToken);
-                    this.equalsGreaterThanToken = equalsGreaterThanToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+            if (whenClause != null)
+            {
+                this.AdjustFlagsAndWidth(whenClause);
+                this.whenClause = whenClause;
+            }
+            this.AdjustFlagsAndWidth(equalsGreaterThanToken);
+            this.equalsGreaterThanToken = equalsGreaterThanToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal SwitchExpressionArmSyntax(SyntaxKind kind, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
-                    if (whenClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(whenClause);
-                        this.whenClause = whenClause;
-                    }
-                    this.AdjustFlagsAndWidth(equalsGreaterThanToken);
-                    this.equalsGreaterThanToken = equalsGreaterThanToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+            if (whenClause != null)
+            {
+                this.AdjustFlagsAndWidth(whenClause);
+                this.whenClause = whenClause;
+            }
+            this.AdjustFlagsAndWidth(equalsGreaterThanToken);
+            this.equalsGreaterThanToken = equalsGreaterThanToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal SwitchExpressionArmSyntax(SyntaxKind kind, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(pattern);
-                    this.pattern = pattern;
-                    if (whenClause != null)
-                    {
-                        this.AdjustFlagsAndWidth(whenClause);
-                        this.whenClause = whenClause;
-                    }
-                    this.AdjustFlagsAndWidth(equalsGreaterThanToken);
-                    this.equalsGreaterThanToken = equalsGreaterThanToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+            if (whenClause != null)
+            {
+                this.AdjustFlagsAndWidth(whenClause);
+                this.whenClause = whenClause;
+            }
+            this.AdjustFlagsAndWidth(equalsGreaterThanToken);
+            this.equalsGreaterThanToken = equalsGreaterThanToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         public PatternSyntax Pattern => this.pattern;
@@ -17145,62 +17145,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TryStatementSyntax(SyntaxKind kind, SyntaxToken tryKeyword, BlockSyntax block, GreenNode catches, FinallyClauseSyntax @finally, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(tryKeyword);
-                    this.tryKeyword = tryKeyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
-                    if (catches != null)
-                    {
-                        this.AdjustFlagsAndWidth(catches);
-                        this.catches = catches;
-                    }
-                    if (@finally != null)
-                    {
-                        this.AdjustFlagsAndWidth(@finally);
-                        this.@finally = @finally;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(tryKeyword);
+            this.tryKeyword = tryKeyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
+            if (catches != null)
+            {
+                this.AdjustFlagsAndWidth(catches);
+                this.catches = catches;
+            }
+            if (@finally != null)
+            {
+                this.AdjustFlagsAndWidth(@finally);
+                this.@finally = @finally;
+            }
         }
 
         internal TryStatementSyntax(SyntaxKind kind, SyntaxToken tryKeyword, BlockSyntax block, GreenNode catches, FinallyClauseSyntax @finally, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(tryKeyword);
-                    this.tryKeyword = tryKeyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
-                    if (catches != null)
-                    {
-                        this.AdjustFlagsAndWidth(catches);
-                        this.catches = catches;
-                    }
-                    if (@finally != null)
-                    {
-                        this.AdjustFlagsAndWidth(@finally);
-                        this.@finally = @finally;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(tryKeyword);
+            this.tryKeyword = tryKeyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
+            if (catches != null)
+            {
+                this.AdjustFlagsAndWidth(catches);
+                this.catches = catches;
+            }
+            if (@finally != null)
+            {
+                this.AdjustFlagsAndWidth(@finally);
+                this.@finally = @finally;
+            }
         }
 
         internal TryStatementSyntax(SyntaxKind kind, SyntaxToken tryKeyword, BlockSyntax block, GreenNode catches, FinallyClauseSyntax @finally)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(tryKeyword);
-                    this.tryKeyword = tryKeyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
-                    if (catches != null)
-                    {
-                        this.AdjustFlagsAndWidth(catches);
-                        this.catches = catches;
-                    }
-                    if (@finally != null)
-                    {
-                        this.AdjustFlagsAndWidth(@finally);
-                        this.@finally = @finally;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(tryKeyword);
+            this.tryKeyword = tryKeyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
+            if (catches != null)
+            {
+                this.AdjustFlagsAndWidth(catches);
+                this.catches = catches;
+            }
+            if (@finally != null)
+            {
+                this.AdjustFlagsAndWidth(@finally);
+                this.@finally = @finally;
+            }
         }
 
         public SyntaxToken TryKeyword => this.tryKeyword;
@@ -17302,62 +17302,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CatchClauseSyntax(SyntaxKind kind, SyntaxToken catchKeyword, CatchDeclarationSyntax declaration, CatchFilterClauseSyntax filter, BlockSyntax block, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(catchKeyword);
-                    this.catchKeyword = catchKeyword;
-                    if (declaration != null)
-                    {
-                        this.AdjustFlagsAndWidth(declaration);
-                        this.declaration = declaration;
-                    }
-                    if (filter != null)
-                    {
-                        this.AdjustFlagsAndWidth(filter);
-                        this.filter = filter;
-                    }
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(catchKeyword);
+            this.catchKeyword = catchKeyword;
+            if (declaration != null)
+            {
+                this.AdjustFlagsAndWidth(declaration);
+                this.declaration = declaration;
+            }
+            if (filter != null)
+            {
+                this.AdjustFlagsAndWidth(filter);
+                this.filter = filter;
+            }
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         internal CatchClauseSyntax(SyntaxKind kind, SyntaxToken catchKeyword, CatchDeclarationSyntax declaration, CatchFilterClauseSyntax filter, BlockSyntax block, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(catchKeyword);
-                    this.catchKeyword = catchKeyword;
-                    if (declaration != null)
-                    {
-                        this.AdjustFlagsAndWidth(declaration);
-                        this.declaration = declaration;
-                    }
-                    if (filter != null)
-                    {
-                        this.AdjustFlagsAndWidth(filter);
-                        this.filter = filter;
-                    }
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(catchKeyword);
+            this.catchKeyword = catchKeyword;
+            if (declaration != null)
+            {
+                this.AdjustFlagsAndWidth(declaration);
+                this.declaration = declaration;
+            }
+            if (filter != null)
+            {
+                this.AdjustFlagsAndWidth(filter);
+                this.filter = filter;
+            }
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         internal CatchClauseSyntax(SyntaxKind kind, SyntaxToken catchKeyword, CatchDeclarationSyntax declaration, CatchFilterClauseSyntax filter, BlockSyntax block)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(catchKeyword);
-                    this.catchKeyword = catchKeyword;
-                    if (declaration != null)
-                    {
-                        this.AdjustFlagsAndWidth(declaration);
-                        this.declaration = declaration;
-                    }
-                    if (filter != null)
-                    {
-                        this.AdjustFlagsAndWidth(filter);
-                        this.filter = filter;
-                    }
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(catchKeyword);
+            this.catchKeyword = catchKeyword;
+            if (declaration != null)
+            {
+                this.AdjustFlagsAndWidth(declaration);
+                this.declaration = declaration;
+            }
+            if (filter != null)
+            {
+                this.AdjustFlagsAndWidth(filter);
+                this.filter = filter;
+            }
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         public SyntaxToken CatchKeyword => this.catchKeyword;
@@ -17459,53 +17459,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CatchDeclarationSyntax(SyntaxKind kind, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (identifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(identifier);
-                        this.identifier = identifier;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (identifier != null)
+            {
+                this.AdjustFlagsAndWidth(identifier);
+                this.identifier = identifier;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal CatchDeclarationSyntax(SyntaxKind kind, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (identifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(identifier);
-                        this.identifier = identifier;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (identifier != null)
+            {
+                this.AdjustFlagsAndWidth(identifier);
+                this.identifier = identifier;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal CatchDeclarationSyntax(SyntaxKind kind, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (identifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(identifier);
-                        this.identifier = identifier;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (identifier != null)
+            {
+                this.AdjustFlagsAndWidth(identifier);
+                this.identifier = identifier;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         public SyntaxToken OpenParenToken => this.openParenToken;
@@ -17607,44 +17607,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CatchFilterClauseSyntax(SyntaxKind kind, SyntaxToken whenKeyword, SyntaxToken openParenToken, ExpressionSyntax filterExpression, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(whenKeyword);
-                    this.whenKeyword = whenKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(filterExpression);
-                    this.filterExpression = filterExpression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(whenKeyword);
+            this.whenKeyword = whenKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(filterExpression);
+            this.filterExpression = filterExpression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal CatchFilterClauseSyntax(SyntaxKind kind, SyntaxToken whenKeyword, SyntaxToken openParenToken, ExpressionSyntax filterExpression, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(whenKeyword);
-                    this.whenKeyword = whenKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(filterExpression);
-                    this.filterExpression = filterExpression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(whenKeyword);
+            this.whenKeyword = whenKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(filterExpression);
+            this.filterExpression = filterExpression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal CatchFilterClauseSyntax(SyntaxKind kind, SyntaxToken whenKeyword, SyntaxToken openParenToken, ExpressionSyntax filterExpression, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(whenKeyword);
-                    this.whenKeyword = whenKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(filterExpression);
-                    this.filterExpression = filterExpression;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(whenKeyword);
+            this.whenKeyword = whenKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(filterExpression);
+            this.filterExpression = filterExpression;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         public SyntaxToken WhenKeyword => this.whenKeyword;
@@ -17744,32 +17744,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal FinallyClauseSyntax(SyntaxKind kind, SyntaxToken finallyKeyword, BlockSyntax block, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(finallyKeyword);
-                    this.finallyKeyword = finallyKeyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(finallyKeyword);
+            this.finallyKeyword = finallyKeyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         internal FinallyClauseSyntax(SyntaxKind kind, SyntaxToken finallyKeyword, BlockSyntax block, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(finallyKeyword);
-                    this.finallyKeyword = finallyKeyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(finallyKeyword);
+            this.finallyKeyword = finallyKeyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         internal FinallyClauseSyntax(SyntaxKind kind, SyntaxToken finallyKeyword, BlockSyntax block)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(finallyKeyword);
-                    this.finallyKeyword = finallyKeyword;
-                    this.AdjustFlagsAndWidth(block);
-                    this.block = block;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(finallyKeyword);
+            this.finallyKeyword = finallyKeyword;
+            this.AdjustFlagsAndWidth(block);
+            this.block = block;
         }
 
         public SyntaxToken FinallyKeyword => this.finallyKeyword;
@@ -17854,86 +17854,86 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CompilationUnitSyntax(SyntaxKind kind, GreenNode externs, GreenNode usings, GreenNode attributeLists, GreenNode members, SyntaxToken endOfFileToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    if (externs != null)
-                    {
-                        this.AdjustFlagsAndWidth(externs);
-                        this.externs = externs;
-                    }
-                    if (usings != null)
-                    {
-                        this.AdjustFlagsAndWidth(usings);
-                        this.usings = usings;
-                    }
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(endOfFileToken);
-                    this.endOfFileToken = endOfFileToken;
+            this.SlotCount = 5;
+            if (externs != null)
+            {
+                this.AdjustFlagsAndWidth(externs);
+                this.externs = externs;
+            }
+            if (usings != null)
+            {
+                this.AdjustFlagsAndWidth(usings);
+                this.usings = usings;
+            }
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(endOfFileToken);
+            this.endOfFileToken = endOfFileToken;
         }
 
         internal CompilationUnitSyntax(SyntaxKind kind, GreenNode externs, GreenNode usings, GreenNode attributeLists, GreenNode members, SyntaxToken endOfFileToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    if (externs != null)
-                    {
-                        this.AdjustFlagsAndWidth(externs);
-                        this.externs = externs;
-                    }
-                    if (usings != null)
-                    {
-                        this.AdjustFlagsAndWidth(usings);
-                        this.usings = usings;
-                    }
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(endOfFileToken);
-                    this.endOfFileToken = endOfFileToken;
+            this.SlotCount = 5;
+            if (externs != null)
+            {
+                this.AdjustFlagsAndWidth(externs);
+                this.externs = externs;
+            }
+            if (usings != null)
+            {
+                this.AdjustFlagsAndWidth(usings);
+                this.usings = usings;
+            }
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(endOfFileToken);
+            this.endOfFileToken = endOfFileToken;
         }
 
         internal CompilationUnitSyntax(SyntaxKind kind, GreenNode externs, GreenNode usings, GreenNode attributeLists, GreenNode members, SyntaxToken endOfFileToken)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    if (externs != null)
-                    {
-                        this.AdjustFlagsAndWidth(externs);
-                        this.externs = externs;
-                    }
-                    if (usings != null)
-                    {
-                        this.AdjustFlagsAndWidth(usings);
-                        this.usings = usings;
-                    }
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(endOfFileToken);
-                    this.endOfFileToken = endOfFileToken;
+            this.SlotCount = 5;
+            if (externs != null)
+            {
+                this.AdjustFlagsAndWidth(externs);
+                this.externs = externs;
+            }
+            if (usings != null)
+            {
+                this.AdjustFlagsAndWidth(usings);
+                this.usings = usings;
+            }
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(endOfFileToken);
+            this.endOfFileToken = endOfFileToken;
         }
 
         public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> Externs => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax>(this.externs);
@@ -18048,44 +18048,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ExternAliasDirectiveSyntax(SyntaxKind kind, SyntaxToken externKeyword, SyntaxToken aliasKeyword, SyntaxToken identifier, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(externKeyword);
-                    this.externKeyword = externKeyword;
-                    this.AdjustFlagsAndWidth(aliasKeyword);
-                    this.aliasKeyword = aliasKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(externKeyword);
+            this.externKeyword = externKeyword;
+            this.AdjustFlagsAndWidth(aliasKeyword);
+            this.aliasKeyword = aliasKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal ExternAliasDirectiveSyntax(SyntaxKind kind, SyntaxToken externKeyword, SyntaxToken aliasKeyword, SyntaxToken identifier, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(externKeyword);
-                    this.externKeyword = externKeyword;
-                    this.AdjustFlagsAndWidth(aliasKeyword);
-                    this.aliasKeyword = aliasKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(externKeyword);
+            this.externKeyword = externKeyword;
+            this.AdjustFlagsAndWidth(aliasKeyword);
+            this.aliasKeyword = aliasKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal ExternAliasDirectiveSyntax(SyntaxKind kind, SyntaxToken externKeyword, SyntaxToken aliasKeyword, SyntaxToken identifier, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(externKeyword);
-                    this.externKeyword = externKeyword;
-                    this.AdjustFlagsAndWidth(aliasKeyword);
-                    this.aliasKeyword = aliasKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(externKeyword);
+            this.externKeyword = externKeyword;
+            this.AdjustFlagsAndWidth(aliasKeyword);
+            this.aliasKeyword = aliasKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         /// <summary>SyntaxToken representing the extern keyword.</summary>
@@ -18192,68 +18192,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax alias, NameSyntax name, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(usingKeyword);
-                    this.usingKeyword = usingKeyword;
-                    if (staticKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(staticKeyword);
-                        this.staticKeyword = staticKeyword;
-                    }
-                    if (alias != null)
-                    {
-                        this.AdjustFlagsAndWidth(alias);
-                        this.alias = alias;
-                    }
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+            if (staticKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(staticKeyword);
+                this.staticKeyword = staticKeyword;
+            }
+            if (alias != null)
+            {
+                this.AdjustFlagsAndWidth(alias);
+                this.alias = alias;
+            }
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax alias, NameSyntax name, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(usingKeyword);
-                    this.usingKeyword = usingKeyword;
-                    if (staticKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(staticKeyword);
-                        this.staticKeyword = staticKeyword;
-                    }
-                    if (alias != null)
-                    {
-                        this.AdjustFlagsAndWidth(alias);
-                        this.alias = alias;
-                    }
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+            if (staticKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(staticKeyword);
+                this.staticKeyword = staticKeyword;
+            }
+            if (alias != null)
+            {
+                this.AdjustFlagsAndWidth(alias);
+                this.alias = alias;
+            }
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal UsingDirectiveSyntax(SyntaxKind kind, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax alias, NameSyntax name, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(usingKeyword);
-                    this.usingKeyword = usingKeyword;
-                    if (staticKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(staticKeyword);
-                        this.staticKeyword = staticKeyword;
-                    }
-                    if (alias != null)
-                    {
-                        this.AdjustFlagsAndWidth(alias);
-                        this.alias = alias;
-                    }
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(usingKeyword);
+            this.usingKeyword = usingKeyword;
+            if (staticKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(staticKeyword);
+                this.staticKeyword = staticKeyword;
+            }
+            if (alias != null)
+            {
+                this.AdjustFlagsAndWidth(alias);
+                this.alias = alias;
+            }
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public SyntaxToken UsingKeyword => this.usingKeyword;
@@ -18395,134 +18395,134 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal NamespaceDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, GreenNode externs, GreenNode usings, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 10;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(namespaceKeyword);
-                    this.namespaceKeyword = namespaceKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (externs != null)
-                    {
-                        this.AdjustFlagsAndWidth(externs);
-                        this.externs = externs;
-                    }
-                    if (usings != null)
-                    {
-                        this.AdjustFlagsAndWidth(usings);
-                        this.usings = usings;
-                    }
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 10;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(namespaceKeyword);
+            this.namespaceKeyword = namespaceKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (externs != null)
+            {
+                this.AdjustFlagsAndWidth(externs);
+                this.externs = externs;
+            }
+            if (usings != null)
+            {
+                this.AdjustFlagsAndWidth(usings);
+                this.usings = usings;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal NamespaceDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, GreenNode externs, GreenNode usings, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 10;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(namespaceKeyword);
-                    this.namespaceKeyword = namespaceKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (externs != null)
-                    {
-                        this.AdjustFlagsAndWidth(externs);
-                        this.externs = externs;
-                    }
-                    if (usings != null)
-                    {
-                        this.AdjustFlagsAndWidth(usings);
-                        this.usings = usings;
-                    }
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 10;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(namespaceKeyword);
+            this.namespaceKeyword = namespaceKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (externs != null)
+            {
+                this.AdjustFlagsAndWidth(externs);
+                this.externs = externs;
+            }
+            if (usings != null)
+            {
+                this.AdjustFlagsAndWidth(usings);
+                this.usings = usings;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal NamespaceDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, GreenNode externs, GreenNode usings, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 10;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(namespaceKeyword);
-                    this.namespaceKeyword = namespaceKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (externs != null)
-                    {
-                        this.AdjustFlagsAndWidth(externs);
-                        this.externs = externs;
-                    }
-                    if (usings != null)
-                    {
-                        this.AdjustFlagsAndWidth(usings);
-                        this.usings = usings;
-                    }
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 10;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(namespaceKeyword);
+            this.namespaceKeyword = namespaceKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (externs != null)
+            {
+                this.AdjustFlagsAndWidth(externs);
+                this.externs = externs;
+            }
+            if (usings != null)
+            {
+                this.AdjustFlagsAndWidth(usings);
+                this.usings = usings;
+            }
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -18680,62 +18680,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AttributeListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax target, GreenNode attributes, SyntaxToken closeBracketToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (target != null)
-                    {
-                        this.AdjustFlagsAndWidth(target);
-                        this.target = target;
-                    }
-                    if (attributes != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributes);
-                        this.attributes = attributes;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (target != null)
+            {
+                this.AdjustFlagsAndWidth(target);
+                this.target = target;
+            }
+            if (attributes != null)
+            {
+                this.AdjustFlagsAndWidth(attributes);
+                this.attributes = attributes;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         internal AttributeListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax target, GreenNode attributes, SyntaxToken closeBracketToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (target != null)
-                    {
-                        this.AdjustFlagsAndWidth(target);
-                        this.target = target;
-                    }
-                    if (attributes != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributes);
-                        this.attributes = attributes;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (target != null)
+            {
+                this.AdjustFlagsAndWidth(target);
+                this.target = target;
+            }
+            if (attributes != null)
+            {
+                this.AdjustFlagsAndWidth(attributes);
+                this.attributes = attributes;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         internal AttributeListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax target, GreenNode attributes, SyntaxToken closeBracketToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (target != null)
-                    {
-                        this.AdjustFlagsAndWidth(target);
-                        this.target = target;
-                    }
-                    if (attributes != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributes);
-                        this.attributes = attributes;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (target != null)
+            {
+                this.AdjustFlagsAndWidth(target);
+                this.target = target;
+            }
+            if (attributes != null)
+            {
+                this.AdjustFlagsAndWidth(attributes);
+                this.attributes = attributes;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         /// <summary>Gets the open bracket token.</summary>
@@ -18840,32 +18840,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AttributeTargetSpecifierSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxToken colonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal AttributeTargetSpecifierSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxToken colonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal AttributeTargetSpecifierSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxToken colonToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         /// <summary>Gets the identifier.</summary>
@@ -18950,41 +18950,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AttributeSyntax(SyntaxKind kind, NameSyntax name, AttributeArgumentListSyntax argumentList, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (argumentList != null)
-                    {
-                        this.AdjustFlagsAndWidth(argumentList);
-                        this.argumentList = argumentList;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (argumentList != null)
+            {
+                this.AdjustFlagsAndWidth(argumentList);
+                this.argumentList = argumentList;
+            }
         }
 
         internal AttributeSyntax(SyntaxKind kind, NameSyntax name, AttributeArgumentListSyntax argumentList, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (argumentList != null)
-                    {
-                        this.AdjustFlagsAndWidth(argumentList);
-                        this.argumentList = argumentList;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (argumentList != null)
+            {
+                this.AdjustFlagsAndWidth(argumentList);
+                this.argumentList = argumentList;
+            }
         }
 
         internal AttributeSyntax(SyntaxKind kind, NameSyntax name, AttributeArgumentListSyntax argumentList)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (argumentList != null)
-                    {
-                        this.AdjustFlagsAndWidth(argumentList);
-                        this.argumentList = argumentList;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (argumentList != null)
+            {
+                this.AdjustFlagsAndWidth(argumentList);
+                this.argumentList = argumentList;
+            }
         }
 
         /// <summary>Gets the name.</summary>
@@ -19069,47 +19069,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AttributeArgumentListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode arguments, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal AttributeArgumentListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode arguments, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal AttributeArgumentListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode arguments, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (arguments != null)
-                    {
-                        this.AdjustFlagsAndWidth(arguments);
-                        this.arguments = arguments;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (arguments != null)
+            {
+                this.AdjustFlagsAndWidth(arguments);
+                this.arguments = arguments;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>Gets the open paren token.</summary>
@@ -19205,56 +19205,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AttributeArgumentSyntax(SyntaxKind kind, NameEqualsSyntax nameEquals, NameColonSyntax nameColon, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    if (nameEquals != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameEquals);
-                        this.nameEquals = nameEquals;
-                    }
-                    if (nameColon != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameColon);
-                        this.nameColon = nameColon;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 3;
+            if (nameEquals != null)
+            {
+                this.AdjustFlagsAndWidth(nameEquals);
+                this.nameEquals = nameEquals;
+            }
+            if (nameColon != null)
+            {
+                this.AdjustFlagsAndWidth(nameColon);
+                this.nameColon = nameColon;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal AttributeArgumentSyntax(SyntaxKind kind, NameEqualsSyntax nameEquals, NameColonSyntax nameColon, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    if (nameEquals != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameEquals);
-                        this.nameEquals = nameEquals;
-                    }
-                    if (nameColon != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameColon);
-                        this.nameColon = nameColon;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 3;
+            if (nameEquals != null)
+            {
+                this.AdjustFlagsAndWidth(nameEquals);
+                this.nameEquals = nameEquals;
+            }
+            if (nameColon != null)
+            {
+                this.AdjustFlagsAndWidth(nameColon);
+                this.nameColon = nameColon;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal AttributeArgumentSyntax(SyntaxKind kind, NameEqualsSyntax nameEquals, NameColonSyntax nameColon, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    if (nameEquals != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameEquals);
-                        this.nameEquals = nameEquals;
-                    }
-                    if (nameColon != null)
-                    {
-                        this.AdjustFlagsAndWidth(nameColon);
-                        this.nameColon = nameColon;
-                    }
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 3;
+            if (nameEquals != null)
+            {
+                this.AdjustFlagsAndWidth(nameEquals);
+                this.nameEquals = nameEquals;
+            }
+            if (nameColon != null)
+            {
+                this.AdjustFlagsAndWidth(nameColon);
+                this.nameColon = nameColon;
+            }
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         public NameEqualsSyntax NameEquals => this.nameEquals;
@@ -19347,32 +19347,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal NameEqualsSyntax(SyntaxKind kind, IdentifierNameSyntax name, SyntaxToken equalsToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
         }
 
         internal NameEqualsSyntax(SyntaxKind kind, IdentifierNameSyntax name, SyntaxToken equalsToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
         }
 
         internal NameEqualsSyntax(SyntaxKind kind, IdentifierNameSyntax name, SyntaxToken equalsToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
         }
 
         /// <summary>Gets the identifier name.</summary>
@@ -19457,47 +19457,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TypeParameterListSyntax(SyntaxKind kind, SyntaxToken lessThanToken, GreenNode parameters, SyntaxToken greaterThanToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         internal TypeParameterListSyntax(SyntaxKind kind, SyntaxToken lessThanToken, GreenNode parameters, SyntaxToken greaterThanToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         internal TypeParameterListSyntax(SyntaxKind kind, SyntaxToken lessThanToken, GreenNode parameters, SyntaxToken greaterThanToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         /// <summary>Gets the &lt; token.</summary>
@@ -19593,56 +19593,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TypeParameterSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken varianceKeyword, SyntaxToken identifier, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (varianceKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(varianceKeyword);
-                        this.varianceKeyword = varianceKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 3;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (varianceKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(varianceKeyword);
+                this.varianceKeyword = varianceKeyword;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         internal TypeParameterSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken varianceKeyword, SyntaxToken identifier, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (varianceKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(varianceKeyword);
-                        this.varianceKeyword = varianceKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 3;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (varianceKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(varianceKeyword);
+                this.varianceKeyword = varianceKeyword;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         internal TypeParameterSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken varianceKeyword, SyntaxToken identifier)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (varianceKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(varianceKeyword);
-                        this.varianceKeyword = varianceKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
+            this.SlotCount = 3;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (varianceKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(varianceKeyword);
+                this.varianceKeyword = varianceKeyword;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
         }
 
         /// <summary>Gets the attribute declaration list.</summary>
@@ -19809,149 +19809,149 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ClassDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, GreenNode constraintClauses, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal ClassDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, GreenNode constraintClauses, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal ClassDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, GreenNode constraintClauses, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -20125,149 +20125,149 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal StructDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, GreenNode constraintClauses, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal StructDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, GreenNode constraintClauses, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal StructDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, GreenNode constraintClauses, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -20441,149 +20441,149 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal InterfaceDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, GreenNode constraintClauses, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal InterfaceDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, GreenNode constraintClauses, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal InterfaceDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, GreenNode constraintClauses, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -20755,119 +20755,119 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal EnumDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax baseList, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(enumKeyword);
-                    this.enumKeyword = enumKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(enumKeyword);
+            this.enumKeyword = enumKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal EnumDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax baseList, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(enumKeyword);
-                    this.enumKeyword = enumKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(enumKeyword);
+            this.enumKeyword = enumKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal EnumDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax baseList, SyntaxToken openBraceToken, GreenNode members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(enumKeyword);
-                    this.enumKeyword = enumKeyword;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (baseList != null)
-                    {
-                        this.AdjustFlagsAndWidth(baseList);
-                        this.baseList = baseList;
-                    }
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (members != null)
-                    {
-                        this.AdjustFlagsAndWidth(members);
-                        this.members = members;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(enumKeyword);
+            this.enumKeyword = enumKeyword;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (baseList != null)
+            {
+                this.AdjustFlagsAndWidth(baseList);
+                this.baseList = baseList;
+            }
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (members != null)
+            {
+                this.AdjustFlagsAndWidth(members);
+                this.members = members;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -21023,110 +21023,110 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DelegateDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, GreenNode constraintClauses, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(delegateKeyword);
-                    this.delegateKeyword = delegateKeyword;
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(delegateKeyword);
+            this.delegateKeyword = delegateKeyword;
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal DelegateDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, GreenNode constraintClauses, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(delegateKeyword);
-                    this.delegateKeyword = delegateKeyword;
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(delegateKeyword);
+            this.delegateKeyword = delegateKeyword;
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal DelegateDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, GreenNode constraintClauses, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(delegateKeyword);
-                    this.delegateKeyword = delegateKeyword;
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(delegateKeyword);
+            this.delegateKeyword = delegateKeyword;
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -21279,71 +21279,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal EnumMemberDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (equalsValue != null)
-                    {
-                        this.AdjustFlagsAndWidth(equalsValue);
-                        this.equalsValue = equalsValue;
-                    }
+            this.SlotCount = 4;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (equalsValue != null)
+            {
+                this.AdjustFlagsAndWidth(equalsValue);
+                this.equalsValue = equalsValue;
+            }
         }
 
         internal EnumMemberDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (equalsValue != null)
-                    {
-                        this.AdjustFlagsAndWidth(equalsValue);
-                        this.equalsValue = equalsValue;
-                    }
+            this.SlotCount = 4;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (equalsValue != null)
+            {
+                this.AdjustFlagsAndWidth(equalsValue);
+                this.equalsValue = equalsValue;
+            }
         }
 
         internal EnumMemberDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (equalsValue != null)
-                    {
-                        this.AdjustFlagsAndWidth(equalsValue);
-                        this.equalsValue = equalsValue;
-                    }
+            this.SlotCount = 4;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (equalsValue != null)
+            {
+                this.AdjustFlagsAndWidth(equalsValue);
+                this.equalsValue = equalsValue;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -21445,41 +21445,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal BaseListSyntax(SyntaxKind kind, SyntaxToken colonToken, GreenNode types, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    if (types != null)
-                    {
-                        this.AdjustFlagsAndWidth(types);
-                        this.types = types;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            if (types != null)
+            {
+                this.AdjustFlagsAndWidth(types);
+                this.types = types;
+            }
         }
 
         internal BaseListSyntax(SyntaxKind kind, SyntaxToken colonToken, GreenNode types, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    if (types != null)
-                    {
-                        this.AdjustFlagsAndWidth(types);
-                        this.types = types;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            if (types != null)
+            {
+                this.AdjustFlagsAndWidth(types);
+                this.types = types;
+            }
         }
 
         internal BaseListSyntax(SyntaxKind kind, SyntaxToken colonToken, GreenNode types)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    if (types != null)
-                    {
-                        this.AdjustFlagsAndWidth(types);
-                        this.types = types;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            if (types != null)
+            {
+                this.AdjustFlagsAndWidth(types);
+                this.types = types;
+            }
         }
 
         /// <summary>Gets the colon token.</summary>
@@ -21583,26 +21583,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         internal SimpleBaseTypeSyntax(SyntaxKind kind, TypeSyntax type)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         public override TypeSyntax Type => this.type;
@@ -21674,53 +21674,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TypeParameterConstraintClauseSyntax(SyntaxKind kind, SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, GreenNode constraints, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(whereKeyword);
-                    this.whereKeyword = whereKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    if (constraints != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraints);
-                        this.constraints = constraints;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(whereKeyword);
+            this.whereKeyword = whereKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            if (constraints != null)
+            {
+                this.AdjustFlagsAndWidth(constraints);
+                this.constraints = constraints;
+            }
         }
 
         internal TypeParameterConstraintClauseSyntax(SyntaxKind kind, SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, GreenNode constraints, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(whereKeyword);
-                    this.whereKeyword = whereKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    if (constraints != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraints);
-                        this.constraints = constraints;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(whereKeyword);
+            this.whereKeyword = whereKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            if (constraints != null)
+            {
+                this.AdjustFlagsAndWidth(constraints);
+                this.constraints = constraints;
+            }
         }
 
         internal TypeParameterConstraintClauseSyntax(SyntaxKind kind, SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, GreenNode constraints)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(whereKeyword);
-                    this.whereKeyword = whereKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    if (constraints != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraints);
-                        this.constraints = constraints;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(whereKeyword);
+            this.whereKeyword = whereKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            if (constraints != null)
+            {
+                this.AdjustFlagsAndWidth(constraints);
+                this.constraints = constraints;
+            }
         }
 
         public SyntaxToken WhereKeyword => this.whereKeyword;
@@ -21844,38 +21844,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ConstructorConstraintSyntax(SyntaxKind kind, SyntaxToken newKeyword, SyntaxToken openParenToken, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal ConstructorConstraintSyntax(SyntaxKind kind, SyntaxToken newKeyword, SyntaxToken openParenToken, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal ConstructorConstraintSyntax(SyntaxKind kind, SyntaxToken newKeyword, SyntaxToken openParenToken, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(newKeyword);
-                    this.newKeyword = newKeyword;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(newKeyword);
+            this.newKeyword = newKeyword;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>Gets the "new" keyword.</summary>
@@ -21970,41 +21970,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ClassOrStructConstraintSyntax(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(classOrStructKeyword);
-                    this.classOrStructKeyword = classOrStructKeyword;
-                    if (questionToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(questionToken);
-                        this.questionToken = questionToken;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(classOrStructKeyword);
+            this.classOrStructKeyword = classOrStructKeyword;
+            if (questionToken != null)
+            {
+                this.AdjustFlagsAndWidth(questionToken);
+                this.questionToken = questionToken;
+            }
         }
 
         internal ClassOrStructConstraintSyntax(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(classOrStructKeyword);
-                    this.classOrStructKeyword = classOrStructKeyword;
-                    if (questionToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(questionToken);
-                        this.questionToken = questionToken;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(classOrStructKeyword);
+            this.classOrStructKeyword = classOrStructKeyword;
+            if (questionToken != null)
+            {
+                this.AdjustFlagsAndWidth(questionToken);
+                this.questionToken = questionToken;
+            }
         }
 
         internal ClassOrStructConstraintSyntax(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(classOrStructKeyword);
-                    this.classOrStructKeyword = classOrStructKeyword;
-                    if (questionToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(questionToken);
-                        this.questionToken = questionToken;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(classOrStructKeyword);
+            this.classOrStructKeyword = classOrStructKeyword;
+            if (questionToken != null)
+            {
+                this.AdjustFlagsAndWidth(questionToken);
+                this.questionToken = questionToken;
+            }
         }
 
         /// <summary>Gets the constraint keyword ("class" or "struct").</summary>
@@ -22088,26 +22088,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TypeConstraintSyntax(SyntaxKind kind, TypeSyntax type, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         internal TypeConstraintSyntax(SyntaxKind kind, TypeSyntax type, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         internal TypeConstraintSyntax(SyntaxKind kind, TypeSyntax type)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         /// <summary>Gets the type syntax.</summary>
@@ -22201,62 +22201,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal FieldDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal FieldDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal FieldDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 4;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -22359,68 +22359,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal EventFieldDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken eventKeyword, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(eventKeyword);
-                    this.eventKeyword = eventKeyword;
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 5;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(eventKeyword);
+            this.eventKeyword = eventKeyword;
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal EventFieldDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken eventKeyword, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(eventKeyword);
-                    this.eventKeyword = eventKeyword;
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 5;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(eventKeyword);
+            this.eventKeyword = eventKeyword;
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         internal EventFieldDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken eventKeyword, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(eventKeyword);
-                    this.eventKeyword = eventKeyword;
-                    this.AdjustFlagsAndWidth(declaration);
-                    this.declaration = declaration;
-                    this.AdjustFlagsAndWidth(semicolonToken);
-                    this.semicolonToken = semicolonToken;
+            this.SlotCount = 5;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(eventKeyword);
+            this.eventKeyword = eventKeyword;
+            this.AdjustFlagsAndWidth(declaration);
+            this.declaration = declaration;
+            this.AdjustFlagsAndWidth(semicolonToken);
+            this.semicolonToken = semicolonToken;
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -22529,32 +22529,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ExplicitInterfaceSpecifierSyntax(SyntaxKind kind, NameSyntax name, SyntaxToken dotToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(dotToken);
-                    this.dotToken = dotToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(dotToken);
+            this.dotToken = dotToken;
         }
 
         internal ExplicitInterfaceSpecifierSyntax(SyntaxKind kind, NameSyntax name, SyntaxToken dotToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(dotToken);
-                    this.dotToken = dotToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(dotToken);
+            this.dotToken = dotToken;
         }
 
         internal ExplicitInterfaceSpecifierSyntax(SyntaxKind kind, NameSyntax name, SyntaxToken dotToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(dotToken);
-                    this.dotToken = dotToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(dotToken);
+            this.dotToken = dotToken;
         }
 
         public NameSyntax Name => this.name;
@@ -22675,158 +22675,158 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal MethodDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, GreenNode constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal MethodDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, GreenNode constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal MethodDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, GreenNode constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 11;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (typeParameterList != null)
-                    {
-                        this.AdjustFlagsAndWidth(typeParameterList);
-                        this.typeParameterList = typeParameterList;
-                    }
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (constraintClauses != null)
-                    {
-                        this.AdjustFlagsAndWidth(constraintClauses);
-                        this.constraintClauses = constraintClauses;
-                    }
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 11;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (typeParameterList != null)
+            {
+                this.AdjustFlagsAndWidth(typeParameterList);
+                this.typeParameterList = typeParameterList;
+            }
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (constraintClauses != null)
+            {
+                this.AdjustFlagsAndWidth(constraintClauses);
+                this.constraintClauses = constraintClauses;
+            }
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -23001,119 +23001,119 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal OperatorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax returnType, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal OperatorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax returnType, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal OperatorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax returnType, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(returnType);
-                    this.returnType = returnType;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(returnType);
+            this.returnType = returnType;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -23270,119 +23270,119 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ConversionOperatorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-                    this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+            this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal ConversionOperatorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-                    this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+            this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal ConversionOperatorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-                    this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+            this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -23538,122 +23538,122 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ConstructorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax initializer, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 8;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal ConstructorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax initializer, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 8;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal ConstructorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax initializer, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 8;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -23793,38 +23793,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ConstructorInitializerSyntax(SyntaxKind kind, SyntaxToken colonToken, SyntaxToken thisOrBaseKeyword, ArgumentListSyntax argumentList, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(thisOrBaseKeyword);
-                    this.thisOrBaseKeyword = thisOrBaseKeyword;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(thisOrBaseKeyword);
+            this.thisOrBaseKeyword = thisOrBaseKeyword;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal ConstructorInitializerSyntax(SyntaxKind kind, SyntaxToken colonToken, SyntaxToken thisOrBaseKeyword, ArgumentListSyntax argumentList, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(thisOrBaseKeyword);
-                    this.thisOrBaseKeyword = thisOrBaseKeyword;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(thisOrBaseKeyword);
+            this.thisOrBaseKeyword = thisOrBaseKeyword;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         internal ConstructorInitializerSyntax(SyntaxKind kind, SyntaxToken colonToken, SyntaxToken thisOrBaseKeyword, ArgumentListSyntax argumentList)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
-                    this.AdjustFlagsAndWidth(thisOrBaseKeyword);
-                    this.thisOrBaseKeyword = thisOrBaseKeyword;
-                    this.AdjustFlagsAndWidth(argumentList);
-                    this.argumentList = argumentList;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+            this.AdjustFlagsAndWidth(thisOrBaseKeyword);
+            this.thisOrBaseKeyword = thisOrBaseKeyword;
+            this.AdjustFlagsAndWidth(argumentList);
+            this.argumentList = argumentList;
         }
 
         /// <summary>Gets the colon token.</summary>
@@ -23924,113 +23924,113 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DestructorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 8;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(tildeToken);
-                    this.tildeToken = tildeToken;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(tildeToken);
+            this.tildeToken = tildeToken;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal DestructorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 8;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(tildeToken);
-                    this.tildeToken = tildeToken;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(tildeToken);
+            this.tildeToken = tildeToken;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal DestructorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 8;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(tildeToken);
-                    this.tildeToken = tildeToken;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(tildeToken);
+            this.tildeToken = tildeToken;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -24203,137 +24203,137 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal PropertyDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (accessorList != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessorList);
-                        this.accessorList = accessorList;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (accessorList != null)
+            {
+                this.AdjustFlagsAndWidth(accessorList);
+                this.accessorList = accessorList;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal PropertyDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (accessorList != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessorList);
-                        this.accessorList = accessorList;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (accessorList != null)
+            {
+                this.AdjustFlagsAndWidth(accessorList);
+                this.accessorList = accessorList;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal PropertyDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (accessorList != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessorList);
-                        this.accessorList = accessorList;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (initializer != null)
-                    {
-                        this.AdjustFlagsAndWidth(initializer);
-                        this.initializer = initializer;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (accessorList != null)
+            {
+                this.AdjustFlagsAndWidth(accessorList);
+                this.accessorList = accessorList;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (initializer != null)
+            {
+                this.AdjustFlagsAndWidth(initializer);
+                this.initializer = initializer;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -24480,32 +24480,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ArrowExpressionClauseSyntax(SyntaxKind kind, SyntaxToken arrowToken, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(arrowToken);
-                    this.arrowToken = arrowToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(arrowToken);
+            this.arrowToken = arrowToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal ArrowExpressionClauseSyntax(SyntaxKind kind, SyntaxToken arrowToken, ExpressionSyntax expression, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(arrowToken);
-                    this.arrowToken = arrowToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(arrowToken);
+            this.arrowToken = arrowToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         internal ArrowExpressionClauseSyntax(SyntaxKind kind, SyntaxToken arrowToken, ExpressionSyntax expression)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(arrowToken);
-                    this.arrowToken = arrowToken;
-                    this.AdjustFlagsAndWidth(expression);
-                    this.expression = expression;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(arrowToken);
+            this.arrowToken = arrowToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
         }
 
         public SyntaxToken ArrowToken => this.arrowToken;
@@ -24593,113 +24593,113 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal EventDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 8;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(eventKeyword);
-                    this.eventKeyword = eventKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (accessorList != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessorList);
-                        this.accessorList = accessorList;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(eventKeyword);
+            this.eventKeyword = eventKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (accessorList != null)
+            {
+                this.AdjustFlagsAndWidth(accessorList);
+                this.accessorList = accessorList;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal EventDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 8;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(eventKeyword);
-                    this.eventKeyword = eventKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (accessorList != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessorList);
-                        this.accessorList = accessorList;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(eventKeyword);
+            this.eventKeyword = eventKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (accessorList != null)
+            {
+                this.AdjustFlagsAndWidth(accessorList);
+                this.accessorList = accessorList;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal EventDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 8;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(eventKeyword);
-                    this.eventKeyword = eventKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (accessorList != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessorList);
-                        this.accessorList = accessorList;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 8;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(eventKeyword);
+            this.eventKeyword = eventKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (accessorList != null)
+            {
+                this.AdjustFlagsAndWidth(accessorList);
+                this.accessorList = accessorList;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -24843,128 +24843,128 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal IndexerDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(thisKeyword);
-                    this.thisKeyword = thisKeyword;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (accessorList != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessorList);
-                        this.accessorList = accessorList;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(thisKeyword);
+            this.thisKeyword = thisKeyword;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (accessorList != null)
+            {
+                this.AdjustFlagsAndWidth(accessorList);
+                this.accessorList = accessorList;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal IndexerDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(thisKeyword);
-                    this.thisKeyword = thisKeyword;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (accessorList != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessorList);
-                        this.accessorList = accessorList;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(thisKeyword);
+            this.thisKeyword = thisKeyword;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (accessorList != null)
+            {
+                this.AdjustFlagsAndWidth(accessorList);
+                this.accessorList = accessorList;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal IndexerDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 9;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (explicitInterfaceSpecifier != null)
-                    {
-                        this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
-                        this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
-                    }
-                    this.AdjustFlagsAndWidth(thisKeyword);
-                    this.thisKeyword = thisKeyword;
-                    this.AdjustFlagsAndWidth(parameterList);
-                    this.parameterList = parameterList;
-                    if (accessorList != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessorList);
-                        this.accessorList = accessorList;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 9;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (explicitInterfaceSpecifier != null)
+            {
+                this.AdjustFlagsAndWidth(explicitInterfaceSpecifier);
+                this.explicitInterfaceSpecifier = explicitInterfaceSpecifier;
+            }
+            this.AdjustFlagsAndWidth(thisKeyword);
+            this.thisKeyword = thisKeyword;
+            this.AdjustFlagsAndWidth(parameterList);
+            this.parameterList = parameterList;
+            if (accessorList != null)
+            {
+                this.AdjustFlagsAndWidth(accessorList);
+                this.accessorList = accessorList;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -25111,47 +25111,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AccessorListSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode accessors, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (accessors != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessors);
-                        this.accessors = accessors;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (accessors != null)
+            {
+                this.AdjustFlagsAndWidth(accessors);
+                this.accessors = accessors;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal AccessorListSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode accessors, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (accessors != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessors);
-                        this.accessors = accessors;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (accessors != null)
+            {
+                this.AdjustFlagsAndWidth(accessors);
+                this.accessors = accessors;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         internal AccessorListSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode accessors, SyntaxToken closeBraceToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBraceToken);
-                    this.openBraceToken = openBraceToken;
-                    if (accessors != null)
-                    {
-                        this.AdjustFlagsAndWidth(accessors);
-                        this.accessors = accessors;
-                    }
-                    this.AdjustFlagsAndWidth(closeBraceToken);
-                    this.closeBraceToken = closeBraceToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBraceToken);
+            this.openBraceToken = openBraceToken;
+            if (accessors != null)
+            {
+                this.AdjustFlagsAndWidth(accessors);
+                this.accessors = accessors;
+            }
+            this.AdjustFlagsAndWidth(closeBraceToken);
+            this.closeBraceToken = closeBraceToken;
         }
 
         public SyntaxToken OpenBraceToken => this.openBraceToken;
@@ -25246,101 +25246,101 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal AccessorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 6;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 6;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal AccessorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 6;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 6;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         internal AccessorDeclarationSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, SyntaxToken keyword, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
           : base(kind)
         {
-                    this.SlotCount = 6;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    this.AdjustFlagsAndWidth(keyword);
-                    this.keyword = keyword;
-                    if (body != null)
-                    {
-                        this.AdjustFlagsAndWidth(body);
-                        this.body = body;
-                    }
-                    if (expressionBody != null)
-                    {
-                        this.AdjustFlagsAndWidth(expressionBody);
-                        this.expressionBody = expressionBody;
-                    }
-                    if (semicolonToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(semicolonToken);
-                        this.semicolonToken = semicolonToken;
-                    }
+            this.SlotCount = 6;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            this.AdjustFlagsAndWidth(keyword);
+            this.keyword = keyword;
+            if (body != null)
+            {
+                this.AdjustFlagsAndWidth(body);
+                this.body = body;
+            }
+            if (expressionBody != null)
+            {
+                this.AdjustFlagsAndWidth(expressionBody);
+                this.expressionBody = expressionBody;
+            }
+            if (semicolonToken != null)
+            {
+                this.AdjustFlagsAndWidth(semicolonToken);
+                this.semicolonToken = semicolonToken;
+            }
         }
 
         /// <summary>Gets the attribute declaration list.</summary>
@@ -25488,47 +25488,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ParameterListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode parameters, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal ParameterListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode parameters, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal ParameterListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode parameters, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>Gets the open paren token.</summary>
@@ -25623,47 +25623,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal BracketedParameterListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode parameters, SyntaxToken closeBracketToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         internal BracketedParameterListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode parameters, SyntaxToken closeBracketToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         internal BracketedParameterListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode parameters, SyntaxToken closeBracketToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         /// <summary>Gets the open bracket token.</summary>
@@ -25760,86 +25760,86 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ParameterSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (@default != null)
-                    {
-                        this.AdjustFlagsAndWidth(@default);
-                        this.@default = @default;
-                    }
+            this.SlotCount = 5;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (@default != null)
+            {
+                this.AdjustFlagsAndWidth(@default);
+                this.@default = @default;
+            }
         }
 
         internal ParameterSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (@default != null)
-                    {
-                        this.AdjustFlagsAndWidth(@default);
-                        this.@default = @default;
-                    }
+            this.SlotCount = 5;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (@default != null)
+            {
+                this.AdjustFlagsAndWidth(@default);
+                this.@default = @default;
+            }
         }
 
         internal ParameterSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    if (@default != null)
-                    {
-                        this.AdjustFlagsAndWidth(@default);
-                        this.@default = @default;
-                    }
+            this.SlotCount = 5;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            if (@default != null)
+            {
+                this.AdjustFlagsAndWidth(@default);
+                this.@default = @default;
+            }
         }
 
         /// <summary>Gets the attribute declaration list.</summary>
@@ -25952,65 +25952,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal IncompleteMemberSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
+            this.SlotCount = 3;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
         }
 
         internal IncompleteMemberSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
+            this.SlotCount = 3;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
         }
 
         internal IncompleteMemberSyntax(SyntaxKind kind, GreenNode attributeLists, GreenNode modifiers, TypeSyntax type)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    if (attributeLists != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributeLists);
-                        this.attributeLists = attributeLists;
-                    }
-                    if (modifiers != null)
-                    {
-                        this.AdjustFlagsAndWidth(modifiers);
-                        this.modifiers = modifiers;
-                    }
-                    if (type != null)
-                    {
-                        this.AdjustFlagsAndWidth(type);
-                        this.type = type;
-                    }
+            this.SlotCount = 3;
+            if (attributeLists != null)
+            {
+                this.AdjustFlagsAndWidth(attributeLists);
+                this.attributeLists = attributeLists;
+            }
+            if (modifiers != null)
+            {
+                this.AdjustFlagsAndWidth(modifiers);
+                this.modifiers = modifiers;
+            }
+            if (type != null)
+            {
+                this.AdjustFlagsAndWidth(type);
+                this.type = type;
+            }
         }
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
@@ -26100,35 +26100,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal SkippedTokensTriviaSyntax(SyntaxKind kind, GreenNode tokens, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    if (tokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(tokens);
-                        this.tokens = tokens;
-                    }
+            this.SlotCount = 1;
+            if (tokens != null)
+            {
+                this.AdjustFlagsAndWidth(tokens);
+                this.tokens = tokens;
+            }
         }
 
         internal SkippedTokensTriviaSyntax(SyntaxKind kind, GreenNode tokens, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    if (tokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(tokens);
-                        this.tokens = tokens;
-                    }
+            this.SlotCount = 1;
+            if (tokens != null)
+            {
+                this.AdjustFlagsAndWidth(tokens);
+                this.tokens = tokens;
+            }
         }
 
         internal SkippedTokensTriviaSyntax(SyntaxKind kind, GreenNode tokens)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    if (tokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(tokens);
-                        this.tokens = tokens;
-                    }
+            this.SlotCount = 1;
+            if (tokens != null)
+            {
+                this.AdjustFlagsAndWidth(tokens);
+                this.tokens = tokens;
+            }
         }
 
         public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Tokens => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.tokens);
@@ -26197,41 +26197,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DocumentationCommentTriviaSyntax(SyntaxKind kind, GreenNode content, SyntaxToken endOfComment, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    if (content != null)
-                    {
-                        this.AdjustFlagsAndWidth(content);
-                        this.content = content;
-                    }
-                    this.AdjustFlagsAndWidth(endOfComment);
-                    this.endOfComment = endOfComment;
+            this.SlotCount = 2;
+            if (content != null)
+            {
+                this.AdjustFlagsAndWidth(content);
+                this.content = content;
+            }
+            this.AdjustFlagsAndWidth(endOfComment);
+            this.endOfComment = endOfComment;
         }
 
         internal DocumentationCommentTriviaSyntax(SyntaxKind kind, GreenNode content, SyntaxToken endOfComment, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    if (content != null)
-                    {
-                        this.AdjustFlagsAndWidth(content);
-                        this.content = content;
-                    }
-                    this.AdjustFlagsAndWidth(endOfComment);
-                    this.endOfComment = endOfComment;
+            this.SlotCount = 2;
+            if (content != null)
+            {
+                this.AdjustFlagsAndWidth(content);
+                this.content = content;
+            }
+            this.AdjustFlagsAndWidth(endOfComment);
+            this.endOfComment = endOfComment;
         }
 
         internal DocumentationCommentTriviaSyntax(SyntaxKind kind, GreenNode content, SyntaxToken endOfComment)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    if (content != null)
-                    {
-                        this.AdjustFlagsAndWidth(content);
-                        this.content = content;
-                    }
-                    this.AdjustFlagsAndWidth(endOfComment);
-                    this.endOfComment = endOfComment;
+            this.SlotCount = 2;
+            if (content != null)
+            {
+                this.AdjustFlagsAndWidth(content);
+                this.content = content;
+            }
+            this.AdjustFlagsAndWidth(endOfComment);
+            this.endOfComment = endOfComment;
         }
 
         public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> Content => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax>(this.content);
@@ -26341,26 +26341,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TypeCrefSyntax(SyntaxKind kind, TypeSyntax type, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         internal TypeCrefSyntax(SyntaxKind kind, TypeSyntax type, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         internal TypeCrefSyntax(SyntaxKind kind, TypeSyntax type)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         public TypeSyntax Type => this.type;
@@ -26437,38 +26437,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal QualifiedCrefSyntax(SyntaxKind kind, TypeSyntax container, SyntaxToken dotToken, MemberCrefSyntax member, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(container);
-                    this.container = container;
-                    this.AdjustFlagsAndWidth(dotToken);
-                    this.dotToken = dotToken;
-                    this.AdjustFlagsAndWidth(member);
-                    this.member = member;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(container);
+            this.container = container;
+            this.AdjustFlagsAndWidth(dotToken);
+            this.dotToken = dotToken;
+            this.AdjustFlagsAndWidth(member);
+            this.member = member;
         }
 
         internal QualifiedCrefSyntax(SyntaxKind kind, TypeSyntax container, SyntaxToken dotToken, MemberCrefSyntax member, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(container);
-                    this.container = container;
-                    this.AdjustFlagsAndWidth(dotToken);
-                    this.dotToken = dotToken;
-                    this.AdjustFlagsAndWidth(member);
-                    this.member = member;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(container);
+            this.container = container;
+            this.AdjustFlagsAndWidth(dotToken);
+            this.dotToken = dotToken;
+            this.AdjustFlagsAndWidth(member);
+            this.member = member;
         }
 
         internal QualifiedCrefSyntax(SyntaxKind kind, TypeSyntax container, SyntaxToken dotToken, MemberCrefSyntax member)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(container);
-                    this.container = container;
-                    this.AdjustFlagsAndWidth(dotToken);
-                    this.dotToken = dotToken;
-                    this.AdjustFlagsAndWidth(member);
-                    this.member = member;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(container);
+            this.container = container;
+            this.AdjustFlagsAndWidth(dotToken);
+            this.dotToken = dotToken;
+            this.AdjustFlagsAndWidth(member);
+            this.member = member;
         }
 
         public TypeSyntax Container => this.container;
@@ -26590,41 +26590,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal NameMemberCrefSyntax(SyntaxKind kind, TypeSyntax name, CrefParameterListSyntax parameters, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         internal NameMemberCrefSyntax(SyntaxKind kind, TypeSyntax name, CrefParameterListSyntax parameters, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         internal NameMemberCrefSyntax(SyntaxKind kind, TypeSyntax name, CrefParameterListSyntax parameters)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         public TypeSyntax Name => this.name;
@@ -26710,41 +26710,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal IndexerMemberCrefSyntax(SyntaxKind kind, SyntaxToken thisKeyword, CrefBracketedParameterListSyntax parameters, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(thisKeyword);
-                    this.thisKeyword = thisKeyword;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(thisKeyword);
+            this.thisKeyword = thisKeyword;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         internal IndexerMemberCrefSyntax(SyntaxKind kind, SyntaxToken thisKeyword, CrefBracketedParameterListSyntax parameters, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(thisKeyword);
-                    this.thisKeyword = thisKeyword;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(thisKeyword);
+            this.thisKeyword = thisKeyword;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         internal IndexerMemberCrefSyntax(SyntaxKind kind, SyntaxToken thisKeyword, CrefBracketedParameterListSyntax parameters)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(thisKeyword);
-                    this.thisKeyword = thisKeyword;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(thisKeyword);
+            this.thisKeyword = thisKeyword;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         public SyntaxToken ThisKeyword => this.thisKeyword;
@@ -26832,47 +26832,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal OperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax parameters, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         internal OperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax parameters, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         internal OperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax parameters)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(operatorToken);
-                    this.operatorToken = operatorToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         public SyntaxToken OperatorKeyword => this.operatorKeyword;
@@ -26970,53 +26970,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ConversionOperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax parameters, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-                    this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+            this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         internal ConversionOperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax parameters, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-                    this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+            this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         internal ConversionOperatorMemberCrefSyntax(SyntaxKind kind, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax parameters)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
-                    this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
-                    this.AdjustFlagsAndWidth(operatorKeyword);
-                    this.operatorKeyword = operatorKeyword;
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(implicitOrExplicitKeyword);
+            this.implicitOrExplicitKeyword = implicitOrExplicitKeyword;
+            this.AdjustFlagsAndWidth(operatorKeyword);
+            this.operatorKeyword = operatorKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
         }
 
         public SyntaxToken ImplicitOrExplicitKeyword => this.implicitOrExplicitKeyword;
@@ -27145,47 +27145,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CrefParameterListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode parameters, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal CrefParameterListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode parameters, SyntaxToken closeParenToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         internal CrefParameterListSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode parameters, SyntaxToken closeParenToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openParenToken);
-                    this.openParenToken = openParenToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeParenToken);
-                    this.closeParenToken = closeParenToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
         }
 
         /// <summary>Gets the open paren token.</summary>
@@ -27282,47 +27282,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CrefBracketedParameterListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode parameters, SyntaxToken closeBracketToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         internal CrefBracketedParameterListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode parameters, SyntaxToken closeBracketToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         internal CrefBracketedParameterListSyntax(SyntaxKind kind, SyntaxToken openBracketToken, GreenNode parameters, SyntaxToken closeBracketToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(openBracketToken);
-                    this.openBracketToken = openBracketToken;
-                    if (parameters != null)
-                    {
-                        this.AdjustFlagsAndWidth(parameters);
-                        this.parameters = parameters;
-                    }
-                    this.AdjustFlagsAndWidth(closeBracketToken);
-                    this.closeBracketToken = closeBracketToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openBracketToken);
+            this.openBracketToken = openBracketToken;
+            if (parameters != null)
+            {
+                this.AdjustFlagsAndWidth(parameters);
+                this.parameters = parameters;
+            }
+            this.AdjustFlagsAndWidth(closeBracketToken);
+            this.closeBracketToken = closeBracketToken;
         }
 
         /// <summary>Gets the open bracket token.</summary>
@@ -27420,41 +27420,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CrefParameterSyntax(SyntaxKind kind, SyntaxToken refKindKeyword, TypeSyntax type, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    if (refKindKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(refKindKeyword);
-                        this.refKindKeyword = refKindKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 2;
+            if (refKindKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(refKindKeyword);
+                this.refKindKeyword = refKindKeyword;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         internal CrefParameterSyntax(SyntaxKind kind, SyntaxToken refKindKeyword, TypeSyntax type, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    if (refKindKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(refKindKeyword);
-                        this.refKindKeyword = refKindKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 2;
+            if (refKindKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(refKindKeyword);
+                this.refKindKeyword = refKindKeyword;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         internal CrefParameterSyntax(SyntaxKind kind, SyntaxToken refKindKeyword, TypeSyntax type)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    if (refKindKeyword != null)
-                    {
-                        this.AdjustFlagsAndWidth(refKindKeyword);
-                        this.refKindKeyword = refKindKeyword;
-                    }
-                    this.AdjustFlagsAndWidth(type);
-                    this.type = type;
+            this.SlotCount = 2;
+            if (refKindKeyword != null)
+            {
+                this.AdjustFlagsAndWidth(refKindKeyword);
+                this.refKindKeyword = refKindKeyword;
+            }
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
         }
 
         public SyntaxToken RefKindKeyword => this.refKindKeyword;
@@ -27555,47 +27555,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlElementSyntax(SyntaxKind kind, XmlElementStartTagSyntax startTag, GreenNode content, XmlElementEndTagSyntax endTag, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(startTag);
-                    this.startTag = startTag;
-                    if (content != null)
-                    {
-                        this.AdjustFlagsAndWidth(content);
-                        this.content = content;
-                    }
-                    this.AdjustFlagsAndWidth(endTag);
-                    this.endTag = endTag;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(startTag);
+            this.startTag = startTag;
+            if (content != null)
+            {
+                this.AdjustFlagsAndWidth(content);
+                this.content = content;
+            }
+            this.AdjustFlagsAndWidth(endTag);
+            this.endTag = endTag;
         }
 
         internal XmlElementSyntax(SyntaxKind kind, XmlElementStartTagSyntax startTag, GreenNode content, XmlElementEndTagSyntax endTag, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(startTag);
-                    this.startTag = startTag;
-                    if (content != null)
-                    {
-                        this.AdjustFlagsAndWidth(content);
-                        this.content = content;
-                    }
-                    this.AdjustFlagsAndWidth(endTag);
-                    this.endTag = endTag;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(startTag);
+            this.startTag = startTag;
+            if (content != null)
+            {
+                this.AdjustFlagsAndWidth(content);
+                this.content = content;
+            }
+            this.AdjustFlagsAndWidth(endTag);
+            this.endTag = endTag;
         }
 
         internal XmlElementSyntax(SyntaxKind kind, XmlElementStartTagSyntax startTag, GreenNode content, XmlElementEndTagSyntax endTag)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(startTag);
-                    this.startTag = startTag;
-                    if (content != null)
-                    {
-                        this.AdjustFlagsAndWidth(content);
-                        this.content = content;
-                    }
-                    this.AdjustFlagsAndWidth(endTag);
-                    this.endTag = endTag;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(startTag);
+            this.startTag = startTag;
+            if (content != null)
+            {
+                this.AdjustFlagsAndWidth(content);
+                this.content = content;
+            }
+            this.AdjustFlagsAndWidth(endTag);
+            this.endTag = endTag;
         }
 
         public XmlElementStartTagSyntax StartTag => this.startTag;
@@ -27688,53 +27688,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlElementStartTagSyntax(SyntaxKind kind, SyntaxToken lessThanToken, XmlNameSyntax name, GreenNode attributes, SyntaxToken greaterThanToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (attributes != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributes);
-                        this.attributes = attributes;
-                    }
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (attributes != null)
+            {
+                this.AdjustFlagsAndWidth(attributes);
+                this.attributes = attributes;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         internal XmlElementStartTagSyntax(SyntaxKind kind, SyntaxToken lessThanToken, XmlNameSyntax name, GreenNode attributes, SyntaxToken greaterThanToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (attributes != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributes);
-                        this.attributes = attributes;
-                    }
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (attributes != null)
+            {
+                this.AdjustFlagsAndWidth(attributes);
+                this.attributes = attributes;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         internal XmlElementStartTagSyntax(SyntaxKind kind, SyntaxToken lessThanToken, XmlNameSyntax name, GreenNode attributes, SyntaxToken greaterThanToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (attributes != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributes);
-                        this.attributes = attributes;
-                    }
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (attributes != null)
+            {
+                this.AdjustFlagsAndWidth(attributes);
+                this.attributes = attributes;
+            }
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         public SyntaxToken LessThanToken => this.lessThanToken;
@@ -27835,38 +27835,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlElementEndTagSyntax(SyntaxKind kind, SyntaxToken lessThanSlashToken, XmlNameSyntax name, SyntaxToken greaterThanToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanSlashToken);
-                    this.lessThanSlashToken = lessThanSlashToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanSlashToken);
+            this.lessThanSlashToken = lessThanSlashToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         internal XmlElementEndTagSyntax(SyntaxKind kind, SyntaxToken lessThanSlashToken, XmlNameSyntax name, SyntaxToken greaterThanToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanSlashToken);
-                    this.lessThanSlashToken = lessThanSlashToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanSlashToken);
+            this.lessThanSlashToken = lessThanSlashToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         internal XmlElementEndTagSyntax(SyntaxKind kind, SyntaxToken lessThanSlashToken, XmlNameSyntax name, SyntaxToken greaterThanToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanSlashToken);
-                    this.lessThanSlashToken = lessThanSlashToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(greaterThanToken);
-                    this.greaterThanToken = greaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanSlashToken);
+            this.lessThanSlashToken = lessThanSlashToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(greaterThanToken);
+            this.greaterThanToken = greaterThanToken;
         }
 
         public SyntaxToken LessThanSlashToken => this.lessThanSlashToken;
@@ -27959,53 +27959,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlEmptyElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, XmlNameSyntax name, GreenNode attributes, SyntaxToken slashGreaterThanToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (attributes != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributes);
-                        this.attributes = attributes;
-                    }
-                    this.AdjustFlagsAndWidth(slashGreaterThanToken);
-                    this.slashGreaterThanToken = slashGreaterThanToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (attributes != null)
+            {
+                this.AdjustFlagsAndWidth(attributes);
+                this.attributes = attributes;
+            }
+            this.AdjustFlagsAndWidth(slashGreaterThanToken);
+            this.slashGreaterThanToken = slashGreaterThanToken;
         }
 
         internal XmlEmptyElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, XmlNameSyntax name, GreenNode attributes, SyntaxToken slashGreaterThanToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (attributes != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributes);
-                        this.attributes = attributes;
-                    }
-                    this.AdjustFlagsAndWidth(slashGreaterThanToken);
-                    this.slashGreaterThanToken = slashGreaterThanToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (attributes != null)
+            {
+                this.AdjustFlagsAndWidth(attributes);
+                this.attributes = attributes;
+            }
+            this.AdjustFlagsAndWidth(slashGreaterThanToken);
+            this.slashGreaterThanToken = slashGreaterThanToken;
         }
 
         internal XmlEmptyElementSyntax(SyntaxKind kind, SyntaxToken lessThanToken, XmlNameSyntax name, GreenNode attributes, SyntaxToken slashGreaterThanToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(lessThanToken);
-                    this.lessThanToken = lessThanToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (attributes != null)
-                    {
-                        this.AdjustFlagsAndWidth(attributes);
-                        this.attributes = attributes;
-                    }
-                    this.AdjustFlagsAndWidth(slashGreaterThanToken);
-                    this.slashGreaterThanToken = slashGreaterThanToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(lessThanToken);
+            this.lessThanToken = lessThanToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (attributes != null)
+            {
+                this.AdjustFlagsAndWidth(attributes);
+                this.attributes = attributes;
+            }
+            this.AdjustFlagsAndWidth(slashGreaterThanToken);
+            this.slashGreaterThanToken = slashGreaterThanToken;
         }
 
         public SyntaxToken LessThanToken => this.lessThanToken;
@@ -28105,41 +28105,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlNameSyntax(SyntaxKind kind, XmlPrefixSyntax prefix, SyntaxToken localName, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    if (prefix != null)
-                    {
-                        this.AdjustFlagsAndWidth(prefix);
-                        this.prefix = prefix;
-                    }
-                    this.AdjustFlagsAndWidth(localName);
-                    this.localName = localName;
+            this.SlotCount = 2;
+            if (prefix != null)
+            {
+                this.AdjustFlagsAndWidth(prefix);
+                this.prefix = prefix;
+            }
+            this.AdjustFlagsAndWidth(localName);
+            this.localName = localName;
         }
 
         internal XmlNameSyntax(SyntaxKind kind, XmlPrefixSyntax prefix, SyntaxToken localName, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    if (prefix != null)
-                    {
-                        this.AdjustFlagsAndWidth(prefix);
-                        this.prefix = prefix;
-                    }
-                    this.AdjustFlagsAndWidth(localName);
-                    this.localName = localName;
+            this.SlotCount = 2;
+            if (prefix != null)
+            {
+                this.AdjustFlagsAndWidth(prefix);
+                this.prefix = prefix;
+            }
+            this.AdjustFlagsAndWidth(localName);
+            this.localName = localName;
         }
 
         internal XmlNameSyntax(SyntaxKind kind, XmlPrefixSyntax prefix, SyntaxToken localName)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    if (prefix != null)
-                    {
-                        this.AdjustFlagsAndWidth(prefix);
-                        this.prefix = prefix;
-                    }
-                    this.AdjustFlagsAndWidth(localName);
-                    this.localName = localName;
+            this.SlotCount = 2;
+            if (prefix != null)
+            {
+                this.AdjustFlagsAndWidth(prefix);
+                this.prefix = prefix;
+            }
+            this.AdjustFlagsAndWidth(localName);
+            this.localName = localName;
         }
 
         public XmlPrefixSyntax Prefix => this.prefix;
@@ -28221,32 +28221,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlPrefixSyntax(SyntaxKind kind, SyntaxToken prefix, SyntaxToken colonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(prefix);
-                    this.prefix = prefix;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(prefix);
+            this.prefix = prefix;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal XmlPrefixSyntax(SyntaxKind kind, SyntaxToken prefix, SyntaxToken colonToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(prefix);
-                    this.prefix = prefix;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(prefix);
+            this.prefix = prefix;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         internal XmlPrefixSyntax(SyntaxKind kind, SyntaxToken prefix, SyntaxToken colonToken)
           : base(kind)
         {
-                    this.SlotCount = 2;
-                    this.AdjustFlagsAndWidth(prefix);
-                    this.prefix = prefix;
-                    this.AdjustFlagsAndWidth(colonToken);
-                    this.colonToken = colonToken;
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(prefix);
+            this.prefix = prefix;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
         }
 
         public SyntaxToken Prefix => this.prefix;
@@ -28357,59 +28357,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlTextAttributeSyntax(SyntaxKind kind, XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, GreenNode textTokens, SyntaxToken endQuoteToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(startQuoteToken);
-                    this.startQuoteToken = startQuoteToken;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(endQuoteToken);
-                    this.endQuoteToken = endQuoteToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(startQuoteToken);
+            this.startQuoteToken = startQuoteToken;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(endQuoteToken);
+            this.endQuoteToken = endQuoteToken;
         }
 
         internal XmlTextAttributeSyntax(SyntaxKind kind, XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, GreenNode textTokens, SyntaxToken endQuoteToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(startQuoteToken);
-                    this.startQuoteToken = startQuoteToken;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(endQuoteToken);
-                    this.endQuoteToken = endQuoteToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(startQuoteToken);
+            this.startQuoteToken = startQuoteToken;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(endQuoteToken);
+            this.endQuoteToken = endQuoteToken;
         }
 
         internal XmlTextAttributeSyntax(SyntaxKind kind, XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, GreenNode textTokens, SyntaxToken endQuoteToken)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(startQuoteToken);
-                    this.startQuoteToken = startQuoteToken;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(endQuoteToken);
-                    this.endQuoteToken = endQuoteToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(startQuoteToken);
+            this.startQuoteToken = startQuoteToken;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(endQuoteToken);
+            this.endQuoteToken = endQuoteToken;
         }
 
         public override XmlNameSyntax Name => this.name;
@@ -28521,50 +28521,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlCrefAttributeSyntax(SyntaxKind kind, XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, CrefSyntax cref, SyntaxToken endQuoteToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(startQuoteToken);
-                    this.startQuoteToken = startQuoteToken;
-                    this.AdjustFlagsAndWidth(cref);
-                    this.cref = cref;
-                    this.AdjustFlagsAndWidth(endQuoteToken);
-                    this.endQuoteToken = endQuoteToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(startQuoteToken);
+            this.startQuoteToken = startQuoteToken;
+            this.AdjustFlagsAndWidth(cref);
+            this.cref = cref;
+            this.AdjustFlagsAndWidth(endQuoteToken);
+            this.endQuoteToken = endQuoteToken;
         }
 
         internal XmlCrefAttributeSyntax(SyntaxKind kind, XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, CrefSyntax cref, SyntaxToken endQuoteToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(startQuoteToken);
-                    this.startQuoteToken = startQuoteToken;
-                    this.AdjustFlagsAndWidth(cref);
-                    this.cref = cref;
-                    this.AdjustFlagsAndWidth(endQuoteToken);
-                    this.endQuoteToken = endQuoteToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(startQuoteToken);
+            this.startQuoteToken = startQuoteToken;
+            this.AdjustFlagsAndWidth(cref);
+            this.cref = cref;
+            this.AdjustFlagsAndWidth(endQuoteToken);
+            this.endQuoteToken = endQuoteToken;
         }
 
         internal XmlCrefAttributeSyntax(SyntaxKind kind, XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, CrefSyntax cref, SyntaxToken endQuoteToken)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(startQuoteToken);
-                    this.startQuoteToken = startQuoteToken;
-                    this.AdjustFlagsAndWidth(cref);
-                    this.cref = cref;
-                    this.AdjustFlagsAndWidth(endQuoteToken);
-                    this.endQuoteToken = endQuoteToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(startQuoteToken);
+            this.startQuoteToken = startQuoteToken;
+            this.AdjustFlagsAndWidth(cref);
+            this.cref = cref;
+            this.AdjustFlagsAndWidth(endQuoteToken);
+            this.endQuoteToken = endQuoteToken;
         }
 
         public override XmlNameSyntax Name => this.name;
@@ -28676,50 +28676,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlNameAttributeSyntax(SyntaxKind kind, XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, IdentifierNameSyntax identifier, SyntaxToken endQuoteToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(startQuoteToken);
-                    this.startQuoteToken = startQuoteToken;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(endQuoteToken);
-                    this.endQuoteToken = endQuoteToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(startQuoteToken);
+            this.startQuoteToken = startQuoteToken;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(endQuoteToken);
+            this.endQuoteToken = endQuoteToken;
         }
 
         internal XmlNameAttributeSyntax(SyntaxKind kind, XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, IdentifierNameSyntax identifier, SyntaxToken endQuoteToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(startQuoteToken);
-                    this.startQuoteToken = startQuoteToken;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(endQuoteToken);
-                    this.endQuoteToken = endQuoteToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(startQuoteToken);
+            this.startQuoteToken = startQuoteToken;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(endQuoteToken);
+            this.endQuoteToken = endQuoteToken;
         }
 
         internal XmlNameAttributeSyntax(SyntaxKind kind, XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, IdentifierNameSyntax identifier, SyntaxToken endQuoteToken)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(equalsToken);
-                    this.equalsToken = equalsToken;
-                    this.AdjustFlagsAndWidth(startQuoteToken);
-                    this.startQuoteToken = startQuoteToken;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(endQuoteToken);
-                    this.endQuoteToken = endQuoteToken;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(equalsToken);
+            this.equalsToken = equalsToken;
+            this.AdjustFlagsAndWidth(startQuoteToken);
+            this.startQuoteToken = startQuoteToken;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(endQuoteToken);
+            this.endQuoteToken = endQuoteToken;
         }
 
         public override XmlNameSyntax Name => this.name;
@@ -28827,35 +28827,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlTextSyntax(SyntaxKind kind, GreenNode textTokens, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 1;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
+            this.SlotCount = 1;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
         }
 
         internal XmlTextSyntax(SyntaxKind kind, GreenNode textTokens, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 1;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
+            this.SlotCount = 1;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
         }
 
         internal XmlTextSyntax(SyntaxKind kind, GreenNode textTokens)
           : base(kind)
         {
-                    this.SlotCount = 1;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
+            this.SlotCount = 1;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
         }
 
         public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> TextTokens => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.textTokens);
@@ -28925,47 +28925,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlCDataSectionSyntax(SyntaxKind kind, SyntaxToken startCDataToken, GreenNode textTokens, SyntaxToken endCDataToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(startCDataToken);
-                    this.startCDataToken = startCDataToken;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(endCDataToken);
-                    this.endCDataToken = endCDataToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(startCDataToken);
+            this.startCDataToken = startCDataToken;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(endCDataToken);
+            this.endCDataToken = endCDataToken;
         }
 
         internal XmlCDataSectionSyntax(SyntaxKind kind, SyntaxToken startCDataToken, GreenNode textTokens, SyntaxToken endCDataToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(startCDataToken);
-                    this.startCDataToken = startCDataToken;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(endCDataToken);
-                    this.endCDataToken = endCDataToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(startCDataToken);
+            this.startCDataToken = startCDataToken;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(endCDataToken);
+            this.endCDataToken = endCDataToken;
         }
 
         internal XmlCDataSectionSyntax(SyntaxKind kind, SyntaxToken startCDataToken, GreenNode textTokens, SyntaxToken endCDataToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(startCDataToken);
-                    this.startCDataToken = startCDataToken;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(endCDataToken);
-                    this.endCDataToken = endCDataToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(startCDataToken);
+            this.startCDataToken = startCDataToken;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(endCDataToken);
+            this.endCDataToken = endCDataToken;
         }
 
         public SyntaxToken StartCDataToken => this.startCDataToken;
@@ -29058,53 +29058,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlProcessingInstructionSyntax(SyntaxKind kind, SyntaxToken startProcessingInstructionToken, XmlNameSyntax name, GreenNode textTokens, SyntaxToken endProcessingInstructionToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(startProcessingInstructionToken);
-                    this.startProcessingInstructionToken = startProcessingInstructionToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(endProcessingInstructionToken);
-                    this.endProcessingInstructionToken = endProcessingInstructionToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(startProcessingInstructionToken);
+            this.startProcessingInstructionToken = startProcessingInstructionToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(endProcessingInstructionToken);
+            this.endProcessingInstructionToken = endProcessingInstructionToken;
         }
 
         internal XmlProcessingInstructionSyntax(SyntaxKind kind, SyntaxToken startProcessingInstructionToken, XmlNameSyntax name, GreenNode textTokens, SyntaxToken endProcessingInstructionToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(startProcessingInstructionToken);
-                    this.startProcessingInstructionToken = startProcessingInstructionToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(endProcessingInstructionToken);
-                    this.endProcessingInstructionToken = endProcessingInstructionToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(startProcessingInstructionToken);
+            this.startProcessingInstructionToken = startProcessingInstructionToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(endProcessingInstructionToken);
+            this.endProcessingInstructionToken = endProcessingInstructionToken;
         }
 
         internal XmlProcessingInstructionSyntax(SyntaxKind kind, SyntaxToken startProcessingInstructionToken, XmlNameSyntax name, GreenNode textTokens, SyntaxToken endProcessingInstructionToken)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(startProcessingInstructionToken);
-                    this.startProcessingInstructionToken = startProcessingInstructionToken;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(endProcessingInstructionToken);
-                    this.endProcessingInstructionToken = endProcessingInstructionToken;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(startProcessingInstructionToken);
+            this.startProcessingInstructionToken = startProcessingInstructionToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(endProcessingInstructionToken);
+            this.endProcessingInstructionToken = endProcessingInstructionToken;
         }
 
         public SyntaxToken StartProcessingInstructionToken => this.startProcessingInstructionToken;
@@ -29205,47 +29205,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal XmlCommentSyntax(SyntaxKind kind, SyntaxToken lessThanExclamationMinusMinusToken, GreenNode textTokens, SyntaxToken minusMinusGreaterThanToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken);
-                    this.lessThanExclamationMinusMinusToken = lessThanExclamationMinusMinusToken;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(minusMinusGreaterThanToken);
-                    this.minusMinusGreaterThanToken = minusMinusGreaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken);
+            this.lessThanExclamationMinusMinusToken = lessThanExclamationMinusMinusToken;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(minusMinusGreaterThanToken);
+            this.minusMinusGreaterThanToken = minusMinusGreaterThanToken;
         }
 
         internal XmlCommentSyntax(SyntaxKind kind, SyntaxToken lessThanExclamationMinusMinusToken, GreenNode textTokens, SyntaxToken minusMinusGreaterThanToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken);
-                    this.lessThanExclamationMinusMinusToken = lessThanExclamationMinusMinusToken;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(minusMinusGreaterThanToken);
-                    this.minusMinusGreaterThanToken = minusMinusGreaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken);
+            this.lessThanExclamationMinusMinusToken = lessThanExclamationMinusMinusToken;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(minusMinusGreaterThanToken);
+            this.minusMinusGreaterThanToken = minusMinusGreaterThanToken;
         }
 
         internal XmlCommentSyntax(SyntaxKind kind, SyntaxToken lessThanExclamationMinusMinusToken, GreenNode textTokens, SyntaxToken minusMinusGreaterThanToken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken);
-                    this.lessThanExclamationMinusMinusToken = lessThanExclamationMinusMinusToken;
-                    if (textTokens != null)
-                    {
-                        this.AdjustFlagsAndWidth(textTokens);
-                        this.textTokens = textTokens;
-                    }
-                    this.AdjustFlagsAndWidth(minusMinusGreaterThanToken);
-                    this.minusMinusGreaterThanToken = minusMinusGreaterThanToken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken);
+            this.lessThanExclamationMinusMinusToken = lessThanExclamationMinusMinusToken;
+            if (textTokens != null)
+            {
+                this.AdjustFlagsAndWidth(textTokens);
+                this.textTokens = textTokens;
+            }
+            this.AdjustFlagsAndWidth(minusMinusGreaterThanToken);
+            this.minusMinusGreaterThanToken = minusMinusGreaterThanToken;
         }
 
         public SyntaxToken LessThanExclamationMinusMinusToken => this.lessThanExclamationMinusMinusToken;
@@ -29410,53 +29410,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal IfDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken ifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(ifKeyword);
-                    this.ifKeyword = ifKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
-                    this.branchTaken = branchTaken;
-                    this.conditionValue = conditionValue;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(ifKeyword);
+            this.ifKeyword = ifKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+            this.branchTaken = branchTaken;
+            this.conditionValue = conditionValue;
         }
 
         internal IfDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken ifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(ifKeyword);
-                    this.ifKeyword = ifKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
-                    this.branchTaken = branchTaken;
-                    this.conditionValue = conditionValue;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(ifKeyword);
+            this.ifKeyword = ifKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+            this.branchTaken = branchTaken;
+            this.conditionValue = conditionValue;
         }
 
         internal IfDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken ifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(ifKeyword);
-                    this.ifKeyword = ifKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
-                    this.branchTaken = branchTaken;
-                    this.conditionValue = conditionValue;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(ifKeyword);
+            this.ifKeyword = ifKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+            this.branchTaken = branchTaken;
+            this.conditionValue = conditionValue;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -29570,53 +29570,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ElifDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken elifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(elifKeyword);
-                    this.elifKeyword = elifKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
-                    this.branchTaken = branchTaken;
-                    this.conditionValue = conditionValue;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(elifKeyword);
+            this.elifKeyword = elifKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+            this.branchTaken = branchTaken;
+            this.conditionValue = conditionValue;
         }
 
         internal ElifDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken elifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(elifKeyword);
-                    this.elifKeyword = elifKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
-                    this.branchTaken = branchTaken;
-                    this.conditionValue = conditionValue;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(elifKeyword);
+            this.elifKeyword = elifKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+            this.branchTaken = branchTaken;
+            this.conditionValue = conditionValue;
         }
 
         internal ElifDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken elifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(elifKeyword);
-                    this.elifKeyword = elifKeyword;
-                    this.AdjustFlagsAndWidth(condition);
-                    this.condition = condition;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
-                    this.branchTaken = branchTaken;
-                    this.conditionValue = conditionValue;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(elifKeyword);
+            this.elifKeyword = elifKeyword;
+            this.AdjustFlagsAndWidth(condition);
+            this.condition = condition;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+            this.branchTaken = branchTaken;
+            this.conditionValue = conditionValue;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -29728,44 +29728,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ElseDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken elseKeyword, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(elseKeyword);
-                    this.elseKeyword = elseKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
-                    this.branchTaken = branchTaken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(elseKeyword);
+            this.elseKeyword = elseKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+            this.branchTaken = branchTaken;
         }
 
         internal ElseDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken elseKeyword, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(elseKeyword);
-                    this.elseKeyword = elseKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
-                    this.branchTaken = branchTaken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(elseKeyword);
+            this.elseKeyword = elseKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+            this.branchTaken = branchTaken;
         }
 
         internal ElseDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken elseKeyword, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(elseKeyword);
-                    this.elseKeyword = elseKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
-                    this.branchTaken = branchTaken;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(elseKeyword);
+            this.elseKeyword = elseKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+            this.branchTaken = branchTaken;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -29864,41 +29864,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal EndIfDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken endIfKeyword, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(endIfKeyword);
-                    this.endIfKeyword = endIfKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(endIfKeyword);
+            this.endIfKeyword = endIfKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal EndIfDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken endIfKeyword, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(endIfKeyword);
-                    this.endIfKeyword = endIfKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(endIfKeyword);
+            this.endIfKeyword = endIfKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal EndIfDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken endIfKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(endIfKeyword);
-                    this.endIfKeyword = endIfKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(endIfKeyword);
+            this.endIfKeyword = endIfKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -29994,41 +29994,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal RegionDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken regionKeyword, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(regionKeyword);
-                    this.regionKeyword = regionKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(regionKeyword);
+            this.regionKeyword = regionKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal RegionDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken regionKeyword, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(regionKeyword);
-                    this.regionKeyword = regionKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(regionKeyword);
+            this.regionKeyword = regionKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal RegionDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken regionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(regionKeyword);
-                    this.regionKeyword = regionKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(regionKeyword);
+            this.regionKeyword = regionKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -30124,41 +30124,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal EndRegionDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken endRegionKeyword, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(endRegionKeyword);
-                    this.endRegionKeyword = endRegionKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(endRegionKeyword);
+            this.endRegionKeyword = endRegionKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal EndRegionDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken endRegionKeyword, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(endRegionKeyword);
-                    this.endRegionKeyword = endRegionKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(endRegionKeyword);
+            this.endRegionKeyword = endRegionKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal EndRegionDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken endRegionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(endRegionKeyword);
-                    this.endRegionKeyword = endRegionKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(endRegionKeyword);
+            this.endRegionKeyword = endRegionKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -30254,41 +30254,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ErrorDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken errorKeyword, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(errorKeyword);
-                    this.errorKeyword = errorKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(errorKeyword);
+            this.errorKeyword = errorKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal ErrorDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken errorKeyword, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(errorKeyword);
-                    this.errorKeyword = errorKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(errorKeyword);
+            this.errorKeyword = errorKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal ErrorDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken errorKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(errorKeyword);
-                    this.errorKeyword = errorKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(errorKeyword);
+            this.errorKeyword = errorKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -30384,41 +30384,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal WarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken warningKeyword, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(warningKeyword);
-                    this.warningKeyword = warningKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(warningKeyword);
+            this.warningKeyword = warningKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal WarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken warningKeyword, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(warningKeyword);
-                    this.warningKeyword = warningKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(warningKeyword);
+            this.warningKeyword = warningKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal WarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken warningKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(warningKeyword);
-                    this.warningKeyword = warningKeyword;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(warningKeyword);
+            this.warningKeyword = warningKeyword;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -30514,41 +30514,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal BadDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken identifier, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal BadDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken identifier, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal BadDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken identifier, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(identifier);
-                    this.identifier = identifier;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(identifier);
+            this.identifier = identifier;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -30645,47 +30645,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal DefineDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken defineKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(defineKeyword);
-                    this.defineKeyword = defineKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(defineKeyword);
+            this.defineKeyword = defineKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal DefineDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken defineKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(defineKeyword);
-                    this.defineKeyword = defineKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(defineKeyword);
+            this.defineKeyword = defineKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal DefineDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken defineKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(defineKeyword);
-                    this.defineKeyword = defineKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(defineKeyword);
+            this.defineKeyword = defineKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -30791,47 +30791,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal UndefDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken undefKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(undefKeyword);
-                    this.undefKeyword = undefKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(undefKeyword);
+            this.undefKeyword = undefKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal UndefDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken undefKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(undefKeyword);
-                    this.undefKeyword = undefKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(undefKeyword);
+            this.undefKeyword = undefKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal UndefDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken undefKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(undefKeyword);
-                    this.undefKeyword = undefKeyword;
-                    this.AdjustFlagsAndWidth(name);
-                    this.name = name;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(undefKeyword);
+            this.undefKeyword = undefKeyword;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -30938,62 +30938,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal LineDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken lineKeyword, SyntaxToken line, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(lineKeyword);
-                    this.lineKeyword = lineKeyword;
-                    this.AdjustFlagsAndWidth(line);
-                    this.line = line;
-                    if (file != null)
-                    {
-                        this.AdjustFlagsAndWidth(file);
-                        this.file = file;
-                    }
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(lineKeyword);
+            this.lineKeyword = lineKeyword;
+            this.AdjustFlagsAndWidth(line);
+            this.line = line;
+            if (file != null)
+            {
+                this.AdjustFlagsAndWidth(file);
+                this.file = file;
+            }
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal LineDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken lineKeyword, SyntaxToken line, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(lineKeyword);
-                    this.lineKeyword = lineKeyword;
-                    this.AdjustFlagsAndWidth(line);
-                    this.line = line;
-                    if (file != null)
-                    {
-                        this.AdjustFlagsAndWidth(file);
-                        this.file = file;
-                    }
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(lineKeyword);
+            this.lineKeyword = lineKeyword;
+            this.AdjustFlagsAndWidth(line);
+            this.line = line;
+            if (file != null)
+            {
+                this.AdjustFlagsAndWidth(file);
+                this.file = file;
+            }
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal LineDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken lineKeyword, SyntaxToken line, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(lineKeyword);
-                    this.lineKeyword = lineKeyword;
-                    this.AdjustFlagsAndWidth(line);
-                    this.line = line;
-                    if (file != null)
-                    {
-                        this.AdjustFlagsAndWidth(file);
-                        this.file = file;
-                    }
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(lineKeyword);
+            this.lineKeyword = lineKeyword;
+            this.AdjustFlagsAndWidth(line);
+            this.line = line;
+            if (file != null)
+            {
+                this.AdjustFlagsAndWidth(file);
+                this.file = file;
+            }
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -31110,68 +31110,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal PragmaWarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, GreenNode errorCodes, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 6;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(pragmaKeyword);
-                    this.pragmaKeyword = pragmaKeyword;
-                    this.AdjustFlagsAndWidth(warningKeyword);
-                    this.warningKeyword = warningKeyword;
-                    this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
-                    this.disableOrRestoreKeyword = disableOrRestoreKeyword;
-                    if (errorCodes != null)
-                    {
-                        this.AdjustFlagsAndWidth(errorCodes);
-                        this.errorCodes = errorCodes;
-                    }
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(pragmaKeyword);
+            this.pragmaKeyword = pragmaKeyword;
+            this.AdjustFlagsAndWidth(warningKeyword);
+            this.warningKeyword = warningKeyword;
+            this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
+            this.disableOrRestoreKeyword = disableOrRestoreKeyword;
+            if (errorCodes != null)
+            {
+                this.AdjustFlagsAndWidth(errorCodes);
+                this.errorCodes = errorCodes;
+            }
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal PragmaWarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, GreenNode errorCodes, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 6;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(pragmaKeyword);
-                    this.pragmaKeyword = pragmaKeyword;
-                    this.AdjustFlagsAndWidth(warningKeyword);
-                    this.warningKeyword = warningKeyword;
-                    this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
-                    this.disableOrRestoreKeyword = disableOrRestoreKeyword;
-                    if (errorCodes != null)
-                    {
-                        this.AdjustFlagsAndWidth(errorCodes);
-                        this.errorCodes = errorCodes;
-                    }
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(pragmaKeyword);
+            this.pragmaKeyword = pragmaKeyword;
+            this.AdjustFlagsAndWidth(warningKeyword);
+            this.warningKeyword = warningKeyword;
+            this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
+            this.disableOrRestoreKeyword = disableOrRestoreKeyword;
+            if (errorCodes != null)
+            {
+                this.AdjustFlagsAndWidth(errorCodes);
+                this.errorCodes = errorCodes;
+            }
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal PragmaWarningDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, GreenNode errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 6;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(pragmaKeyword);
-                    this.pragmaKeyword = pragmaKeyword;
-                    this.AdjustFlagsAndWidth(warningKeyword);
-                    this.warningKeyword = warningKeyword;
-                    this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
-                    this.disableOrRestoreKeyword = disableOrRestoreKeyword;
-                    if (errorCodes != null)
-                    {
-                        this.AdjustFlagsAndWidth(errorCodes);
-                        this.errorCodes = errorCodes;
-                    }
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 6;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(pragmaKeyword);
+            this.pragmaKeyword = pragmaKeyword;
+            this.AdjustFlagsAndWidth(warningKeyword);
+            this.warningKeyword = warningKeyword;
+            this.AdjustFlagsAndWidth(disableOrRestoreKeyword);
+            this.disableOrRestoreKeyword = disableOrRestoreKeyword;
+            if (errorCodes != null)
+            {
+                this.AdjustFlagsAndWidth(errorCodes);
+                this.errorCodes = errorCodes;
+            }
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -31298,65 +31298,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal PragmaChecksumDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 7;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(pragmaKeyword);
-                    this.pragmaKeyword = pragmaKeyword;
-                    this.AdjustFlagsAndWidth(checksumKeyword);
-                    this.checksumKeyword = checksumKeyword;
-                    this.AdjustFlagsAndWidth(file);
-                    this.file = file;
-                    this.AdjustFlagsAndWidth(guid);
-                    this.guid = guid;
-                    this.AdjustFlagsAndWidth(bytes);
-                    this.bytes = bytes;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 7;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(pragmaKeyword);
+            this.pragmaKeyword = pragmaKeyword;
+            this.AdjustFlagsAndWidth(checksumKeyword);
+            this.checksumKeyword = checksumKeyword;
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(guid);
+            this.guid = guid;
+            this.AdjustFlagsAndWidth(bytes);
+            this.bytes = bytes;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal PragmaChecksumDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 7;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(pragmaKeyword);
-                    this.pragmaKeyword = pragmaKeyword;
-                    this.AdjustFlagsAndWidth(checksumKeyword);
-                    this.checksumKeyword = checksumKeyword;
-                    this.AdjustFlagsAndWidth(file);
-                    this.file = file;
-                    this.AdjustFlagsAndWidth(guid);
-                    this.guid = guid;
-                    this.AdjustFlagsAndWidth(bytes);
-                    this.bytes = bytes;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 7;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(pragmaKeyword);
+            this.pragmaKeyword = pragmaKeyword;
+            this.AdjustFlagsAndWidth(checksumKeyword);
+            this.checksumKeyword = checksumKeyword;
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(guid);
+            this.guid = guid;
+            this.AdjustFlagsAndWidth(bytes);
+            this.bytes = bytes;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal PragmaChecksumDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 7;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(pragmaKeyword);
-                    this.pragmaKeyword = pragmaKeyword;
-                    this.AdjustFlagsAndWidth(checksumKeyword);
-                    this.checksumKeyword = checksumKeyword;
-                    this.AdjustFlagsAndWidth(file);
-                    this.file = file;
-                    this.AdjustFlagsAndWidth(guid);
-                    this.guid = guid;
-                    this.AdjustFlagsAndWidth(bytes);
-                    this.bytes = bytes;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 7;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(pragmaKeyword);
+            this.pragmaKeyword = pragmaKeyword;
+            this.AdjustFlagsAndWidth(checksumKeyword);
+            this.checksumKeyword = checksumKeyword;
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(guid);
+            this.guid = guid;
+            this.AdjustFlagsAndWidth(bytes);
+            this.bytes = bytes;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -31489,47 +31489,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ReferenceDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken referenceKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(referenceKeyword);
-                    this.referenceKeyword = referenceKeyword;
-                    this.AdjustFlagsAndWidth(file);
-                    this.file = file;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(referenceKeyword);
+            this.referenceKeyword = referenceKeyword;
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal ReferenceDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken referenceKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(referenceKeyword);
-                    this.referenceKeyword = referenceKeyword;
-                    this.AdjustFlagsAndWidth(file);
-                    this.file = file;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(referenceKeyword);
+            this.referenceKeyword = referenceKeyword;
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal ReferenceDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken referenceKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(referenceKeyword);
-                    this.referenceKeyword = referenceKeyword;
-                    this.AdjustFlagsAndWidth(file);
-                    this.file = file;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(referenceKeyword);
+            this.referenceKeyword = referenceKeyword;
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -31635,47 +31635,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal LoadDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken loadKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(loadKeyword);
-                    this.loadKeyword = loadKeyword;
-                    this.AdjustFlagsAndWidth(file);
-                    this.file = file;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(loadKeyword);
+            this.loadKeyword = loadKeyword;
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal LoadDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken loadKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(loadKeyword);
-                    this.loadKeyword = loadKeyword;
-                    this.AdjustFlagsAndWidth(file);
-                    this.file = file;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(loadKeyword);
+            this.loadKeyword = loadKeyword;
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal LoadDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken loadKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 4;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(loadKeyword);
-                    this.loadKeyword = loadKeyword;
-                    this.AdjustFlagsAndWidth(file);
-                    this.file = file;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 4;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(loadKeyword);
+            this.loadKeyword = loadKeyword;
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -31780,41 +31780,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal ShebangDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(exclamationToken);
-                    this.exclamationToken = exclamationToken;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(exclamationToken);
+            this.exclamationToken = exclamationToken;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal ShebangDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(exclamationToken);
-                    this.exclamationToken = exclamationToken;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(exclamationToken);
+            this.exclamationToken = exclamationToken;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal ShebangDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 3;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(exclamationToken);
-                    this.exclamationToken = exclamationToken;
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(exclamationToken);
+            this.exclamationToken = exclamationToken;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;
@@ -31912,62 +31912,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal NullableDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
           : base(kind, diagnostics, annotations)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(nullableKeyword);
-                    this.nullableKeyword = nullableKeyword;
-                    this.AdjustFlagsAndWidth(settingToken);
-                    this.settingToken = settingToken;
-                    if (targetToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(targetToken);
-                        this.targetToken = targetToken;
-                    }
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(nullableKeyword);
+            this.nullableKeyword = nullableKeyword;
+            this.AdjustFlagsAndWidth(settingToken);
+            this.settingToken = settingToken;
+            if (targetToken != null)
+            {
+                this.AdjustFlagsAndWidth(targetToken);
+                this.targetToken = targetToken;
+            }
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal NullableDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(nullableKeyword);
-                    this.nullableKeyword = nullableKeyword;
-                    this.AdjustFlagsAndWidth(settingToken);
-                    this.settingToken = settingToken;
-                    if (targetToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(targetToken);
-                        this.targetToken = targetToken;
-                    }
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(nullableKeyword);
+            this.nullableKeyword = nullableKeyword;
+            this.AdjustFlagsAndWidth(settingToken);
+            this.settingToken = settingToken;
+            if (targetToken != null)
+            {
+                this.AdjustFlagsAndWidth(targetToken);
+                this.targetToken = targetToken;
+            }
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         internal NullableDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive)
           : base(kind)
         {
-                    this.SlotCount = 5;
-                    this.AdjustFlagsAndWidth(hashToken);
-                    this.hashToken = hashToken;
-                    this.AdjustFlagsAndWidth(nullableKeyword);
-                    this.nullableKeyword = nullableKeyword;
-                    this.AdjustFlagsAndWidth(settingToken);
-                    this.settingToken = settingToken;
-                    if (targetToken != null)
-                    {
-                        this.AdjustFlagsAndWidth(targetToken);
-                        this.targetToken = targetToken;
-                    }
-                    this.AdjustFlagsAndWidth(endOfDirectiveToken);
-                    this.endOfDirectiveToken = endOfDirectiveToken;
-                    this.isActive = isActive;
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(nullableKeyword);
+            this.nullableKeyword = nullableKeyword;
+            this.AdjustFlagsAndWidth(settingToken);
+            this.settingToken = settingToken;
+            if (targetToken != null)
+            {
+                this.AdjustFlagsAndWidth(targetToken);
+                this.targetToken = targetToken;
+            }
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
         }
 
         public override SyntaxToken HashToken => this.hashToken;

@@ -407,30 +407,30 @@ namespace CSharpSyntaxGenerator
         private void WriteCtorBody(List<Field> valueFields, List<Field> nodeFields)
         {
             // constructor body
-            WriteLine("        this.SlotCount = {0};", nodeFields.Count);
+            WriteLine("this.SlotCount = {0};", nodeFields.Count);
 
             for (int i = 0, n = nodeFields.Count; i < n; i++)
             {
                 var field = nodeFields[i];
                 if (IsAnyList(field.Type) || IsOptional(field))
                 {
-                    WriteLine("        if ({0} != null)", CamelCase(field.Name));
-                    WriteLine("        {");
-                    WriteLine("            this.AdjustFlagsAndWidth({0});", CamelCase(field.Name));
-                    WriteLine("            this.{0} = {0};", CamelCase(field.Name));
-                    WriteLine("        }");
+                    WriteLine("if ({0} != null)", CamelCase(field.Name));
+                    OpenBlock();
+                    WriteLine("this.AdjustFlagsAndWidth({0});", CamelCase(field.Name));
+                    WriteLine("this.{0} = {0};", CamelCase(field.Name));
+                    CloseBlock();
                 }
                 else
                 {
-                    WriteLine("        this.AdjustFlagsAndWidth({0});", CamelCase(field.Name));
-                    WriteLine("        this.{0} = {0};", CamelCase(field.Name));
+                    WriteLine("this.AdjustFlagsAndWidth({0});", CamelCase(field.Name));
+                    WriteLine("this.{0} = {0};", CamelCase(field.Name));
                 }
             }
 
             for (int i = 0, n = valueFields.Count; i < n; i++)
             {
                 var field = valueFields[i];
-                WriteLine("        this.{0} = {0};", CamelCase(field.Name));
+                WriteLine("this.{0} = {0};", CamelCase(field.Name));
             }
         }
 
