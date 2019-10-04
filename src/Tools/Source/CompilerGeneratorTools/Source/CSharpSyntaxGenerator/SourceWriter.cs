@@ -1865,24 +1865,21 @@ namespace CSharpSyntaxGenerator
                 if (field.Type == "SyntaxToken" && CanBeAutoCreated(nd, field) && field.Kinds.Count > 1)
                 {
                     WriteLine();
-                    WriteLine("    private static SyntaxKind Get{0}{1}Kind(SyntaxKind kind)", StripPost(nd.Name, "Syntax"), StripPost(field.Name, "Opt"));
-                    WriteLine("    {");
-
-                    WriteLine("      switch (kind)");
-                    WriteLine("      {");
+                    WriteLine("private static SyntaxKind Get{0}{1}Kind(SyntaxKind kind)", StripPost(nd.Name, "Syntax"), StripPost(field.Name, "Opt"));
+                    Indent();
+                    WriteLine("=> kind switch");
+                    OpenBlock();
 
                     for (int k = 0; k < field.Kinds.Count; k++)
                     {
                         var nKind = nd.Kinds[k];
                         var pKind = field.Kinds[k];
-                        WriteLine("        case SyntaxKind.{0}:", nKind.Name);
-                        WriteLine("          return SyntaxKind.{0};", pKind.Name);
+                        WriteLine($"SyntaxKind.{nKind.Name} => SyntaxKind.{pKind.Name},");
                     }
 
-                    WriteLine("        default:");
-                    WriteLine("          throw new ArgumentOutOfRangeException();");
-                    WriteLine("      }");
-                    WriteLine("    }");
+                    WriteLine("_ => throw new ArgumentOutOfRangeException(),");
+                    CloseBlock(";");
+                    Unindent();
                 }
             }
         }

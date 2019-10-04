@@ -2345,32 +2345,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static PrefixUnaryExpressionSyntax PrefixUnaryExpression(SyntaxKind kind, ExpressionSyntax operand)
             => SyntaxFactory.PrefixUnaryExpression(kind, SyntaxFactory.Token(GetPrefixUnaryExpressionOperatorTokenKind(kind)), operand);
 
-            private static SyntaxKind GetPrefixUnaryExpressionOperatorTokenKind(SyntaxKind kind)
+        private static SyntaxKind GetPrefixUnaryExpressionOperatorTokenKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.UnaryPlusExpression:
-                  return SyntaxKind.PlusToken;
-                case SyntaxKind.UnaryMinusExpression:
-                  return SyntaxKind.MinusToken;
-                case SyntaxKind.BitwiseNotExpression:
-                  return SyntaxKind.TildeToken;
-                case SyntaxKind.LogicalNotExpression:
-                  return SyntaxKind.ExclamationToken;
-                case SyntaxKind.PreIncrementExpression:
-                  return SyntaxKind.PlusPlusToken;
-                case SyntaxKind.PreDecrementExpression:
-                  return SyntaxKind.MinusMinusToken;
-                case SyntaxKind.AddressOfExpression:
-                  return SyntaxKind.AmpersandToken;
-                case SyntaxKind.PointerIndirectionExpression:
-                  return SyntaxKind.AsteriskToken;
-                case SyntaxKind.IndexExpression:
-                  return SyntaxKind.CaretToken;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.UnaryPlusExpression => SyntaxKind.PlusToken,
+                SyntaxKind.UnaryMinusExpression => SyntaxKind.MinusToken,
+                SyntaxKind.BitwiseNotExpression => SyntaxKind.TildeToken,
+                SyntaxKind.LogicalNotExpression => SyntaxKind.ExclamationToken,
+                SyntaxKind.PreIncrementExpression => SyntaxKind.PlusPlusToken,
+                SyntaxKind.PreDecrementExpression => SyntaxKind.MinusMinusToken,
+                SyntaxKind.AddressOfExpression => SyntaxKind.AmpersandToken,
+                SyntaxKind.PointerIndirectionExpression => SyntaxKind.AsteriskToken,
+                SyntaxKind.IndexExpression => SyntaxKind.CaretToken,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new AwaitExpressionSyntax instance.</summary>
         public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, ExpressionSyntax expression)
@@ -2421,20 +2409,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static PostfixUnaryExpressionSyntax PostfixUnaryExpression(SyntaxKind kind, ExpressionSyntax operand)
             => SyntaxFactory.PostfixUnaryExpression(kind, operand, SyntaxFactory.Token(GetPostfixUnaryExpressionOperatorTokenKind(kind)));
 
-            private static SyntaxKind GetPostfixUnaryExpressionOperatorTokenKind(SyntaxKind kind)
+        private static SyntaxKind GetPostfixUnaryExpressionOperatorTokenKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.PostIncrementExpression:
-                  return SyntaxKind.PlusPlusToken;
-                case SyntaxKind.PostDecrementExpression:
-                  return SyntaxKind.MinusMinusToken;
-                case SyntaxKind.SuppressNullableWarningExpression:
-                  return SyntaxKind.ExclamationToken;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.PostIncrementExpression => SyntaxKind.PlusPlusToken,
+                SyntaxKind.PostDecrementExpression => SyntaxKind.MinusMinusToken,
+                SyntaxKind.SuppressNullableWarningExpression => SyntaxKind.ExclamationToken,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new MemberAccessExpressionSyntax instance.</summary>
         public static MemberAccessExpressionSyntax MemberAccessExpression(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
@@ -2466,18 +2448,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static MemberAccessExpressionSyntax MemberAccessExpression(SyntaxKind kind, ExpressionSyntax expression, SimpleNameSyntax name)
             => SyntaxFactory.MemberAccessExpression(kind, expression, SyntaxFactory.Token(GetMemberAccessExpressionOperatorTokenKind(kind)), name);
 
-            private static SyntaxKind GetMemberAccessExpressionOperatorTokenKind(SyntaxKind kind)
+        private static SyntaxKind GetMemberAccessExpressionOperatorTokenKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.SimpleMemberAccessExpression:
-                  return SyntaxKind.DotToken;
-                case SyntaxKind.PointerMemberAccessExpression:
-                  return SyntaxKind.MinusGreaterThanToken;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.SimpleMemberAccessExpression => SyntaxKind.DotToken,
+                SyntaxKind.PointerMemberAccessExpression => SyntaxKind.MinusGreaterThanToken,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new ConditionalAccessExpressionSyntax instance.</summary>
         public static ConditionalAccessExpressionSyntax ConditionalAccessExpression(ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull)
@@ -2632,56 +2609,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BinaryExpressionSyntax BinaryExpression(SyntaxKind kind, ExpressionSyntax left, ExpressionSyntax right)
             => SyntaxFactory.BinaryExpression(kind, left, SyntaxFactory.Token(GetBinaryExpressionOperatorTokenKind(kind)), right);
 
-            private static SyntaxKind GetBinaryExpressionOperatorTokenKind(SyntaxKind kind)
+        private static SyntaxKind GetBinaryExpressionOperatorTokenKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.AddExpression:
-                  return SyntaxKind.PlusToken;
-                case SyntaxKind.SubtractExpression:
-                  return SyntaxKind.MinusToken;
-                case SyntaxKind.MultiplyExpression:
-                  return SyntaxKind.AsteriskToken;
-                case SyntaxKind.DivideExpression:
-                  return SyntaxKind.SlashToken;
-                case SyntaxKind.ModuloExpression:
-                  return SyntaxKind.PercentToken;
-                case SyntaxKind.LeftShiftExpression:
-                  return SyntaxKind.LessThanLessThanToken;
-                case SyntaxKind.RightShiftExpression:
-                  return SyntaxKind.GreaterThanGreaterThanToken;
-                case SyntaxKind.LogicalOrExpression:
-                  return SyntaxKind.BarBarToken;
-                case SyntaxKind.LogicalAndExpression:
-                  return SyntaxKind.AmpersandAmpersandToken;
-                case SyntaxKind.BitwiseOrExpression:
-                  return SyntaxKind.BarToken;
-                case SyntaxKind.BitwiseAndExpression:
-                  return SyntaxKind.AmpersandToken;
-                case SyntaxKind.ExclusiveOrExpression:
-                  return SyntaxKind.CaretToken;
-                case SyntaxKind.EqualsExpression:
-                  return SyntaxKind.EqualsEqualsToken;
-                case SyntaxKind.NotEqualsExpression:
-                  return SyntaxKind.ExclamationEqualsToken;
-                case SyntaxKind.LessThanExpression:
-                  return SyntaxKind.LessThanToken;
-                case SyntaxKind.LessThanOrEqualExpression:
-                  return SyntaxKind.LessThanEqualsToken;
-                case SyntaxKind.GreaterThanExpression:
-                  return SyntaxKind.GreaterThanToken;
-                case SyntaxKind.GreaterThanOrEqualExpression:
-                  return SyntaxKind.GreaterThanEqualsToken;
-                case SyntaxKind.IsExpression:
-                  return SyntaxKind.IsKeyword;
-                case SyntaxKind.AsExpression:
-                  return SyntaxKind.AsKeyword;
-                case SyntaxKind.CoalesceExpression:
-                  return SyntaxKind.QuestionQuestionToken;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.AddExpression => SyntaxKind.PlusToken,
+                SyntaxKind.SubtractExpression => SyntaxKind.MinusToken,
+                SyntaxKind.MultiplyExpression => SyntaxKind.AsteriskToken,
+                SyntaxKind.DivideExpression => SyntaxKind.SlashToken,
+                SyntaxKind.ModuloExpression => SyntaxKind.PercentToken,
+                SyntaxKind.LeftShiftExpression => SyntaxKind.LessThanLessThanToken,
+                SyntaxKind.RightShiftExpression => SyntaxKind.GreaterThanGreaterThanToken,
+                SyntaxKind.LogicalOrExpression => SyntaxKind.BarBarToken,
+                SyntaxKind.LogicalAndExpression => SyntaxKind.AmpersandAmpersandToken,
+                SyntaxKind.BitwiseOrExpression => SyntaxKind.BarToken,
+                SyntaxKind.BitwiseAndExpression => SyntaxKind.AmpersandToken,
+                SyntaxKind.ExclusiveOrExpression => SyntaxKind.CaretToken,
+                SyntaxKind.EqualsExpression => SyntaxKind.EqualsEqualsToken,
+                SyntaxKind.NotEqualsExpression => SyntaxKind.ExclamationEqualsToken,
+                SyntaxKind.LessThanExpression => SyntaxKind.LessThanToken,
+                SyntaxKind.LessThanOrEqualExpression => SyntaxKind.LessThanEqualsToken,
+                SyntaxKind.GreaterThanExpression => SyntaxKind.GreaterThanToken,
+                SyntaxKind.GreaterThanOrEqualExpression => SyntaxKind.GreaterThanEqualsToken,
+                SyntaxKind.IsExpression => SyntaxKind.IsKeyword,
+                SyntaxKind.AsExpression => SyntaxKind.AsKeyword,
+                SyntaxKind.CoalesceExpression => SyntaxKind.QuestionQuestionToken,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new AssignmentExpressionSyntax instance.</summary>
         public static AssignmentExpressionSyntax AssignmentExpression(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
@@ -2733,38 +2686,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AssignmentExpressionSyntax AssignmentExpression(SyntaxKind kind, ExpressionSyntax left, ExpressionSyntax right)
             => SyntaxFactory.AssignmentExpression(kind, left, SyntaxFactory.Token(GetAssignmentExpressionOperatorTokenKind(kind)), right);
 
-            private static SyntaxKind GetAssignmentExpressionOperatorTokenKind(SyntaxKind kind)
+        private static SyntaxKind GetAssignmentExpressionOperatorTokenKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.SimpleAssignmentExpression:
-                  return SyntaxKind.EqualsToken;
-                case SyntaxKind.AddAssignmentExpression:
-                  return SyntaxKind.PlusEqualsToken;
-                case SyntaxKind.SubtractAssignmentExpression:
-                  return SyntaxKind.MinusEqualsToken;
-                case SyntaxKind.MultiplyAssignmentExpression:
-                  return SyntaxKind.AsteriskEqualsToken;
-                case SyntaxKind.DivideAssignmentExpression:
-                  return SyntaxKind.SlashEqualsToken;
-                case SyntaxKind.ModuloAssignmentExpression:
-                  return SyntaxKind.PercentEqualsToken;
-                case SyntaxKind.AndAssignmentExpression:
-                  return SyntaxKind.AmpersandEqualsToken;
-                case SyntaxKind.ExclusiveOrAssignmentExpression:
-                  return SyntaxKind.CaretEqualsToken;
-                case SyntaxKind.OrAssignmentExpression:
-                  return SyntaxKind.BarEqualsToken;
-                case SyntaxKind.LeftShiftAssignmentExpression:
-                  return SyntaxKind.LessThanLessThanEqualsToken;
-                case SyntaxKind.RightShiftAssignmentExpression:
-                  return SyntaxKind.GreaterThanGreaterThanEqualsToken;
-                case SyntaxKind.CoalesceAssignmentExpression:
-                  return SyntaxKind.QuestionQuestionEqualsToken;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.SimpleAssignmentExpression => SyntaxKind.EqualsToken,
+                SyntaxKind.AddAssignmentExpression => SyntaxKind.PlusEqualsToken,
+                SyntaxKind.SubtractAssignmentExpression => SyntaxKind.MinusEqualsToken,
+                SyntaxKind.MultiplyAssignmentExpression => SyntaxKind.AsteriskEqualsToken,
+                SyntaxKind.DivideAssignmentExpression => SyntaxKind.SlashEqualsToken,
+                SyntaxKind.ModuloAssignmentExpression => SyntaxKind.PercentEqualsToken,
+                SyntaxKind.AndAssignmentExpression => SyntaxKind.AmpersandEqualsToken,
+                SyntaxKind.ExclusiveOrAssignmentExpression => SyntaxKind.CaretEqualsToken,
+                SyntaxKind.OrAssignmentExpression => SyntaxKind.BarEqualsToken,
+                SyntaxKind.LeftShiftAssignmentExpression => SyntaxKind.LessThanLessThanEqualsToken,
+                SyntaxKind.RightShiftAssignmentExpression => SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                SyntaxKind.CoalesceAssignmentExpression => SyntaxKind.QuestionQuestionEqualsToken,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new ConditionalExpressionSyntax instance.</summary>
         public static ConditionalExpressionSyntax ConditionalExpression(ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse)
@@ -2868,30 +2806,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static LiteralExpressionSyntax LiteralExpression(SyntaxKind kind)
             => SyntaxFactory.LiteralExpression(kind, SyntaxFactory.Token(GetLiteralExpressionTokenKind(kind)));
 
-            private static SyntaxKind GetLiteralExpressionTokenKind(SyntaxKind kind)
+        private static SyntaxKind GetLiteralExpressionTokenKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.ArgListExpression:
-                  return SyntaxKind.ArgListKeyword;
-                case SyntaxKind.NumericLiteralExpression:
-                  return SyntaxKind.NumericLiteralToken;
-                case SyntaxKind.StringLiteralExpression:
-                  return SyntaxKind.StringLiteralToken;
-                case SyntaxKind.CharacterLiteralExpression:
-                  return SyntaxKind.CharacterLiteralToken;
-                case SyntaxKind.TrueLiteralExpression:
-                  return SyntaxKind.TrueKeyword;
-                case SyntaxKind.FalseLiteralExpression:
-                  return SyntaxKind.FalseKeyword;
-                case SyntaxKind.NullLiteralExpression:
-                  return SyntaxKind.NullKeyword;
-                case SyntaxKind.DefaultLiteralExpression:
-                  return SyntaxKind.DefaultKeyword;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.ArgListExpression => SyntaxKind.ArgListKeyword,
+                SyntaxKind.NumericLiteralExpression => SyntaxKind.NumericLiteralToken,
+                SyntaxKind.StringLiteralExpression => SyntaxKind.StringLiteralToken,
+                SyntaxKind.CharacterLiteralExpression => SyntaxKind.CharacterLiteralToken,
+                SyntaxKind.TrueLiteralExpression => SyntaxKind.TrueKeyword,
+                SyntaxKind.FalseLiteralExpression => SyntaxKind.FalseKeyword,
+                SyntaxKind.NullLiteralExpression => SyntaxKind.NullKeyword,
+                SyntaxKind.DefaultLiteralExpression => SyntaxKind.DefaultKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new MakeRefExpressionSyntax instance.</summary>
         public static MakeRefExpressionSyntax MakeRefExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
@@ -3043,18 +2970,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CheckedExpressionSyntax CheckedExpression(SyntaxKind kind, ExpressionSyntax expression)
             => SyntaxFactory.CheckedExpression(kind, SyntaxFactory.Token(GetCheckedExpressionKeywordKind(kind)), SyntaxFactory.Token(SyntaxKind.OpenParenToken), expression, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
-            private static SyntaxKind GetCheckedExpressionKeywordKind(SyntaxKind kind)
+        private static SyntaxKind GetCheckedExpressionKeywordKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.CheckedExpression:
-                  return SyntaxKind.CheckedKeyword;
-                case SyntaxKind.UncheckedExpression:
-                  return SyntaxKind.UncheckedKeyword;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.CheckedExpression => SyntaxKind.CheckedKeyword,
+                SyntaxKind.UncheckedExpression => SyntaxKind.UncheckedKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new DefaultExpressionSyntax instance.</summary>
         public static DefaultExpressionSyntax DefaultExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
@@ -3886,18 +3808,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OrderingSyntax Ordering(SyntaxKind kind, ExpressionSyntax expression)
             => SyntaxFactory.Ordering(kind, expression, default);
 
-            private static SyntaxKind GetOrderingAscendingOrDescendingKeywordKind(SyntaxKind kind)
+        private static SyntaxKind GetOrderingAscendingOrDescendingKeywordKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.AscendingOrdering:
-                  return SyntaxKind.AscendingKeyword;
-                case SyntaxKind.DescendingOrdering:
-                  return SyntaxKind.DescendingKeyword;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.AscendingOrdering => SyntaxKind.AscendingKeyword,
+                SyntaxKind.DescendingOrdering => SyntaxKind.DescendingKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new SelectClauseSyntax instance.</summary>
         public static SelectClauseSyntax SelectClause(SyntaxToken selectKeyword, ExpressionSyntax expression)
@@ -4743,18 +4660,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static YieldStatementSyntax YieldStatement(SyntaxKind kind, ExpressionSyntax expression = default(ExpressionSyntax))
             => SyntaxFactory.YieldStatement(kind, SyntaxFactory.Token(SyntaxKind.YieldKeyword), SyntaxFactory.Token(GetYieldStatementReturnOrBreakKeywordKind(kind)), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-            private static SyntaxKind GetYieldStatementReturnOrBreakKeywordKind(SyntaxKind kind)
+        private static SyntaxKind GetYieldStatementReturnOrBreakKeywordKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.YieldReturnStatement:
-                  return SyntaxKind.ReturnKeyword;
-                case SyntaxKind.YieldBreakStatement:
-                  return SyntaxKind.BreakKeyword;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.YieldReturnStatement => SyntaxKind.ReturnKeyword,
+                SyntaxKind.YieldBreakStatement => SyntaxKind.BreakKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new WhileStatementSyntax instance.</summary>
         public static WhileStatementSyntax WhileStatement(SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
@@ -5114,18 +5026,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, BlockSyntax block = default(BlockSyntax))
             => SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Token(GetCheckedStatementKeywordKind(kind)), block ?? SyntaxFactory.Block());
 
-            private static SyntaxKind GetCheckedStatementKeywordKind(SyntaxKind kind)
+        private static SyntaxKind GetCheckedStatementKeywordKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.CheckedStatement:
-                  return SyntaxKind.CheckedKeyword;
-                case SyntaxKind.UncheckedStatement:
-                  return SyntaxKind.UncheckedKeyword;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.CheckedStatement => SyntaxKind.CheckedKeyword,
+                SyntaxKind.UncheckedStatement => SyntaxKind.UncheckedKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new UnsafeStatementSyntax instance.</summary>
         public static UnsafeStatementSyntax UnsafeStatement(SyntaxToken unsafeKeyword, BlockSyntax block)
@@ -6263,18 +6170,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind)
             => SyntaxFactory.ClassOrStructConstraint(kind, SyntaxFactory.Token(GetClassOrStructConstraintClassOrStructKeywordKind(kind)), default);
 
-            private static SyntaxKind GetClassOrStructConstraintClassOrStructKeywordKind(SyntaxKind kind)
+        private static SyntaxKind GetClassOrStructConstraintClassOrStructKeywordKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.ClassConstraint:
-                  return SyntaxKind.ClassKeyword;
-                case SyntaxKind.StructConstraint:
-                  return SyntaxKind.StructKeyword;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.ClassConstraint => SyntaxKind.ClassKeyword,
+                SyntaxKind.StructConstraint => SyntaxKind.StructKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new TypeConstraintSyntax instance.</summary>
         public static TypeConstraintSyntax TypeConstraint(TypeSyntax type)
@@ -6566,18 +6468,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ConstructorInitializerSyntax ConstructorInitializer(SyntaxKind kind, ArgumentListSyntax argumentList = default(ArgumentListSyntax))
             => SyntaxFactory.ConstructorInitializer(kind, SyntaxFactory.Token(SyntaxKind.ColonToken), SyntaxFactory.Token(GetConstructorInitializerThisOrBaseKeywordKind(kind)), argumentList ?? SyntaxFactory.ArgumentList());
 
-            private static SyntaxKind GetConstructorInitializerThisOrBaseKeywordKind(SyntaxKind kind)
+        private static SyntaxKind GetConstructorInitializerThisOrBaseKeywordKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.BaseConstructorInitializer:
-                  return SyntaxKind.BaseKeyword;
-                case SyntaxKind.ThisConstructorInitializer:
-                  return SyntaxKind.ThisKeyword;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.BaseConstructorInitializer => SyntaxKind.BaseKeyword,
+                SyntaxKind.ThisConstructorInitializer => SyntaxKind.ThisKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new DestructorDeclarationSyntax instance.</summary>
         public static DestructorDeclarationSyntax DestructorDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
@@ -6818,24 +6715,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind)
             => SyntaxFactory.AccessorDeclaration(kind, default, default(SyntaxTokenList), SyntaxFactory.Token(GetAccessorDeclarationKeywordKind(kind)), default, default, default);
 
-            private static SyntaxKind GetAccessorDeclarationKeywordKind(SyntaxKind kind)
+        private static SyntaxKind GetAccessorDeclarationKeywordKind(SyntaxKind kind)
+            => kind switch
             {
-              switch (kind)
-              {
-                case SyntaxKind.GetAccessorDeclaration:
-                  return SyntaxKind.GetKeyword;
-                case SyntaxKind.SetAccessorDeclaration:
-                  return SyntaxKind.SetKeyword;
-                case SyntaxKind.AddAccessorDeclaration:
-                  return SyntaxKind.AddKeyword;
-                case SyntaxKind.RemoveAccessorDeclaration:
-                  return SyntaxKind.RemoveKeyword;
-                case SyntaxKind.UnknownAccessorDeclaration:
-                  return SyntaxKind.IdentifierToken;
-                default:
-                  throw new ArgumentOutOfRangeException();
-              }
-            }
+                SyntaxKind.GetAccessorDeclaration => SyntaxKind.GetKeyword,
+                SyntaxKind.SetAccessorDeclaration => SyntaxKind.SetKeyword,
+                SyntaxKind.AddAccessorDeclaration => SyntaxKind.AddKeyword,
+                SyntaxKind.RemoveAccessorDeclaration => SyntaxKind.RemoveKeyword,
+                SyntaxKind.UnknownAccessorDeclaration => SyntaxKind.IdentifierToken,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new ParameterListSyntax instance.</summary>
         public static ParameterListSyntax ParameterList(SyntaxToken openParenToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeParenToken)
