@@ -306,7 +306,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override TypeSyntax VisitTypeParameter(ITypeParameterSymbol symbol)
             {
-                return AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
+                TypeSyntax typeSyntax =  AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
+
+                if (symbol.GetNullability() == NullableAnnotation.Annotated)
+                {
+                    typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
+                }
+
+                return typeSyntax;
             }
         }
     }

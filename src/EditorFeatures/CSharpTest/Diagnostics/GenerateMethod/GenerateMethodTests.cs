@@ -435,6 +435,71 @@ class Class
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithClassConstrainedTypeArgumentAndNullableTypes()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public T? M<T>() where T : class
+    {
+        T? t = null;
+        return [|M2|](t);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    public T? M<T>() where T : class
+    {
+        T? t = null;
+        return M2(t);
+    }
+
+    private T? M2<T>(T? t) where T : class
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithNullableClassConstrainedTypeArgumentAndNullableTypes()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+class C
+{
+    public T M<T>() where T : class?
+    {
+        T t = M<T>();
+        return [|M2|](t);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    public T M<T>() where T : class?
+    {
+        T t = M<T>();
+        return M2(t);
+    }
+
+    private T M2<T>(T t) where T : class?
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationNamedValueArg()
