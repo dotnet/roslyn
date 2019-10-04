@@ -202,9 +202,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 matchingFilters);
         }
 
-        protected async Task<CompletionList> GetCompletionListAsync(string markup)
+        protected async Task<CompletionList> GetCompletionListAsync(string markup, string workspaceKind = null)
         {
-            var workspace = WorkspaceFixture.GetWorkspace(markup);
+            var workspace = WorkspaceFixture.GetWorkspace(markup, workspaceKind: workspaceKind);
             var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
             var position = WorkspaceFixture.Position;
             SetWorkspaceOptions(workspace);
