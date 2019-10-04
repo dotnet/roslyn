@@ -547,10 +547,10 @@ namespace CSharpSyntaxGenerator
                     Write(CamelCase(field.Name));
                 }
                 WriteLine(");");
-                WriteLine("var diags = this.GetDiagnostics();");
+                WriteLine("var diags = GetDiagnostics();");
                 WriteLine("if (diags != null && diags.Length > 0)");
                 WriteLine("    newNode = newNode.WithDiagnosticsGreen(diags);");
-                WriteLine("var annotations = this.GetAnnotations();");
+                WriteLine("var annotations = GetAnnotations();");
                 WriteLine("if (annotations != null && annotations.Length > 0)");
                 WriteLine("    newNode = newNode.WithAnnotationsGreen(annotations);");
                 WriteLine("return newNode;");
@@ -1227,28 +1227,10 @@ namespace CSharpSyntaxGenerator
         }
 
         private string GetChildPosition(int i)
-        {
-            if (i == 0)
-            {
-                return "this.Position";
-            }
-            else
-            {
-                return "this.GetChildPosition(" + i + ")";
-            }
-        }
+            => i == 0 ? "Position" : "GetChildPosition(" + i + ")";
 
         private string GetChildIndex(int i)
-        {
-            if (i == 0)
-            {
-                return "0";
-            }
-            else
-            {
-                return "this.GetChildIndex(" + i + ")";
-            }
-        }
+            => i == 0 ? "0" : "GetChildIndex(" + i + ")";
 
         private void WriteRedAcceptMethods(Node node)
         {
@@ -1344,7 +1326,7 @@ namespace CSharpSyntaxGenerator
                     Write(CamelCase(field.Name));
                 }
                 WriteLine(");");
-                WriteLine("var annotations = this.GetAnnotations();");
+                WriteLine("var annotations = GetAnnotations();");
                 WriteLine("return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
                 CloseBlock();
             }
