@@ -157,7 +157,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                 /// rewriter phase of the compiler.
                 /// </summary>
                 /// <remarks>
-                /// Lambda symbols are  mapped to the NameTypeSymbol of the delegate type they were reinferred to,
+                /// Lambda symbols are mapped to the NameTypeSymbol of the delegate type they were reinferred to,
                 /// and are stored with a null node. The LambdaSymbol itself is position-independent, and does not
                 /// need any more information to serve as a key.
                 /// All other symbol types are stored mapped to exactly the same type as was provided.
@@ -247,7 +247,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                     _updatedSymbolMap.Remove(GetKey(node, symbol));
                 }
 
-                private (BoundNode?, Symbol) GetKey(BoundNode node, Symbol symbol)
+                private static (BoundNode?, Symbol) GetKey(BoundNode node, Symbol symbol)
                 {
                     if (node is BoundLambda && symbol is LambdaSymbol)
                     {

@@ -683,9 +683,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private LocalFunctionSymbol GetDeclaredLocalFunction(LocalFunctionStatementSyntax declarationSyntax)
         {
-            // If nullable semantic analysis is enabled, we need to potentially reinfer the containing symbol
-            // of a local function, as it could be in a reinferred lambda. For an example, see
-            // GetSymbolInfo_NestedLambdaReinference_LocalFunctionInLambda
             var originalSymbol = GetDeclaredLocalFunction(this.GetEnclosingBinder(GetAdjustedNodePosition(declarationSyntax)), declarationSyntax.Identifier);
             return GetRemappedSymbol(originalSymbol);
         }

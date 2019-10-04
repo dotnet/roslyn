@@ -669,7 +669,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetUpdatedSymbol(BoundNode node, Symbol originalSymbol, Symbol updatedSymbol)
         {
-            var lambdaisExactMatch = false;
+            if (_snapshotBuilderOpt is null)
+            {
+                return;
+            }
+
+            var lambdaIsExactMatch = false;
             if (node is BoundLambda boundLambda && originalSymbol is LambdaSymbol l && updatedSymbol is NamedTypeSymbol n)
             {
                 if (!AreLambdaAndNewDelegateSimilar(l, n))
@@ -677,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                lambdaisExactMatch = updatedSymbol.Equals(boundLambda.Type.GetDelegateType(), TypeCompareKind.ConsiderEverything);
+                lambdaIsExactMatch = updatedSymbol.Equals(boundLambda.Type.GetDelegateType(), TypeCompareKind.ConsiderEverything);
             }
 
 #if DEBUG
@@ -685,19 +690,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), $"Attempting to set {node.Syntax} from {originalSymbol.ToDisplayString()} to {updatedSymbol.ToDisplayString()}");
 #endif
 
-            if (_snapshotBuilderOpt is object)
+            if (lambdaIsExactMatch || Symbol.Equals(originalSymbol, updatedSymbol, TypeCompareKind.ConsiderEverything))
             {
-                if (Symbol.Equals(originalSymbol, updatedSymbol, TypeCompareKind.ConsiderEverything) || lambdaisExactMatch)
-                {
-                    // If the symbol is reset, remove the updated symbol so we don't needlessly update the
-                    // bound node later on. We do this unconditionally, as Remove will just return false
-                    // if the key wasn't in the dictionary.
-                    _snapshotBuilderOpt.RemoveSymbolIfPresent(node, originalSymbol);
-                }
-                else
-                {
-                    _snapshotBuilderOpt.SetUpdatedSymbol(node, originalSymbol, updatedSymbol);
-                }
+                // If the symbol is reset, remove the updated symbol so we don't needlessly update the
+                // bound node later on. We do this unconditionally, as Remove will just return false
+                // if the key wasn't in the dictionary.
+                _snapshotBuilderOpt.RemoveSymbolIfPresent(node, originalSymbol);
+            }
+            else
+            {
+                _snapshotBuilderOpt.SetUpdatedSymbol(node, originalSymbol, updatedSymbol);
             }
         }
 

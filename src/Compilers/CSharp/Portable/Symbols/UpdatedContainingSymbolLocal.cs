@@ -13,12 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(underlyingLocal is object);
             Debug.Assert(updatedContainingSymbol is object);
-            UnderlyingLocal = underlyingLocal;
+            Debug.Assert(updatedContainingSymbol.Equals(underlyingLocal.ContainingSymbol, TypeCompareKind.AllNullableIgnoreOptions));
+            _underlyingLocal = underlyingLocal;
             ContainingSymbol = updatedContainingSymbol;
             TypeWithAnnotations = updatedType;
         }
 
-        private SourceLocalSymbol UnderlyingLocal { get; }
+        private readonly SourceLocalSymbol _underlyingLocal;
         public override Symbol ContainingSymbol { get; }
         public override TypeWithAnnotations TypeWithAnnotations { get; }
 
@@ -36,12 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SourceLocalSymbol? otherSource = otherLocal switch
             {
-                UpdatedContainingSymbolAndNullableAnnotationLocal updated => updated.UnderlyingLocal,
+                UpdatedContainingSymbolAndNullableAnnotationLocal updated => updated._underlyingLocal,
                 SourceLocalSymbol source => source,
                 _ => null
             };
 
-            if (otherSource is null || !UnderlyingLocal.Equals(otherSource, compareKind))
+            if (otherSource is null || !_underlyingLocal.Equals(otherSource, compareKind))
             {
                 return false;
             }
@@ -55,29 +56,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // The default equality for symbols does not include nullability, so we directly
         // delegate to the underlying local for its hashcode, as neither TypeWithAnnotations
         // nor ContainingSymbol will differ from UnderlyingLocal by more than nullability.
-        public override int GetHashCode() => UnderlyingLocal.GetHashCode();
+        public override int GetHashCode() => _underlyingLocal.GetHashCode();
 
         #region Forwards
-        public override RefKind RefKind => UnderlyingLocal.RefKind;
-        public override ImmutableArray<Location> Locations => UnderlyingLocal.Locations;
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => UnderlyingLocal.DeclaringSyntaxReferences;
-        public override string Name => UnderlyingLocal.Name;
-        public override bool IsImplicitlyDeclared => UnderlyingLocal.IsImplicitlyDeclared;
-        internal override LocalDeclarationKind DeclarationKind => UnderlyingLocal.DeclarationKind;
-        internal override SynthesizedLocalKind SynthesizedKind => UnderlyingLocal.SynthesizedKind;
-        internal override SyntaxNode ScopeDesignatorOpt => UnderlyingLocal.ScopeDesignatorOpt;
-        internal override bool IsImportedFromMetadata => UnderlyingLocal.IsImportedFromMetadata;
-        internal override SyntaxToken IdentifierToken => UnderlyingLocal.IdentifierToken;
-        internal override bool IsPinned => UnderlyingLocal.IsPinned;
-        internal override bool IsCompilerGenerated => UnderlyingLocal.IsCompilerGenerated;
-        internal override uint RefEscapeScope => UnderlyingLocal.RefEscapeScope;
-        internal override uint ValEscapeScope => UnderlyingLocal.ValEscapeScope;
+        public override RefKind RefKind => _underlyingLocal.RefKind;
+        public override ImmutableArray<Location> Locations => _underlyingLocal.Locations;
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _underlyingLocal.DeclaringSyntaxReferences;
+        public override string Name => _underlyingLocal.Name;
+        public override bool IsImplicitlyDeclared => _underlyingLocal.IsImplicitlyDeclared;
+        internal override LocalDeclarationKind DeclarationKind => _underlyingLocal.DeclarationKind;
+        internal override SynthesizedLocalKind SynthesizedKind => _underlyingLocal.SynthesizedKind;
+        internal override SyntaxNode ScopeDesignatorOpt => _underlyingLocal.ScopeDesignatorOpt;
+        internal override bool IsImportedFromMetadata => _underlyingLocal.IsImportedFromMetadata;
+        internal override SyntaxToken IdentifierToken => _underlyingLocal.IdentifierToken;
+        internal override bool IsPinned => _underlyingLocal.IsPinned;
+        internal override bool IsCompilerGenerated => _underlyingLocal.IsCompilerGenerated;
+        internal override uint RefEscapeScope => _underlyingLocal.RefEscapeScope;
+        internal override uint ValEscapeScope => _underlyingLocal.ValEscapeScope;
         internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag? diagnostics = null) =>
-            UnderlyingLocal.GetConstantValue(node, inProgress, diagnostics);
+            _underlyingLocal.GetConstantValue(node, inProgress, diagnostics);
         internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue) =>
-            UnderlyingLocal.GetConstantValueDiagnostics(boundInitValue);
+            _underlyingLocal.GetConstantValueDiagnostics(boundInitValue);
         internal override SyntaxNode GetDeclaratorSyntax() =>
-            UnderlyingLocal.GetDeclaratorSyntax();
+            _underlyingLocal.GetDeclaratorSyntax();
         internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax) =>
             throw ExceptionUtilities.Unreachable;
         #endregion

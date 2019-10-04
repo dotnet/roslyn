@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 updatedSymbol = sym;
             }
-            // On merge, replace with RoslynDebug.Assert and remove suppression
             RoslynDebug.Assert(updatedSymbol is object);
 
             switch (updatedSymbol)
