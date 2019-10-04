@@ -43,19 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIdentifierName(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIdentifierName(this);
 
-            public IdentifierNameSyntax Update(SyntaxToken identifier)
+        public IdentifierNameSyntax Update(SyntaxToken identifier)
+        {
+            if (identifier != this.Identifier)
             {
-                if (identifier != this.Identifier)
-                {
-                    var newNode = SyntaxFactory.IdentifierName(identifier);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.IdentifierName(identifier);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override SimpleNameSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
             public new IdentifierNameSyntax WithIdentifier(SyntaxToken identifier)
@@ -103,19 +103,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQualifiedName(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQualifiedName(this);
 
-            public QualifiedNameSyntax Update(NameSyntax left, SyntaxToken dotToken, SimpleNameSyntax right)
+        public QualifiedNameSyntax Update(NameSyntax left, SyntaxToken dotToken, SimpleNameSyntax right)
+        {
+            if (left != this.Left || dotToken != this.DotToken || right != this.Right)
             {
-                if (left != this.Left || dotToken != this.DotToken || right != this.Right)
-                {
-                    var newNode = SyntaxFactory.QualifiedName(left, dotToken, right);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.QualifiedName(left, dotToken, right);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public QualifiedNameSyntax WithLeft(NameSyntax left)
             {
@@ -156,19 +156,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGenericName(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGenericName(this);
 
-            public GenericNameSyntax Update(SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
+        public GenericNameSyntax Update(SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
+        {
+            if (identifier != this.Identifier || typeArgumentList != this.TypeArgumentList)
             {
-                if (identifier != this.Identifier || typeArgumentList != this.TypeArgumentList)
-                {
-                    var newNode = SyntaxFactory.GenericName(identifier, typeArgumentList);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.GenericName(identifier, typeArgumentList);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override SimpleNameSyntax WithIdentifierCore(SyntaxToken identifier) => WithIdentifier(identifier);
             public new GenericNameSyntax WithIdentifier(SyntaxToken identifier)
@@ -222,19 +222,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeArgumentList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeArgumentList(this);
 
-            public TypeArgumentListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<TypeSyntax> arguments, SyntaxToken greaterThanToken)
+        public TypeArgumentListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<TypeSyntax> arguments, SyntaxToken greaterThanToken)
+        {
+            if (lessThanToken != this.LessThanToken || arguments != this.Arguments || greaterThanToken != this.GreaterThanToken)
             {
-                if (lessThanToken != this.LessThanToken || arguments != this.Arguments || greaterThanToken != this.GreaterThanToken)
-                {
-                    var newNode = SyntaxFactory.TypeArgumentList(lessThanToken, arguments, greaterThanToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TypeArgumentList(lessThanToken, arguments, greaterThanToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TypeArgumentListSyntax WithLessThanToken(SyntaxToken lessThanToken)
             {
@@ -296,19 +296,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAliasQualifiedName(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAliasQualifiedName(this);
 
-            public AliasQualifiedNameSyntax Update(IdentifierNameSyntax alias, SyntaxToken colonColonToken, SimpleNameSyntax name)
+        public AliasQualifiedNameSyntax Update(IdentifierNameSyntax alias, SyntaxToken colonColonToken, SimpleNameSyntax name)
+        {
+            if (alias != this.Alias || colonColonToken != this.ColonColonToken || name != this.Name)
             {
-                if (alias != this.Alias || colonColonToken != this.ColonColonToken || name != this.Name)
-                {
-                    var newNode = SyntaxFactory.AliasQualifiedName(alias, colonColonToken, name);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AliasQualifiedName(alias, colonColonToken, name);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AliasQualifiedNameSyntax WithAlias(IdentifierNameSyntax alias)
             {
@@ -353,19 +353,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPredefinedType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPredefinedType(this);
 
-            public PredefinedTypeSyntax Update(SyntaxToken keyword)
+        public PredefinedTypeSyntax Update(SyntaxToken keyword)
+        {
+            if (keyword != this.Keyword)
             {
-                if (keyword != this.Keyword)
-                {
-                    var newNode = SyntaxFactory.PredefinedType(keyword);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.PredefinedType(keyword);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public PredefinedTypeSyntax WithKeyword(SyntaxToken keyword)
             {
@@ -409,19 +409,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayType(this);
 
-            public ArrayTypeSyntax Update(TypeSyntax elementType, SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers)
+        public ArrayTypeSyntax Update(TypeSyntax elementType, SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers)
+        {
+            if (elementType != this.ElementType || rankSpecifiers != this.RankSpecifiers)
             {
-                if (elementType != this.ElementType || rankSpecifiers != this.RankSpecifiers)
-                {
-                    var newNode = SyntaxFactory.ArrayType(elementType, rankSpecifiers);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ArrayType(elementType, rankSpecifiers);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ArrayTypeSyntax WithElementType(TypeSyntax elementType)
             {
@@ -470,19 +470,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayRankSpecifier(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayRankSpecifier(this);
 
-            public ArrayRankSpecifierSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
+        public ArrayRankSpecifierSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken != this.OpenBracketToken || sizes != this.Sizes || closeBracketToken != this.CloseBracketToken)
             {
-                if (openBracketToken != this.OpenBracketToken || sizes != this.Sizes || closeBracketToken != this.CloseBracketToken)
-                {
-                    var newNode = SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ArrayRankSpecifierSyntax WithOpenBracketToken(SyntaxToken openBracketToken)
             {
@@ -528,19 +528,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPointerType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPointerType(this);
 
-            public PointerTypeSyntax Update(TypeSyntax elementType, SyntaxToken asteriskToken)
+        public PointerTypeSyntax Update(TypeSyntax elementType, SyntaxToken asteriskToken)
+        {
+            if (elementType != this.ElementType || asteriskToken != this.AsteriskToken)
             {
-                if (elementType != this.ElementType || asteriskToken != this.AsteriskToken)
-                {
-                    var newNode = SyntaxFactory.PointerType(elementType, asteriskToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.PointerType(elementType, asteriskToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public PointerTypeSyntax WithElementType(TypeSyntax elementType)
             {
@@ -576,19 +576,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNullableType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNullableType(this);
 
-            public NullableTypeSyntax Update(TypeSyntax elementType, SyntaxToken questionToken)
+        public NullableTypeSyntax Update(TypeSyntax elementType, SyntaxToken questionToken)
+        {
+            if (elementType != this.ElementType || questionToken != this.QuestionToken)
             {
-                if (elementType != this.ElementType || questionToken != this.QuestionToken)
-                {
-                    var newNode = SyntaxFactory.NullableType(elementType, questionToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.NullableType(elementType, questionToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public NullableTypeSyntax WithElementType(TypeSyntax elementType)
             {
@@ -635,19 +635,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleType(this);
 
-            public TupleTypeSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<TupleElementSyntax> elements, SyntaxToken closeParenToken)
+        public TupleTypeSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<TupleElementSyntax> elements, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || elements != this.Elements || closeParenToken != this.CloseParenToken)
             {
-                if (openParenToken != this.OpenParenToken || elements != this.Elements || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.TupleType(openParenToken, elements, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TupleType(openParenToken, elements, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TupleTypeSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -702,19 +702,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleElement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleElement(this);
 
-            public TupleElementSyntax Update(TypeSyntax type, SyntaxToken identifier)
+        public TupleElementSyntax Update(TypeSyntax type, SyntaxToken identifier)
+        {
+            if (type != this.Type || identifier != this.Identifier)
             {
-                if (type != this.Type || identifier != this.Identifier)
-                {
-                    var newNode = SyntaxFactory.TupleElement(type, identifier);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TupleElement(type, identifier);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TupleElementSyntax WithType(TypeSyntax type)
             {
@@ -745,19 +745,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOmittedTypeArgument(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOmittedTypeArgument(this);
 
-            public OmittedTypeArgumentSyntax Update(SyntaxToken omittedTypeArgumentToken)
+        public OmittedTypeArgumentSyntax Update(SyntaxToken omittedTypeArgumentToken)
+        {
+            if (omittedTypeArgumentToken != this.OmittedTypeArgumentToken)
             {
-                if (omittedTypeArgumentToken != this.OmittedTypeArgumentToken)
-                {
-                    var newNode = SyntaxFactory.OmittedTypeArgument(omittedTypeArgumentToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.OmittedTypeArgument(omittedTypeArgumentToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public OmittedTypeArgumentSyntax WithOmittedTypeArgumentToken(SyntaxToken omittedTypeArgumentToken)
             {
@@ -798,19 +798,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefType(this);
 
-            public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
+        public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
+        {
+            if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || type != this.Type)
             {
-                if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || type != this.Type)
-                {
-                    var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, type);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, type);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public RefTypeSyntax WithRefKeyword(SyntaxToken refKeyword)
             {
@@ -863,19 +863,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedExpression(this);
 
-            public ParenthesizedExpressionSyntax Update(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+        public ParenthesizedExpressionSyntax Update(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
             {
-                if (openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.ParenthesizedExpression(openParenToken, expression, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ParenthesizedExpression(openParenToken, expression, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ParenthesizedExpressionSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -928,19 +928,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTupleExpression(this);
 
-            public TupleExpressionSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
+        public TupleExpressionSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || arguments != this.Arguments || closeParenToken != this.CloseParenToken)
             {
-                if (openParenToken != this.OpenParenToken || arguments != this.Arguments || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.TupleExpression(openParenToken, arguments, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TupleExpression(openParenToken, arguments, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TupleExpressionSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -986,19 +986,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPrefixUnaryExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPrefixUnaryExpression(this);
 
-            public PrefixUnaryExpressionSyntax Update(SyntaxToken operatorToken, ExpressionSyntax operand)
+        public PrefixUnaryExpressionSyntax Update(SyntaxToken operatorToken, ExpressionSyntax operand)
+        {
+            if (operatorToken != this.OperatorToken || operand != this.Operand)
             {
-                if (operatorToken != this.OperatorToken || operand != this.Operand)
-                {
-                    var newNode = SyntaxFactory.PrefixUnaryExpression(this.Kind(), operatorToken, operand);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.PrefixUnaryExpression(this.Kind(), operatorToken, operand);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public PrefixUnaryExpressionSyntax WithOperatorToken(SyntaxToken operatorToken)
             {
@@ -1034,19 +1034,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAwaitExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAwaitExpression(this);
 
-            public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, ExpressionSyntax expression)
+        public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, ExpressionSyntax expression)
+        {
+            if (awaitKeyword != this.AwaitKeyword || expression != this.Expression)
             {
-                if (awaitKeyword != this.AwaitKeyword || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.AwaitExpression(awaitKeyword, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AwaitExpression(awaitKeyword, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AwaitExpressionSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
             {
@@ -1082,19 +1082,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPostfixUnaryExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPostfixUnaryExpression(this);
 
-            public PostfixUnaryExpressionSyntax Update(ExpressionSyntax operand, SyntaxToken operatorToken)
+        public PostfixUnaryExpressionSyntax Update(ExpressionSyntax operand, SyntaxToken operatorToken)
+        {
+            if (operand != this.Operand || operatorToken != this.OperatorToken)
             {
-                if (operand != this.Operand || operatorToken != this.OperatorToken)
-                {
-                    var newNode = SyntaxFactory.PostfixUnaryExpression(this.Kind(), operand, operatorToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.PostfixUnaryExpression(this.Kind(), operand, operatorToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public PostfixUnaryExpressionSyntax WithOperand(ExpressionSyntax operand)
             {
@@ -1146,19 +1146,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMemberAccessExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMemberAccessExpression(this);
 
-            public MemberAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
+        public MemberAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
+        {
+            if (expression != this.Expression || operatorToken != this.OperatorToken || name != this.Name)
             {
-                if (expression != this.Expression || operatorToken != this.OperatorToken || name != this.Name)
-                {
-                    var newNode = SyntaxFactory.MemberAccessExpression(this.Kind(), expression, operatorToken, name);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.MemberAccessExpression(this.Kind(), expression, operatorToken, name);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public MemberAccessExpressionSyntax WithExpression(ExpressionSyntax expression)
             {
@@ -1215,19 +1215,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConditionalAccessExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConditionalAccessExpression(this);
 
-            public ConditionalAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull)
+        public ConditionalAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull)
+        {
+            if (expression != this.Expression || operatorToken != this.OperatorToken || whenNotNull != this.WhenNotNull)
             {
-                if (expression != this.Expression || operatorToken != this.OperatorToken || whenNotNull != this.WhenNotNull)
-                {
-                    var newNode = SyntaxFactory.ConditionalAccessExpression(expression, operatorToken, whenNotNull);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ConditionalAccessExpression(expression, operatorToken, whenNotNull);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ConditionalAccessExpressionSyntax WithExpression(ExpressionSyntax expression)
             {
@@ -1268,19 +1268,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMemberBindingExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMemberBindingExpression(this);
 
-            public MemberBindingExpressionSyntax Update(SyntaxToken operatorToken, SimpleNameSyntax name)
+        public MemberBindingExpressionSyntax Update(SyntaxToken operatorToken, SimpleNameSyntax name)
+        {
+            if (operatorToken != this.OperatorToken || name != this.Name)
             {
-                if (operatorToken != this.OperatorToken || name != this.Name)
-                {
-                    var newNode = SyntaxFactory.MemberBindingExpression(operatorToken, name);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.MemberBindingExpression(operatorToken, name);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public MemberBindingExpressionSyntax WithOperatorToken(SyntaxToken operatorToken)
             {
@@ -1313,19 +1313,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElementBindingExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElementBindingExpression(this);
 
-            public ElementBindingExpressionSyntax Update(BracketedArgumentListSyntax argumentList)
+        public ElementBindingExpressionSyntax Update(BracketedArgumentListSyntax argumentList)
+        {
+            if (argumentList != this.ArgumentList)
             {
-                if (argumentList != this.ArgumentList)
-                {
-                    var newNode = SyntaxFactory.ElementBindingExpression(argumentList);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ElementBindingExpression(argumentList);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ElementBindingExpressionSyntax WithArgumentList(BracketedArgumentListSyntax argumentList)
             {
@@ -1377,19 +1377,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRangeExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRangeExpression(this);
 
-            public RangeExpressionSyntax Update(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
+        public RangeExpressionSyntax Update(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
+        {
+            if (leftOperand != this.LeftOperand || operatorToken != this.OperatorToken || rightOperand != this.RightOperand)
             {
-                if (leftOperand != this.LeftOperand || operatorToken != this.OperatorToken || rightOperand != this.RightOperand)
-                {
-                    var newNode = SyntaxFactory.RangeExpression(leftOperand, operatorToken, rightOperand);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.RangeExpression(leftOperand, operatorToken, rightOperand);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public RangeExpressionSyntax WithLeftOperand(ExpressionSyntax leftOperand)
             {
@@ -1427,19 +1427,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitElementAccess(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitElementAccess(this);
 
-            public ImplicitElementAccessSyntax Update(BracketedArgumentListSyntax argumentList)
+        public ImplicitElementAccessSyntax Update(BracketedArgumentListSyntax argumentList)
+        {
+            if (argumentList != this.ArgumentList)
             {
-                if (argumentList != this.ArgumentList)
-                {
-                    var newNode = SyntaxFactory.ImplicitElementAccess(argumentList);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ImplicitElementAccess(argumentList);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ImplicitElementAccessSyntax WithArgumentList(BracketedArgumentListSyntax argumentList)
             {
@@ -1491,19 +1491,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBinaryExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBinaryExpression(this);
 
-            public BinaryExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+        public BinaryExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+        {
+            if (left != this.Left || operatorToken != this.OperatorToken || right != this.Right)
             {
-                if (left != this.Left || operatorToken != this.OperatorToken || right != this.Right)
-                {
-                    var newNode = SyntaxFactory.BinaryExpression(this.Kind(), left, operatorToken, right);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.BinaryExpression(this.Kind(), left, operatorToken, right);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public BinaryExpressionSyntax WithLeft(ExpressionSyntax left)
             {
@@ -1560,19 +1560,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAssignmentExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAssignmentExpression(this);
 
-            public AssignmentExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+        public AssignmentExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+        {
+            if (left != this.Left || operatorToken != this.OperatorToken || right != this.Right)
             {
-                if (left != this.Left || operatorToken != this.OperatorToken || right != this.Right)
-                {
-                    var newNode = SyntaxFactory.AssignmentExpression(this.Kind(), left, operatorToken, right);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AssignmentExpression(this.Kind(), left, operatorToken, right);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AssignmentExpressionSyntax WithLeft(ExpressionSyntax left)
             {
@@ -1638,19 +1638,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConditionalExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConditionalExpression(this);
 
-            public ConditionalExpressionSyntax Update(ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse)
+        public ConditionalExpressionSyntax Update(ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse)
+        {
+            if (condition != this.Condition || questionToken != this.QuestionToken || whenTrue != this.WhenTrue || colonToken != this.ColonToken || whenFalse != this.WhenFalse)
             {
-                if (condition != this.Condition || questionToken != this.QuestionToken || whenTrue != this.WhenTrue || colonToken != this.ColonToken || whenFalse != this.WhenFalse)
-                {
-                    var newNode = SyntaxFactory.ConditionalExpression(condition, questionToken, whenTrue, colonToken, whenFalse);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ConditionalExpression(condition, questionToken, whenTrue, colonToken, whenFalse);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ConditionalExpressionSyntax WithCondition(ExpressionSyntax condition)
             {
@@ -1705,19 +1705,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThisExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThisExpression(this);
 
-            public ThisExpressionSyntax Update(SyntaxToken token)
+        public ThisExpressionSyntax Update(SyntaxToken token)
+        {
+            if (token != this.Token)
             {
-                if (token != this.Token)
-                {
-                    var newNode = SyntaxFactory.ThisExpression(token);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ThisExpression(token);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ThisExpressionSyntax WithToken(SyntaxToken token)
             {
@@ -1743,19 +1743,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBaseExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBaseExpression(this);
 
-            public BaseExpressionSyntax Update(SyntaxToken token)
+        public BaseExpressionSyntax Update(SyntaxToken token)
+        {
+            if (token != this.Token)
             {
-                if (token != this.Token)
-                {
-                    var newNode = SyntaxFactory.BaseExpression(token);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.BaseExpression(token);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public BaseExpressionSyntax WithToken(SyntaxToken token)
             {
@@ -1781,19 +1781,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLiteralExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLiteralExpression(this);
 
-            public LiteralExpressionSyntax Update(SyntaxToken token)
+        public LiteralExpressionSyntax Update(SyntaxToken token)
+        {
+            if (token != this.Token)
             {
-                if (token != this.Token)
-                {
-                    var newNode = SyntaxFactory.LiteralExpression(this.Kind(), token);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.LiteralExpression(this.Kind(), token);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public LiteralExpressionSyntax WithToken(SyntaxToken token)
             {
@@ -1830,19 +1830,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMakeRefExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMakeRefExpression(this);
 
-            public MakeRefExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+        public MakeRefExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+        {
+            if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
             {
-                if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.MakeRefExpression(keyword, openParenToken, expression, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.MakeRefExpression(keyword, openParenToken, expression, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public MakeRefExpressionSyntax WithKeyword(SyntaxToken keyword)
             {
@@ -1894,19 +1894,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefTypeExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefTypeExpression(this);
 
-            public RefTypeExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+        public RefTypeExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+        {
+            if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
             {
-                if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.RefTypeExpression(keyword, openParenToken, expression, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.RefTypeExpression(keyword, openParenToken, expression, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public RefTypeExpressionSyntax WithKeyword(SyntaxToken keyword)
             {
@@ -1977,19 +1977,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefValueExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefValueExpression(this);
 
-            public RefValueExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken comma, TypeSyntax type, SyntaxToken closeParenToken)
+        public RefValueExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken comma, TypeSyntax type, SyntaxToken closeParenToken)
+        {
+            if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || comma != this.Comma || type != this.Type || closeParenToken != this.CloseParenToken)
             {
-                if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || comma != this.Comma || type != this.Type || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.RefValueExpression(keyword, openParenToken, expression, comma, type, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.RefValueExpression(keyword, openParenToken, expression, comma, type, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public RefValueExpressionSyntax WithKeyword(SyntaxToken keyword)
             {
@@ -2051,19 +2051,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCheckedExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCheckedExpression(this);
 
-            public CheckedExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+        public CheckedExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+        {
+            if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
             {
-                if (keyword != this.Keyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.CheckedExpression(this.Kind(), keyword, openParenToken, expression, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CheckedExpression(this.Kind(), keyword, openParenToken, expression, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public CheckedExpressionSyntax WithKeyword(SyntaxToken keyword)
             {
@@ -2115,19 +2115,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultExpression(this);
 
-            public DefaultExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
+        public DefaultExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
+        {
+            if (keyword != this.Keyword || openParenToken != this.OpenParenToken || type != this.Type || closeParenToken != this.CloseParenToken)
             {
-                if (keyword != this.Keyword || openParenToken != this.OpenParenToken || type != this.Type || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.DefaultExpression(keyword, openParenToken, type, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DefaultExpression(keyword, openParenToken, type, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public DefaultExpressionSyntax WithKeyword(SyntaxToken keyword)
             {
@@ -2179,19 +2179,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeOfExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeOfExpression(this);
 
-            public TypeOfExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
+        public TypeOfExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
+        {
+            if (keyword != this.Keyword || openParenToken != this.OpenParenToken || type != this.Type || closeParenToken != this.CloseParenToken)
             {
-                if (keyword != this.Keyword || openParenToken != this.OpenParenToken || type != this.Type || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.TypeOfExpression(keyword, openParenToken, type, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TypeOfExpression(keyword, openParenToken, type, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TypeOfExpressionSyntax WithKeyword(SyntaxToken keyword)
             {
@@ -2243,19 +2243,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSizeOfExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSizeOfExpression(this);
 
-            public SizeOfExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
+        public SizeOfExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
+        {
+            if (keyword != this.Keyword || openParenToken != this.OpenParenToken || type != this.Type || closeParenToken != this.CloseParenToken)
             {
-                if (keyword != this.Keyword || openParenToken != this.OpenParenToken || type != this.Type || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.SizeOfExpression(keyword, openParenToken, type, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.SizeOfExpression(keyword, openParenToken, type, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public SizeOfExpressionSyntax WithKeyword(SyntaxToken keyword)
             {
@@ -2314,19 +2314,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInvocationExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInvocationExpression(this);
 
-            public InvocationExpressionSyntax Update(ExpressionSyntax expression, ArgumentListSyntax argumentList)
+        public InvocationExpressionSyntax Update(ExpressionSyntax expression, ArgumentListSyntax argumentList)
+        {
+            if (expression != this.Expression || argumentList != this.ArgumentList)
             {
-                if (expression != this.Expression || argumentList != this.ArgumentList)
-                {
-                    var newNode = SyntaxFactory.InvocationExpression(expression, argumentList);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.InvocationExpression(expression, argumentList);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public InvocationExpressionSyntax WithExpression(ExpressionSyntax expression)
             {
@@ -2380,19 +2380,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElementAccessExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElementAccessExpression(this);
 
-            public ElementAccessExpressionSyntax Update(ExpressionSyntax expression, BracketedArgumentListSyntax argumentList)
+        public ElementAccessExpressionSyntax Update(ExpressionSyntax expression, BracketedArgumentListSyntax argumentList)
+        {
+            if (expression != this.Expression || argumentList != this.ArgumentList)
             {
-                if (expression != this.Expression || argumentList != this.ArgumentList)
-                {
-                    var newNode = SyntaxFactory.ElementAccessExpression(expression, argumentList);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ElementAccessExpression(expression, argumentList);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ElementAccessExpressionSyntax WithExpression(ExpressionSyntax expression)
             {
@@ -2462,19 +2462,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArgumentList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArgumentList(this);
 
-            public ArgumentListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
+        public ArgumentListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || arguments != this.Arguments || closeParenToken != this.CloseParenToken)
             {
-                if (openParenToken != this.OpenParenToken || arguments != this.Arguments || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.ArgumentList(openParenToken, arguments, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ArgumentList(openParenToken, arguments, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ArgumentListSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -2534,19 +2534,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBracketedArgumentList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBracketedArgumentList(this);
 
-            public BracketedArgumentListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeBracketToken)
+        public BracketedArgumentListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken != this.OpenBracketToken || arguments != this.Arguments || closeBracketToken != this.CloseBracketToken)
             {
-                if (openBracketToken != this.OpenBracketToken || arguments != this.Arguments || closeBracketToken != this.CloseBracketToken)
-                {
-                    var newNode = SyntaxFactory.BracketedArgumentList(openBracketToken, arguments, closeBracketToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.BracketedArgumentList(openBracketToken, arguments, closeBracketToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public BracketedArgumentListSyntax WithOpenBracketToken(SyntaxToken openBracketToken)
             {
@@ -2619,19 +2619,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArgument(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArgument(this);
 
-            public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
+        public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
+        {
+            if (nameColon != this.NameColon || refKindKeyword != this.RefKindKeyword || expression != this.Expression)
             {
-                if (nameColon != this.NameColon || refKindKeyword != this.RefKindKeyword || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.Argument(nameColon, refKindKeyword, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.Argument(nameColon, refKindKeyword, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ArgumentSyntax WithNameColon(NameColonSyntax nameColon)
             {
@@ -2672,19 +2672,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameColon(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameColon(this);
 
-            public NameColonSyntax Update(IdentifierNameSyntax name, SyntaxToken colonToken)
+        public NameColonSyntax Update(IdentifierNameSyntax name, SyntaxToken colonToken)
+        {
+            if (name != this.Name || colonToken != this.ColonToken)
             {
-                if (name != this.Name || colonToken != this.ColonToken)
-                {
-                    var newNode = SyntaxFactory.NameColon(name, colonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.NameColon(name, colonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public NameColonSyntax WithName(IdentifierNameSyntax name)
             {
@@ -2732,19 +2732,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDeclarationExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDeclarationExpression(this);
 
-            public DeclarationExpressionSyntax Update(TypeSyntax type, VariableDesignationSyntax designation)
+        public DeclarationExpressionSyntax Update(TypeSyntax type, VariableDesignationSyntax designation)
+        {
+            if (type != this.Type || designation != this.Designation)
             {
-                if (type != this.Type || designation != this.Designation)
-                {
-                    var newNode = SyntaxFactory.DeclarationExpression(type, designation);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DeclarationExpression(type, designation);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public DeclarationExpressionSyntax WithType(TypeSyntax type)
             {
@@ -2799,19 +2799,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCastExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCastExpression(this);
 
-            public CastExpressionSyntax Update(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, ExpressionSyntax expression)
+        public CastExpressionSyntax Update(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, ExpressionSyntax expression)
+        {
+            if (openParenToken != this.OpenParenToken || type != this.Type || closeParenToken != this.CloseParenToken || expression != this.Expression)
             {
-                if (openParenToken != this.OpenParenToken || type != this.Type || closeParenToken != this.CloseParenToken || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.CastExpression(openParenToken, type, closeParenToken, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CastExpression(openParenToken, type, closeParenToken, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public CastExpressionSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -2930,19 +2930,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousMethodExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousMethodExpression(this);
 
-            public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
+        public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
+        {
+            if (asyncKeyword != this.AsyncKeyword || delegateKeyword != this.DelegateKeyword || parameterList != this.ParameterList || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                if (asyncKeyword != this.AsyncKeyword || delegateKeyword != this.DelegateKeyword || parameterList != this.ParameterList || block != this.Block || expressionBody != this.ExpressionBody)
-                {
-                    var newNode = SyntaxFactory.AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
             public new AnonymousMethodExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
@@ -3068,19 +3068,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleLambdaExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleLambdaExpression(this);
 
-            public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+        public SimpleLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+        {
+            if (asyncKeyword != this.AsyncKeyword || parameter != this.Parameter || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                if (asyncKeyword != this.AsyncKeyword || parameter != this.Parameter || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
-                {
-                    var newNode = SyntaxFactory.SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, expressionBody);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, expressionBody);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
             public new SimpleLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
@@ -3149,19 +3149,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefExpression(this);
 
-            public RefExpressionSyntax Update(SyntaxToken refKeyword, ExpressionSyntax expression)
+        public RefExpressionSyntax Update(SyntaxToken refKeyword, ExpressionSyntax expression)
+        {
+            if (refKeyword != this.RefKeyword || expression != this.Expression)
             {
-                if (refKeyword != this.RefKeyword || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.RefExpression(refKeyword, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.RefExpression(refKeyword, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public RefExpressionSyntax WithRefKeyword(SyntaxToken refKeyword)
             {
@@ -3237,19 +3237,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedLambdaExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedLambdaExpression(this);
 
-            public ParenthesizedLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+        public ParenthesizedLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+        {
+            if (asyncKeyword != this.AsyncKeyword || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                if (asyncKeyword != this.AsyncKeyword || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
-                {
-                    var newNode = SyntaxFactory.ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, expressionBody);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, expressionBody);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override AnonymousFunctionExpressionSyntax WithAsyncKeywordCore(SyntaxToken asyncKeyword) => WithAsyncKeyword(asyncKeyword);
             public new ParenthesizedLambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
@@ -3328,19 +3328,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInitializerExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInitializerExpression(this);
 
-            public InitializerExpressionSyntax Update(SyntaxToken openBraceToken, SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
+        public InitializerExpressionSyntax Update(SyntaxToken openBraceToken, SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
+        {
+            if (openBraceToken != this.OpenBraceToken || expressions != this.Expressions || closeBraceToken != this.CloseBraceToken)
             {
-                if (openBraceToken != this.OpenBraceToken || expressions != this.Expressions || closeBraceToken != this.CloseBraceToken)
-                {
-                    var newNode = SyntaxFactory.InitializerExpression(this.Kind(), openBraceToken, expressions, closeBraceToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.InitializerExpression(this.Kind(), openBraceToken, expressions, closeBraceToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public InitializerExpressionSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
             {
@@ -3408,19 +3408,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitObjectCreationExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitObjectCreationExpression(this);
 
-            public ObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax argumentList, InitializerExpressionSyntax initializer)
+        public ObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax argumentList, InitializerExpressionSyntax initializer)
+        {
+            if (newKeyword != this.NewKeyword || type != this.Type || argumentList != this.ArgumentList || initializer != this.Initializer)
             {
-                if (newKeyword != this.NewKeyword || type != this.Type || argumentList != this.ArgumentList || initializer != this.Initializer)
-                {
-                    var newNode = SyntaxFactory.ObjectCreationExpression(newKeyword, type, argumentList, initializer);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ObjectCreationExpression(newKeyword, type, argumentList, initializer);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ObjectCreationExpressionSyntax WithNewKeyword(SyntaxToken newKeyword)
             {
@@ -3484,19 +3484,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousObjectMemberDeclarator(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousObjectMemberDeclarator(this);
 
-            public AnonymousObjectMemberDeclaratorSyntax Update(NameEqualsSyntax nameEquals, ExpressionSyntax expression)
+        public AnonymousObjectMemberDeclaratorSyntax Update(NameEqualsSyntax nameEquals, ExpressionSyntax expression)
+        {
+            if (nameEquals != this.NameEquals || expression != this.Expression)
             {
-                if (nameEquals != this.NameEquals || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.AnonymousObjectMemberDeclarator(nameEquals, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AnonymousObjectMemberDeclarator(nameEquals, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AnonymousObjectMemberDeclaratorSyntax WithNameEquals(NameEqualsSyntax nameEquals)
             {
@@ -3547,19 +3547,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousObjectCreationExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAnonymousObjectCreationExpression(this);
 
-            public AnonymousObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
+        public AnonymousObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
+        {
+            if (newKeyword != this.NewKeyword || openBraceToken != this.OpenBraceToken || initializers != this.Initializers || closeBraceToken != this.CloseBraceToken)
             {
-                if (newKeyword != this.NewKeyword || openBraceToken != this.OpenBraceToken || initializers != this.Initializers || closeBraceToken != this.CloseBraceToken)
-                {
-                    var newNode = SyntaxFactory.AnonymousObjectCreationExpression(newKeyword, openBraceToken, initializers, closeBraceToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AnonymousObjectCreationExpression(newKeyword, openBraceToken, initializers, closeBraceToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AnonymousObjectCreationExpressionSyntax WithNewKeyword(SyntaxToken newKeyword)
             {
@@ -3626,19 +3626,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayCreationExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrayCreationExpression(this);
 
-            public ArrayCreationExpressionSyntax Update(SyntaxToken newKeyword, ArrayTypeSyntax type, InitializerExpressionSyntax initializer)
+        public ArrayCreationExpressionSyntax Update(SyntaxToken newKeyword, ArrayTypeSyntax type, InitializerExpressionSyntax initializer)
+        {
+            if (newKeyword != this.NewKeyword || type != this.Type || initializer != this.Initializer)
             {
-                if (newKeyword != this.NewKeyword || type != this.Type || initializer != this.Initializer)
-                {
-                    var newNode = SyntaxFactory.ArrayCreationExpression(newKeyword, type, initializer);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ArrayCreationExpression(newKeyword, type, initializer);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ArrayCreationExpressionSyntax WithNewKeyword(SyntaxToken newKeyword)
             {
@@ -3702,19 +3702,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitArrayCreationExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitArrayCreationExpression(this);
 
-            public ImplicitArrayCreationExpressionSyntax Update(SyntaxToken newKeyword, SyntaxToken openBracketToken, SyntaxTokenList commas, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
+        public ImplicitArrayCreationExpressionSyntax Update(SyntaxToken newKeyword, SyntaxToken openBracketToken, SyntaxTokenList commas, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
+        {
+            if (newKeyword != this.NewKeyword || openBracketToken != this.OpenBracketToken || commas != this.Commas || closeBracketToken != this.CloseBracketToken || initializer != this.Initializer)
             {
-                if (newKeyword != this.NewKeyword || openBracketToken != this.OpenBracketToken || commas != this.Commas || closeBracketToken != this.CloseBracketToken || initializer != this.Initializer)
-                {
-                    var newNode = SyntaxFactory.ImplicitArrayCreationExpression(newKeyword, openBracketToken, commas, closeBracketToken, initializer);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ImplicitArrayCreationExpression(newKeyword, openBracketToken, commas, closeBracketToken, initializer);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ImplicitArrayCreationExpressionSyntax WithNewKeyword(SyntaxToken newKeyword)
             {
@@ -3791,19 +3791,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitStackAllocArrayCreationExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitStackAllocArrayCreationExpression(this);
 
-            public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer)
+        public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer)
+        {
+            if (stackAllocKeyword != this.StackAllocKeyword || type != this.Type || initializer != this.Initializer)
             {
-                if (stackAllocKeyword != this.StackAllocKeyword || type != this.Type || initializer != this.Initializer)
-                {
-                    var newNode = SyntaxFactory.StackAllocArrayCreationExpression(stackAllocKeyword, type, initializer);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.StackAllocArrayCreationExpression(stackAllocKeyword, type, initializer);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public StackAllocArrayCreationExpressionSyntax WithStackAllocKeyword(SyntaxToken stackAllocKeyword)
             {
@@ -3850,19 +3850,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitStackAllocArrayCreationExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitImplicitStackAllocArrayCreationExpression(this);
 
-            public ImplicitStackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
+        public ImplicitStackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
+        {
+            if (stackAllocKeyword != this.StackAllocKeyword || openBracketToken != this.OpenBracketToken || closeBracketToken != this.CloseBracketToken || initializer != this.Initializer)
             {
-                if (stackAllocKeyword != this.StackAllocKeyword || openBracketToken != this.OpenBracketToken || closeBracketToken != this.CloseBracketToken || initializer != this.Initializer)
-                {
-                    var newNode = SyntaxFactory.ImplicitStackAllocArrayCreationExpression(stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ImplicitStackAllocArrayCreationExpression(stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ImplicitStackAllocArrayCreationExpressionSyntax WithStackAllocKeyword(SyntaxToken stackAllocKeyword)
             {
@@ -3939,19 +3939,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryExpression(this);
 
-            public QueryExpressionSyntax Update(FromClauseSyntax fromClause, QueryBodySyntax body)
+        public QueryExpressionSyntax Update(FromClauseSyntax fromClause, QueryBodySyntax body)
+        {
+            if (fromClause != this.FromClause || body != this.Body)
             {
-                if (fromClause != this.FromClause || body != this.Body)
-                {
-                    var newNode = SyntaxFactory.QueryExpression(fromClause, body);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.QueryExpression(fromClause, body);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public QueryExpressionSyntax WithFromClause(FromClauseSyntax fromClause)
             {
@@ -4007,19 +4007,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryBody(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryBody(this);
 
-            public QueryBodySyntax Update(SyntaxList<QueryClauseSyntax> clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax continuation)
+        public QueryBodySyntax Update(SyntaxList<QueryClauseSyntax> clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax continuation)
+        {
+            if (clauses != this.Clauses || selectOrGroup != this.SelectOrGroup || continuation != this.Continuation)
             {
-                if (clauses != this.Clauses || selectOrGroup != this.SelectOrGroup || continuation != this.Continuation)
-                {
-                    var newNode = SyntaxFactory.QueryBody(clauses, selectOrGroup, continuation);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.QueryBody(clauses, selectOrGroup, continuation);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public QueryBodySyntax WithClauses(SyntaxList<QueryClauseSyntax> clauses)
             {
@@ -4082,19 +4082,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFromClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFromClause(this);
 
-            public FromClauseSyntax Update(SyntaxToken fromKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression)
+        public FromClauseSyntax Update(SyntaxToken fromKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression)
+        {
+            if (fromKeyword != this.FromKeyword || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || expression != this.Expression)
             {
-                if (fromKeyword != this.FromKeyword || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.FromClause(fromKeyword, type, identifier, inKeyword, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.FromClause(fromKeyword, type, identifier, inKeyword, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public FromClauseSyntax WithFromKeyword(SyntaxToken fromKeyword)
             {
@@ -4147,19 +4147,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLetClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLetClause(this);
 
-            public LetClauseSyntax Update(SyntaxToken letKeyword, SyntaxToken identifier, SyntaxToken equalsToken, ExpressionSyntax expression)
+        public LetClauseSyntax Update(SyntaxToken letKeyword, SyntaxToken identifier, SyntaxToken equalsToken, ExpressionSyntax expression)
+        {
+            if (letKeyword != this.LetKeyword || identifier != this.Identifier || equalsToken != this.EqualsToken || expression != this.Expression)
             {
-                if (letKeyword != this.LetKeyword || identifier != this.Identifier || equalsToken != this.EqualsToken || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.LetClause(letKeyword, identifier, equalsToken, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.LetClause(letKeyword, identifier, equalsToken, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public LetClauseSyntax WithLetKeyword(SyntaxToken letKeyword)
             {
@@ -4241,19 +4241,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitJoinClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitJoinClause(this);
 
-            public JoinClauseSyntax Update(SyntaxToken joinKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax inExpression, SyntaxToken onKeyword, ExpressionSyntax leftExpression, SyntaxToken equalsKeyword, ExpressionSyntax rightExpression, JoinIntoClauseSyntax into)
+        public JoinClauseSyntax Update(SyntaxToken joinKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax inExpression, SyntaxToken onKeyword, ExpressionSyntax leftExpression, SyntaxToken equalsKeyword, ExpressionSyntax rightExpression, JoinIntoClauseSyntax into)
+        {
+            if (joinKeyword != this.JoinKeyword || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || inExpression != this.InExpression || onKeyword != this.OnKeyword || leftExpression != this.LeftExpression || equalsKeyword != this.EqualsKeyword || rightExpression != this.RightExpression || into != this.Into)
             {
-                if (joinKeyword != this.JoinKeyword || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || inExpression != this.InExpression || onKeyword != this.OnKeyword || leftExpression != this.LeftExpression || equalsKeyword != this.EqualsKeyword || rightExpression != this.RightExpression || into != this.Into)
-                {
-                    var newNode = SyntaxFactory.JoinClause(joinKeyword, type, identifier, inKeyword, inExpression, onKeyword, leftExpression, equalsKeyword, rightExpression, into);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.JoinClause(joinKeyword, type, identifier, inKeyword, inExpression, onKeyword, leftExpression, equalsKeyword, rightExpression, into);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public JoinClauseSyntax WithJoinKeyword(SyntaxToken joinKeyword)
             {
@@ -4325,19 +4325,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitJoinIntoClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitJoinIntoClause(this);
 
-            public JoinIntoClauseSyntax Update(SyntaxToken intoKeyword, SyntaxToken identifier)
+        public JoinIntoClauseSyntax Update(SyntaxToken intoKeyword, SyntaxToken identifier)
+        {
+            if (intoKeyword != this.IntoKeyword || identifier != this.Identifier)
             {
-                if (intoKeyword != this.IntoKeyword || identifier != this.Identifier)
-                {
-                    var newNode = SyntaxFactory.JoinIntoClause(intoKeyword, identifier);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.JoinIntoClause(intoKeyword, identifier);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public JoinIntoClauseSyntax WithIntoKeyword(SyntaxToken intoKeyword)
             {
@@ -4370,19 +4370,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhereClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhereClause(this);
 
-            public WhereClauseSyntax Update(SyntaxToken whereKeyword, ExpressionSyntax condition)
+        public WhereClauseSyntax Update(SyntaxToken whereKeyword, ExpressionSyntax condition)
+        {
+            if (whereKeyword != this.WhereKeyword || condition != this.Condition)
             {
-                if (whereKeyword != this.WhereKeyword || condition != this.Condition)
-                {
-                    var newNode = SyntaxFactory.WhereClause(whereKeyword, condition);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.WhereClause(whereKeyword, condition);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public WhereClauseSyntax WithWhereKeyword(SyntaxToken whereKeyword)
             {
@@ -4424,19 +4424,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOrderByClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOrderByClause(this);
 
-            public OrderByClauseSyntax Update(SyntaxToken orderByKeyword, SeparatedSyntaxList<OrderingSyntax> orderings)
+        public OrderByClauseSyntax Update(SyntaxToken orderByKeyword, SeparatedSyntaxList<OrderingSyntax> orderings)
+        {
+            if (orderByKeyword != this.OrderByKeyword || orderings != this.Orderings)
             {
-                if (orderByKeyword != this.OrderByKeyword || orderings != this.Orderings)
-                {
-                    var newNode = SyntaxFactory.OrderByClause(orderByKeyword, orderings);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.OrderByClause(orderByKeyword, orderings);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public OrderByClauseSyntax WithOrderByKeyword(SyntaxToken orderByKeyword)
             {
@@ -4483,19 +4483,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOrdering(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOrdering(this);
 
-            public OrderingSyntax Update(ExpressionSyntax expression, SyntaxToken ascendingOrDescendingKeyword)
+        public OrderingSyntax Update(ExpressionSyntax expression, SyntaxToken ascendingOrDescendingKeyword)
+        {
+            if (expression != this.Expression || ascendingOrDescendingKeyword != this.AscendingOrDescendingKeyword)
             {
-                if (expression != this.Expression || ascendingOrDescendingKeyword != this.AscendingOrDescendingKeyword)
-                {
-                    var newNode = SyntaxFactory.Ordering(this.Kind(), expression, ascendingOrDescendingKeyword);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.Ordering(this.Kind(), expression, ascendingOrDescendingKeyword);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public OrderingSyntax WithExpression(ExpressionSyntax expression)
             {
@@ -4528,19 +4528,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSelectClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSelectClause(this);
 
-            public SelectClauseSyntax Update(SyntaxToken selectKeyword, ExpressionSyntax expression)
+        public SelectClauseSyntax Update(SyntaxToken selectKeyword, ExpressionSyntax expression)
+        {
+            if (selectKeyword != this.SelectKeyword || expression != this.Expression)
             {
-                if (selectKeyword != this.SelectKeyword || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.SelectClause(selectKeyword, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.SelectClause(selectKeyword, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public SelectClauseSyntax WithSelectKeyword(SyntaxToken selectKeyword)
             {
@@ -4590,19 +4590,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGroupClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGroupClause(this);
 
-            public GroupClauseSyntax Update(SyntaxToken groupKeyword, ExpressionSyntax groupExpression, SyntaxToken byKeyword, ExpressionSyntax byExpression)
+        public GroupClauseSyntax Update(SyntaxToken groupKeyword, ExpressionSyntax groupExpression, SyntaxToken byKeyword, ExpressionSyntax byExpression)
+        {
+            if (groupKeyword != this.GroupKeyword || groupExpression != this.GroupExpression || byKeyword != this.ByKeyword || byExpression != this.ByExpression)
             {
-                if (groupKeyword != this.GroupKeyword || groupExpression != this.GroupExpression || byKeyword != this.ByKeyword || byExpression != this.ByExpression)
-                {
-                    var newNode = SyntaxFactory.GroupClause(groupKeyword, groupExpression, byKeyword, byExpression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.GroupClause(groupKeyword, groupExpression, byKeyword, byExpression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public GroupClauseSyntax WithGroupKeyword(SyntaxToken groupKeyword)
             {
@@ -4648,19 +4648,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryContinuation(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQueryContinuation(this);
 
-            public QueryContinuationSyntax Update(SyntaxToken intoKeyword, SyntaxToken identifier, QueryBodySyntax body)
+        public QueryContinuationSyntax Update(SyntaxToken intoKeyword, SyntaxToken identifier, QueryBodySyntax body)
+        {
+            if (intoKeyword != this.IntoKeyword || identifier != this.Identifier || body != this.Body)
             {
-                if (intoKeyword != this.IntoKeyword || identifier != this.Identifier || body != this.Body)
-                {
-                    var newNode = SyntaxFactory.QueryContinuation(intoKeyword, identifier, body);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.QueryContinuation(intoKeyword, identifier, body);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public QueryContinuationSyntax WithIntoKeyword(SyntaxToken intoKeyword)
             {
@@ -4701,19 +4701,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOmittedArraySizeExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOmittedArraySizeExpression(this);
 
-            public OmittedArraySizeExpressionSyntax Update(SyntaxToken omittedArraySizeExpressionToken)
+        public OmittedArraySizeExpressionSyntax Update(SyntaxToken omittedArraySizeExpressionToken)
+        {
+            if (omittedArraySizeExpressionToken != this.OmittedArraySizeExpressionToken)
             {
-                if (omittedArraySizeExpressionToken != this.OmittedArraySizeExpressionToken)
-                {
-                    var newNode = SyntaxFactory.OmittedArraySizeExpression(omittedArraySizeExpressionToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.OmittedArraySizeExpression(omittedArraySizeExpressionToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public OmittedArraySizeExpressionSyntax WithOmittedArraySizeExpressionToken(SyntaxToken omittedArraySizeExpressionToken)
             {
@@ -4746,19 +4746,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolatedStringExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolatedStringExpression(this);
 
-            public InterpolatedStringExpressionSyntax Update(SyntaxToken stringStartToken, SyntaxList<InterpolatedStringContentSyntax> contents, SyntaxToken stringEndToken)
+        public InterpolatedStringExpressionSyntax Update(SyntaxToken stringStartToken, SyntaxList<InterpolatedStringContentSyntax> contents, SyntaxToken stringEndToken)
+        {
+            if (stringStartToken != this.StringStartToken || contents != this.Contents || stringEndToken != this.StringEndToken)
             {
-                if (stringStartToken != this.StringStartToken || contents != this.Contents || stringEndToken != this.StringEndToken)
-                {
-                    var newNode = SyntaxFactory.InterpolatedStringExpression(stringStartToken, contents, stringEndToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.InterpolatedStringExpression(stringStartToken, contents, stringEndToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public InterpolatedStringExpressionSyntax WithStringStartToken(SyntaxToken stringStartToken)
             {
@@ -4819,19 +4819,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIsPatternExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIsPatternExpression(this);
 
-            public IsPatternExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken isKeyword, PatternSyntax pattern)
+        public IsPatternExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken isKeyword, PatternSyntax pattern)
+        {
+            if (expression != this.Expression || isKeyword != this.IsKeyword || pattern != this.Pattern)
             {
-                if (expression != this.Expression || isKeyword != this.IsKeyword || pattern != this.Pattern)
-                {
-                    var newNode = SyntaxFactory.IsPatternExpression(expression, isKeyword, pattern);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.IsPatternExpression(expression, isKeyword, pattern);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public IsPatternExpressionSyntax WithExpression(ExpressionSyntax expression)
             {
@@ -4869,19 +4869,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThrowExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThrowExpression(this);
 
-            public ThrowExpressionSyntax Update(SyntaxToken throwKeyword, ExpressionSyntax expression)
+        public ThrowExpressionSyntax Update(SyntaxToken throwKeyword, ExpressionSyntax expression)
+        {
+            if (throwKeyword != this.ThrowKeyword || expression != this.Expression)
             {
-                if (throwKeyword != this.ThrowKeyword || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.ThrowExpression(throwKeyword, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ThrowExpression(throwKeyword, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ThrowExpressionSyntax WithThrowKeyword(SyntaxToken throwKeyword)
             {
@@ -4914,19 +4914,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhenClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhenClause(this);
 
-            public WhenClauseSyntax Update(SyntaxToken whenKeyword, ExpressionSyntax condition)
+        public WhenClauseSyntax Update(SyntaxToken whenKeyword, ExpressionSyntax condition)
+        {
+            if (whenKeyword != this.WhenKeyword || condition != this.Condition)
             {
-                if (whenKeyword != this.WhenKeyword || condition != this.Condition)
-                {
-                    var newNode = SyntaxFactory.WhenClause(whenKeyword, condition);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.WhenClause(whenKeyword, condition);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public WhenClauseSyntax WithWhenKeyword(SyntaxToken whenKeyword)
             {
@@ -4963,19 +4963,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDiscardPattern(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDiscardPattern(this);
 
-            public DiscardPatternSyntax Update(SyntaxToken underscoreToken)
+        public DiscardPatternSyntax Update(SyntaxToken underscoreToken)
+        {
+            if (underscoreToken != this.UnderscoreToken)
             {
-                if (underscoreToken != this.UnderscoreToken)
-                {
-                    var newNode = SyntaxFactory.DiscardPattern(underscoreToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DiscardPattern(underscoreToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public DiscardPatternSyntax WithUnderscoreToken(SyntaxToken underscoreToken)
             {
@@ -5016,19 +5016,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDeclarationPattern(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDeclarationPattern(this);
 
-            public DeclarationPatternSyntax Update(TypeSyntax type, VariableDesignationSyntax designation)
+        public DeclarationPatternSyntax Update(TypeSyntax type, VariableDesignationSyntax designation)
+        {
+            if (type != this.Type || designation != this.Designation)
             {
-                if (type != this.Type || designation != this.Designation)
-                {
-                    var newNode = SyntaxFactory.DeclarationPattern(type, designation);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DeclarationPattern(type, designation);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public DeclarationPatternSyntax WithType(TypeSyntax type)
             {
@@ -5061,19 +5061,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVarPattern(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVarPattern(this);
 
-            public VarPatternSyntax Update(SyntaxToken varKeyword, VariableDesignationSyntax designation)
+        public VarPatternSyntax Update(SyntaxToken varKeyword, VariableDesignationSyntax designation)
+        {
+            if (varKeyword != this.VarKeyword || designation != this.Designation)
             {
-                if (varKeyword != this.VarKeyword || designation != this.Designation)
-                {
-                    var newNode = SyntaxFactory.VarPattern(varKeyword, designation);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.VarPattern(varKeyword, designation);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public VarPatternSyntax WithVarKeyword(SyntaxToken varKeyword)
             {
@@ -5129,19 +5129,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRecursivePattern(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRecursivePattern(this);
 
-            public RecursivePatternSyntax Update(TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+        public RecursivePatternSyntax Update(TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+        {
+            if (type != this.Type || positionalPatternClause != this.PositionalPatternClause || propertyPatternClause != this.PropertyPatternClause || designation != this.Designation)
             {
-                if (type != this.Type || positionalPatternClause != this.PositionalPatternClause || propertyPatternClause != this.PropertyPatternClause || designation != this.Designation)
-                {
-                    var newNode = SyntaxFactory.RecursivePattern(type, positionalPatternClause, propertyPatternClause, designation);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.RecursivePattern(type, positionalPatternClause, propertyPatternClause, designation);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public RecursivePatternSyntax WithType(TypeSyntax type)
             {
@@ -5207,19 +5207,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPositionalPatternClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPositionalPatternClause(this);
 
-            public PositionalPatternClauseSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
+        public PositionalPatternClauseSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || subpatterns != this.Subpatterns || closeParenToken != this.CloseParenToken)
             {
-                if (openParenToken != this.OpenParenToken || subpatterns != this.Subpatterns || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.PositionalPatternClause(openParenToken, subpatterns, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.PositionalPatternClause(openParenToken, subpatterns, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public PositionalPatternClauseSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -5273,19 +5273,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPropertyPatternClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPropertyPatternClause(this);
 
-            public PropertyPatternClauseSyntax Update(SyntaxToken openBraceToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+        public PropertyPatternClauseSyntax Update(SyntaxToken openBraceToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+        {
+            if (openBraceToken != this.OpenBraceToken || subpatterns != this.Subpatterns || closeBraceToken != this.CloseBraceToken)
             {
-                if (openBraceToken != this.OpenBraceToken || subpatterns != this.Subpatterns || closeBraceToken != this.CloseBraceToken)
-                {
-                    var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public PropertyPatternClauseSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
             {
@@ -5341,19 +5341,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSubpattern(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSubpattern(this);
 
-            public SubpatternSyntax Update(NameColonSyntax nameColon, PatternSyntax pattern)
+        public SubpatternSyntax Update(NameColonSyntax nameColon, PatternSyntax pattern)
+        {
+            if (nameColon != this.NameColon || pattern != this.Pattern)
             {
-                if (nameColon != this.NameColon || pattern != this.Pattern)
-                {
-                    var newNode = SyntaxFactory.Subpattern(nameColon, pattern);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.Subpattern(nameColon, pattern);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public SubpatternSyntax WithNameColon(NameColonSyntax nameColon)
             {
@@ -5385,19 +5385,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstantPattern(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstantPattern(this);
 
-            public ConstantPatternSyntax Update(ExpressionSyntax expression)
+        public ConstantPatternSyntax Update(ExpressionSyntax expression)
+        {
+            if (expression != this.Expression)
             {
-                if (expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.ConstantPattern(expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ConstantPattern(expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ConstantPatternSyntax WithExpression(ExpressionSyntax expression)
             {
@@ -5430,19 +5430,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolatedStringText(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolatedStringText(this);
 
-            public InterpolatedStringTextSyntax Update(SyntaxToken textToken)
+        public InterpolatedStringTextSyntax Update(SyntaxToken textToken)
+        {
+            if (textToken != this.TextToken)
             {
-                if (textToken != this.TextToken)
-                {
-                    var newNode = SyntaxFactory.InterpolatedStringText(textToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.InterpolatedStringText(textToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public InterpolatedStringTextSyntax WithTextToken(SyntaxToken textToken)
             {
@@ -5492,19 +5492,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolation(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolation(this);
 
-            public InterpolationSyntax Update(SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignmentClause, InterpolationFormatClauseSyntax formatClause, SyntaxToken closeBraceToken)
+        public InterpolationSyntax Update(SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignmentClause, InterpolationFormatClauseSyntax formatClause, SyntaxToken closeBraceToken)
+        {
+            if (openBraceToken != this.OpenBraceToken || expression != this.Expression || alignmentClause != this.AlignmentClause || formatClause != this.FormatClause || closeBraceToken != this.CloseBraceToken)
             {
-                if (openBraceToken != this.OpenBraceToken || expression != this.Expression || alignmentClause != this.AlignmentClause || formatClause != this.FormatClause || closeBraceToken != this.CloseBraceToken)
-                {
-                    var newNode = SyntaxFactory.Interpolation(openBraceToken, expression, alignmentClause, formatClause, closeBraceToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.Interpolation(openBraceToken, expression, alignmentClause, formatClause, closeBraceToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public InterpolationSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
             {
@@ -5552,19 +5552,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolationAlignmentClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolationAlignmentClause(this);
 
-            public InterpolationAlignmentClauseSyntax Update(SyntaxToken commaToken, ExpressionSyntax value)
+        public InterpolationAlignmentClauseSyntax Update(SyntaxToken commaToken, ExpressionSyntax value)
+        {
+            if (commaToken != this.CommaToken || value != this.Value)
             {
-                if (commaToken != this.CommaToken || value != this.Value)
-                {
-                    var newNode = SyntaxFactory.InterpolationAlignmentClause(commaToken, value);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.InterpolationAlignmentClause(commaToken, value);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public InterpolationAlignmentClauseSyntax WithCommaToken(SyntaxToken commaToken)
             {
@@ -5596,19 +5596,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolationFormatClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterpolationFormatClause(this);
 
-            public InterpolationFormatClauseSyntax Update(SyntaxToken colonToken, SyntaxToken formatStringToken)
+        public InterpolationFormatClauseSyntax Update(SyntaxToken colonToken, SyntaxToken formatStringToken)
+        {
+            if (colonToken != this.ColonToken || formatStringToken != this.FormatStringToken)
             {
-                if (colonToken != this.ColonToken || formatStringToken != this.FormatStringToken)
-                {
-                    var newNode = SyntaxFactory.InterpolationFormatClause(colonToken, formatStringToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.InterpolationFormatClause(colonToken, formatStringToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public InterpolationFormatClauseSyntax WithColonToken(SyntaxToken colonToken)
             {
@@ -5665,19 +5665,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGlobalStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGlobalStatement(this);
 
-            public GlobalStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, StatementSyntax statement)
+        public GlobalStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, StatementSyntax statement)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || statement != this.Statement)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || statement != this.Statement)
-                {
-                    var newNode = SyntaxFactory.GlobalStatement(attributeLists, modifiers, statement);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.GlobalStatement(attributeLists, modifiers, statement);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new GlobalStatementSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -5740,19 +5740,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBlock(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBlock(this);
 
-            public BlockSyntax Update(SyntaxToken openBraceToken, SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+        public BlockSyntax Update(SyntaxToken openBraceToken, SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+        {
+            if (openBraceToken != this.OpenBraceToken || statements != this.Statements || closeBraceToken != this.CloseBraceToken)
             {
-                if (openBraceToken != this.OpenBraceToken || statements != this.Statements || closeBraceToken != this.CloseBraceToken)
-                {
-                    var newNode = SyntaxFactory.Block(openBraceToken, statements, closeBraceToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.Block(openBraceToken, statements, closeBraceToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public BlockSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
             {
@@ -5854,19 +5854,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLocalFunctionStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLocalFunctionStatement(this);
 
-            public LocalFunctionStatementSyntax Update(SyntaxTokenList modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        public LocalFunctionStatementSyntax Update(SyntaxTokenList modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        {
+            if (modifiers != this.Modifiers || returnType != this.ReturnType || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || constraintClauses != this.ConstraintClauses || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                if (modifiers != this.Modifiers || returnType != this.ReturnType || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || constraintClauses != this.ConstraintClauses || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.LocalFunctionStatement(modifiers, returnType, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.LocalFunctionStatement(modifiers, returnType, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public LocalFunctionStatementSyntax WithModifiers(SyntaxTokenList modifiers)
             {
@@ -5995,19 +5995,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLocalDeclarationStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLocalDeclarationStatement(this);
 
-            public LocalDeclarationStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+        public LocalDeclarationStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+        {
+            if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
             {
-                if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.LocalDeclarationStatement(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.LocalDeclarationStatement(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public LocalDeclarationStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
             {
@@ -6087,19 +6087,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVariableDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVariableDeclaration(this);
 
-            public VariableDeclarationSyntax Update(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
+        public VariableDeclarationSyntax Update(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
+        {
+            if (type != this.Type || variables != this.Variables)
             {
-                if (type != this.Type || variables != this.Variables)
-                {
-                    var newNode = SyntaxFactory.VariableDeclaration(type, variables);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.VariableDeclaration(type, variables);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public VariableDeclarationSyntax WithType(TypeSyntax type)
             {
@@ -6153,19 +6153,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVariableDeclarator(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitVariableDeclarator(this);
 
-            public VariableDeclaratorSyntax Update(SyntaxToken identifier, BracketedArgumentListSyntax argumentList, EqualsValueClauseSyntax initializer)
+        public VariableDeclaratorSyntax Update(SyntaxToken identifier, BracketedArgumentListSyntax argumentList, EqualsValueClauseSyntax initializer)
+        {
+            if (identifier != this.Identifier || argumentList != this.ArgumentList || initializer != this.Initializer)
             {
-                if (identifier != this.Identifier || argumentList != this.ArgumentList || initializer != this.Initializer)
-                {
-                    var newNode = SyntaxFactory.VariableDeclarator(identifier, argumentList, initializer);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.VariableDeclarator(identifier, argumentList, initializer);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public VariableDeclaratorSyntax WithIdentifier(SyntaxToken identifier)
             {
@@ -6209,19 +6209,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEqualsValueClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEqualsValueClause(this);
 
-            public EqualsValueClauseSyntax Update(SyntaxToken equalsToken, ExpressionSyntax value)
+        public EqualsValueClauseSyntax Update(SyntaxToken equalsToken, ExpressionSyntax value)
+        {
+            if (equalsToken != this.EqualsToken || value != this.Value)
             {
-                if (equalsToken != this.EqualsToken || value != this.Value)
-                {
-                    var newNode = SyntaxFactory.EqualsValueClause(equalsToken, value);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.EqualsValueClause(equalsToken, value);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public EqualsValueClauseSyntax WithEqualsToken(SyntaxToken equalsToken)
             {
@@ -6258,19 +6258,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSingleVariableDesignation(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSingleVariableDesignation(this);
 
-            public SingleVariableDesignationSyntax Update(SyntaxToken identifier)
+        public SingleVariableDesignationSyntax Update(SyntaxToken identifier)
+        {
+            if (identifier != this.Identifier)
             {
-                if (identifier != this.Identifier)
-                {
-                    var newNode = SyntaxFactory.SingleVariableDesignation(identifier);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.SingleVariableDesignation(identifier);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public SingleVariableDesignationSyntax WithIdentifier(SyntaxToken identifier)
             {
@@ -6294,19 +6294,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDiscardDesignation(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDiscardDesignation(this);
 
-            public DiscardDesignationSyntax Update(SyntaxToken underscoreToken)
+        public DiscardDesignationSyntax Update(SyntaxToken underscoreToken)
+        {
+            if (underscoreToken != this.UnderscoreToken)
             {
-                if (underscoreToken != this.UnderscoreToken)
-                {
-                    var newNode = SyntaxFactory.DiscardDesignation(underscoreToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DiscardDesignation(underscoreToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public DiscardDesignationSyntax WithUnderscoreToken(SyntaxToken underscoreToken)
             {
@@ -6345,19 +6345,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedVariableDesignation(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedVariableDesignation(this);
 
-            public ParenthesizedVariableDesignationSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<VariableDesignationSyntax> variables, SyntaxToken closeParenToken)
+        public ParenthesizedVariableDesignationSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<VariableDesignationSyntax> variables, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || variables != this.Variables || closeParenToken != this.CloseParenToken)
             {
-                if (openParenToken != this.OpenParenToken || variables != this.Variables || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.ParenthesizedVariableDesignation(openParenToken, variables, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ParenthesizedVariableDesignation(openParenToken, variables, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ParenthesizedVariableDesignationSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -6400,19 +6400,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExpressionStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExpressionStatement(this);
 
-            public ExpressionStatementSyntax Update(ExpressionSyntax expression, SyntaxToken semicolonToken)
+        public ExpressionStatementSyntax Update(ExpressionSyntax expression, SyntaxToken semicolonToken)
+        {
+            if (expression != this.Expression || semicolonToken != this.SemicolonToken)
             {
-                if (expression != this.Expression || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.ExpressionStatement(expression, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ExpressionStatement(expression, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ExpressionStatementSyntax WithExpression(ExpressionSyntax expression)
             {
@@ -6441,19 +6441,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEmptyStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEmptyStatement(this);
 
-            public EmptyStatementSyntax Update(SyntaxToken semicolonToken)
+        public EmptyStatementSyntax Update(SyntaxToken semicolonToken)
+        {
+            if (semicolonToken != this.SemicolonToken)
             {
-                if (semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.EmptyStatement(semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.EmptyStatement(semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public EmptyStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken)
             {
@@ -6486,19 +6486,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLabeledStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLabeledStatement(this);
 
-            public LabeledStatementSyntax Update(SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
+        public LabeledStatementSyntax Update(SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
+        {
+            if (identifier != this.Identifier || colonToken != this.ColonToken || statement != this.Statement)
             {
-                if (identifier != this.Identifier || colonToken != this.ColonToken || statement != this.Statement)
-                {
-                    var newNode = SyntaxFactory.LabeledStatement(identifier, colonToken, statement);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.LabeledStatement(identifier, colonToken, statement);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public LabeledStatementSyntax WithIdentifier(SyntaxToken identifier)
             {
@@ -6564,19 +6564,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGotoStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitGotoStatement(this);
 
-            public GotoStatementSyntax Update(SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+        public GotoStatementSyntax Update(SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+        {
+            if (gotoKeyword != this.GotoKeyword || caseOrDefaultKeyword != this.CaseOrDefaultKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
             {
-                if (gotoKeyword != this.GotoKeyword || caseOrDefaultKeyword != this.CaseOrDefaultKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.GotoStatement(this.Kind(), gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.GotoStatement(this.Kind(), gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public GotoStatementSyntax WithGotoKeyword(SyntaxToken gotoKeyword)
             {
@@ -6617,19 +6617,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBreakStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBreakStatement(this);
 
-            public BreakStatementSyntax Update(SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+        public BreakStatementSyntax Update(SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+        {
+            if (breakKeyword != this.BreakKeyword || semicolonToken != this.SemicolonToken)
             {
-                if (breakKeyword != this.BreakKeyword || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.BreakStatement(breakKeyword, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.BreakStatement(breakKeyword, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public BreakStatementSyntax WithBreakKeyword(SyntaxToken breakKeyword)
             {
@@ -6660,19 +6660,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitContinueStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitContinueStatement(this);
 
-            public ContinueStatementSyntax Update(SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+        public ContinueStatementSyntax Update(SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+        {
+            if (continueKeyword != this.ContinueKeyword || semicolonToken != this.SemicolonToken)
             {
-                if (continueKeyword != this.ContinueKeyword || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.ContinueStatement(continueKeyword, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ContinueStatement(continueKeyword, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ContinueStatementSyntax WithContinueKeyword(SyntaxToken continueKeyword)
             {
@@ -6707,19 +6707,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitReturnStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitReturnStatement(this);
 
-            public ReturnStatementSyntax Update(SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+        public ReturnStatementSyntax Update(SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+        {
+            if (returnKeyword != this.ReturnKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
             {
-                if (returnKeyword != this.ReturnKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.ReturnStatement(returnKeyword, expression, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ReturnStatement(returnKeyword, expression, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ReturnStatementSyntax WithReturnKeyword(SyntaxToken returnKeyword)
             {
@@ -6759,19 +6759,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThrowStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitThrowStatement(this);
 
-            public ThrowStatementSyntax Update(SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+        public ThrowStatementSyntax Update(SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+        {
+            if (throwKeyword != this.ThrowKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
             {
-                if (throwKeyword != this.ThrowKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.ThrowStatement(throwKeyword, expression, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ThrowStatement(throwKeyword, expression, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ThrowStatementSyntax WithThrowKeyword(SyntaxToken throwKeyword)
             {
@@ -6813,19 +6813,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitYieldStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitYieldStatement(this);
 
-            public YieldStatementSyntax Update(SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+        public YieldStatementSyntax Update(SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+        {
+            if (yieldKeyword != this.YieldKeyword || returnOrBreakKeyword != this.ReturnOrBreakKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
             {
-                if (yieldKeyword != this.YieldKeyword || returnOrBreakKeyword != this.ReturnOrBreakKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.YieldStatement(this.Kind(), yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.YieldStatement(this.Kind(), yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public YieldStatementSyntax WithYieldKeyword(SyntaxToken yieldKeyword)
             {
@@ -6887,19 +6887,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhileStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWhileStatement(this);
 
-            public WhileStatementSyntax Update(SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
+        public WhileStatementSyntax Update(SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            if (whileKeyword != this.WhileKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || statement != this.Statement)
             {
-                if (whileKeyword != this.WhileKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || statement != this.Statement)
-                {
-                    var newNode = SyntaxFactory.WhileStatement(whileKeyword, openParenToken, condition, closeParenToken, statement);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.WhileStatement(whileKeyword, openParenToken, condition, closeParenToken, statement);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public WhileStatementSyntax WithWhileKeyword(SyntaxToken whileKeyword)
             {
@@ -6970,19 +6970,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDoStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDoStatement(this);
 
-            public DoStatementSyntax Update(SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
+        public DoStatementSyntax Update(SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
+        {
+            if (doKeyword != this.DoKeyword || statement != this.Statement || whileKeyword != this.WhileKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || semicolonToken != this.SemicolonToken)
             {
-                if (doKeyword != this.DoKeyword || statement != this.Statement || whileKeyword != this.WhileKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.DoStatement(doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DoStatement(doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public DoStatementSyntax WithDoKeyword(SyntaxToken doKeyword)
             {
@@ -7096,19 +7096,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForStatement(this);
 
-            public ForStatementSyntax Update(SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
+        public ForStatementSyntax Update(SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            if (forKeyword != this.ForKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || initializers != this.Initializers || firstSemicolonToken != this.FirstSemicolonToken || condition != this.Condition || secondSemicolonToken != this.SecondSemicolonToken || incrementors != this.Incrementors || closeParenToken != this.CloseParenToken || statement != this.Statement)
             {
-                if (forKeyword != this.ForKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || initializers != this.Initializers || firstSemicolonToken != this.FirstSemicolonToken || condition != this.Condition || secondSemicolonToken != this.SecondSemicolonToken || incrementors != this.Incrementors || closeParenToken != this.CloseParenToken || statement != this.Statement)
-                {
-                    var newNode = SyntaxFactory.ForStatement(forKeyword, openParenToken, declaration, initializers, firstSemicolonToken, condition, secondSemicolonToken, incrementors, closeParenToken, statement);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ForStatement(forKeyword, openParenToken, declaration, initializers, firstSemicolonToken, condition, secondSemicolonToken, incrementors, closeParenToken, statement);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ForStatementSyntax WithForKeyword(SyntaxToken forKeyword)
             {
@@ -7267,19 +7267,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForEachStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForEachStatement(this);
 
-            public ForEachStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        public ForEachStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            if (awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
             {
-                if (awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
-                {
-                    var newNode = SyntaxFactory.ForEachStatement(awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ForEachStatement(awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword) => WithAwaitKeyword(awaitKeyword);
             public new ForEachStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
@@ -7397,19 +7397,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForEachVariableStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitForEachVariableStatement(this);
 
-            public ForEachVariableStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        public ForEachVariableStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            if (awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || variable != this.Variable || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
             {
-                if (awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || variable != this.Variable || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
-                {
-                    var newNode = SyntaxFactory.ForEachVariableStatement(awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ForEachVariableStatement(awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword) => WithAwaitKeyword(awaitKeyword);
             public new ForEachVariableStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
@@ -7514,19 +7514,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUsingStatement(this);
 
-            public UsingStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        public UsingStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
             {
-                if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
-                {
-                    var newNode = SyntaxFactory.UsingStatement(awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.UsingStatement(awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public UsingStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
             {
@@ -7603,19 +7603,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFixedStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFixedStatement(this);
 
-            public FixedStatementSyntax Update(SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
+        public FixedStatementSyntax Update(SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            if (fixedKeyword != this.FixedKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || closeParenToken != this.CloseParenToken || statement != this.Statement)
             {
-                if (fixedKeyword != this.FixedKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || closeParenToken != this.CloseParenToken || statement != this.Statement)
-                {
-                    var newNode = SyntaxFactory.FixedStatement(fixedKeyword, openParenToken, declaration, closeParenToken, statement);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.FixedStatement(fixedKeyword, openParenToken, declaration, closeParenToken, statement);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public FixedStatementSyntax WithFixedKeyword(SyntaxToken fixedKeyword)
             {
@@ -7668,19 +7668,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCheckedStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCheckedStatement(this);
 
-            public CheckedStatementSyntax Update(SyntaxToken keyword, BlockSyntax block)
+        public CheckedStatementSyntax Update(SyntaxToken keyword, BlockSyntax block)
+        {
+            if (keyword != this.Keyword || block != this.Block)
             {
-                if (keyword != this.Keyword || block != this.Block)
-                {
-                    var newNode = SyntaxFactory.CheckedStatement(this.Kind(), keyword, block);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CheckedStatement(this.Kind(), keyword, block);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public CheckedStatementSyntax WithKeyword(SyntaxToken keyword)
             {
@@ -7718,19 +7718,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnsafeStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnsafeStatement(this);
 
-            public UnsafeStatementSyntax Update(SyntaxToken unsafeKeyword, BlockSyntax block)
+        public UnsafeStatementSyntax Update(SyntaxToken unsafeKeyword, BlockSyntax block)
+        {
+            if (unsafeKeyword != this.UnsafeKeyword || block != this.Block)
             {
-                if (unsafeKeyword != this.UnsafeKeyword || block != this.Block)
-                {
-                    var newNode = SyntaxFactory.UnsafeStatement(unsafeKeyword, block);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.UnsafeStatement(unsafeKeyword, block);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public UnsafeStatementSyntax WithUnsafeKeyword(SyntaxToken unsafeKeyword)
             {
@@ -7787,19 +7787,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLockStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLockStatement(this);
 
-            public LockStatementSyntax Update(SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        public LockStatementSyntax Update(SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            if (lockKeyword != this.LockKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
             {
-                if (lockKeyword != this.LockKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
-                {
-                    var newNode = SyntaxFactory.LockStatement(lockKeyword, openParenToken, expression, closeParenToken, statement);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.LockStatement(lockKeyword, openParenToken, expression, closeParenToken, statement);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public LockStatementSyntax WithLockKeyword(SyntaxToken lockKeyword)
             {
@@ -7892,19 +7892,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIfStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIfStatement(this);
 
-            public IfStatementSyntax Update(SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
+        public IfStatementSyntax Update(SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
+        {
+            if (ifKeyword != this.IfKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || statement != this.Statement || @else != this.Else)
             {
-                if (ifKeyword != this.IfKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || statement != this.Statement || @else != this.Else)
-                {
-                    var newNode = SyntaxFactory.IfStatement(ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.IfStatement(ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public IfStatementSyntax WithIfKeyword(SyntaxToken ifKeyword)
             {
@@ -7961,19 +7961,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElseClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElseClause(this);
 
-            public ElseClauseSyntax Update(SyntaxToken elseKeyword, StatementSyntax statement)
+        public ElseClauseSyntax Update(SyntaxToken elseKeyword, StatementSyntax statement)
+        {
+            if (elseKeyword != this.ElseKeyword || statement != this.Statement)
             {
-                if (elseKeyword != this.ElseKeyword || statement != this.Statement)
-                {
-                    var newNode = SyntaxFactory.ElseClause(elseKeyword, statement);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ElseClause(elseKeyword, statement);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ElseClauseSyntax WithElseKeyword(SyntaxToken elseKeyword)
             {
@@ -8069,19 +8069,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchStatement(this);
 
-            public SwitchStatementSyntax Update(SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
+        public SwitchStatementSyntax Update(SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
+        {
+            if (switchKeyword != this.SwitchKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken || openBraceToken != this.OpenBraceToken || sections != this.Sections || closeBraceToken != this.CloseBraceToken)
             {
-                if (switchKeyword != this.SwitchKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken || openBraceToken != this.OpenBraceToken || sections != this.Sections || closeBraceToken != this.CloseBraceToken)
-                {
-                    var newNode = SyntaxFactory.SwitchStatement(switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections, closeBraceToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.SwitchStatement(switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections, closeBraceToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public SwitchStatementSyntax WithSwitchKeyword(SyntaxToken switchKeyword)
             {
@@ -8164,19 +8164,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchSection(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchSection(this);
 
-            public SwitchSectionSyntax Update(SyntaxList<SwitchLabelSyntax> labels, SyntaxList<StatementSyntax> statements)
+        public SwitchSectionSyntax Update(SyntaxList<SwitchLabelSyntax> labels, SyntaxList<StatementSyntax> statements)
+        {
+            if (labels != this.Labels || statements != this.Statements)
             {
-                if (labels != this.Labels || statements != this.Statements)
-                {
-                    var newNode = SyntaxFactory.SwitchSection(labels, statements);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.SwitchSection(labels, statements);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public SwitchSectionSyntax WithLabels(SyntaxList<SwitchLabelSyntax> labels)
             {
@@ -8264,19 +8264,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCasePatternSwitchLabel(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCasePatternSwitchLabel(this);
 
-            public CasePatternSwitchLabelSyntax Update(SyntaxToken keyword, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken colonToken)
+        public CasePatternSwitchLabelSyntax Update(SyntaxToken keyword, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken colonToken)
+        {
+            if (keyword != this.Keyword || pattern != this.Pattern || whenClause != this.WhenClause || colonToken != this.ColonToken)
             {
-                if (keyword != this.Keyword || pattern != this.Pattern || whenClause != this.WhenClause || colonToken != this.ColonToken)
-                {
-                    var newNode = SyntaxFactory.CasePatternSwitchLabel(keyword, pattern, whenClause, colonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CasePatternSwitchLabel(keyword, pattern, whenClause, colonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override SwitchLabelSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
             public new CasePatternSwitchLabelSyntax WithKeyword(SyntaxToken keyword)
@@ -8328,19 +8328,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCaseSwitchLabel(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCaseSwitchLabel(this);
 
-            public CaseSwitchLabelSyntax Update(SyntaxToken keyword, ExpressionSyntax value, SyntaxToken colonToken)
+        public CaseSwitchLabelSyntax Update(SyntaxToken keyword, ExpressionSyntax value, SyntaxToken colonToken)
+        {
+            if (keyword != this.Keyword || value != this.Value || colonToken != this.ColonToken)
             {
-                if (keyword != this.Keyword || value != this.Value || colonToken != this.ColonToken)
-                {
-                    var newNode = SyntaxFactory.CaseSwitchLabel(keyword, value, colonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CaseSwitchLabel(keyword, value, colonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override SwitchLabelSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
             public new CaseSwitchLabelSyntax WithKeyword(SyntaxToken keyword)
@@ -8380,19 +8380,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultSwitchLabel(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefaultSwitchLabel(this);
 
-            public DefaultSwitchLabelSyntax Update(SyntaxToken keyword, SyntaxToken colonToken)
+        public DefaultSwitchLabelSyntax Update(SyntaxToken keyword, SyntaxToken colonToken)
+        {
+            if (keyword != this.Keyword || colonToken != this.ColonToken)
             {
-                if (keyword != this.Keyword || colonToken != this.ColonToken)
-                {
-                    var newNode = SyntaxFactory.DefaultSwitchLabel(keyword, colonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DefaultSwitchLabel(keyword, colonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override SwitchLabelSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
             public new DefaultSwitchLabelSyntax WithKeyword(SyntaxToken keyword)
@@ -8455,19 +8455,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchExpression(this);
 
-            public SwitchExpressionSyntax Update(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
+        public SwitchExpressionSyntax Update(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
+        {
+            if (governingExpression != this.GoverningExpression || switchKeyword != this.SwitchKeyword || openBraceToken != this.OpenBraceToken || arms != this.Arms || closeBraceToken != this.CloseBraceToken)
             {
-                if (governingExpression != this.GoverningExpression || switchKeyword != this.SwitchKeyword || openBraceToken != this.OpenBraceToken || arms != this.Arms || closeBraceToken != this.CloseBraceToken)
-                {
-                    var newNode = SyntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public SwitchExpressionSyntax WithGoverningExpression(ExpressionSyntax governingExpression)
             {
@@ -8540,19 +8540,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchExpressionArm(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSwitchExpressionArm(this);
 
-            public SwitchExpressionArmSyntax Update(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+        public SwitchExpressionArmSyntax Update(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+        {
+            if (pattern != this.Pattern || whenClause != this.WhenClause || equalsGreaterThanToken != this.EqualsGreaterThanToken || expression != this.Expression)
             {
-                if (pattern != this.Pattern || whenClause != this.WhenClause || equalsGreaterThanToken != this.EqualsGreaterThanToken || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.SwitchExpressionArm(pattern, whenClause, equalsGreaterThanToken, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.SwitchExpressionArm(pattern, whenClause, equalsGreaterThanToken, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public SwitchExpressionArmSyntax WithPattern(PatternSyntax pattern)
             {
@@ -8615,19 +8615,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTryStatement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTryStatement(this);
 
-            public TryStatementSyntax Update(SyntaxToken tryKeyword, BlockSyntax block, SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
+        public TryStatementSyntax Update(SyntaxToken tryKeyword, BlockSyntax block, SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
+        {
+            if (tryKeyword != this.TryKeyword || block != this.Block || catches != this.Catches || @finally != this.Finally)
             {
-                if (tryKeyword != this.TryKeyword || block != this.Block || catches != this.Catches || @finally != this.Finally)
-                {
-                    var newNode = SyntaxFactory.TryStatement(tryKeyword, block, catches, @finally);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TryStatement(tryKeyword, block, catches, @finally);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TryStatementSyntax WithTryKeyword(SyntaxToken tryKeyword)
             {
@@ -8700,19 +8700,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchClause(this);
 
-            public CatchClauseSyntax Update(SyntaxToken catchKeyword, CatchDeclarationSyntax declaration, CatchFilterClauseSyntax filter, BlockSyntax block)
+        public CatchClauseSyntax Update(SyntaxToken catchKeyword, CatchDeclarationSyntax declaration, CatchFilterClauseSyntax filter, BlockSyntax block)
+        {
+            if (catchKeyword != this.CatchKeyword || declaration != this.Declaration || filter != this.Filter || block != this.Block)
             {
-                if (catchKeyword != this.CatchKeyword || declaration != this.Declaration || filter != this.Filter || block != this.Block)
-                {
-                    var newNode = SyntaxFactory.CatchClause(catchKeyword, declaration, filter, block);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CatchClause(catchKeyword, declaration, filter, block);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public CatchClauseSyntax WithCatchKeyword(SyntaxToken catchKeyword)
             {
@@ -8773,19 +8773,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchDeclaration(this);
 
-            public CatchDeclarationSyntax Update(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken closeParenToken)
+        public CatchDeclarationSyntax Update(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || type != this.Type || identifier != this.Identifier || closeParenToken != this.CloseParenToken)
             {
-                if (openParenToken != this.OpenParenToken || type != this.Type || identifier != this.Identifier || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.CatchDeclaration(openParenToken, type, identifier, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CatchDeclaration(openParenToken, type, identifier, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public CatchDeclarationSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -8832,19 +8832,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchFilterClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCatchFilterClause(this);
 
-            public CatchFilterClauseSyntax Update(SyntaxToken whenKeyword, SyntaxToken openParenToken, ExpressionSyntax filterExpression, SyntaxToken closeParenToken)
+        public CatchFilterClauseSyntax Update(SyntaxToken whenKeyword, SyntaxToken openParenToken, ExpressionSyntax filterExpression, SyntaxToken closeParenToken)
+        {
+            if (whenKeyword != this.WhenKeyword || openParenToken != this.OpenParenToken || filterExpression != this.FilterExpression || closeParenToken != this.CloseParenToken)
             {
-                if (whenKeyword != this.WhenKeyword || openParenToken != this.OpenParenToken || filterExpression != this.FilterExpression || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.CatchFilterClause(whenKeyword, openParenToken, filterExpression, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CatchFilterClause(whenKeyword, openParenToken, filterExpression, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public CatchFilterClauseSyntax WithWhenKeyword(SyntaxToken whenKeyword)
             {
@@ -8887,19 +8887,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFinallyClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFinallyClause(this);
 
-            public FinallyClauseSyntax Update(SyntaxToken finallyKeyword, BlockSyntax block)
+        public FinallyClauseSyntax Update(SyntaxToken finallyKeyword, BlockSyntax block)
+        {
+            if (finallyKeyword != this.FinallyKeyword || block != this.Block)
             {
-                if (finallyKeyword != this.FinallyKeyword || block != this.Block)
-                {
-                    var newNode = SyntaxFactory.FinallyClause(finallyKeyword, block);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.FinallyClause(finallyKeyword, block);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public FinallyClauseSyntax WithFinallyKeyword(SyntaxToken finallyKeyword)
             {
@@ -8963,19 +8963,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCompilationUnit(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCompilationUnit(this);
 
-            public CompilationUnitSyntax Update(SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<AttributeListSyntax> attributeLists, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken endOfFileToken)
+        public CompilationUnitSyntax Update(SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<AttributeListSyntax> attributeLists, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken endOfFileToken)
+        {
+            if (externs != this.Externs || usings != this.Usings || attributeLists != this.AttributeLists || members != this.Members || endOfFileToken != this.EndOfFileToken)
             {
-                if (externs != this.Externs || usings != this.Usings || attributeLists != this.AttributeLists || members != this.Members || endOfFileToken != this.EndOfFileToken)
-                {
-                    var newNode = SyntaxFactory.CompilationUnit(externs, usings, attributeLists, members, endOfFileToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CompilationUnit(externs, usings, attributeLists, members, endOfFileToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public CompilationUnitSyntax WithExterns(SyntaxList<ExternAliasDirectiveSyntax> externs)
             {
@@ -9052,19 +9052,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExternAliasDirective(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExternAliasDirective(this);
 
-            public ExternAliasDirectiveSyntax Update(SyntaxToken externKeyword, SyntaxToken aliasKeyword, SyntaxToken identifier, SyntaxToken semicolonToken)
+        public ExternAliasDirectiveSyntax Update(SyntaxToken externKeyword, SyntaxToken aliasKeyword, SyntaxToken identifier, SyntaxToken semicolonToken)
+        {
+            if (externKeyword != this.ExternKeyword || aliasKeyword != this.AliasKeyword || identifier != this.Identifier || semicolonToken != this.SemicolonToken)
             {
-                if (externKeyword != this.ExternKeyword || aliasKeyword != this.AliasKeyword || identifier != this.Identifier || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.ExternAliasDirective(externKeyword, aliasKeyword, identifier, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ExternAliasDirective(externKeyword, aliasKeyword, identifier, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ExternAliasDirectiveSyntax WithExternKeyword(SyntaxToken externKeyword)
             {
@@ -9135,19 +9135,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingDirective(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUsingDirective(this);
 
-            public UsingDirectiveSyntax Update(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax alias, NameSyntax name, SyntaxToken semicolonToken)
+        public UsingDirectiveSyntax Update(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax alias, NameSyntax name, SyntaxToken semicolonToken)
+        {
+            if (usingKeyword != this.UsingKeyword || staticKeyword != this.StaticKeyword || alias != this.Alias || name != this.Name || semicolonToken != this.SemicolonToken)
             {
-                if (usingKeyword != this.UsingKeyword || staticKeyword != this.StaticKeyword || alias != this.Alias || name != this.Name || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.UsingDirective(usingKeyword, staticKeyword, alias, name, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.UsingDirective(usingKeyword, staticKeyword, alias, name, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public UsingDirectiveSyntax WithUsingKeyword(SyntaxToken usingKeyword)
             {
@@ -9277,19 +9277,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNamespaceDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNamespaceDeclaration(this);
 
-            public NamespaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public NamespaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || namespaceKeyword != this.NamespaceKeyword || name != this.Name || openBraceToken != this.OpenBraceToken || externs != this.Externs || usings != this.Usings || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || namespaceKeyword != this.NamespaceKeyword || name != this.Name || openBraceToken != this.OpenBraceToken || externs != this.Externs || usings != this.Usings || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.NamespaceDeclaration(attributeLists, modifiers, namespaceKeyword, name, openBraceToken, externs, usings, members, closeBraceToken, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.NamespaceDeclaration(attributeLists, modifiers, namespaceKeyword, name, openBraceToken, externs, usings, members, closeBraceToken, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new NamespaceDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -9422,19 +9422,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeList(this);
 
-            public AttributeListSyntax Update(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax target, SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)
+        public AttributeListSyntax Update(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax target, SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken != this.OpenBracketToken || target != this.Target || attributes != this.Attributes || closeBracketToken != this.CloseBracketToken)
             {
-                if (openBracketToken != this.OpenBracketToken || target != this.Target || attributes != this.Attributes || closeBracketToken != this.CloseBracketToken)
-                {
-                    var newNode = SyntaxFactory.AttributeList(openBracketToken, target, attributes, closeBracketToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AttributeList(openBracketToken, target, attributes, closeBracketToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AttributeListSyntax WithOpenBracketToken(SyntaxToken openBracketToken)
             {
@@ -9483,19 +9483,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeTargetSpecifier(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeTargetSpecifier(this);
 
-            public AttributeTargetSpecifierSyntax Update(SyntaxToken identifier, SyntaxToken colonToken)
+        public AttributeTargetSpecifierSyntax Update(SyntaxToken identifier, SyntaxToken colonToken)
+        {
+            if (identifier != this.Identifier || colonToken != this.ColonToken)
             {
-                if (identifier != this.Identifier || colonToken != this.ColonToken)
-                {
-                    var newNode = SyntaxFactory.AttributeTargetSpecifier(identifier, colonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AttributeTargetSpecifier(identifier, colonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AttributeTargetSpecifierSyntax WithIdentifier(SyntaxToken identifier)
             {
@@ -9543,19 +9543,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttribute(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttribute(this);
 
-            public AttributeSyntax Update(NameSyntax name, AttributeArgumentListSyntax argumentList)
+        public AttributeSyntax Update(NameSyntax name, AttributeArgumentListSyntax argumentList)
+        {
+            if (name != this.Name || argumentList != this.ArgumentList)
             {
-                if (name != this.Name || argumentList != this.ArgumentList)
-                {
-                    var newNode = SyntaxFactory.Attribute(name, argumentList);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.Attribute(name, argumentList);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AttributeSyntax WithName(NameSyntax name)
             {
@@ -9609,19 +9609,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeArgumentList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeArgumentList(this);
 
-            public AttributeArgumentListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
+        public AttributeArgumentListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || arguments != this.Arguments || closeParenToken != this.CloseParenToken)
             {
-                if (openParenToken != this.OpenParenToken || arguments != this.Arguments || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.AttributeArgumentList(openParenToken, arguments, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AttributeArgumentList(openParenToken, arguments, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AttributeArgumentListSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -9684,19 +9684,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeArgument(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAttributeArgument(this);
 
-            public AttributeArgumentSyntax Update(NameEqualsSyntax nameEquals, NameColonSyntax nameColon, ExpressionSyntax expression)
+        public AttributeArgumentSyntax Update(NameEqualsSyntax nameEquals, NameColonSyntax nameColon, ExpressionSyntax expression)
+        {
+            if (nameEquals != this.NameEquals || nameColon != this.NameColon || expression != this.Expression)
             {
-                if (nameEquals != this.NameEquals || nameColon != this.NameColon || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.AttributeArgument(nameEquals, nameColon, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AttributeArgument(nameEquals, nameColon, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AttributeArgumentSyntax WithNameEquals(NameEqualsSyntax nameEquals)
             {
@@ -9736,19 +9736,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameEquals(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameEquals(this);
 
-            public NameEqualsSyntax Update(IdentifierNameSyntax name, SyntaxToken equalsToken)
+        public NameEqualsSyntax Update(IdentifierNameSyntax name, SyntaxToken equalsToken)
+        {
+            if (name != this.Name || equalsToken != this.EqualsToken)
             {
-                if (name != this.Name || equalsToken != this.EqualsToken)
-                {
-                    var newNode = SyntaxFactory.NameEquals(name, equalsToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.NameEquals(name, equalsToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public NameEqualsSyntax WithName(IdentifierNameSyntax name)
             {
@@ -9796,19 +9796,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameterList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameterList(this);
 
-            public TypeParameterListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<TypeParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        public TypeParameterListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<TypeParameterSyntax> parameters, SyntaxToken greaterThanToken)
+        {
+            if (lessThanToken != this.LessThanToken || parameters != this.Parameters || greaterThanToken != this.GreaterThanToken)
             {
-                if (lessThanToken != this.LessThanToken || parameters != this.Parameters || greaterThanToken != this.GreaterThanToken)
-                {
-                    var newNode = SyntaxFactory.TypeParameterList(lessThanToken, parameters, greaterThanToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TypeParameterList(lessThanToken, parameters, greaterThanToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TypeParameterListSyntax WithLessThanToken(SyntaxToken lessThanToken)
             {
@@ -9865,19 +9865,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameter(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameter(this);
 
-            public TypeParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken varianceKeyword, SyntaxToken identifier)
+        public TypeParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken varianceKeyword, SyntaxToken identifier)
+        {
+            if (attributeLists != this.AttributeLists || varianceKeyword != this.VarianceKeyword || identifier != this.Identifier)
             {
-                if (attributeLists != this.AttributeLists || varianceKeyword != this.VarianceKeyword || identifier != this.Identifier)
-                {
-                    var newNode = SyntaxFactory.TypeParameter(attributeLists, varianceKeyword, identifier);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TypeParameter(attributeLists, varianceKeyword, identifier);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TypeParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
             {
@@ -10069,19 +10069,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitClassDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitClassDeclaration(this);
 
-            public ClassDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public ClassDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.ClassDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ClassDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new ClassDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -10268,19 +10268,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitStructDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitStructDeclaration(this);
 
-            public StructDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public StructDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new StructDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -10467,19 +10467,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterfaceDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitInterfaceDeclaration(this);
 
-            public InterfaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public InterfaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.InterfaceDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.InterfaceDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new InterfaceDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -10667,19 +10667,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEnumDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEnumDeclaration(this);
 
-            public EnumDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax baseList, SyntaxToken openBraceToken, SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public EnumDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax baseList, SyntaxToken openBraceToken, SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || enumKeyword != this.EnumKeyword || identifier != this.Identifier || baseList != this.BaseList || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || enumKeyword != this.EnumKeyword || identifier != this.Identifier || baseList != this.BaseList || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.EnumDeclaration(attributeLists, modifiers, enumKeyword, identifier, baseList, openBraceToken, members, closeBraceToken, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.EnumDeclaration(attributeLists, modifiers, enumKeyword, identifier, baseList, openBraceToken, members, closeBraceToken, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new EnumDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -10830,19 +10830,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDelegateDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDelegateDeclaration(this);
 
-            public DelegateDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken semicolonToken)
+        public DelegateDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || delegateKeyword != this.DelegateKeyword || returnType != this.ReturnType || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || constraintClauses != this.ConstraintClauses || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || delegateKeyword != this.DelegateKeyword || returnType != this.ReturnType || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || constraintClauses != this.ConstraintClauses || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.DelegateDeclaration(attributeLists, modifiers, delegateKeyword, returnType, identifier, typeParameterList, parameterList, constraintClauses, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DelegateDeclaration(attributeLists, modifiers, delegateKeyword, returnType, identifier, typeParameterList, parameterList, constraintClauses, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new DelegateDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -10967,19 +10967,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEnumMemberDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEnumMemberDeclaration(this);
 
-            public EnumMemberDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
+        public EnumMemberDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || identifier != this.Identifier || equalsValue != this.EqualsValue)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || identifier != this.Identifier || equalsValue != this.EqualsValue)
-                {
-                    var newNode = SyntaxFactory.EnumMemberDeclaration(attributeLists, modifiers, identifier, equalsValue);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.EnumMemberDeclaration(attributeLists, modifiers, identifier, equalsValue);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new EnumMemberDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -11048,19 +11048,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBaseList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBaseList(this);
 
-            public BaseListSyntax Update(SyntaxToken colonToken, SeparatedSyntaxList<BaseTypeSyntax> types)
+        public BaseListSyntax Update(SyntaxToken colonToken, SeparatedSyntaxList<BaseTypeSyntax> types)
+        {
+            if (colonToken != this.ColonToken || types != this.Types)
             {
-                if (colonToken != this.ColonToken || types != this.Types)
-                {
-                    var newNode = SyntaxFactory.BaseList(colonToken, types);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.BaseList(colonToken, types);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public BaseListSyntax WithColonToken(SyntaxToken colonToken)
             {
@@ -11109,19 +11109,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleBaseType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSimpleBaseType(this);
 
-            public SimpleBaseTypeSyntax Update(TypeSyntax type)
+        public SimpleBaseTypeSyntax Update(TypeSyntax type)
+        {
+            if (type != this.Type)
             {
-                if (type != this.Type)
-                {
-                    var newNode = SyntaxFactory.SimpleBaseType(type);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.SimpleBaseType(type);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override BaseTypeSyntax WithTypeCore(TypeSyntax type) => WithType(type);
             public new SimpleBaseTypeSyntax WithType(TypeSyntax type)
@@ -11180,19 +11180,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameterConstraintClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeParameterConstraintClause(this);
 
-            public TypeParameterConstraintClauseSyntax Update(SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraints)
+        public TypeParameterConstraintClauseSyntax Update(SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraints)
+        {
+            if (whereKeyword != this.WhereKeyword || name != this.Name || colonToken != this.ColonToken || constraints != this.Constraints)
             {
-                if (whereKeyword != this.WhereKeyword || name != this.Name || colonToken != this.ColonToken || constraints != this.Constraints)
-                {
-                    var newNode = SyntaxFactory.TypeParameterConstraintClause(whereKeyword, name, colonToken, constraints);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TypeParameterConstraintClause(whereKeyword, name, colonToken, constraints);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TypeParameterConstraintClauseSyntax WithWhereKeyword(SyntaxToken whereKeyword)
             {
@@ -11253,19 +11253,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorConstraint(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorConstraint(this);
 
-            public ConstructorConstraintSyntax Update(SyntaxToken newKeyword, SyntaxToken openParenToken, SyntaxToken closeParenToken)
+        public ConstructorConstraintSyntax Update(SyntaxToken newKeyword, SyntaxToken openParenToken, SyntaxToken closeParenToken)
+        {
+            if (newKeyword != this.NewKeyword || openParenToken != this.OpenParenToken || closeParenToken != this.CloseParenToken)
             {
-                if (newKeyword != this.NewKeyword || openParenToken != this.OpenParenToken || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.ConstructorConstraint(newKeyword, openParenToken, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ConstructorConstraint(newKeyword, openParenToken, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ConstructorConstraintSyntax WithNewKeyword(SyntaxToken newKeyword)
             {
@@ -11313,19 +11313,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitClassOrStructConstraint(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitClassOrStructConstraint(this);
 
-            public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
+        public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
+        {
+            if (classOrStructKeyword != this.ClassOrStructKeyword || questionToken != this.QuestionToken)
             {
-                if (classOrStructKeyword != this.ClassOrStructKeyword || questionToken != this.QuestionToken)
-                {
-                    var newNode = SyntaxFactory.ClassOrStructConstraint(this.Kind(), classOrStructKeyword, questionToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ClassOrStructConstraint(this.Kind(), classOrStructKeyword, questionToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ClassOrStructConstraintSyntax WithClassOrStructKeyword(SyntaxToken classOrStructKeyword)
             {
@@ -11358,19 +11358,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeConstraint(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeConstraint(this);
 
-            public TypeConstraintSyntax Update(TypeSyntax type)
+        public TypeConstraintSyntax Update(TypeSyntax type)
+        {
+            if (type != this.Type)
             {
-                if (type != this.Type)
-                {
-                    var newNode = SyntaxFactory.TypeConstraint(type);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TypeConstraint(type);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TypeConstraintSyntax WithType(TypeSyntax type)
             {
@@ -11450,19 +11450,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFieldDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitFieldDeclaration(this);
 
-            public FieldDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+        public FieldDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.FieldDeclaration(attributeLists, modifiers, declaration, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.FieldDeclaration(attributeLists, modifiers, declaration, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new FieldDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -11555,19 +11555,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEventFieldDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEventFieldDeclaration(this);
 
-            public EventFieldDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+        public EventFieldDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || eventKeyword != this.EventKeyword || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || eventKeyword != this.EventKeyword || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.EventFieldDeclaration(attributeLists, modifiers, eventKeyword, declaration, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.EventFieldDeclaration(attributeLists, modifiers, eventKeyword, declaration, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new EventFieldDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -11637,19 +11637,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExplicitInterfaceSpecifier(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExplicitInterfaceSpecifier(this);
 
-            public ExplicitInterfaceSpecifierSyntax Update(NameSyntax name, SyntaxToken dotToken)
+        public ExplicitInterfaceSpecifierSyntax Update(NameSyntax name, SyntaxToken dotToken)
+        {
+            if (name != this.Name || dotToken != this.DotToken)
             {
-                if (name != this.Name || dotToken != this.DotToken)
-                {
-                    var newNode = SyntaxFactory.ExplicitInterfaceSpecifier(name, dotToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ExplicitInterfaceSpecifier(name, dotToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ExplicitInterfaceSpecifierSyntax WithName(NameSyntax name)
             {
@@ -11794,19 +11794,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMethodDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitMethodDeclaration(this);
 
-            public MethodDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        public MethodDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || constraintClauses != this.ConstraintClauses || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || constraintClauses != this.ConstraintClauses || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.MethodDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.MethodDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new MethodDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -11985,19 +11985,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOperatorDeclaration(this);
 
-            public OperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        public OperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || operatorKeyword != this.OperatorKeyword || operatorToken != this.OperatorToken || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || operatorKeyword != this.OperatorKeyword || operatorToken != this.OperatorToken || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.OperatorDeclaration(attributeLists, modifiers, returnType, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.OperatorDeclaration(attributeLists, modifiers, returnType, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new OperatorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -12155,19 +12155,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConversionOperatorDeclaration(this);
 
-            public ConversionOperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        public ConversionOperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || operatorKeyword != this.OperatorKeyword || type != this.Type || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || operatorKeyword != this.OperatorKeyword || type != this.Type || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.ConversionOperatorDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ConversionOperatorDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new ConversionOperatorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -12321,19 +12321,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorDeclaration(this);
 
-            public ConstructorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax initializer, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        public ConstructorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax initializer, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || identifier != this.Identifier || parameterList != this.ParameterList || initializer != this.Initializer || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || identifier != this.Identifier || parameterList != this.ParameterList || initializer != this.Initializer || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.ConstructorDeclaration(attributeLists, modifiers, identifier, parameterList, initializer, body, expressionBody, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ConstructorDeclaration(attributeLists, modifiers, identifier, parameterList, initializer, body, expressionBody, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new ConstructorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -12432,19 +12432,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorInitializer(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConstructorInitializer(this);
 
-            public ConstructorInitializerSyntax Update(SyntaxToken colonToken, SyntaxToken thisOrBaseKeyword, ArgumentListSyntax argumentList)
+        public ConstructorInitializerSyntax Update(SyntaxToken colonToken, SyntaxToken thisOrBaseKeyword, ArgumentListSyntax argumentList)
+        {
+            if (colonToken != this.ColonToken || thisOrBaseKeyword != this.ThisOrBaseKeyword || argumentList != this.ArgumentList)
             {
-                if (colonToken != this.ColonToken || thisOrBaseKeyword != this.ThisOrBaseKeyword || argumentList != this.ArgumentList)
-                {
-                    var newNode = SyntaxFactory.ConstructorInitializer(this.Kind(), colonToken, thisOrBaseKeyword, argumentList);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ConstructorInitializer(this.Kind(), colonToken, thisOrBaseKeyword, argumentList);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ConstructorInitializerSyntax WithColonToken(SyntaxToken colonToken)
             {
@@ -12540,19 +12540,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDestructorDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDestructorDeclaration(this);
 
-            public DestructorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        public DestructorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || tildeToken != this.TildeToken || identifier != this.Identifier || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || tildeToken != this.TildeToken || identifier != this.Identifier || parameterList != this.ParameterList || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.DestructorDeclaration(attributeLists, modifiers, tildeToken, identifier, parameterList, body, expressionBody, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DestructorDeclaration(attributeLists, modifiers, tildeToken, identifier, parameterList, body, expressionBody, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new DestructorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -12737,19 +12737,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPropertyDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPropertyDeclaration(this);
 
-            public PropertyDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
+        public PropertyDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || identifier != this.Identifier || accessorList != this.AccessorList || expressionBody != this.ExpressionBody || initializer != this.Initializer || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || identifier != this.Identifier || accessorList != this.AccessorList || expressionBody != this.ExpressionBody || initializer != this.Initializer || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.PropertyDeclaration(attributeLists, modifiers, type, explicitInterfaceSpecifier, identifier, accessorList, expressionBody, initializer, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.PropertyDeclaration(attributeLists, modifiers, type, explicitInterfaceSpecifier, identifier, accessorList, expressionBody, initializer, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new PropertyDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -12842,19 +12842,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrowExpressionClause(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitArrowExpressionClause(this);
 
-            public ArrowExpressionClauseSyntax Update(SyntaxToken arrowToken, ExpressionSyntax expression)
+        public ArrowExpressionClauseSyntax Update(SyntaxToken arrowToken, ExpressionSyntax expression)
+        {
+            if (arrowToken != this.ArrowToken || expression != this.Expression)
             {
-                if (arrowToken != this.ArrowToken || expression != this.Expression)
-                {
-                    var newNode = SyntaxFactory.ArrowExpressionClause(arrowToken, expression);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ArrowExpressionClause(arrowToken, expression);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ArrowExpressionClauseSyntax WithArrowToken(SyntaxToken arrowToken)
             {
@@ -12937,19 +12937,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEventDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEventDeclaration(this);
 
-            public EventDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, SyntaxToken semicolonToken)
+        public EventDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || eventKeyword != this.EventKeyword || type != this.Type || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || identifier != this.Identifier || accessorList != this.AccessorList || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || eventKeyword != this.EventKeyword || type != this.Type || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || identifier != this.Identifier || accessorList != this.AccessorList || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new EventDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -13094,19 +13094,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIndexerDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIndexerDeclaration(this);
 
-            public IndexerDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        public IndexerDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || thisKeyword != this.ThisKeyword || parameterList != this.ParameterList || accessorList != this.AccessorList || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || explicitInterfaceSpecifier != this.ExplicitInterfaceSpecifier || thisKeyword != this.ThisKeyword || parameterList != this.ParameterList || accessorList != this.AccessorList || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.IndexerDeclaration(attributeLists, modifiers, type, explicitInterfaceSpecifier, thisKeyword, parameterList, accessorList, expressionBody, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.IndexerDeclaration(attributeLists, modifiers, type, explicitInterfaceSpecifier, thisKeyword, parameterList, accessorList, expressionBody, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new IndexerDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -13205,19 +13205,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAccessorList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAccessorList(this);
 
-            public AccessorListSyntax Update(SyntaxToken openBraceToken, SyntaxList<AccessorDeclarationSyntax> accessors, SyntaxToken closeBraceToken)
+        public AccessorListSyntax Update(SyntaxToken openBraceToken, SyntaxList<AccessorDeclarationSyntax> accessors, SyntaxToken closeBraceToken)
+        {
+            if (openBraceToken != this.OpenBraceToken || accessors != this.Accessors || closeBraceToken != this.CloseBraceToken)
             {
-                if (openBraceToken != this.OpenBraceToken || accessors != this.Accessors || closeBraceToken != this.CloseBraceToken)
-                {
-                    var newNode = SyntaxFactory.AccessorList(openBraceToken, accessors, closeBraceToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AccessorList(openBraceToken, accessors, closeBraceToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AccessorListSyntax WithOpenBraceToken(SyntaxToken openBraceToken)
             {
@@ -13308,19 +13308,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAccessorDeclaration(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitAccessorDeclaration(this);
 
-            public AccessorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        public AccessorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || body != this.Body || expressionBody != this.ExpressionBody || semicolonToken != this.SemicolonToken)
-                {
-                    var newNode = SyntaxFactory.AccessorDeclaration(this.Kind(), attributeLists, modifiers, keyword, body, expressionBody, semicolonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.AccessorDeclaration(this.Kind(), attributeLists, modifiers, keyword, body, expressionBody, semicolonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public AccessorDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
             {
@@ -13420,19 +13420,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameterList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParameterList(this);
 
-            public ParameterListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeParenToken)
+        public ParameterListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || parameters != this.Parameters || closeParenToken != this.CloseParenToken)
             {
-                if (openParenToken != this.OpenParenToken || parameters != this.Parameters || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.ParameterList(openParenToken, parameters, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ParameterList(openParenToken, parameters, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ParameterListSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -13491,19 +13491,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBracketedParameterList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBracketedParameterList(this);
 
-            public BracketedParameterListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeBracketToken)
+        public BracketedParameterListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken != this.OpenBracketToken || parameters != this.Parameters || closeBracketToken != this.CloseBracketToken)
             {
-                if (openBracketToken != this.OpenBracketToken || parameters != this.Parameters || closeBracketToken != this.CloseBracketToken)
-                {
-                    var newNode = SyntaxFactory.BracketedParameterList(openBracketToken, parameters, closeBracketToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.BracketedParameterList(openBracketToken, parameters, closeBracketToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public BracketedParameterListSyntax WithOpenBracketToken(SyntaxToken openBracketToken)
             {
@@ -13583,19 +13583,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameter(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParameter(this);
 
-            public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
+        public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || @default != this.Default)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || @default != this.Default)
-                {
-                    var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, @default);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, @default);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
             {
@@ -13677,19 +13677,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIncompleteMember(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIncompleteMember(this);
 
-            public IncompleteMemberSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
+        public IncompleteMemberSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
+        {
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type)
             {
-                if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type)
-                {
-                    var newNode = SyntaxFactory.IncompleteMember(attributeLists, modifiers, type);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.IncompleteMember(attributeLists, modifiers, type);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
             public new IncompleteMemberSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists)
@@ -13746,19 +13746,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSkippedTokensTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSkippedTokensTrivia(this);
 
-            public SkippedTokensTriviaSyntax Update(SyntaxTokenList tokens)
+        public SkippedTokensTriviaSyntax Update(SyntaxTokenList tokens)
+        {
+            if (tokens != this.Tokens)
             {
-                if (tokens != this.Tokens)
-                {
-                    var newNode = SyntaxFactory.SkippedTokensTrivia(tokens);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.SkippedTokensTrivia(tokens);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public SkippedTokensTriviaSyntax WithTokens(SyntaxTokenList tokens)
             {
@@ -13791,19 +13791,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDocumentationCommentTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDocumentationCommentTrivia(this);
 
-            public DocumentationCommentTriviaSyntax Update(SyntaxList<XmlNodeSyntax> content, SyntaxToken endOfComment)
+        public DocumentationCommentTriviaSyntax Update(SyntaxList<XmlNodeSyntax> content, SyntaxToken endOfComment)
+        {
+            if (content != this.Content || endOfComment != this.EndOfComment)
             {
-                if (content != this.Content || endOfComment != this.EndOfComment)
-                {
-                    var newNode = SyntaxFactory.DocumentationCommentTrivia(this.Kind(), content, endOfComment);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DocumentationCommentTrivia(this.Kind(), content, endOfComment);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public DocumentationCommentTriviaSyntax WithContent(SyntaxList<XmlNodeSyntax> content)
             {
@@ -13858,19 +13858,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeCref(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypeCref(this);
 
-            public TypeCrefSyntax Update(TypeSyntax type)
+        public TypeCrefSyntax Update(TypeSyntax type)
+        {
+            if (type != this.Type)
             {
-                if (type != this.Type)
-                {
-                    var newNode = SyntaxFactory.TypeCref(type);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.TypeCref(type);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public TypeCrefSyntax WithType(TypeSyntax type)
             {
@@ -13920,19 +13920,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQualifiedCref(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitQualifiedCref(this);
 
-            public QualifiedCrefSyntax Update(TypeSyntax container, SyntaxToken dotToken, MemberCrefSyntax member)
+        public QualifiedCrefSyntax Update(TypeSyntax container, SyntaxToken dotToken, MemberCrefSyntax member)
+        {
+            if (container != this.Container || dotToken != this.DotToken || member != this.Member)
             {
-                if (container != this.Container || dotToken != this.DotToken || member != this.Member)
-                {
-                    var newNode = SyntaxFactory.QualifiedCref(container, dotToken, member);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.QualifiedCref(container, dotToken, member);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public QualifiedCrefSyntax WithContainer(TypeSyntax container)
             {
@@ -14004,19 +14004,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameMemberCref(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNameMemberCref(this);
 
-            public NameMemberCrefSyntax Update(TypeSyntax name, CrefParameterListSyntax parameters)
+        public NameMemberCrefSyntax Update(TypeSyntax name, CrefParameterListSyntax parameters)
+        {
+            if (name != this.Name || parameters != this.Parameters)
             {
-                if (name != this.Name || parameters != this.Parameters)
-                {
-                    var newNode = SyntaxFactory.NameMemberCref(name, parameters);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.NameMemberCref(name, parameters);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public NameMemberCrefSyntax WithName(TypeSyntax name)
             {
@@ -14059,19 +14059,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIndexerMemberCref(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIndexerMemberCref(this);
 
-            public IndexerMemberCrefSyntax Update(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax parameters)
+        public IndexerMemberCrefSyntax Update(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax parameters)
+        {
+            if (thisKeyword != this.ThisKeyword || parameters != this.Parameters)
             {
-                if (thisKeyword != this.ThisKeyword || parameters != this.Parameters)
-                {
-                    var newNode = SyntaxFactory.IndexerMemberCref(thisKeyword, parameters);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.IndexerMemberCref(thisKeyword, parameters);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public IndexerMemberCrefSyntax WithThisKeyword(SyntaxToken thisKeyword)
             {
@@ -14118,19 +14118,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorMemberCref(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitOperatorMemberCref(this);
 
-            public OperatorMemberCrefSyntax Update(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax parameters)
+        public OperatorMemberCrefSyntax Update(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax parameters)
+        {
+            if (operatorKeyword != this.OperatorKeyword || operatorToken != this.OperatorToken || parameters != this.Parameters)
             {
-                if (operatorKeyword != this.OperatorKeyword || operatorToken != this.OperatorToken || parameters != this.Parameters)
-                {
-                    var newNode = SyntaxFactory.OperatorMemberCref(operatorKeyword, operatorToken, parameters);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.OperatorMemberCref(operatorKeyword, operatorToken, parameters);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public OperatorMemberCrefSyntax WithOperatorKeyword(SyntaxToken operatorKeyword)
             {
@@ -14195,19 +14195,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorMemberCref(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitConversionOperatorMemberCref(this);
 
-            public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax parameters)
+        public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax parameters)
+        {
+            if (implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || operatorKeyword != this.OperatorKeyword || type != this.Type || parameters != this.Parameters)
             {
-                if (implicitOrExplicitKeyword != this.ImplicitOrExplicitKeyword || operatorKeyword != this.OperatorKeyword || type != this.Type || parameters != this.Parameters)
-                {
-                    var newNode = SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, operatorKeyword, type, parameters);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, operatorKeyword, type, parameters);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public ConversionOperatorMemberCrefSyntax WithImplicitOrExplicitKeyword(SyntaxToken implicitOrExplicitKeyword)
             {
@@ -14292,19 +14292,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefParameterList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefParameterList(this);
 
-            public CrefParameterListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeParenToken)
+        public CrefParameterListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || parameters != this.Parameters || closeParenToken != this.CloseParenToken)
             {
-                if (openParenToken != this.OpenParenToken || parameters != this.Parameters || closeParenToken != this.CloseParenToken)
-                {
-                    var newNode = SyntaxFactory.CrefParameterList(openParenToken, parameters, closeParenToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CrefParameterList(openParenToken, parameters, closeParenToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public CrefParameterListSyntax WithOpenParenToken(SyntaxToken openParenToken)
             {
@@ -14365,19 +14365,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefBracketedParameterList(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefBracketedParameterList(this);
 
-            public CrefBracketedParameterListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeBracketToken)
+        public CrefBracketedParameterListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeBracketToken)
+        {
+            if (openBracketToken != this.OpenBracketToken || parameters != this.Parameters || closeBracketToken != this.CloseBracketToken)
             {
-                if (openBracketToken != this.OpenBracketToken || parameters != this.Parameters || closeBracketToken != this.CloseBracketToken)
-                {
-                    var newNode = SyntaxFactory.CrefBracketedParameterList(openBracketToken, parameters, closeBracketToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CrefBracketedParameterList(openBracketToken, parameters, closeBracketToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public CrefBracketedParameterListSyntax WithOpenBracketToken(SyntaxToken openBracketToken)
             {
@@ -14436,19 +14436,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefParameter(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitCrefParameter(this);
 
-            public CrefParameterSyntax Update(SyntaxToken refKindKeyword, TypeSyntax type)
+        public CrefParameterSyntax Update(SyntaxToken refKindKeyword, TypeSyntax type)
+        {
+            if (refKindKeyword != this.RefKindKeyword || type != this.Type)
             {
-                if (refKindKeyword != this.RefKindKeyword || type != this.Type)
-                {
-                    var newNode = SyntaxFactory.CrefParameter(refKindKeyword, type);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.CrefParameter(refKindKeyword, type);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public CrefParameterSyntax WithRefKindKeyword(SyntaxToken refKindKeyword)
             {
@@ -14507,19 +14507,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElement(this);
 
-            public XmlElementSyntax Update(XmlElementStartTagSyntax startTag, SyntaxList<XmlNodeSyntax> content, XmlElementEndTagSyntax endTag)
+        public XmlElementSyntax Update(XmlElementStartTagSyntax startTag, SyntaxList<XmlNodeSyntax> content, XmlElementEndTagSyntax endTag)
+        {
+            if (startTag != this.StartTag || content != this.Content || endTag != this.EndTag)
             {
-                if (startTag != this.StartTag || content != this.Content || endTag != this.EndTag)
-                {
-                    var newNode = SyntaxFactory.XmlElement(startTag, content, endTag);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlElement(startTag, content, endTag);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public XmlElementSyntax WithStartTag(XmlElementStartTagSyntax startTag)
             {
@@ -14584,19 +14584,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElementStartTag(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElementStartTag(this);
 
-            public XmlElementStartTagSyntax Update(SyntaxToken lessThanToken, XmlNameSyntax name, SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken greaterThanToken)
+        public XmlElementStartTagSyntax Update(SyntaxToken lessThanToken, XmlNameSyntax name, SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken greaterThanToken)
+        {
+            if (lessThanToken != this.LessThanToken || name != this.Name || attributes != this.Attributes || greaterThanToken != this.GreaterThanToken)
             {
-                if (lessThanToken != this.LessThanToken || name != this.Name || attributes != this.Attributes || greaterThanToken != this.GreaterThanToken)
-                {
-                    var newNode = SyntaxFactory.XmlElementStartTag(lessThanToken, name, attributes, greaterThanToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlElementStartTag(lessThanToken, name, attributes, greaterThanToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public XmlElementStartTagSyntax WithLessThanToken(SyntaxToken lessThanToken)
             {
@@ -14646,19 +14646,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElementEndTag(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlElementEndTag(this);
 
-            public XmlElementEndTagSyntax Update(SyntaxToken lessThanSlashToken, XmlNameSyntax name, SyntaxToken greaterThanToken)
+        public XmlElementEndTagSyntax Update(SyntaxToken lessThanSlashToken, XmlNameSyntax name, SyntaxToken greaterThanToken)
+        {
+            if (lessThanSlashToken != this.LessThanSlashToken || name != this.Name || greaterThanToken != this.GreaterThanToken)
             {
-                if (lessThanSlashToken != this.LessThanSlashToken || name != this.Name || greaterThanToken != this.GreaterThanToken)
-                {
-                    var newNode = SyntaxFactory.XmlElementEndTag(lessThanSlashToken, name, greaterThanToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlElementEndTag(lessThanSlashToken, name, greaterThanToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public XmlElementEndTagSyntax WithLessThanSlashToken(SyntaxToken lessThanSlashToken)
             {
@@ -14713,19 +14713,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlEmptyElement(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlEmptyElement(this);
 
-            public XmlEmptyElementSyntax Update(SyntaxToken lessThanToken, XmlNameSyntax name, SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
+        public XmlEmptyElementSyntax Update(SyntaxToken lessThanToken, XmlNameSyntax name, SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
+        {
+            if (lessThanToken != this.LessThanToken || name != this.Name || attributes != this.Attributes || slashGreaterThanToken != this.SlashGreaterThanToken)
             {
-                if (lessThanToken != this.LessThanToken || name != this.Name || attributes != this.Attributes || slashGreaterThanToken != this.SlashGreaterThanToken)
-                {
-                    var newNode = SyntaxFactory.XmlEmptyElement(lessThanToken, name, attributes, slashGreaterThanToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlEmptyElement(lessThanToken, name, attributes, slashGreaterThanToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public XmlEmptyElementSyntax WithLessThanToken(SyntaxToken lessThanToken)
             {
@@ -14773,19 +14773,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlName(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlName(this);
 
-            public XmlNameSyntax Update(XmlPrefixSyntax prefix, SyntaxToken localName)
+        public XmlNameSyntax Update(XmlPrefixSyntax prefix, SyntaxToken localName)
+        {
+            if (prefix != this.Prefix || localName != this.LocalName)
             {
-                if (prefix != this.Prefix || localName != this.LocalName)
-                {
-                    var newNode = SyntaxFactory.XmlName(prefix, localName);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlName(prefix, localName);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public XmlNameSyntax WithPrefix(XmlPrefixSyntax prefix)
             {
@@ -14816,19 +14816,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlPrefix(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlPrefix(this);
 
-            public XmlPrefixSyntax Update(SyntaxToken prefix, SyntaxToken colonToken)
+        public XmlPrefixSyntax Update(SyntaxToken prefix, SyntaxToken colonToken)
+        {
+            if (prefix != this.Prefix || colonToken != this.ColonToken)
             {
-                if (prefix != this.Prefix || colonToken != this.ColonToken)
-                {
-                    var newNode = SyntaxFactory.XmlPrefix(prefix, colonToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlPrefix(prefix, colonToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public XmlPrefixSyntax WithPrefix(SyntaxToken prefix)
             {
@@ -14900,19 +14900,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlTextAttribute(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlTextAttribute(this);
 
-            public XmlTextAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, SyntaxTokenList textTokens, SyntaxToken endQuoteToken)
+        public XmlTextAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, SyntaxTokenList textTokens, SyntaxToken endQuoteToken)
+        {
+            if (name != this.Name || equalsToken != this.EqualsToken || startQuoteToken != this.StartQuoteToken || textTokens != this.TextTokens || endQuoteToken != this.EndQuoteToken)
             {
-                if (name != this.Name || equalsToken != this.EqualsToken || startQuoteToken != this.StartQuoteToken || textTokens != this.TextTokens || endQuoteToken != this.EndQuoteToken)
-                {
-                    var newNode = SyntaxFactory.XmlTextAttribute(name, equalsToken, startQuoteToken, textTokens, endQuoteToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlTextAttribute(name, equalsToken, startQuoteToken, textTokens, endQuoteToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override XmlAttributeSyntax WithNameCore(XmlNameSyntax name) => WithName(name);
             public new XmlTextAttributeSyntax WithName(XmlNameSyntax name)
@@ -14988,19 +14988,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlCrefAttribute(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlCrefAttribute(this);
 
-            public XmlCrefAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, CrefSyntax cref, SyntaxToken endQuoteToken)
+        public XmlCrefAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, CrefSyntax cref, SyntaxToken endQuoteToken)
+        {
+            if (name != this.Name || equalsToken != this.EqualsToken || startQuoteToken != this.StartQuoteToken || cref != this.Cref || endQuoteToken != this.EndQuoteToken)
             {
-                if (name != this.Name || equalsToken != this.EqualsToken || startQuoteToken != this.StartQuoteToken || cref != this.Cref || endQuoteToken != this.EndQuoteToken)
-                {
-                    var newNode = SyntaxFactory.XmlCrefAttribute(name, equalsToken, startQuoteToken, cref, endQuoteToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlCrefAttribute(name, equalsToken, startQuoteToken, cref, endQuoteToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override XmlAttributeSyntax WithNameCore(XmlNameSyntax name) => WithName(name);
             public new XmlCrefAttributeSyntax WithName(XmlNameSyntax name)
@@ -15071,19 +15071,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlNameAttribute(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlNameAttribute(this);
 
-            public XmlNameAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, IdentifierNameSyntax identifier, SyntaxToken endQuoteToken)
+        public XmlNameAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, IdentifierNameSyntax identifier, SyntaxToken endQuoteToken)
+        {
+            if (name != this.Name || equalsToken != this.EqualsToken || startQuoteToken != this.StartQuoteToken || identifier != this.Identifier || endQuoteToken != this.EndQuoteToken)
             {
-                if (name != this.Name || equalsToken != this.EqualsToken || startQuoteToken != this.StartQuoteToken || identifier != this.Identifier || endQuoteToken != this.EndQuoteToken)
-                {
-                    var newNode = SyntaxFactory.XmlNameAttribute(name, equalsToken, startQuoteToken, identifier, endQuoteToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlNameAttribute(name, equalsToken, startQuoteToken, identifier, endQuoteToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override XmlAttributeSyntax WithNameCore(XmlNameSyntax name) => WithName(name);
             public new XmlNameAttributeSyntax WithName(XmlNameSyntax name)
@@ -15140,19 +15140,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlText(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlText(this);
 
-            public XmlTextSyntax Update(SyntaxTokenList textTokens)
+        public XmlTextSyntax Update(SyntaxTokenList textTokens)
+        {
+            if (textTokens != this.TextTokens)
             {
-                if (textTokens != this.TextTokens)
-                {
-                    var newNode = SyntaxFactory.XmlText(textTokens);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlText(textTokens);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public XmlTextSyntax WithTextTokens(SyntaxTokenList textTokens)
             {
@@ -15194,19 +15194,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlCDataSection(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlCDataSection(this);
 
-            public XmlCDataSectionSyntax Update(SyntaxToken startCDataToken, SyntaxTokenList textTokens, SyntaxToken endCDataToken)
+        public XmlCDataSectionSyntax Update(SyntaxToken startCDataToken, SyntaxTokenList textTokens, SyntaxToken endCDataToken)
+        {
+            if (startCDataToken != this.StartCDataToken || textTokens != this.TextTokens || endCDataToken != this.EndCDataToken)
             {
-                if (startCDataToken != this.StartCDataToken || textTokens != this.TextTokens || endCDataToken != this.EndCDataToken)
-                {
-                    var newNode = SyntaxFactory.XmlCDataSection(startCDataToken, textTokens, endCDataToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlCDataSection(startCDataToken, textTokens, endCDataToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public XmlCDataSectionSyntax WithStartCDataToken(SyntaxToken startCDataToken)
             {
@@ -15262,19 +15262,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlProcessingInstruction(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlProcessingInstruction(this);
 
-            public XmlProcessingInstructionSyntax Update(SyntaxToken startProcessingInstructionToken, XmlNameSyntax name, SyntaxTokenList textTokens, SyntaxToken endProcessingInstructionToken)
+        public XmlProcessingInstructionSyntax Update(SyntaxToken startProcessingInstructionToken, XmlNameSyntax name, SyntaxTokenList textTokens, SyntaxToken endProcessingInstructionToken)
+        {
+            if (startProcessingInstructionToken != this.StartProcessingInstructionToken || name != this.Name || textTokens != this.TextTokens || endProcessingInstructionToken != this.EndProcessingInstructionToken)
             {
-                if (startProcessingInstructionToken != this.StartProcessingInstructionToken || name != this.Name || textTokens != this.TextTokens || endProcessingInstructionToken != this.EndProcessingInstructionToken)
-                {
-                    var newNode = SyntaxFactory.XmlProcessingInstruction(startProcessingInstructionToken, name, textTokens, endProcessingInstructionToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlProcessingInstruction(startProcessingInstructionToken, name, textTokens, endProcessingInstructionToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public XmlProcessingInstructionSyntax WithStartProcessingInstructionToken(SyntaxToken startProcessingInstructionToken)
             {
@@ -15331,19 +15331,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlComment(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitXmlComment(this);
 
-            public XmlCommentSyntax Update(SyntaxToken lessThanExclamationMinusMinusToken, SyntaxTokenList textTokens, SyntaxToken minusMinusGreaterThanToken)
+        public XmlCommentSyntax Update(SyntaxToken lessThanExclamationMinusMinusToken, SyntaxTokenList textTokens, SyntaxToken minusMinusGreaterThanToken)
+        {
+            if (lessThanExclamationMinusMinusToken != this.LessThanExclamationMinusMinusToken || textTokens != this.TextTokens || minusMinusGreaterThanToken != this.MinusMinusGreaterThanToken)
             {
-                if (lessThanExclamationMinusMinusToken != this.LessThanExclamationMinusMinusToken || textTokens != this.TextTokens || minusMinusGreaterThanToken != this.MinusMinusGreaterThanToken)
-                {
-                    var newNode = SyntaxFactory.XmlComment(lessThanExclamationMinusMinusToken, textTokens, minusMinusGreaterThanToken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.XmlComment(lessThanExclamationMinusMinusToken, textTokens, minusMinusGreaterThanToken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             public XmlCommentSyntax WithLessThanExclamationMinusMinusToken(SyntaxToken lessThanExclamationMinusMinusToken)
             {
@@ -15441,19 +15441,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIfDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitIfDirectiveTrivia(this);
 
-            public IfDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken ifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
+        public IfDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken ifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
+        {
+            if (hashToken != this.HashToken || ifKeyword != this.IfKeyword || condition != this.Condition || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || ifKeyword != this.IfKeyword || condition != this.Condition || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.IfDirectiveTrivia(hashToken, ifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.IfDirectiveTrivia(hashToken, ifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new IfDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -15524,19 +15524,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElifDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElifDirectiveTrivia(this);
 
-            public ElifDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken elifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
+        public ElifDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken elifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
+        {
+            if (hashToken != this.HashToken || elifKeyword != this.ElifKeyword || condition != this.Condition || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || elifKeyword != this.ElifKeyword || condition != this.Condition || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.ElifDirectiveTrivia(hashToken, elifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ElifDirectiveTrivia(hashToken, elifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new ElifDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -15601,19 +15601,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElseDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitElseDirectiveTrivia(this);
 
-            public ElseDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken elseKeyword, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken)
+        public ElseDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken elseKeyword, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken)
+        {
+            if (hashToken != this.HashToken || elseKeyword != this.ElseKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || elseKeyword != this.ElseKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.ElseDirectiveTrivia(hashToken, elseKeyword, endOfDirectiveToken, isActive, branchTaken);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ElseDirectiveTrivia(hashToken, elseKeyword, endOfDirectiveToken, isActive, branchTaken);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new ElseDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -15665,19 +15665,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEndIfDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEndIfDirectiveTrivia(this);
 
-            public EndIfDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken endIfKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        public EndIfDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken endIfKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || endIfKeyword != this.EndIfKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || endIfKeyword != this.EndIfKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.EndIfDirectiveTrivia(hashToken, endIfKeyword, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.EndIfDirectiveTrivia(hashToken, endIfKeyword, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new EndIfDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -15724,19 +15724,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRegionDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRegionDirectiveTrivia(this);
 
-            public RegionDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken regionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        public RegionDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken regionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || regionKeyword != this.RegionKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || regionKeyword != this.RegionKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.RegionDirectiveTrivia(hashToken, regionKeyword, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.RegionDirectiveTrivia(hashToken, regionKeyword, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new RegionDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -15783,19 +15783,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEndRegionDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitEndRegionDirectiveTrivia(this);
 
-            public EndRegionDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken endRegionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        public EndRegionDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken endRegionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || endRegionKeyword != this.EndRegionKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || endRegionKeyword != this.EndRegionKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.EndRegionDirectiveTrivia(hashToken, endRegionKeyword, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.EndRegionDirectiveTrivia(hashToken, endRegionKeyword, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new EndRegionDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -15842,19 +15842,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitErrorDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitErrorDirectiveTrivia(this);
 
-            public ErrorDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken errorKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        public ErrorDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken errorKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || errorKeyword != this.ErrorKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || errorKeyword != this.ErrorKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.ErrorDirectiveTrivia(hashToken, errorKeyword, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ErrorDirectiveTrivia(hashToken, errorKeyword, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new ErrorDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -15901,19 +15901,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWarningDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitWarningDirectiveTrivia(this);
 
-            public WarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken warningKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        public WarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken warningKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || warningKeyword != this.WarningKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || warningKeyword != this.WarningKeyword || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.WarningDirectiveTrivia(hashToken, warningKeyword, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.WarningDirectiveTrivia(hashToken, warningKeyword, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new WarningDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -15960,19 +15960,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBadDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBadDirectiveTrivia(this);
 
-            public BadDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken identifier, SyntaxToken endOfDirectiveToken, bool isActive)
+        public BadDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken identifier, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || identifier != this.Identifier || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || identifier != this.Identifier || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.BadDirectiveTrivia(hashToken, identifier, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.BadDirectiveTrivia(hashToken, identifier, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new BadDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -16021,19 +16021,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefineDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitDefineDirectiveTrivia(this);
 
-            public DefineDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken defineKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
+        public DefineDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken defineKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || defineKeyword != this.DefineKeyword || name != this.Name || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || defineKeyword != this.DefineKeyword || name != this.Name || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.DefineDirectiveTrivia(hashToken, defineKeyword, name, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.DefineDirectiveTrivia(hashToken, defineKeyword, name, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new DefineDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -16087,19 +16087,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUndefDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUndefDirectiveTrivia(this);
 
-            public UndefDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken undefKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
+        public UndefDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken undefKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || undefKeyword != this.UndefKeyword || name != this.Name || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || undefKeyword != this.UndefKeyword || name != this.Name || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.UndefDirectiveTrivia(hashToken, undefKeyword, name, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.UndefDirectiveTrivia(hashToken, undefKeyword, name, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new UndefDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -16164,19 +16164,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLineDirectiveTrivia(this);
 
-            public LineDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken lineKeyword, SyntaxToken line, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        public LineDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken lineKeyword, SyntaxToken line, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || lineKeyword != this.LineKeyword || line != this.Line || file != this.File || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || lineKeyword != this.LineKeyword || line != this.Line || file != this.File || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.LineDirectiveTrivia(hashToken, lineKeyword, line, file, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.LineDirectiveTrivia(hashToken, lineKeyword, line, file, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new LineDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -16250,19 +16250,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPragmaWarningDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPragmaWarningDirectiveTrivia(this);
 
-            public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+        public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || pragmaKeyword != this.PragmaKeyword || warningKeyword != this.WarningKeyword || disableOrRestoreKeyword != this.DisableOrRestoreKeyword || errorCodes != this.ErrorCodes || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || pragmaKeyword != this.PragmaKeyword || warningKeyword != this.WarningKeyword || disableOrRestoreKeyword != this.DisableOrRestoreKeyword || errorCodes != this.ErrorCodes || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new PragmaWarningDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -16337,19 +16337,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPragmaChecksumDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPragmaChecksumDirectiveTrivia(this);
 
-            public PragmaChecksumDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive)
+        public PragmaChecksumDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || pragmaKeyword != this.PragmaKeyword || checksumKeyword != this.ChecksumKeyword || file != this.File || guid != this.Guid || bytes != this.Bytes || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || pragmaKeyword != this.PragmaKeyword || checksumKeyword != this.ChecksumKeyword || file != this.File || guid != this.Guid || bytes != this.Bytes || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.PragmaChecksumDirectiveTrivia(hashToken, pragmaKeyword, checksumKeyword, file, guid, bytes, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.PragmaChecksumDirectiveTrivia(hashToken, pragmaKeyword, checksumKeyword, file, guid, bytes, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new PragmaChecksumDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -16418,19 +16418,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitReferenceDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitReferenceDirectiveTrivia(this);
 
-            public ReferenceDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken referenceKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        public ReferenceDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken referenceKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || referenceKeyword != this.ReferenceKeyword || file != this.File || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || referenceKeyword != this.ReferenceKeyword || file != this.File || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.ReferenceDirectiveTrivia(hashToken, referenceKeyword, file, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ReferenceDirectiveTrivia(hashToken, referenceKeyword, file, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new ReferenceDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -16484,19 +16484,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLoadDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLoadDirectiveTrivia(this);
 
-            public LoadDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken loadKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        public LoadDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken loadKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || loadKeyword != this.LoadKeyword || file != this.File || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || loadKeyword != this.LoadKeyword || file != this.File || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.LoadDirectiveTrivia(hashToken, loadKeyword, file, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.LoadDirectiveTrivia(hashToken, loadKeyword, file, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new LoadDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -16548,19 +16548,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitShebangDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitShebangDirectiveTrivia(this);
 
-            public ShebangDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
+        public ShebangDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || exclamationToken != this.ExclamationToken || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || exclamationToken != this.ExclamationToken || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new ShebangDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
@@ -16620,19 +16620,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNullableDirectiveTrivia(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitNullableDirectiveTrivia(this);
 
-            public NullableDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive)
+        public NullableDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || nullableKeyword != this.NullableKeyword || settingToken != this.SettingToken || targetToken != this.TargetToken || endOfDirectiveToken != this.EndOfDirectiveToken)
             {
-                if (hashToken != this.HashToken || nullableKeyword != this.NullableKeyword || settingToken != this.SettingToken || targetToken != this.TargetToken || endOfDirectiveToken != this.EndOfDirectiveToken)
-                {
-                    var newNode = SyntaxFactory.NullableDirectiveTrivia(hashToken, nullableKeyword, settingToken, targetToken, endOfDirectiveToken, isActive);
-                    var annotations = this.GetAnnotations();
-                    if (annotations != null && annotations.Length > 0)
-                       return newNode.WithAnnotations(annotations);
-                    return newNode;
-                }
-
-                return this;
+                var newNode = SyntaxFactory.NullableDirectiveTrivia(hashToken, nullableKeyword, settingToken, targetToken, endOfDirectiveToken, isActive);
+                var annotations = this.GetAnnotations();
+                return annotations != null && annotations.Length > 0
+                    ? newNode.WithAnnotations(annotations)
+                    : newNode;
             }
+
+            return this;
+        }
 
             internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
             public new NullableDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken)
