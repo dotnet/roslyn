@@ -160,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new GenericNameSyntax WithIdentifier(SyntaxToken identifier) => Update(identifier, this.TypeArgumentList);
         public GenericNameSyntax WithTypeArgumentList(TypeArgumentListSyntax typeArgumentList) => Update(this.Identifier, typeArgumentList);
 
+
             public GenericNameSyntax AddTypeArgumentListArguments(params TypeSyntax[] items)
             {
                 return this.WithTypeArgumentList(this.TypeArgumentList.WithArguments(this.TypeArgumentList.Arguments.AddRange(items)));
@@ -218,6 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TypeArgumentListSyntax WithLessThanToken(SyntaxToken lessThanToken) => Update(lessThanToken, this.Arguments, this.GreaterThanToken);
         public TypeArgumentListSyntax WithArguments(SeparatedSyntaxList<TypeSyntax> arguments) => Update(this.LessThanToken, arguments, this.GreaterThanToken);
         public TypeArgumentListSyntax WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanToken, this.Arguments, greaterThanToken);
+
 
             public TypeArgumentListSyntax AddArguments(params TypeSyntax[] items)
             {
@@ -380,6 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ArrayTypeSyntax WithElementType(TypeSyntax elementType) => Update(elementType, this.RankSpecifiers);
         public ArrayTypeSyntax WithRankSpecifiers(SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers) => Update(this.ElementType, rankSpecifiers);
 
+
             public ArrayTypeSyntax AddRankSpecifiers(params ArrayRankSpecifierSyntax[] items)
             {
                 return this.WithRankSpecifiers(this.RankSpecifiers.AddRange(items));
@@ -434,6 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ArrayRankSpecifierSyntax WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.Sizes, this.CloseBracketToken);
         public ArrayRankSpecifierSyntax WithSizes(SeparatedSyntaxList<ExpressionSyntax> sizes) => Update(this.OpenBracketToken, sizes, this.CloseBracketToken);
         public ArrayRankSpecifierSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Sizes, closeBracketToken);
+
 
             public ArrayRankSpecifierSyntax AddSizes(params ExpressionSyntax[] items)
             {
@@ -574,6 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TupleTypeSyntax WithOpenParenToken(SyntaxToken openParenToken) => Update(openParenToken, this.Elements, this.CloseParenToken);
         public TupleTypeSyntax WithElements(SeparatedSyntaxList<TupleElementSyntax> elements) => Update(this.OpenParenToken, elements, this.CloseParenToken);
         public TupleTypeSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Elements, closeParenToken);
+
 
             public TupleTypeSyntax AddElements(params TupleElementSyntax[] items)
             {
@@ -824,6 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TupleExpressionSyntax WithOpenParenToken(SyntaxToken openParenToken) => Update(openParenToken, this.Arguments, this.CloseParenToken);
         public TupleExpressionSyntax WithArguments(SeparatedSyntaxList<ArgumentSyntax> arguments) => Update(this.OpenParenToken, arguments, this.CloseParenToken);
         public TupleExpressionSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Arguments, closeParenToken);
+
 
             public TupleExpressionSyntax AddArguments(params ArgumentSyntax[] items)
             {
@@ -1147,6 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ElementBindingExpressionSyntax WithArgumentList(BracketedArgumentListSyntax argumentList) => Update(argumentList);
 
+
             public ElementBindingExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
             {
                 return this.WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
@@ -1246,6 +1253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         public ImplicitElementAccessSyntax WithArgumentList(BracketedArgumentListSyntax argumentList) => Update(argumentList);
+
 
             public ImplicitElementAccessSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
             {
@@ -1969,6 +1977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InvocationExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.ArgumentList);
         public InvocationExpressionSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.Expression, argumentList);
 
+
             public InvocationExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
             {
                 return this.WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
@@ -2027,6 +2036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ElementAccessExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.ArgumentList);
         public ElementAccessExpressionSyntax WithArgumentList(BracketedArgumentListSyntax argumentList) => Update(this.Expression, argumentList);
+
 
             public ElementAccessExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
             {
@@ -2104,6 +2114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override BaseArgumentListSyntax WithArgumentsCore(SeparatedSyntaxList<ArgumentSyntax> arguments) => WithArguments(arguments);
         public new ArgumentListSyntax WithArguments(SeparatedSyntaxList<ArgumentSyntax> arguments) => Update(this.OpenParenToken, arguments, this.CloseParenToken);
         public ArgumentListSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Arguments, closeParenToken);
+
             internal override BaseArgumentListSyntax AddArgumentsCore(params ArgumentSyntax[] items) => AddArguments(items);
 
             public new ArgumentListSyntax AddArguments(params ArgumentSyntax[] items)
@@ -2165,6 +2176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override BaseArgumentListSyntax WithArgumentsCore(SeparatedSyntaxList<ArgumentSyntax> arguments) => WithArguments(arguments);
         public new BracketedArgumentListSyntax WithArguments(SeparatedSyntaxList<ArgumentSyntax> arguments) => Update(this.OpenBracketToken, arguments, this.CloseBracketToken);
         public BracketedArgumentListSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Arguments, closeBracketToken);
+
             internal override BaseArgumentListSyntax AddArgumentsCore(params ArgumentSyntax[] items) => AddArguments(items);
 
             public new BracketedArgumentListSyntax AddArguments(params ArgumentSyntax[] items)
@@ -2515,6 +2527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax expressionBody) => WithExpressionBody(expressionBody);
         public new AnonymousMethodExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody) => Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, expressionBody);
 
+
             public AnonymousMethodExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)
             {
                 var parameterList = this.ParameterList ?? SyntaxFactory.ParameterList();
@@ -2634,6 +2647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new SimpleLambdaExpressionSyntax WithBlock(BlockSyntax block) => Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax expressionBody) => WithExpressionBody(expressionBody);
         public new SimpleLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody) => Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, this.Block, expressionBody);
+
 
             public SimpleLambdaExpressionSyntax AddParameterAttributeLists(params AttributeListSyntax[] items)
             {
@@ -2778,6 +2792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax expressionBody) => WithExpressionBody(expressionBody);
         public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody) => Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
 
+
             public ParenthesizedLambdaExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)
             {
                 return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
@@ -2843,6 +2858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InitializerExpressionSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(openBraceToken, this.Expressions, this.CloseBraceToken);
         public InitializerExpressionSyntax WithExpressions(SeparatedSyntaxList<ExpressionSyntax> expressions) => Update(this.OpenBraceToken, expressions, this.CloseBraceToken);
         public InitializerExpressionSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.OpenBraceToken, this.Expressions, closeBraceToken);
+
 
             public InitializerExpressionSyntax AddExpressions(params ExpressionSyntax[] items)
             {
@@ -2913,6 +2929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ObjectCreationExpressionSyntax WithType(TypeSyntax type) => Update(this.NewKeyword, type, this.ArgumentList, this.Initializer);
         public ObjectCreationExpressionSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.NewKeyword, this.Type, argumentList, this.Initializer);
         public ObjectCreationExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.NewKeyword, this.Type, this.ArgumentList, initializer);
+
 
             public ObjectCreationExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
             {
@@ -3031,6 +3048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public AnonymousObjectCreationExpressionSyntax WithInitializers(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers) => Update(this.NewKeyword, this.OpenBraceToken, initializers, this.CloseBraceToken);
         public AnonymousObjectCreationExpressionSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.NewKeyword, this.OpenBraceToken, this.Initializers, closeBraceToken);
 
+
             public AnonymousObjectCreationExpressionSyntax AddInitializers(params AnonymousObjectMemberDeclaratorSyntax[] items)
             {
                 return this.WithInitializers(this.Initializers.AddRange(items));
@@ -3093,6 +3111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ArrayCreationExpressionSyntax WithNewKeyword(SyntaxToken newKeyword) => Update(newKeyword, this.Type, this.Initializer);
         public ArrayCreationExpressionSyntax WithType(ArrayTypeSyntax type) => Update(this.NewKeyword, type, this.Initializer);
         public ArrayCreationExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.NewKeyword, this.Type, initializer);
+
 
             public ArrayCreationExpressionSyntax AddTypeRankSpecifiers(params ArrayRankSpecifierSyntax[] items)
             {
@@ -3160,6 +3179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ImplicitArrayCreationExpressionSyntax WithCommas(SyntaxTokenList commas) => Update(this.NewKeyword, this.OpenBracketToken, commas, this.CloseBracketToken, this.Initializer);
         public ImplicitArrayCreationExpressionSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.NewKeyword, this.OpenBracketToken, this.Commas, closeBracketToken, this.Initializer);
         public ImplicitArrayCreationExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.NewKeyword, this.OpenBracketToken, this.Commas, this.CloseBracketToken, initializer);
+
 
             public ImplicitArrayCreationExpressionSyntax AddCommas(params SyntaxToken[] items)
             {
@@ -3278,6 +3298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ImplicitStackAllocArrayCreationExpressionSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.StackAllocKeyword, this.OpenBracketToken, closeBracketToken, this.Initializer);
         public ImplicitStackAllocArrayCreationExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.StackAllocKeyword, this.OpenBracketToken, this.CloseBracketToken, initializer);
 
+
             public ImplicitStackAllocArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items)
             {
                 return this.WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
@@ -3350,6 +3371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public QueryExpressionSyntax WithFromClause(FromClauseSyntax fromClause) => Update(fromClause, this.Body);
         public QueryExpressionSyntax WithBody(QueryBodySyntax body) => Update(this.FromClause, body);
 
+
             public QueryExpressionSyntax AddBodyClauses(params QueryClauseSyntax[] items)
             {
                 return this.WithBody(this.Body.WithClauses(this.Body.Clauses.AddRange(items)));
@@ -3411,6 +3433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public QueryBodySyntax WithClauses(SyntaxList<QueryClauseSyntax> clauses) => Update(clauses, this.SelectOrGroup, this.Continuation);
         public QueryBodySyntax WithSelectOrGroup(SelectOrGroupClauseSyntax selectOrGroup) => Update(this.Clauses, selectOrGroup, this.Continuation);
         public QueryBodySyntax WithContinuation(QueryContinuationSyntax continuation) => Update(this.Clauses, this.SelectOrGroup, continuation);
+
 
             public QueryBodySyntax AddClauses(params QueryClauseSyntax[] items)
             {
@@ -3730,6 +3753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public OrderByClauseSyntax WithOrderByKeyword(SyntaxToken orderByKeyword) => Update(orderByKeyword, this.Orderings);
         public OrderByClauseSyntax WithOrderings(SeparatedSyntaxList<OrderingSyntax> orderings) => Update(this.OrderByKeyword, orderings);
 
+
             public OrderByClauseSyntax AddOrderings(params OrderingSyntax[] items)
             {
                 return this.WithOrderings(this.Orderings.AddRange(items));
@@ -3919,6 +3943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public QueryContinuationSyntax WithIdentifier(SyntaxToken identifier) => Update(this.IntoKeyword, identifier, this.Body);
         public QueryContinuationSyntax WithBody(QueryBodySyntax body) => Update(this.IntoKeyword, this.Identifier, body);
 
+
             public QueryContinuationSyntax AddBodyClauses(params QueryClauseSyntax[] items)
             {
                 return this.WithBody(this.Body.WithClauses(this.Body.Clauses.AddRange(items)));
@@ -4002,6 +4027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InterpolatedStringExpressionSyntax WithStringStartToken(SyntaxToken stringStartToken) => Update(stringStartToken, this.Contents, this.StringEndToken);
         public InterpolatedStringExpressionSyntax WithContents(SyntaxList<InterpolatedStringContentSyntax> contents) => Update(this.StringStartToken, contents, this.StringEndToken);
         public InterpolatedStringExpressionSyntax WithStringEndToken(SyntaxToken stringEndToken) => Update(this.StringStartToken, this.Contents, stringEndToken);
+
 
             public InterpolatedStringExpressionSyntax AddContents(params InterpolatedStringContentSyntax[] items)
             {
@@ -4334,6 +4360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public RecursivePatternSyntax WithPropertyPatternClause(PropertyPatternClauseSyntax propertyPatternClause) => Update(this.Type, this.PositionalPatternClause, propertyPatternClause, this.Designation);
         public RecursivePatternSyntax WithDesignation(VariableDesignationSyntax designation) => Update(this.Type, this.PositionalPatternClause, this.PropertyPatternClause, designation);
 
+
             public RecursivePatternSyntax AddPositionalPatternClauseSubpatterns(params SubpatternSyntax[] items)
             {
                 var positionalPatternClause = this.PositionalPatternClause ?? SyntaxFactory.PositionalPatternClause();
@@ -4396,6 +4423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PositionalPatternClauseSyntax WithSubpatterns(SeparatedSyntaxList<SubpatternSyntax> subpatterns) => Update(this.OpenParenToken, subpatterns, this.CloseParenToken);
         public PositionalPatternClauseSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Subpatterns, closeParenToken);
 
+
             public PositionalPatternClauseSyntax AddSubpatterns(params SubpatternSyntax[] items)
             {
                 return this.WithSubpatterns(this.Subpatterns.AddRange(items));
@@ -4450,6 +4478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PropertyPatternClauseSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(openBraceToken, this.Subpatterns, this.CloseBraceToken);
         public PropertyPatternClauseSyntax WithSubpatterns(SeparatedSyntaxList<SubpatternSyntax> subpatterns) => Update(this.OpenBraceToken, subpatterns, this.CloseBraceToken);
         public PropertyPatternClauseSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.OpenBraceToken, this.Subpatterns, closeBraceToken);
+
 
             public PropertyPatternClauseSyntax AddSubpatterns(params SubpatternSyntax[] items)
             {
@@ -4787,6 +4816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
         public new GlobalStatementSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Statement);
         public GlobalStatementSyntax WithStatement(StatementSyntax statement) => Update(this.AttributeLists, this.Modifiers, statement);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new GlobalStatementSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -4849,6 +4879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public BlockSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(openBraceToken, this.Statements, this.CloseBraceToken);
         public BlockSyntax WithStatements(SyntaxList<StatementSyntax> statements) => Update(this.OpenBraceToken, statements, this.CloseBraceToken);
         public BlockSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.OpenBraceToken, this.Statements, closeBraceToken);
+
 
             public BlockSyntax AddStatements(params StatementSyntax[] items)
             {
@@ -4959,6 +4990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LocalFunctionStatementSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => Update(this.Modifiers, this.ReturnType, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.Body, expressionBody, this.SemicolonToken);
         public LocalFunctionStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.Modifiers, this.ReturnType, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.Body, this.ExpressionBody, semicolonToken);
 
+
             public LocalFunctionStatementSyntax AddModifiers(params SyntaxToken[] items)
             {
                 return this.WithModifiers(this.Modifiers.AddRange(items));
@@ -5061,6 +5093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LocalDeclarationStatementSyntax WithDeclaration(VariableDeclarationSyntax declaration) => Update(this.AwaitKeyword, this.UsingKeyword, this.Modifiers, declaration, this.SemicolonToken);
         public LocalDeclarationStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AwaitKeyword, this.UsingKeyword, this.Modifiers, this.Declaration, semicolonToken);
 
+
             public LocalDeclarationStatementSyntax AddModifiers(params SyntaxToken[] items)
             {
                 return this.WithModifiers(this.Modifiers.AddRange(items));
@@ -5131,6 +5164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public VariableDeclarationSyntax WithType(TypeSyntax type) => Update(type, this.Variables);
         public VariableDeclarationSyntax WithVariables(SeparatedSyntaxList<VariableDeclaratorSyntax> variables) => Update(this.Type, variables);
 
+
             public VariableDeclarationSyntax AddVariables(params VariableDeclaratorSyntax[] items)
             {
                 return this.WithVariables(this.Variables.AddRange(items));
@@ -5190,6 +5224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public VariableDeclaratorSyntax WithIdentifier(SyntaxToken identifier) => Update(identifier, this.ArgumentList, this.Initializer);
         public VariableDeclaratorSyntax WithArgumentList(BracketedArgumentListSyntax argumentList) => Update(this.Identifier, argumentList, this.Initializer);
         public VariableDeclaratorSyntax WithInitializer(EqualsValueClauseSyntax initializer) => Update(this.Identifier, this.ArgumentList, initializer);
+
 
             public VariableDeclaratorSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
             {
@@ -5358,6 +5393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ParenthesizedVariableDesignationSyntax WithOpenParenToken(SyntaxToken openParenToken) => Update(openParenToken, this.Variables, this.CloseParenToken);
         public ParenthesizedVariableDesignationSyntax WithVariables(SeparatedSyntaxList<VariableDesignationSyntax> variables) => Update(this.OpenParenToken, variables, this.CloseParenToken);
         public ParenthesizedVariableDesignationSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Variables, closeParenToken);
+
 
             public ParenthesizedVariableDesignationSyntax AddVariables(params VariableDesignationSyntax[] items)
             {
@@ -5973,6 +6009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ForStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.ForKeyword, this.OpenParenToken, this.Declaration, this.Initializers, this.FirstSemicolonToken, this.Condition, this.SecondSemicolonToken, this.Incrementors, closeParenToken, this.Statement);
         public ForStatementSyntax WithStatement(StatementSyntax statement) => Update(this.ForKeyword, this.OpenParenToken, this.Declaration, this.Initializers, this.FirstSemicolonToken, this.Condition, this.SecondSemicolonToken, this.Incrementors, this.CloseParenToken, statement);
 
+
             public ForStatementSyntax AddInitializers(params ExpressionSyntax[] items)
             {
                 return this.WithInitializers(this.Initializers.AddRange(items));
@@ -6343,6 +6380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FixedStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.FixedKeyword, this.OpenParenToken, this.Declaration, closeParenToken, this.Statement);
         public FixedStatementSyntax WithStatement(StatementSyntax statement) => Update(this.FixedKeyword, this.OpenParenToken, this.Declaration, this.CloseParenToken, statement);
 
+
             public FixedStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
             {
                 return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
@@ -6386,6 +6424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CheckedStatementSyntax WithKeyword(SyntaxToken keyword) => Update(keyword, this.Block);
         public CheckedStatementSyntax WithBlock(BlockSyntax block) => Update(this.Keyword, block);
 
+
             public CheckedStatementSyntax AddBlockStatements(params StatementSyntax[] items)
             {
                 return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
@@ -6428,6 +6467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public UnsafeStatementSyntax WithUnsafeKeyword(SyntaxToken unsafeKeyword) => Update(unsafeKeyword, this.Block);
         public UnsafeStatementSyntax WithBlock(BlockSyntax block) => Update(this.UnsafeKeyword, block);
+
 
             public UnsafeStatementSyntax AddBlockStatements(params StatementSyntax[] items)
             {
@@ -6729,6 +6769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SwitchStatementSyntax WithSections(SyntaxList<SwitchSectionSyntax> sections) => Update(this.SwitchKeyword, this.OpenParenToken, this.Expression, this.CloseParenToken, this.OpenBraceToken, sections, this.CloseBraceToken);
         public SwitchStatementSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.SwitchKeyword, this.OpenParenToken, this.Expression, this.CloseParenToken, this.OpenBraceToken, this.Sections, closeBraceToken);
 
+
             public SwitchStatementSyntax AddSections(params SwitchSectionSyntax[] items)
             {
                 return this.WithSections(this.Sections.AddRange(items));
@@ -6791,6 +6832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SwitchSectionSyntax WithLabels(SyntaxList<SwitchLabelSyntax> labels) => Update(labels, this.Statements);
         public SwitchSectionSyntax WithStatements(SyntaxList<StatementSyntax> statements) => Update(this.Labels, statements);
+
 
             public SwitchSectionSyntax AddLabels(params SwitchLabelSyntax[] items)
             {
@@ -7046,6 +7088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public SwitchExpressionSyntax WithArms(SeparatedSyntaxList<SwitchExpressionArmSyntax> arms) => Update(this.GoverningExpression, this.SwitchKeyword, this.OpenBraceToken, arms, this.CloseBraceToken);
         public SwitchExpressionSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.GoverningExpression, this.SwitchKeyword, this.OpenBraceToken, this.Arms, closeBraceToken);
 
+
             public SwitchExpressionSyntax AddArms(params SwitchExpressionArmSyntax[] items)
             {
                 return this.WithArms(this.Arms.AddRange(items));
@@ -7171,6 +7214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TryStatementSyntax WithCatches(SyntaxList<CatchClauseSyntax> catches) => Update(this.TryKeyword, this.Block, catches, this.Finally);
         public TryStatementSyntax WithFinally(FinallyClauseSyntax @finally) => Update(this.TryKeyword, this.Block, this.Catches, @finally);
 
+
             public TryStatementSyntax AddBlockStatements(params StatementSyntax[] items)
             {
                 return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
@@ -7240,6 +7284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CatchClauseSyntax WithDeclaration(CatchDeclarationSyntax declaration) => Update(this.CatchKeyword, declaration, this.Filter, this.Block);
         public CatchClauseSyntax WithFilter(CatchFilterClauseSyntax filter) => Update(this.CatchKeyword, this.Declaration, filter, this.Block);
         public CatchClauseSyntax WithBlock(BlockSyntax block) => Update(this.CatchKeyword, this.Declaration, this.Filter, block);
+
 
             public CatchClauseSyntax AddBlockStatements(params StatementSyntax[] items)
             {
@@ -7381,6 +7426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FinallyClauseSyntax WithFinallyKeyword(SyntaxToken finallyKeyword) => Update(finallyKeyword, this.Block);
         public FinallyClauseSyntax WithBlock(BlockSyntax block) => Update(this.FinallyKeyword, block);
 
+
             public FinallyClauseSyntax AddBlockStatements(params StatementSyntax[] items)
             {
                 return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
@@ -7452,6 +7498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CompilationUnitSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(this.Externs, this.Usings, attributeLists, this.Members, this.EndOfFileToken);
         public CompilationUnitSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.Externs, this.Usings, this.AttributeLists, members, this.EndOfFileToken);
         public CompilationUnitSyntax WithEndOfFileToken(SyntaxToken endOfFileToken) => Update(this.Externs, this.Usings, this.AttributeLists, this.Members, endOfFileToken);
+
 
             public CompilationUnitSyntax AddExterns(params ExternAliasDirectiveSyntax[] items)
             {
@@ -7720,6 +7767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public NamespaceDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, members, this.CloseBraceToken, this.SemicolonToken);
         public NamespaceDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, closeBraceToken, this.SemicolonToken);
         public NamespaceDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, this.CloseBraceToken, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new NamespaceDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -7819,6 +7867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public AttributeListSyntax WithAttributes(SeparatedSyntaxList<AttributeSyntax> attributes) => Update(this.OpenBracketToken, this.Target, attributes, this.CloseBracketToken);
         public AttributeListSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Target, this.Attributes, closeBracketToken);
 
+
             public AttributeListSyntax AddAttributes(params AttributeSyntax[] items)
             {
                 return this.WithAttributes(this.Attributes.AddRange(items));
@@ -7916,6 +7965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public AttributeSyntax WithName(NameSyntax name) => Update(name, this.ArgumentList);
         public AttributeSyntax WithArgumentList(AttributeArgumentListSyntax argumentList) => Update(this.Name, argumentList);
 
+
             public AttributeSyntax AddArgumentListArguments(params AttributeArgumentSyntax[] items)
             {
                 var argumentList = this.ArgumentList ?? SyntaxFactory.AttributeArgumentList();
@@ -7975,6 +8025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public AttributeArgumentListSyntax WithOpenParenToken(SyntaxToken openParenToken) => Update(openParenToken, this.Arguments, this.CloseParenToken);
         public AttributeArgumentListSyntax WithArguments(SeparatedSyntaxList<AttributeArgumentSyntax> arguments) => Update(this.OpenParenToken, arguments, this.CloseParenToken);
         public AttributeArgumentListSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Arguments, closeParenToken);
+
 
             public AttributeArgumentListSyntax AddArguments(params AttributeArgumentSyntax[] items)
             {
@@ -8134,6 +8185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TypeParameterListSyntax WithParameters(SeparatedSyntaxList<TypeParameterSyntax> parameters) => Update(this.LessThanToken, parameters, this.GreaterThanToken);
         public TypeParameterListSyntax WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanToken, this.Parameters, greaterThanToken);
 
+
             public TypeParameterListSyntax AddParameters(params TypeParameterSyntax[] items)
             {
                 return this.WithParameters(this.Parameters.AddRange(items));
@@ -8191,6 +8243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TypeParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.VarianceKeyword, this.Identifier);
         public TypeParameterSyntax WithVarianceKeyword(SyntaxToken varianceKeyword) => Update(this.AttributeLists, varianceKeyword, this.Identifier);
         public TypeParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.VarianceKeyword, identifier);
+
 
             public TypeParameterSyntax AddAttributeLists(params AttributeListSyntax[] items)
             {
@@ -8403,6 +8456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ClassDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
         internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new ClassDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new ClassDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -8559,6 +8613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new StructDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
         internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new StructDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new StructDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -8715,6 +8770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new InterfaceDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
         internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new InterfaceDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Identifier, this.TypeParameterList, this.BaseList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new InterfaceDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -8866,6 +8922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new EnumDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.EnumKeyword, this.Identifier, this.BaseList, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
         internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new EnumDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.EnumKeyword, this.Identifier, this.BaseList, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new EnumDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -8989,6 +9046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public DelegateDeclarationSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AttributeLists, this.Modifiers, this.DelegateKeyword, this.ReturnType, this.Identifier, this.TypeParameterList, parameterList, this.ConstraintClauses, this.SemicolonToken);
         public DelegateDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => Update(this.AttributeLists, this.Modifiers, this.DelegateKeyword, this.ReturnType, this.Identifier, this.TypeParameterList, this.ParameterList, constraintClauses, this.SemicolonToken);
         public DelegateDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.DelegateKeyword, this.ReturnType, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new DelegateDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -9086,6 +9144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new EnumMemberDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Identifier, this.EqualsValue);
         public EnumMemberDeclarationSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, identifier, this.EqualsValue);
         public EnumMemberDeclarationSyntax WithEqualsValue(EqualsValueClauseSyntax equalsValue) => Update(this.AttributeLists, this.Modifiers, this.Identifier, equalsValue);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new EnumMemberDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -9148,6 +9207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public BaseListSyntax WithColonToken(SyntaxToken colonToken) => Update(colonToken, this.Types);
         public BaseListSyntax WithTypes(SeparatedSyntaxList<BaseTypeSyntax> types) => Update(this.ColonToken, types);
+
 
             public BaseListSyntax AddTypes(params BaseTypeSyntax[] items)
             {
@@ -9272,6 +9332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TypeParameterConstraintClauseSyntax WithName(IdentifierNameSyntax name) => Update(this.WhereKeyword, name, this.ColonToken, this.Constraints);
         public TypeParameterConstraintClauseSyntax WithColonToken(SyntaxToken colonToken) => Update(this.WhereKeyword, this.Name, colonToken, this.Constraints);
         public TypeParameterConstraintClauseSyntax WithConstraints(SeparatedSyntaxList<TypeParameterConstraintSyntax> constraints) => Update(this.WhereKeyword, this.Name, this.ColonToken, constraints);
+
 
             public TypeParameterConstraintClauseSyntax AddConstraints(params TypeParameterConstraintSyntax[] items)
             {
@@ -9510,6 +9571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new FieldDeclarationSyntax WithDeclaration(VariableDeclarationSyntax declaration) => Update(this.AttributeLists, this.Modifiers, declaration, this.SemicolonToken);
         internal override BaseFieldDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new FieldDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Declaration, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new FieldDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -9601,6 +9663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new EventFieldDeclarationSyntax WithDeclaration(VariableDeclarationSyntax declaration) => Update(this.AttributeLists, this.Modifiers, this.EventKeyword, declaration, this.SemicolonToken);
         internal override BaseFieldDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new EventFieldDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Declaration, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new EventFieldDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -9822,6 +9885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new MethodDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.Body, expressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new MethodDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ExplicitInterfaceSpecifier, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.Body, this.ExpressionBody, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new MethodDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -9968,6 +10032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new OperatorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, expressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new OperatorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.OperatorKeyword, this.OperatorToken, this.ParameterList, this.Body, this.ExpressionBody, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new OperatorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -10103,6 +10168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ConversionOperatorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, expressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new ConversionOperatorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, this.ParameterList, this.Body, this.ExpressionBody, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new ConversionOperatorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -10233,6 +10299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new ConstructorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => Update(this.AttributeLists, this.Modifiers, this.Identifier, this.ParameterList, this.Initializer, this.Body, expressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new ConstructorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Identifier, this.ParameterList, this.Initializer, this.Body, this.ExpressionBody, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new ConstructorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -10302,6 +10369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ConstructorInitializerSyntax WithColonToken(SyntaxToken colonToken) => Update(colonToken, this.ThisOrBaseKeyword, this.ArgumentList);
         public ConstructorInitializerSyntax WithThisOrBaseKeyword(SyntaxToken thisOrBaseKeyword) => Update(this.ColonToken, thisOrBaseKeyword, this.ArgumentList);
         public ConstructorInitializerSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.ColonToken, this.ThisOrBaseKeyword, argumentList);
+
 
             public ConstructorInitializerSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
             {
@@ -10410,6 +10478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new DestructorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => Update(this.AttributeLists, this.Modifiers, this.TildeToken, this.Identifier, this.ParameterList, this.Body, expressionBody, this.SemicolonToken);
         internal override BaseMethodDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
         public new DestructorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.TildeToken, this.Identifier, this.ParameterList, this.Body, this.ExpressionBody, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new DestructorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -10576,6 +10645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public PropertyDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, expressionBody, this.Initializer, this.SemicolonToken);
         public PropertyDeclarationSyntax WithInitializer(EqualsValueClauseSyntax initializer) => Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.ExpressionBody, initializer, this.SemicolonToken);
         public PropertyDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, this.ExpressionBody, this.Initializer, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new PropertyDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -10733,6 +10803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override BasePropertyDeclarationSyntax WithAccessorListCore(AccessorListSyntax accessorList) => WithAccessorList(accessorList);
         public new EventDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList) => Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, accessorList, this.SemicolonToken);
         public EventDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.EventKeyword, this.Type, this.ExplicitInterfaceSpecifier, this.Identifier, this.AccessorList, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new EventDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -10860,6 +10931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new IndexerDeclarationSyntax WithAccessorList(AccessorListSyntax accessorList) => Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.ThisKeyword, this.ParameterList, accessorList, this.ExpressionBody, this.SemicolonToken);
         public IndexerDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.ThisKeyword, this.ParameterList, this.AccessorList, expressionBody, this.SemicolonToken);
         public IndexerDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Type, this.ExplicitInterfaceSpecifier, this.ThisKeyword, this.ParameterList, this.AccessorList, this.ExpressionBody, semicolonToken);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new IndexerDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -10925,6 +10997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public AccessorListSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(openBraceToken, this.Accessors, this.CloseBraceToken);
         public AccessorListSyntax WithAccessors(SyntaxList<AccessorDeclarationSyntax> accessors) => Update(this.OpenBraceToken, accessors, this.CloseBraceToken);
         public AccessorListSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.OpenBraceToken, this.Accessors, closeBraceToken);
+
 
             public AccessorListSyntax AddAccessors(params AccessorDeclarationSyntax[] items)
             {
@@ -11021,6 +11094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public AccessorDeclarationSyntax WithExpressionBody(ArrowExpressionClauseSyntax expressionBody) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Body, expressionBody, this.SemicolonToken);
         public AccessorDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Body, this.ExpressionBody, semicolonToken);
 
+
             public AccessorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
             {
                 return this.WithAttributeLists(this.AttributeLists.AddRange(items));
@@ -11107,6 +11181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override BaseParameterListSyntax WithParametersCore(SeparatedSyntaxList<ParameterSyntax> parameters) => WithParameters(parameters);
         public new ParameterListSyntax WithParameters(SeparatedSyntaxList<ParameterSyntax> parameters) => Update(this.OpenParenToken, parameters, this.CloseParenToken);
         public ParameterListSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Parameters, closeParenToken);
+
             internal override BaseParameterListSyntax AddParametersCore(params ParameterSyntax[] items) => AddParameters(items);
 
             public new ParameterListSyntax AddParameters(params ParameterSyntax[] items)
@@ -11167,6 +11242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override BaseParameterListSyntax WithParametersCore(SeparatedSyntaxList<ParameterSyntax> parameters) => WithParameters(parameters);
         public new BracketedParameterListSyntax WithParameters(SeparatedSyntaxList<ParameterSyntax> parameters) => Update(this.OpenBracketToken, parameters, this.CloseBracketToken);
         public BracketedParameterListSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Parameters, closeBracketToken);
+
             internal override BaseParameterListSyntax AddParametersCore(params ParameterSyntax[] items) => AddParameters(items);
 
             public new BracketedParameterListSyntax AddParameters(params ParameterSyntax[] items)
@@ -11250,6 +11326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.Default);
         public ParameterSyntax WithDefault(EqualsValueClauseSyntax @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, @default);
 
+
             public ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items)
             {
                 return this.WithAttributeLists(this.AttributeLists.AddRange(items));
@@ -11324,6 +11401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
         public new IncompleteMemberSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type);
         public IncompleteMemberSyntax WithType(TypeSyntax type) => Update(this.AttributeLists, this.Modifiers, type);
+
             internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
 
             public new IncompleteMemberSyntax AddAttributeLists(params AttributeListSyntax[] items)
@@ -11379,6 +11457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SkippedTokensTriviaSyntax WithTokens(SyntaxTokenList tokens) => Update(tokens);
 
+
             public SkippedTokensTriviaSyntax AddTokens(params SyntaxToken[] items)
             {
                 return this.WithTokens(this.Tokens.AddRange(items));
@@ -11421,6 +11500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public DocumentationCommentTriviaSyntax WithContent(SyntaxList<XmlNodeSyntax> content) => Update(content, this.EndOfComment);
         public DocumentationCommentTriviaSyntax WithEndOfComment(SyntaxToken endOfComment) => Update(this.Content, endOfComment);
+
 
             public DocumentationCommentTriviaSyntax AddContent(params XmlNodeSyntax[] items)
             {
@@ -11614,6 +11694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public NameMemberCrefSyntax WithName(TypeSyntax name) => Update(name, this.Parameters);
         public NameMemberCrefSyntax WithParameters(CrefParameterListSyntax parameters) => Update(this.Name, parameters);
 
+
             public NameMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
             {
                 var parameters = this.Parameters ?? SyntaxFactory.CrefParameterList();
@@ -11661,6 +11742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public IndexerMemberCrefSyntax WithThisKeyword(SyntaxToken thisKeyword) => Update(thisKeyword, this.Parameters);
         public IndexerMemberCrefSyntax WithParameters(CrefBracketedParameterListSyntax parameters) => Update(this.ThisKeyword, parameters);
+
 
             public IndexerMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
             {
@@ -11714,6 +11796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public OperatorMemberCrefSyntax WithOperatorKeyword(SyntaxToken operatorKeyword) => Update(operatorKeyword, this.OperatorToken, this.Parameters);
         public OperatorMemberCrefSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(this.OperatorKeyword, operatorToken, this.Parameters);
         public OperatorMemberCrefSyntax WithParameters(CrefParameterListSyntax parameters) => Update(this.OperatorKeyword, this.OperatorToken, parameters);
+
 
             public OperatorMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
             {
@@ -11781,6 +11864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ConversionOperatorMemberCrefSyntax WithOperatorKeyword(SyntaxToken operatorKeyword) => Update(this.ImplicitOrExplicitKeyword, operatorKeyword, this.Type, this.Parameters);
         public ConversionOperatorMemberCrefSyntax WithType(TypeSyntax type) => Update(this.ImplicitOrExplicitKeyword, this.OperatorKeyword, type, this.Parameters);
         public ConversionOperatorMemberCrefSyntax WithParameters(CrefParameterListSyntax parameters) => Update(this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, parameters);
+
 
             public ConversionOperatorMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
             {
@@ -11863,6 +11947,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override BaseCrefParameterListSyntax WithParametersCore(SeparatedSyntaxList<CrefParameterSyntax> parameters) => WithParameters(parameters);
         public new CrefParameterListSyntax WithParameters(SeparatedSyntaxList<CrefParameterSyntax> parameters) => Update(this.OpenParenToken, parameters, this.CloseParenToken);
         public CrefParameterListSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Parameters, closeParenToken);
+
             internal override BaseCrefParameterListSyntax AddParametersCore(params CrefParameterSyntax[] items) => AddParameters(items);
 
             public new CrefParameterListSyntax AddParameters(params CrefParameterSyntax[] items)
@@ -11925,6 +12010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override BaseCrefParameterListSyntax WithParametersCore(SeparatedSyntaxList<CrefParameterSyntax> parameters) => WithParameters(parameters);
         public new CrefBracketedParameterListSyntax WithParameters(SeparatedSyntaxList<CrefParameterSyntax> parameters) => Update(this.OpenBracketToken, parameters, this.CloseBracketToken);
         public CrefBracketedParameterListSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Parameters, closeBracketToken);
+
             internal override BaseCrefParameterListSyntax AddParametersCore(params CrefParameterSyntax[] items) => AddParameters(items);
 
             public new CrefBracketedParameterListSyntax AddParameters(params CrefParameterSyntax[] items)
@@ -12049,6 +12135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlElementSyntax WithContent(SyntaxList<XmlNodeSyntax> content) => Update(this.StartTag, content, this.EndTag);
         public XmlElementSyntax WithEndTag(XmlElementEndTagSyntax endTag) => Update(this.StartTag, this.Content, endTag);
 
+
             public XmlElementSyntax AddStartTagAttributes(params XmlAttributeSyntax[] items)
             {
                 return this.WithStartTag(this.StartTag.WithAttributes(this.StartTag.Attributes.AddRange(items)));
@@ -12115,6 +12202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlElementStartTagSyntax WithName(XmlNameSyntax name) => Update(this.LessThanToken, name, this.Attributes, this.GreaterThanToken);
         public XmlElementStartTagSyntax WithAttributes(SyntaxList<XmlAttributeSyntax> attributes) => Update(this.LessThanToken, this.Name, attributes, this.GreaterThanToken);
         public XmlElementStartTagSyntax WithGreaterThanToken(SyntaxToken greaterThanToken) => Update(this.LessThanToken, this.Name, this.Attributes, greaterThanToken);
+
 
             public XmlElementStartTagSyntax AddAttributes(params XmlAttributeSyntax[] items)
             {
@@ -12218,6 +12306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlEmptyElementSyntax WithName(XmlNameSyntax name) => Update(this.LessThanToken, name, this.Attributes, this.SlashGreaterThanToken);
         public XmlEmptyElementSyntax WithAttributes(SyntaxList<XmlAttributeSyntax> attributes) => Update(this.LessThanToken, this.Name, attributes, this.SlashGreaterThanToken);
         public XmlEmptyElementSyntax WithSlashGreaterThanToken(SyntaxToken slashGreaterThanToken) => Update(this.LessThanToken, this.Name, this.Attributes, slashGreaterThanToken);
+
 
             public XmlEmptyElementSyntax AddAttributes(params XmlAttributeSyntax[] items)
             {
@@ -12381,6 +12470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlTextAttributeSyntax WithTextTokens(SyntaxTokenList textTokens) => Update(this.Name, this.EqualsToken, this.StartQuoteToken, textTokens, this.EndQuoteToken);
         internal override XmlAttributeSyntax WithEndQuoteTokenCore(SyntaxToken endQuoteToken) => WithEndQuoteToken(endQuoteToken);
         public new XmlTextAttributeSyntax WithEndQuoteToken(SyntaxToken endQuoteToken) => Update(this.Name, this.EqualsToken, this.StartQuoteToken, this.TextTokens, endQuoteToken);
+
 
             public XmlTextAttributeSyntax AddTextTokens(params SyntaxToken[] items)
             {
@@ -12557,6 +12647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public XmlTextSyntax WithTextTokens(SyntaxTokenList textTokens) => Update(textTokens);
 
+
             public XmlTextSyntax AddTextTokens(params SyntaxToken[] items)
             {
                 return this.WithTextTokens(this.TextTokens.AddRange(items));
@@ -12609,6 +12700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlCDataSectionSyntax WithStartCDataToken(SyntaxToken startCDataToken) => Update(startCDataToken, this.TextTokens, this.EndCDataToken);
         public XmlCDataSectionSyntax WithTextTokens(SyntaxTokenList textTokens) => Update(this.StartCDataToken, textTokens, this.EndCDataToken);
         public XmlCDataSectionSyntax WithEndCDataToken(SyntaxToken endCDataToken) => Update(this.StartCDataToken, this.TextTokens, endCDataToken);
+
 
             public XmlCDataSectionSyntax AddTextTokens(params SyntaxToken[] items)
             {
@@ -12668,6 +12760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlProcessingInstructionSyntax WithTextTokens(SyntaxTokenList textTokens) => Update(this.StartProcessingInstructionToken, this.Name, textTokens, this.EndProcessingInstructionToken);
         public XmlProcessingInstructionSyntax WithEndProcessingInstructionToken(SyntaxToken endProcessingInstructionToken) => Update(this.StartProcessingInstructionToken, this.Name, this.TextTokens, endProcessingInstructionToken);
 
+
             public XmlProcessingInstructionSyntax AddTextTokens(params SyntaxToken[] items)
             {
                 return this.WithTextTokens(this.TextTokens.AddRange(items));
@@ -12720,6 +12813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlCommentSyntax WithLessThanExclamationMinusMinusToken(SyntaxToken lessThanExclamationMinusMinusToken) => Update(lessThanExclamationMinusMinusToken, this.TextTokens, this.MinusMinusGreaterThanToken);
         public XmlCommentSyntax WithTextTokens(SyntaxTokenList textTokens) => Update(this.LessThanExclamationMinusMinusToken, textTokens, this.MinusMinusGreaterThanToken);
         public XmlCommentSyntax WithMinusMinusGreaterThanToken(SyntaxToken minusMinusGreaterThanToken) => Update(this.LessThanExclamationMinusMinusToken, this.TextTokens, minusMinusGreaterThanToken);
+
 
             public XmlCommentSyntax AddTextTokens(params SyntaxToken[] items)
             {
@@ -13410,6 +13504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
         public new PragmaWarningDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, endOfDirectiveToken, this.IsActive);
         public PragmaWarningDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, isActive);
+
 
             public PragmaWarningDirectiveTriviaSyntax AddErrorCodes(params ExpressionSyntax[] items)
             {

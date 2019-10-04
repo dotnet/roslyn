@@ -1435,12 +1435,18 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedListHelperMethods(Node node)
         {
+            var wroteNewLine = false;
             for (int f = 0; f < node.Fields.Count; f++)
             {
                 var field = node.Fields[f];
 
                 if (IsAnyList(field.Type))
                 {
+                    if (!wroteNewLine)
+                    {
+                        WriteLine();
+                        wroteNewLine = true;
+                    }
                     // write list helper methods for list properties
                     WriteRedListHelperMethods(node, field);
                 }
@@ -1455,6 +1461,11 @@ namespace CSharpSyntaxGenerator
                             var referencedNodeField = referencedNode.Fields[rf];
                             if (IsAnyList(referencedNodeField.Type))
                             {
+                                if (!wroteNewLine)
+                                {
+                                    WriteLine();
+                                    wroteNewLine = true;
+                                }
                                 WriteRedNestedListHelperMethods(node, field, referencedNode, referencedNodeField);
                             }
                         }
