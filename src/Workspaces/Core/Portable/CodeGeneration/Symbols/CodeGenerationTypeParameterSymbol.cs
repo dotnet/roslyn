@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public new ITypeParameterSymbol OriginalDefinition => this;
 
-        public ITypeParameterSymbol ReducedFrom => null;
+        public ITypeParameterSymbol? ReducedFrom => null;
 
         public override SymbolKind Kind => SymbolKind.TypeParameter;
 
@@ -60,9 +63,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             visitor.VisitTypeParameter(this);
         }
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return visitor.VisitTypeParameter(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         public override TypeKind TypeKind => TypeKind.TypeParameter;
@@ -77,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public IMethodSymbol DeclaringMethod
+        public IMethodSymbol? DeclaringMethod
         {
             get
             {
@@ -85,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public INamedTypeSymbol DeclaringType
+        public INamedTypeSymbol? DeclaringType
         {
             get
             {

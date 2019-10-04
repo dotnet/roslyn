@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -22,14 +24,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly GenericParameterHandle _handle;
 
         #region Metadata
+#nullable disable // The compiler can't tell '_name' is set in the constructor
         private readonly string _name;
+#nullable enable
         private readonly ushort _ordinal; // 0 for first, 1 for second, ...
         #endregion
 
         /// <summary>
         /// First error calculating bounds.
         /// </summary>
-        private DiagnosticInfo _lazyConstraintsUseSiteErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
+        private DiagnosticInfo? _lazyConstraintsUseSiteErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
 
         private readonly GenericParameterAttributes _flags;
         private ThreeState _lazyHasIsUnmanagedConstraint;
@@ -61,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ushort ordinal,
             GenericParameterHandle handle)
         {
-            Debug.Assert((object)moduleSymbol != null);
-            Debug.Assert((object)definingSymbol != null);
+            RoslynDebug.Assert((object)moduleSymbol != null);
+            RoslynDebug.Assert((object)definingSymbol != null);
             Debug.Assert(ordinal >= 0);
             Debug.Assert(!handle.IsNil);
 
@@ -611,11 +615,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(!constraintTypes.IsDefault);
 
                 var diagnostics = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-                ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
                 bool inherited = (_containingSymbol.Kind == SymbolKind.Method) && ((MethodSymbol)_containingSymbol).IsOverride;
                 var bounds = this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited, currentCompilation: null,
                                                 diagnosticsBuilder: diagnostics, useSiteDiagnosticsBuilder: ref useSiteDiagnosticsBuilder);
-                DiagnosticInfo errorInfo = null;
+                DiagnosticInfo? errorInfo = null;
 
                 if (diagnostics.Count > 0)
                 {
@@ -630,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             errorInfo = diag.DiagnosticInfo;
                             break;
                         }
-                        else if ((object)errorInfo == null)
+                        else if ((object?)errorInfo == null)
                         {
                             errorInfo = diag.DiagnosticInfo;
                         }
@@ -647,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyBounds;
         }
 
-        internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
+        internal override DiagnosticInfo? GetConstraintsUseSiteErrorInfo()
         {
             EnsureAllConstraintsAreResolved();
             Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
@@ -659,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return this.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

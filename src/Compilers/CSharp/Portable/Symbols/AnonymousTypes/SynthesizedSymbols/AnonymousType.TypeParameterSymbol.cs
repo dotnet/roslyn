@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public AnonymousTypeParameterSymbol(Symbol container, int ordinal, string name)
             {
-                Debug.Assert((object)container != null);
+                RoslynDebug.Assert((object)container != null);
                 Debug.Assert(!string.IsNullOrEmpty(name));
 
                 _container = container;
@@ -116,12 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
+            internal override NamedTypeSymbol? GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
             {
                 return null;
             }
 
-            internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
+            internal override TypeSymbol? GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
             {
                 return null;
             }

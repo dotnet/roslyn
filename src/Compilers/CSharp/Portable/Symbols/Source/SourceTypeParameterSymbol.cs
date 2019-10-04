@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly short _ordinal;
 
         private SymbolCompletionState _state;
-        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
-        private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
+        private CustomAttributesBag<CSharpAttributeData>? _lazyCustomAttributesBag;
+        private TypeParameterBounds? _lazyBounds = TypeParameterBounds.Unset;
 
         protected SourceTypeParameterSymbolBase(string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
         {
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
-                if ((object)sourceMethod != null && sourceMethod.IsPartial)
+                if ((object?)sourceMethod != null && sourceMethod.IsPartial)
                 {
                     var implementingPart = sourceMethod.SourcePartialImplementation;
                     if ((object)implementingPart != null)
@@ -176,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool lazyAttributesStored = false;
 
                 var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
-                if ((object)sourceMethod == null || (object)sourceMethod.SourcePartialDefinition == null)
+                if ((object?)sourceMethod == null || (object)sourceMethod.SourcePartialDefinition == null)
                 {
                     lazyAttributesStored = LoadAndValidateAttributes(
                         OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists),
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress)
+        private TypeParameterBounds? GetBounds(ConsList<TypeParameterSymbol> inProgress)
         {
             Debug.Assert(!inProgress.ContainsReference(this));
             Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
@@ -238,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyBounds;
         }
 
-        protected abstract TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics);
+        protected abstract TypeParameterBounds? ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics);
 
         /// <summary>
         /// Check constraints of generic types referenced in constraint types. For instance,
@@ -260,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var constraintType in constraintTypes)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 constraintType.Type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
 
                 if (!diagnostics.Add(location, useSiteDiagnostics))
@@ -414,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override sealed void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            RoslynDebug.Assert((object?)arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -554,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _owner.GetTypeParameterConstraintClause(this.Ordinal);
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
+        protected override TypeParameterBounds? ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
             var constraintClause = GetTypeParameterConstraintClause();
             if (constraintClause.IsEmpty)
@@ -676,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return constraintClauses.IsEmpty ? TypeParameterConstraintClause.Empty : constraintClauses[Ordinal];
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
+        protected override TypeParameterBounds? ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
             var constraintClause = GetTypeParameterConstraintClause();
             if (constraintClause.IsEmpty)
@@ -706,10 +708,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceOrdinaryMethodSymbol _overridingMethod;
 
         // Type map shared by all type parameters for this explicit implementation.
-        private TypeMap _lazyTypeMap;
+        private TypeMap? _lazyTypeMap;
 
         // Overridden or explicitly implemented method. May be null in error cases.
-        private MethodSymbol _lazyOverriddenMethod = ErrorMethodSymbol.UnknownMethod;
+        private MethodSymbol? _lazyOverriddenMethod = ErrorMethodSymbol.UnknownMethod;
 
         protected OverriddenMethodTypeParameterMapBase(SourceOrdinaryMethodSymbol overridingMethod)
         {
@@ -721,20 +723,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _overridingMethod; }
         }
 
-        public TypeParameterSymbol GetOverriddenTypeParameter(int ordinal)
+        public TypeParameterSymbol? GetOverriddenTypeParameter(int ordinal)
         {
             var overriddenMethod = this.OverriddenMethod;
-            return ((object)overriddenMethod != null) ? overriddenMethod.TypeParameters[ordinal] : null;
+            return ((object?)overriddenMethod != null) ? overriddenMethod.TypeParameters[ordinal] : null;
         }
 
-        public TypeMap TypeMap
+        public TypeMap? TypeMap
         {
             get
             {
                 if (_lazyTypeMap == null)
                 {
                     var overriddenMethod = this.OverriddenMethod;
-                    if ((object)overriddenMethod != null)
+                    if ((object?)overriddenMethod != null)
                     {
                         var overriddenTypeParameters = overriddenMethod.TypeParameters;
                         var overridingTypeParameters = _overridingMethod.TypeParameters;
@@ -750,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private MethodSymbol OverriddenMethod
+        private MethodSymbol? OverriddenMethod
         {
             get
             {
@@ -762,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract MethodSymbol GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod);
+        protected abstract MethodSymbol? GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod);
     }
 
     internal sealed class OverriddenMethodTypeParameterMap : OverriddenMethodTypeParameterMapBase
@@ -773,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(overridingMethod.IsOverride);
         }
 
-        protected override MethodSymbol GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod)
+        protected override MethodSymbol? GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod)
         {
             MethodSymbol method = overridingMethod;
             Debug.Assert(method.IsOverride);
@@ -794,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(implementationMethod.IsExplicitInterfaceImplementation);
         }
 
-        protected override MethodSymbol GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod)
+        protected override MethodSymbol? GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod)
         {
             var explicitImplementations = overridingMethod.ExplicitInterfaceImplementations;
             Debug.Assert(explicitImplementations.Length <= 1);
@@ -844,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var typeParameter = this.OverriddenTypeParameter;
-                return ((object)typeParameter != null) && typeParameter.HasConstructorConstraint;
+                return ((object?)typeParameter != null) && typeParameter.HasConstructorConstraint;
             }
         }
 
@@ -853,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var typeParameter = this.OverriddenTypeParameter;
-                return ((object)typeParameter != null) && typeParameter.HasValueTypeConstraint;
+                return ((object?)typeParameter != null) && typeParameter.HasValueTypeConstraint;
             }
         }
 
@@ -862,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var typeParameter = this.OverriddenTypeParameter;
-                return ((object)typeParameter != null) && typeParameter.HasReferenceTypeConstraint;
+                return ((object?)typeParameter != null) && typeParameter.HasReferenceTypeConstraint;
             }
         }
 
@@ -870,8 +872,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                TypeParameterSymbol typeParameter = this.OverriddenTypeParameter;
-                return ((object)typeParameter != null) ? typeParameter.ReferenceTypeConstraintIsNullable : false;
+                TypeParameterSymbol? typeParameter = this.OverriddenTypeParameter;
+                return ((object?)typeParameter != null) ? typeParameter.ReferenceTypeConstraintIsNullable : false;
             }
         }
 
@@ -896,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var typeParameter = this.OverriddenTypeParameter;
-                return ((object)typeParameter != null) && typeParameter.HasUnmanagedTypeConstraint;
+                return ((object?)typeParameter != null) && typeParameter.HasUnmanagedTypeConstraint;
             }
         }
 
@@ -905,15 +907,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Owner.TypeParameters; }
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
+        protected override TypeParameterBounds? ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
             var typeParameter = this.OverriddenTypeParameter;
-            if ((object)typeParameter == null)
+            if ((object?)typeParameter == null)
             {
                 return null;
             }
             var map = _map.TypeMap;
-            Debug.Assert(map != null);
+            RoslynDebug.Assert(map != null);
 
             var constraintTypes = map.SubstituteTypes(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited: true, this.DeclaringCompilation, diagnostics);
@@ -924,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// method that the owner method is overriding, the corresponding type
         /// parameter on that method is used. Otherwise, the result is null.
         /// </summary>
-        private TypeParameterSymbol OverriddenTypeParameter
+        private TypeParameterSymbol? OverriddenTypeParameter
         {
             get
             {
