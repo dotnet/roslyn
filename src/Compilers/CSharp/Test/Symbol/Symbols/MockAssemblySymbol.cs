@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return new AssemblyIdentity(_name); }
         }
 
-        public override Version AssemblyVersionPattern => null;
+        public override Version? AssemblyVersionPattern => null;
 
         internal override ImmutableArray<byte> PublicKey
         {
@@ -102,11 +104,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return true; }
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
             return null;
         }
 
-        public override AssemblyMetadata GetMetadata() => null;
+        public override AssemblyMetadata? GetMetadata() => null;
     }
 }

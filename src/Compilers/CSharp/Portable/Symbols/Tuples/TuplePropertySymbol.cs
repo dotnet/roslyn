@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
-        public override MethodSymbol GetMethod
+        public override MethodSymbol? GetMethod
         {
             get
             {
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override MethodSymbol SetMethod
+        public override MethodSymbol? SetMethod
         {
             get
             {
@@ -127,9 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
-            DiagnosticInfo result = base.GetUseSiteDiagnostic();
+            DiagnosticInfo? result = base.GetUseSiteDiagnostic();
             MergeUseSiteDiagnostics(ref result, _underlyingProperty.GetUseSiteDiagnostic());
             return result;
         }
@@ -139,19 +141,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingProperty.GetHashCode();
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             return Equals(obj as TuplePropertySymbol, compareKind);
         }
 
-        public bool Equals(TuplePropertySymbol other, TypeCompareKind compareKind)
+        public bool Equals(TuplePropertySymbol? other, TypeCompareKind compareKind)
         {
-            if ((object)other == this)
+            if ((object?)other == this)
             {
                 return true;
             }
 
-            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && _underlyingProperty == other._underlyingProperty;
+            return (object?)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && _underlyingProperty == other._underlyingProperty;
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()

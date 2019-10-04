@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            public IMethodSymbol GetMethod => _symbol.GetMethod;
+            public IMethodSymbol? GetMethod => _symbol.GetMethod;
 
             public bool IsIndexer => _symbol.IsIndexer;
 
@@ -43,11 +45,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public RefKind RefKind => _symbol.RefKind;
 
-            public IPropertySymbol OverriddenProperty => _symbol.OverriddenProperty;
+            public IPropertySymbol? OverriddenProperty => _symbol.OverriddenProperty;
 
             public ImmutableArray<IParameterSymbol> Parameters => _symbol.Parameters;
 
-            public IMethodSymbol SetMethod => _symbol.SetMethod;
+            public IMethodSymbol? SetMethod => _symbol.SetMethod;
 
             public ITypeSymbol Type => _symbol.Type;
 

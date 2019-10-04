@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -7,6 +9,7 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected SourceFieldSymbol(SourceMemberContainerTypeSymbol containingType)
         {
-            Debug.Assert((object)containingType != null);
+            RoslynDebug.Assert((object)containingType != null);
 
             this.containingType = containingType;
         }
@@ -108,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            RoslynDebug.Assert((object?)arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -152,18 +155,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly Location _location;
         private readonly SyntaxReference _syntaxReference;
 
-        private string _lazyDocComment;
-        private string _lazyExpandedDocComment;
-        private ConstantValue _lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
-        private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
+        private string? _lazyDocComment;
+        private string? _lazyExpandedDocComment;
+        private ConstantValue? _lazyConstantEarlyDecodingValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
+        private ConstantValue? _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset;
 
 
         protected SourceFieldSymbolWithSyntaxReference(SourceMemberContainerTypeSymbol containingType, string name, SyntaxReference syntax, Location location)
             : base(containingType)
         {
-            Debug.Assert(name != null);
-            Debug.Assert(syntax != null);
-            Debug.Assert(location != null);
+            RoslynDebug.Assert(name != null);
+            RoslynDebug.Assert(syntax != null);
+            RoslynDebug.Assert(location != null);
 
             _name = name;
             _syntaxReference = syntax;
@@ -223,13 +226,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public sealed override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             ref var lazyDocComment = ref expandIncludes ? ref _lazyExpandedDocComment : ref _lazyDocComment;
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
-        internal sealed override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
+        internal sealed override ConstantValue? GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
         {
             var value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
             if (value != Microsoft.CodeAnalysis.ConstantValue.Unset)
@@ -338,13 +341,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Free();
         }
 
-        private ConstantValue GetLazyConstantValue(bool earlyDecodingWellKnownAttributes)
+        private ConstantValue? GetLazyConstantValue(bool earlyDecodingWellKnownAttributes)
         {
             return earlyDecodingWellKnownAttributes ? _lazyConstantEarlyDecodingValue : _lazyConstantValue;
         }
 
         private void SetLazyConstantValue(
-            ConstantValue value,
+            ConstantValue? value,
             bool earlyDecodingWellKnownAttributes,
             DiagnosticBag diagnostics,
             bool startsCycle)
@@ -373,6 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics);
+        protected abstract ConstantValue? MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics);
     }
 }

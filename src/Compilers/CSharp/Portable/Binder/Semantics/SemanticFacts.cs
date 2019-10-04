@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsSymbolAccessible(
             Symbol symbol,
             NamedTypeSymbol within,
-            NamedTypeSymbol throughTypeOpt = null)
+            NamedTypeSymbol? throughTypeOpt = null)
         {
             if ((object)symbol == null)
             {
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(within));
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             return AccessCheck.IsSymbolAccessible(
                 symbol,
                 within,
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(within));
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics);
         }
     }

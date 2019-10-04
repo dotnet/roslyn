@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
@@ -27,14 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private DiagnosticInfo? _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
-        private TypeWithAnnotations.Boxed _lazyType;
+        private TypeWithAnnotations.Boxed? _lazyType;
 
         public RetargetingPropertySymbol(RetargetingModuleSymbol retargetingModule, PropertySymbol underlyingProperty)
             : base(underlyingProperty)
         {
-            Debug.Assert((object)retargetingModule != null);
+            RoslynDebug.Assert((object)retargetingModule != null);
             Debug.Assert(!(underlyingProperty is RetargetingPropertySymbol));
 
             _retargetingModule = retargetingModule;
@@ -116,21 +119,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override MethodSymbol GetMethod
+        public override MethodSymbol? GetMethod
         {
             get
             {
-                return (object)_underlyingProperty.GetMethod == null
+                return (object?)_underlyingProperty.GetMethod == null
                     ? null
                     : this.RetargetingTranslator.Retarget(_underlyingProperty.GetMethod);
             }
         }
 
-        public override MethodSymbol SetMethod
+        public override MethodSymbol? SetMethod
         {
             get
             {
-                return (object)_underlyingProperty.SetMethod == null
+                return (object?)_underlyingProperty.SetMethod == null
                     ? null
                     : this.RetargetingTranslator.Retarget(_underlyingProperty.SetMethod);
             }
@@ -176,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             for (int i = 0; i < impls.Length; i++)
             {
                 var retargeted = this.RetargetingTranslator.Retarget(impls[i], MemberSignatureComparer.RetargetedExplicitImplementationComparer);
-                if ((object)retargeted != null)
+                if ((object?)retargeted != null)
                 {
                     builder.Add(retargeted);
                 }
@@ -185,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -227,11 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
             {
-                DiagnosticInfo result = null;
+                DiagnosticInfo? result = null;
                 CalculateUseSiteDiagnostic(ref result);
                 _lazyUseSiteDiagnostic = result;
             }
@@ -239,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _lazyUseSiteDiagnostic;
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public sealed override bool Equals(Symbol? obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj)
             {
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // ReferenceEquals.
 
             var other = obj as SubstitutedParameterSymbol;
-            return (object)other != null &&
+            return (object?)other != null &&
                 this.Ordinal == other.Ordinal &&
                 this.ContainingSymbol.Equals(other.ContainingSymbol, compareKind);
         }

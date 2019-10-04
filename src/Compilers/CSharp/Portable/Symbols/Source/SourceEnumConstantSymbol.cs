@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             var initializer = syntax.EqualsValue;
-            Debug.Assert(initializer != null);
+            RoslynDebug.Assert(initializer != null);
             return new ExplicitValuedEnumConstantSymbol(containingEnum, syntax, initializer, diagnostics);
         }
 
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TypeWithAnnotations.Create(this.ContainingType);
         }
 
-        public override Symbol AssociatedSymbol
+        public override Symbol? AssociatedSymbol
         {
             get
             {
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -182,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DiagnosticBag diagnostics) :
                 base(containingEnum, syntax, diagnostics)
             {
-                Debug.Assert((object)otherConstant != null);
+                RoslynDebug.Assert((object)otherConstant != null);
                 Debug.Assert(otherConstantOffset > 0);
 
                 _otherConstant = otherConstant;
@@ -198,7 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return Microsoft.CodeAnalysis.ConstantValue.Unset;
                 }
+#nullable disable // Can 'otherValue' be null?
                 if (otherValue.IsBad)
+#nullable enable
                 {
                     return Microsoft.CodeAnalysis.ConstantValue.Bad;
                 }

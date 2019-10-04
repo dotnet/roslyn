@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         public RetargetingNamespaceSymbol(RetargetingModuleSymbol retargetingModule, NamespaceSymbol underlyingNamespace)
         {
-            Debug.Assert((object)retargetingModule != null);
-            Debug.Assert((object)underlyingNamespace != null);
+            RoslynDebug.Assert((object)retargetingModule != null);
+            RoslynDebug.Assert((object)underlyingNamespace != null);
             Debug.Assert(!(underlyingNamespace is RetargetingNamespaceSymbol));
 
             _retargetingModule = retargetingModule;
@@ -83,7 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     continue;
                 }
 
+#nullable disable // Can 'RetargetingTranslator.Retarget(s)' return null here?
                 builder.Add(this.RetargetingTranslator.Retarget(s));
+#nullable enable
             }
 
             return builder.ToImmutableAndFree();
@@ -138,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers(name, arity));
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -194,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return _underlyingNamespace.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
@@ -228,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             underlyingMethods.Free();
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

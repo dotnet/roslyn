@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// change it in the future.
     /// </remarks>
     [InternalImplementationOnly]
-    public interface ISymbol : IEquatable<ISymbol>
+    public interface ISymbol : IEquatable<ISymbol?>
     {
         /// <summary>
         /// Gets the <see cref="SymbolKind"/> indicating what kind of symbol it is.
@@ -55,6 +58,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         string MetadataName { get; }
 
+#nullable disable
         /// <summary>
         /// Gets the <see cref="ISymbol"/> for the immediately containing symbol.
         /// </summary>
@@ -83,6 +87,7 @@ namespace Microsoft.CodeAnalysis
         /// symbol isn't contained in a namespace.
         /// </summary>
         INamespaceSymbol ContainingNamespace { get; }
+#nullable enable
 
         /// <summary>
         /// Gets a value indicating whether the symbol is the original definition. Returns false
@@ -201,7 +206,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the Documentation Comment ID for the symbol, or null if the symbol doesn't
         /// support documentation comments.
         /// </summary>
-        string GetDocumentationCommentId();
+        string? GetDocumentationCommentId();
 
         /// <summary>
         /// Gets the XML (as text) for the comment associated with the symbol.
@@ -210,14 +215,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="expandIncludes">Optionally, expand &lt;include&gt; elements.  No impact on non-source documentation comments.</param>
         /// <param name="cancellationToken">Token allowing cancellation of request.</param>
         /// <returns>The XML that would be written to the documentation file for the symbol.</returns>
-        string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
+        string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Converts the symbol to a string representation.
         /// </summary>
         /// <param name="format">Format or null for the default.</param>
         /// <returns>A formatted string representation of the symbol.</returns>
-        string ToDisplayString(SymbolDisplayFormat format = null);
+        string ToDisplayString(SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. Useful for
@@ -226,7 +231,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="format">Formatting rules - null implies
         /// SymbolDisplayFormat.ErrorMessageFormat.</param>
         /// <returns>A read-only array of string parts.</returns>
-        ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null);
+        ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Convert a symbol to a string that can be displayed to the user. May be tailored to a
@@ -241,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         string ToMinimalDisplayString(
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null);
+            SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. May be tailored
@@ -256,7 +261,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
             SemanticModel semanticModel,
             int position,
-            SymbolDisplayFormat format = null);
+            SymbolDisplayFormat? format = null);
 
         /// <summary>
         /// Indicates that this symbol uses metadata that cannot be supported by the language.
@@ -295,6 +300,6 @@ namespace Microsoft.CodeAnalysis
         /// <param name="other">The other symbol to compare against</param>
         /// <param name="equalityComparer">The <see cref="SymbolEqualityComparer"/> to use when comparing symbols</param>
         /// <returns>True if the symbols are equivalent.</returns>
-        bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer);
+        bool Equals([NotNullWhen(returnValue: true)] ISymbol? other, SymbolEqualityComparer equalityComparer);
     }
 }

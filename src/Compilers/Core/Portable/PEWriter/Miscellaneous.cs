@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -17,7 +21,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// True if the given enumerable is not null and contains at least one element.
         /// </summary>
-        public static bool EnumerableIsNotEmpty<T>(IEnumerable<T>/*?*/ enumerable)
+        public static bool EnumerableIsNotEmpty<T>([NotNullWhen(returnValue: true)] IEnumerable<T>? enumerable)
         {
             if (enumerable == null)
             {
@@ -42,7 +46,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// True if the given enumerable is null or contains no elements
         /// </summary>
-        public static bool EnumerableIsEmpty<T>(IEnumerable<T>/*?*/ enumerable)
+        public static bool EnumerableIsEmpty<T>([NotNullWhen(returnValue: false)] IEnumerable<T>? enumerable)
         {
             return !EnumerableIsNotEmpty<T>(enumerable);
         }
@@ -50,7 +54,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns the number of elements in the given enumerable. A null enumerable is allowed and results in 0.
         /// </summary>
-        public static uint EnumerableCount<T>(IEnumerable<T>/*?*/ enumerable)
+        public static uint EnumerableCount<T>(IEnumerable<T>? enumerable)
         {
             // ^ ensures result >= 0;
             if (enumerable == null)
@@ -106,12 +110,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// <see cref="ITypeReference"/> or a string (usually a fully-qualified type name of a type implementing the custom marshaller, but Dev11 allows any string).
         /// </summary>
-        object GetCustomMarshaller(EmitContext context);
+        object? GetCustomMarshaller(EmitContext context);
 
         /// <summary>
         /// An argument string (cookie) passed to the custom marshaller at run time.
         /// </summary>
-        string CustomMarshallerRuntimeArgument
+        string? CustomMarshallerRuntimeArgument
         {
             get;
         }
@@ -173,7 +177,7 @@ namespace Microsoft.Cci
         /// (The element type of a safe array is VARIANT. The tag fields will all be either VT_DISPATCH or VT_UNKNOWN or VT_RECORD.
         /// The "user defined sub type" specifies the type of value the ppdispVal/ppunkVal/pvRecord fields of the element values may point to.)
         /// </summary>
-        ITypeReference GetSafeArrayElementUserDefinedSubtype(EmitContext context);
+        ITypeReference? GetSafeArrayElementUserDefinedSubtype(EmitContext context);
     }
 
     /// <summary>
@@ -184,7 +188,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The name of the entity.
         /// </summary>
-        string Name { get; }
+        string? Name { get; }
     }
 
     /// <summary>
@@ -219,12 +223,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// Module providing the method/field.
         /// </summary>
-        string ModuleName { get; }
+        string? ModuleName { get; }
 
         /// <summary>
         /// Name of the method providing the implementation.
         /// </summary>
-        string EntryPointName { get; }
+        string? EntryPointName { get; }
 
         /// <summary>
         /// Flags that determine marshalling behavior.
@@ -236,8 +240,8 @@ namespace Microsoft.Cci
     {
         internal ResourceSection(byte[] sectionBytes, uint[] relocations)
         {
-            Debug.Assert(sectionBytes != null);
-            Debug.Assert(relocations != null);
+            RoslynDebug.Assert(sectionBytes != null);
+            RoslynDebug.Assert(relocations != null);
 
             SectionBytes = sectionBytes;
             Relocations = relocations;

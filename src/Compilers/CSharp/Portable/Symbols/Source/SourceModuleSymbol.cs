@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -35,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly DeclarationTable _sources;
 
         private SymbolCompletionState _state;
-        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+        private CustomAttributesBag<CSharpAttributeData>? _lazyCustomAttributesBag;
         private ImmutableArray<Location> _locations;
-        private NamespaceSymbol _globalNamespace;
+        private NamespaceSymbol? _globalNamespace;
 
         private bool _hasBadAttributes;
 
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationTable declarations,
             string moduleName)
         {
-            Debug.Assert((object)assemblySymbol != null);
+            RoslynDebug.Assert((object)assemblySymbol != null);
 
             _assemblySymbol = assemblySymbol;
             _sources = declarations;
@@ -185,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if ((object)_globalNamespace == null)
+                if ((object?)_globalNamespace == null)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
                     var globalNS = new SourceNamespaceSymbol(
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -223,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.StartValidatingReferencedAssemblies:
                         {
-                            DiagnosticBag diagnostics = null;
+                            DiagnosticBag? diagnostics = null;
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
@@ -298,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (attrData.IsTargetAttribute(a, AttributeDescription.GuidAttribute))
                         {
-                            string guidString;
+                            string? guidString;
                             if (attrData.TryGetGuidAttributeValue(out guidString))
                             {
                                 hasGuidAttribute = true;
@@ -457,7 +459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+#nullable disable // Can '_lazyCustomAttributesBag' be null?
             return _lazyCustomAttributesBag;
+#nullable enable
         }
 
         /// <summary>
@@ -492,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            RoslynDebug.Assert((object?)arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -521,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData>? attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -571,6 +575,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ModuleMetadata GetMetadata() => null;
+        public override ModuleMetadata? GetMetadata() => null;
     }
 }

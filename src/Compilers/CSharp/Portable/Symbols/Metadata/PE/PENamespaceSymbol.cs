@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
@@ -23,20 +25,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// A map of namespaces immediately contained within this namespace 
         /// mapped by their name (case-sensitively).
         /// </summary>
-        protected Dictionary<string, PENestedNamespaceSymbol> lazyNamespaces;
+        protected Dictionary<string, PENestedNamespaceSymbol>? lazyNamespaces;
 
         /// <summary>
         /// A map of types immediately contained within this namespace 
         /// grouped by their name (case-sensitively).
         /// </summary>
-        protected Dictionary<string, ImmutableArray<PENamedTypeSymbol>> lazyTypes;
+        protected Dictionary<string, ImmutableArray<PENamedTypeSymbol>>? lazyTypes;
 
         /// <summary>
         /// A map of NoPia local types immediately contained in this assembly.
         /// Maps type name (non-qualified) to the row id. Note, for VB we should use
         /// full name.
         /// </summary>
-        private Dictionary<string, TypeDefinitionHandle> _lazyNoPiaLocalTypes;
+        private Dictionary<string, TypeDefinitionHandle>? _lazyNoPiaLocalTypes;
 
         /// <summary>
         /// All type members in a flat array
@@ -60,7 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             EnsureAllMembersLoaded();
 
             var memberTypes = GetMemberTypesPrivate();
+#nullable disable // Can 'lazyNamespaces' be null?
             var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + lazyNamespaces.Count);
+#nullable enable
 
             builder.AddRange(memberTypes);
             foreach (var pair in lazyNamespaces)
@@ -76,7 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             //assume that EnsureAllMembersLoaded() has initialize lazyTypes
             if (_lazyFlattenedTypes.IsDefault)
             {
+#nullable disable // Can 'lazyTypes' be null?
                 var flattened = lazyTypes.Flatten();
+#nullable enable
                 ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedTypes, flattened);
             }
 
@@ -87,12 +93,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             EnsureAllMembersLoaded();
 
-            PENestedNamespaceSymbol ns = null;
+            PENestedNamespaceSymbol? ns = null;
             ImmutableArray<PENamedTypeSymbol> t;
 
+#nullable disable // Can 'lazyNamespaces' be null?
             if (lazyNamespaces.TryGetValue(name, out ns))
+#nullable enable
             {
+#nullable disable // Can 'lazyTypes' be null?
                 if (lazyTypes.TryGetValue(name, out t))
+#nullable enable
                 {
                     // TODO - Eliminate the copy by storing all members and type members instead of non-type and type members?
                     return StaticCast<Symbol>.From(t).Add(ns);
@@ -102,7 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return ImmutableArray.Create<Symbol>(ns);
                 }
             }
+#nullable disable // Can 'lazyTypes' be null?
             else if (lazyTypes.TryGetValue(name, out t))
+#nullable enable
             {
                 return StaticCast<Symbol>.From(t);
             }
@@ -123,7 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             ImmutableArray<PENamedTypeSymbol> t;
 
+#nullable disable // Can 'lazyTypes' be null?
             return lazyTypes.TryGetValue(name, out t)
+#nullable enable
                 ? StaticCast<NamedTypeSymbol>.From(t)
                 : ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -175,14 +189,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(typesByNS != null);
 
             // A sequence of groups of TypeDef row ids for types immediately contained within this namespace.
-            IEnumerable<IGrouping<string, TypeDefinitionHandle>> nestedTypes = null;
+            IEnumerable<IGrouping<string, TypeDefinitionHandle>>? nestedTypes = null;
 
             // A sequence with information about namespaces immediately contained within this namespace.
             // For each pair:
             //    Key - contains simple name of a child namespace.
             //    Value - contains a sequence similar to the one passed to this function, but
             //            calculated for the child namespace. 
-            IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>> nestedNamespaces = null;
+            IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>>? nestedNamespaces = null;
             bool isGlobalNamespace = this.IsGlobalNamespace;
 
             MetadataHelpers.GetInfoForImmediateNamespaceMembers(
@@ -243,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 var children = ArrayBuilder<PENamedTypeSymbol>.GetInstance();
                 var skipCheckForPiaType = !moduleSymbol.Module.ContainsNoPiaLocalTypes();
-                Dictionary<string, TypeDefinitionHandle> noPiaLocalTypes = null;
+                Dictionary<string, TypeDefinitionHandle>? noPiaLocalTypes = null;
 
                 foreach (var g in typeGroups)
                 {

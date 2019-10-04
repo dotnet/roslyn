@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// as soon as symbols for children are created.
         /// </summary>
         /// <remarks></remarks>
-        private IEnumerable<IGrouping<string, TypeDefinitionHandle>> _typesByNS;
+        private IEnumerable<IGrouping<string, TypeDefinitionHandle>>? _typesByNS;
 
         /// <summary>
         /// Constructor.
@@ -68,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PENamespaceSymbol containingNamespace,
             IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS)
         {
-            Debug.Assert(name != null);
-            Debug.Assert((object)containingNamespace != null);
-            Debug.Assert(typesByNS != null);
+            RoslynDebug.Assert(name != null);
+            RoslynDebug.Assert((object)containingNamespace != null);
+            RoslynDebug.Assert(typesByNS != null);
 
             _containingNamespaceSymbol = containingNamespace;
             _name = name;
@@ -125,13 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (lazyTypes == null || lazyNamespaces == null)
             {
-                System.Diagnostics.Debug.Assert(typesByNS != null);
+                RoslynDebug.Assert(typesByNS != null);
                 LoadAllMembers(typesByNS);
                 Interlocked.Exchange(ref _typesByNS, null);
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

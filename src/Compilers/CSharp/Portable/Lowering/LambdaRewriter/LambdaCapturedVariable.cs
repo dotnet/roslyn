@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool IsThis(Symbol captured)
         {
             var parameter = captured as ParameterSymbol;
-            return (object)parameter != null && parameter.IsThis;
+            return (object?)parameter != null && parameter.IsThis;
         }
 
         private static string GetCapturedVariableFieldName(Symbol variable, ref int uniqueId)
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var local = variable as LocalSymbol;
-            if ((object)local != null)
+            if ((object?)local != null)
             {
                 if (local.SynthesizedKind == SynthesizedLocalKind.LambdaDisplayClass)
                 {
@@ -83,18 +85,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(variable.Name != null);
+            RoslynDebug.Assert(variable.Name != null);
             return variable.Name;
         }
 
         private static TypeSymbol GetCapturedVariableFieldType(SynthesizedContainer frame, Symbol variable)
         {
             var local = variable as LocalSymbol;
-            if ((object)local != null)
+            if ((object?)local != null)
             {
                 // if we're capturing a generic frame pointer, construct it with the new frame's type parameters
                 var lambdaFrame = local.Type.OriginalDefinition as SynthesizedClosureEnvironment;
-                if ((object)lambdaFrame != null)
+                if ((object?)lambdaFrame != null)
                 {
                     // lambdaFrame may have less generic type parameters than frame, so trim them down (the first N will always match)
                     var typeArguments = frame.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return frame.TypeMap.SubstituteType(((object)local != null ? local.TypeWithAnnotations : ((ParameterSymbol)variable).TypeWithAnnotations).Type).Type;
+            return frame.TypeMap.SubstituteType(((object?)local != null ? local.TypeWithAnnotations : ((ParameterSymbol)variable).TypeWithAnnotations).Type).Type;
         }
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)

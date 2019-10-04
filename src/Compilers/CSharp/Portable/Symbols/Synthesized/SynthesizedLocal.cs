@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly MethodSymbol _containingMethodOpt;
         private readonly TypeWithAnnotations _type;
         private readonly SynthesizedLocalKind _kind;
-        private readonly SyntaxNode _syntaxOpt;
+        private readonly SyntaxNode? _syntaxOpt;
         private readonly bool _isPinned;
         private readonly RefKind _refKind;
 
@@ -31,13 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol containingMethodOpt,
             TypeWithAnnotations type,
             SynthesizedLocalKind kind,
-            SyntaxNode syntaxOpt = null,
+            SyntaxNode? syntaxOpt = null,
             bool isPinned = false,
             RefKind refKind = RefKind.None
 #if DEBUG
             ,
             [CallerLineNumber]int createdAtLineNumber = 0,
-            [CallerFilePath]string createdAtFilePath = null
+            [CallerFilePath]string createdAtFilePath = null!
 #endif
             )
         {
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-        public SyntaxNode SyntaxOpt
+        public SyntaxNode? SyntaxOpt
         {
             get { return _syntaxOpt; }
         }
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _kind; }
         }
 
-        internal override SyntaxNode ScopeDesignatorOpt
+        internal override SyntaxNode? ScopeDesignatorOpt
         {
             get { return null; }
         }
@@ -111,7 +113,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name
         {
+#nullable disable // 'Name' is explicitly documented as not allowing null returns
             get { return null; }
+#nullable enable
         }
 
         public override TypeWithAnnotations TypeWithAnnotations
@@ -131,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override SyntaxNode GetDeclaratorSyntax()
         {
-            Debug.Assert(_syntaxOpt != null);
+            RoslynDebug.Assert(_syntaxOpt != null);
             return _syntaxOpt;
         }
 
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
+        internal override ConstantValue? GetConstantValue(SyntaxNode? node, LocalSymbol? inProgress, DiagnosticBag? diagnostics)
         {
             return null;
         }

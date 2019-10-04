@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ModuleSymbol ContainingModule
+        internal sealed override ModuleSymbol? ContainingModule
         {
             get
             {
@@ -184,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
             get { return null; }
         }
@@ -245,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract ImmutableArray<AssemblySymbol> GetReferencedAssemblySymbols(); // TODO: Remove this method and make ReferencedAssemblySymbols property abstract instead.
 
-        internal AssemblySymbol GetReferencedAssemblySymbol(int referencedAssemblyIndex)
+        internal AssemblySymbol? GetReferencedAssemblySymbol(int referencedAssemblyIndex)
         {
             var referencedAssemblies = GetReferencedAssemblySymbols();
             if (referencedAssemblyIndex < referencedAssemblies.Length)
@@ -275,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// this module symbol because the module can be shared across multiple source 
         /// assemblies. This method will only be called for the first one.
         /// </param>
-        internal abstract void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol originatingSourceAssemblyDebugOnly = null);
+        internal abstract void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol? originatingSourceAssemblyDebugOnly = null);
 
         /// <summary>
         /// True if this module has any unified references.
@@ -291,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// the Assembly Manager might decide to use another reference if it matches except for version 
         /// (it unifies the version with the existing reference).  
         /// </remarks>
-        internal abstract bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo result, TypeSymbol dependentType);
+        internal abstract bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo? result, TypeSymbol dependentType);
 
         /// <summary>
         /// Lookup a top level type referenced from metadata, names should be
@@ -333,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Given a namespace symbol, returns the corresponding module specific namespace symbol
         /// </summary>
-        public NamespaceSymbol GetModuleNamespace(INamespaceSymbol namespaceSymbol)
+        public NamespaceSymbol? GetModuleNamespace(INamespaceSymbol namespaceSymbol)
         {
             if (namespaceSymbol == null)
             {
@@ -341,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var moduleNs = namespaceSymbol as NamespaceSymbol;
-            if ((object)moduleNs != null && moduleNs.Extent.Kind == NamespaceKind.Module && moduleNs.ContainingModule == this)
+            if ((object?)moduleNs != null && moduleNs.Extent.Kind == NamespaceKind.Module && moduleNs.ContainingModule == this)
             {
                 // this is already the correct module namespace
                 return moduleNs;
@@ -354,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var cns = GetModuleNamespace(namespaceSymbol.ContainingNamespace);
-                if ((object)cns != null)
+                if ((object?)cns != null)
                 {
                     return cns.GetNestedNamespace(namespaceSymbol.Name);
                 }
@@ -369,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.GlobalNamespace; }
         }
 
-        INamespaceSymbol IModuleSymbol.GetModuleNamespace(INamespaceSymbol namespaceSymbol)
+        INamespaceSymbol? IModuleSymbol.GetModuleNamespace(INamespaceSymbol namespaceSymbol)
         {
             return this.GetModuleNamespace(namespaceSymbol);
         }
@@ -391,9 +394,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             visitor.VisitModule(this);
         }
 
+        [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
             return visitor.VisitModule(this);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
         }
 
         /// <summary>
@@ -401,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// 
         /// Otherwise, this returns <see langword="null"/>.
         /// </summary>
-        public abstract ModuleMetadata GetMetadata();
+        public abstract ModuleMetadata? GetMetadata();
 
         #endregion
     }

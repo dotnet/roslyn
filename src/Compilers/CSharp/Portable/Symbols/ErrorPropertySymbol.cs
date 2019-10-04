@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -50,10 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsIndexedProperty { get { return _isIndexedProperty; } }
 
         // CONSIDER: could create an ErrorMethodSymbol
-        public override MethodSymbol GetMethod { get { return null; } }
+        public override MethodSymbol? GetMethod { get { return null; } }
 
         // CONSIDER: could create an ErrorMethodSymbol
-        public override MethodSymbol SetMethod { get { return null; } }
+        public override MethodSymbol? SetMethod { get { return null; } }
 
         public override ImmutableArray<Location> Locations { get { return ImmutableArray<Location>.Empty; } }
 
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern { get { return false; } }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData { get { return null; } }
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData { get { return null; } }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get { return ImmutableArray<ParameterSymbol>.Empty; } }
 

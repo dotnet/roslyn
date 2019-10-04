@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -133,15 +136,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Early decoding certain well-known attributes enables the binder to use this decoded information on this symbol
         /// when binding the attribute arguments/attribute constructor without causing attribute binding cycle.
         /// </summary>
-        internal virtual CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal virtual CSharpAttributeData? EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             return null;
         }
 
         internal static bool EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(
             ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments,
-            out CSharpAttributeData attributeData,
-            out ObsoleteAttributeData obsoleteData)
+            out CSharpAttributeData? attributeData,
+            out ObsoleteAttributeData? obsoleteData)
         {
             var type = arguments.AttributeType;
             var syntax = arguments.AttributeSyntax;
@@ -221,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Diagnostic bag.</param>
         /// <param name="symbolPart">Specific part of the symbol to which the attributes apply, or <see cref="AttributeLocation.None"/> if the attributes apply to the symbol itself.</param>
         /// <param name="decodedData">Decoded well-known attribute data, could be null.</param>
-        internal virtual void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal virtual void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData? decodedData)
         {
         }
 
@@ -259,11 +262,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>Flag indicating whether lazyCustomAttributes were stored on this thread. Caller should check for this flag and perform NotePartComplete if true.</returns>
         internal bool LoadAndValidateAttributes(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributesSyntaxLists,
-            ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag,
+            [NotNullWhen(returnValue: true)] ref CustomAttributesBag<CSharpAttributeData>? lazyCustomAttributesBag,
             AttributeLocation symbolPart = AttributeLocation.None,
             bool earlyDecodingOnly = false,
-            Binder binderOpt = null,
-            Func<AttributeSyntax, bool> attributeMatchesOpt = null)
+            Binder? binderOpt = null,
+            Func<AttributeSyntax, bool>? attributeMatchesOpt = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var compilation = this.DeclaringCompilation;
@@ -273,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!attributesToBind.IsDefault);
 
             ImmutableArray<CSharpAttributeData> boundAttributes;
-            WellKnownAttributeData wellKnownAttributeData;
+            WellKnownAttributeData? wellKnownAttributeData;
 
             if (attributesToBind.Any())
             {
@@ -300,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var attributesBuilder = new CSharpAttributeData[totalAttributesCount];
 
                 // Early bind and decode some well-known attributes.
-                EarlyWellKnownAttributeData earlyData = this.EarlyDecodeWellKnownAttributes(binders, boundAttributeTypes, attributesToBind, symbolPart, attributesBuilder);
+                EarlyWellKnownAttributeData? earlyData = this.EarlyDecodeWellKnownAttributes(binders, boundAttributeTypes, attributesToBind, symbolPart, attributesBuilder);
                 Debug.Assert(!attributesBuilder.Contains((attr) => attr != null && attr.HasErrors));
 
                 // Store data decoded from early bound well-known attributes.
@@ -367,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (attribute.HasErrors)
                 {
                     CSharpCompilation compilation = this.DeclaringCompilation;
-                    Debug.Assert(compilation != null);
+                    RoslynDebug.Assert(compilation != null);
                     ((SourceModuleSymbol)compilation.SourceModule).RecordPresenceOfBadAttributes();
                     break;
                 }
@@ -387,14 +390,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeLocation symbolPart,
             DiagnosticBag diagnostics,
             CSharpCompilation compilation,
-            Func<AttributeSyntax, bool> attributeMatchesOpt,
-            Binder rootBinderOpt,
+            Func<AttributeSyntax, bool>? attributeMatchesOpt,
+            Binder? rootBinderOpt,
             out ImmutableArray<Binder> binders)
         {
             var attributeTarget = (IAttributeTargetSymbol)this;
 
-            ArrayBuilder<AttributeSyntax> syntaxBuilder = null;
-            ArrayBuilder<Binder> bindersBuilder = null;
+            ArrayBuilder<AttributeSyntax>? syntaxBuilder = null;
+            ArrayBuilder<Binder>? bindersBuilder = null;
             int attributesToBindCount = 0;
 
             for (int listIndex = 0; listIndex < attributeDeclarationSyntaxLists.Count; listIndex++)
@@ -436,8 +439,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (attributesToBindCount != prevCount)
                     {
-                        Debug.Assert(attributeDeclarationSyntaxList.Node != null);
-                        Debug.Assert(bindersBuilder != null);
+                        RoslynDebug.Assert(attributeDeclarationSyntaxList.Node != null);
+                        RoslynDebug.Assert(bindersBuilder != null);
 
                         var syntaxTree = attributeDeclarationSyntaxList.Node.SyntaxTree;
                         var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
@@ -455,7 +458,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (syntaxBuilder != null)
             {
+#nullable disable // Can 'bindersBuilder' be null here?
                 binders = bindersBuilder.ToImmutableAndFree();
+#nullable enable
                 return syntaxBuilder.ToImmutableAndFree();
             }
             else
@@ -542,17 +547,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Early decoding certain well-known attributes enables the binder to use this decoded information on this symbol
         /// when binding the attribute arguments/attribute constructor without causing attribute binding cycle.
         /// </summary>
-        internal EarlyWellKnownAttributeData EarlyDecodeWellKnownAttributes(
+        internal EarlyWellKnownAttributeData? EarlyDecodeWellKnownAttributes(
             ImmutableArray<Binder> binders,
             ImmutableArray<NamedTypeSymbol> boundAttributeTypes,
             ImmutableArray<AttributeSyntax> attributesToBind,
             AttributeLocation symbolPart,
-            CSharpAttributeData[] boundAttributesBuilder)
+            CSharpAttributeData?[] boundAttributesBuilder)
         {
             Debug.Assert(boundAttributeTypes.Any());
             Debug.Assert(attributesToBind.Any());
             Debug.Assert(binders.Any());
-            Debug.Assert(boundAttributesBuilder != null);
+            RoslynDebug.Assert(boundAttributesBuilder != null);
             Debug.Assert(!boundAttributesBuilder.Contains((attr) => attr != null));
 
             var earlyBinder = new EarlyWellKnownAttributeBinder(binders[0]);
@@ -574,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments.AttributeSyntax = attributesToBind[i];
 
                     // Early bind some well-known attributes
-                    CSharpAttributeData earlyBoundAttributeOpt = this.EarlyDecodeWellKnownAttribute(ref arguments);
+                    CSharpAttributeData? earlyBoundAttributeOpt = this.EarlyDecodeWellKnownAttribute(ref arguments);
                     Debug.Assert(earlyBoundAttributeOpt == null || !earlyBoundAttributeOpt.HasErrors);
 
                     boundAttributesBuilder[i] = earlyBoundAttributeOpt;
@@ -607,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the symbol can extract data from the attribute arguments and potentially perform validation specific to
         /// some well known attributes.
         /// </summary>
-        private WellKnownAttributeData ValidateAttributeUsageAndDecodeWellKnownAttributes(
+        private WellKnownAttributeData? ValidateAttributeUsageAndDecodeWellKnownAttributes(
             ImmutableArray<Binder> binders,
             ImmutableArray<AttributeSyntax> attributeSyntaxList,
             ImmutableArray<CSharpAttributeData> boundAttributes,

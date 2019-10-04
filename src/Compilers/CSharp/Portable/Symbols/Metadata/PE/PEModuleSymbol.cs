@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -41,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// Cache the symbol for well-known type System.Type because we use it frequently
         /// (for attributes).
         /// </summary>
-        private NamedTypeSymbol _lazySystemTypeSymbol;
-        private NamedTypeSymbol _lazyEventRegistrationTokenSymbol;
-        private NamedTypeSymbol _lazyEventRegistrationTokenTableSymbol;
+        private NamedTypeSymbol? _lazySystemTypeSymbol;
+        private NamedTypeSymbol? _lazyEventRegistrationTokenSymbol;
+        private NamedTypeSymbol? _lazyEventRegistrationTokenTableSymbol;
 
         /// <summary>
         /// The same value as ConcurrentDictionary.DEFAULT_CAPACITY
@@ -83,10 +85,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ImmutableArray<CSharpAttributeData> _lazyAssemblyAttributes;
 
         // Type names from module
-        private ICollection<string> _lazyTypeNames;
+        private ICollection<string>? _lazyTypeNames;
 
         // Namespace names from module
-        private ICollection<string> _lazyNamespaceNames;
+        private ICollection<string>? _lazyNamespaceNames;
 
         private enum NullableMemberMetadata
         {
@@ -118,8 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private PEModuleSymbol(AssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
         {
-            Debug.Assert((object)assemblySymbol != null);
-            Debug.Assert(module != null);
+            RoslynDebug.Assert((object)assemblySymbol != null);
+            RoslynDebug.Assert(module != null);
 
             _assemblySymbol = assemblySymbol;
             _ordinal = ordinal;
@@ -220,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyAssemblyAttributes.IsDefault)
             {
-                ArrayBuilder<CSharpAttributeData> moduleAssemblyAttributesBuilder = null;
+                ArrayBuilder<CSharpAttributeData>? moduleAssemblyAttributesBuilder = null;
 
                 string corlibName = ContainingAssembly.CorLibrary.Name;
                 EntityHandle assemblyMSCorLib = Module.GetAssemblyRef(corlibName);
@@ -308,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             filteredOutAttribute2 = default;
             filteredOutAttribute3 = default;
             filteredOutAttribute4 = default;
-            ArrayBuilder<CSharpAttributeData> customAttributesBuilder = null;
+            ArrayBuilder<CSharpAttributeData>? customAttributesBuilder = null;
 
             try
             {
@@ -396,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        internal TypeSymbol TryDecodeAttributeWithTypeArgument(EntityHandle handle, AttributeDescription attributeDescription)
+        internal TypeSymbol? TryDecodeAttributeWithTypeArgument(EntityHandle handle, AttributeDescription attributeDescription)
         {
             string typeName;
             if (_module.HasStringValuedAttribute(handle, attributeDescription, out typeName))
@@ -488,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 var assembly = _assemblySymbol as PEAssemblySymbol;
-                if ((object)assembly != null)
+                if ((object?)assembly != null)
                 {
                     return assembly.DocumentationProvider;
                 }
@@ -503,14 +505,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)_lazyEventRegistrationTokenSymbol == null)
+                if ((object?)_lazyEventRegistrationTokenSymbol == null)
                 {
                     Interlocked.CompareExchange(ref _lazyEventRegistrationTokenSymbol,
                                                 GetTypeSymbolForWellKnownType(
                                                     WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken
                                                     ),
                                                 null);
-                    Debug.Assert((object)_lazyEventRegistrationTokenSymbol != null);
+                    RoslynDebug.Assert((object)_lazyEventRegistrationTokenSymbol != null);
                 }
                 return _lazyEventRegistrationTokenSymbol;
             }
@@ -520,14 +522,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)_lazyEventRegistrationTokenTableSymbol == null)
+                if ((object?)_lazyEventRegistrationTokenTableSymbol == null)
                 {
                     Interlocked.CompareExchange(ref _lazyEventRegistrationTokenTableSymbol,
                                                 GetTypeSymbolForWellKnownType(
                                                     WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T
                                                     ),
                                                 null);
-                    Debug.Assert((object)_lazyEventRegistrationTokenTableSymbol != null);
+                    RoslynDebug.Assert((object)_lazyEventRegistrationTokenTableSymbol != null);
                 }
                 return _lazyEventRegistrationTokenTableSymbol;
             }
@@ -537,12 +539,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((object)_lazySystemTypeSymbol == null)
+                if ((object?)_lazySystemTypeSymbol == null)
                 {
                     Interlocked.CompareExchange(ref _lazySystemTypeSymbol,
                                                 GetTypeSymbolForWellKnownType(WellKnownType.System_Type),
                                                 null);
-                    Debug.Assert((object)_lazySystemTypeSymbol != null);
+                    RoslynDebug.Assert((object)_lazySystemTypeSymbol != null);
                 }
                 return _lazySystemTypeSymbol;
             }
@@ -562,13 +564,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // If we didn't find it in this module, check the referenced assemblies
-            NamedTypeSymbol referencedAssemblyResult = null;
+            NamedTypeSymbol? referencedAssemblyResult = null;
             foreach (AssemblySymbol assembly in this.GetReferencedAssemblySymbols())
             {
                 NamedTypeSymbol currResult = assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
                 if (IsAcceptableSystemTypeSymbol(currResult))
                 {
-                    if ((object)referencedAssemblyResult == null)
+                    if ((object?)referencedAssemblyResult == null)
                     {
                         referencedAssemblyResult = currResult;
                     }
@@ -587,13 +589,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            if ((object)referencedAssemblyResult != null)
+            if ((object?)referencedAssemblyResult != null)
             {
                 Debug.Assert(IsAcceptableSystemTypeSymbol(referencedAssemblyResult));
                 return referencedAssemblyResult;
             }
 
-            Debug.Assert((object)currentModuleResult != null);
+            RoslynDebug.Assert((object)currentModuleResult != null);
             return currentModuleResult;
         }
 
@@ -629,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }
@@ -637,9 +639,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
         {
             NamedTypeSymbol result;
-            PENamespaceSymbol scope = (PENamespaceSymbol)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
+            PENamespaceSymbol? scope = (PENamespaceSymbol?)this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
 
-            if ((object)scope == null)
+            if ((object?)scope == null)
             {
                 // We failed to locate the namespace
                 isNoPiaLocalType = false;
@@ -648,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else
             {
                 result = scope.LookupMetadataType(ref emittedName, out isNoPiaLocalType);
-                Debug.Assert((object)result != null);
+                RoslynDebug.Assert((object)result != null);
             }
 
             return result;
@@ -662,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <remarks>
         /// The returned assemblies may also forward the type.
         /// </remarks>
-        internal (AssemblySymbol FirstSymbol, AssemblySymbol SecondSymbol) GetAssembliesForForwardedType(ref MetadataTypeName fullName)
+        internal (AssemblySymbol? FirstSymbol, AssemblySymbol? SecondSymbol) GetAssembliesForForwardedType(ref MetadataTypeName fullName)
         {
             string matchedName;
             (int firstIndex, int secondIndex) = this.Module.GetAssemblyRefsForForwardedType(fullName.FullName, ignoreCase: false, matchedName: out matchedName);
@@ -672,14 +674,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return (null, null);
             }
 
-            AssemblySymbol firstSymbol = GetReferencedAssemblySymbol(firstIndex);
+            AssemblySymbol? firstSymbol = GetReferencedAssemblySymbol(firstIndex);
 
             if (secondIndex < 0)
             {
                 return (firstSymbol, null);
             }
 
-            AssemblySymbol secondSymbol = GetReferencedAssemblySymbol(secondIndex);
+            AssemblySymbol? secondSymbol = GetReferencedAssemblySymbol(secondIndex);
             return (firstSymbol, secondSymbol);
         }
 
@@ -690,13 +692,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var name = MetadataTypeName.FromFullName(forwarder.Key);
 
                 Debug.Assert(forwarder.Value.FirstIndex >= 0, "First index should never be negative");
-                AssemblySymbol firstSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.FirstIndex);
-                Debug.Assert((object)firstSymbol != null, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()");
+                AssemblySymbol? firstSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.FirstIndex);
+                RoslynDebug.Assert((object?)firstSymbol != null, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()");
 
                 if (forwarder.Value.SecondIndex >= 0)
                 {
                     var secondSymbol = this.GetReferencedAssemblySymbol(forwarder.Value.SecondIndex);
-                    Debug.Assert((object)secondSymbol != null, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()");
+                    RoslynDebug.Assert((object?)secondSymbol != null, "Invalid indexes (out of bound) are discarded during reading metadata in PEModule.EnsureForwardTypeToAssemblyMap()");
 
                     yield return ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(ref name, this, firstSymbol, secondSymbol);
                 }

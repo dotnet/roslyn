@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -60,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
         {
-            Debug.Assert(assembly != null);
-            Debug.Assert(documentationProvider != null);
+            RoslynDebug.Assert(assembly != null);
+            RoslynDebug.Assert(documentationProvider != null);
             _assembly = assembly;
             _documentationProvider = documentationProvider;
 
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         // TODO: https://github.com/dotnet/roslyn/issues/9000
-        public override Version AssemblyVersionPattern => null;
+        public override Version? AssemblyVersionPattern => null;
 
         public override ImmutableArray<ModuleSymbol> Modules
         {
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <remarks>
         /// The returned assemblies may also forward the type.
         /// </remarks>
-        internal (AssemblySymbol FirstSymbol, AssemblySymbol SecondSymbol) LookupAssembliesForForwardedMetadataType(ref MetadataTypeName emittedName)
+        internal (AssemblySymbol? FirstSymbol, AssemblySymbol? SecondSymbol) LookupAssembliesForForwardedMetadataType(ref MetadataTypeName emittedName)
         {
             // Look in the type forwarders of the primary module of this assembly, clr does not honor type forwarder
             // in non-primary modules.
@@ -148,14 +150,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return this.PrimaryModule.GetAssembliesForForwardedType(ref emittedName);
         }
 
-        internal override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies)
+        internal override NamedTypeSymbol? TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
             // Check if it is a forwarded type.
-            (AssemblySymbol firstSymbol, AssemblySymbol secondSymbol) = LookupAssembliesForForwardedMetadataType(ref emittedName);
+            (AssemblySymbol? firstSymbol, AssemblySymbol? secondSymbol) = LookupAssembliesForForwardedMetadataType(ref emittedName);
 
-            if ((object)firstSymbol != null)
+            if ((object?)firstSymbol != null)
             {
-                if ((object)secondSymbol != null)
+                if ((object?)secondSymbol != null)
                 {
                     // Report the main module as that is the only one checked. clr does not honor type forwarders in non-primary modules.
                     return CreateMultipleForwardingErrorTypeSymbol(ref emittedName, this.PrimaryModule, firstSymbol, secondSymbol);
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

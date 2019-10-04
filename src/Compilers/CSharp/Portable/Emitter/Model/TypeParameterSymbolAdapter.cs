@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
+        Cci.ITypeDefinition? Cci.ITypeReference.GetResolvedType(EmitContext context)
         {
             return null;
         }
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return default(TypeDefinitionHandle); }
         }
 
-        Cci.IGenericMethodParameter Cci.IGenericParameter.AsGenericMethodParameter
+        Cci.IGenericMethodParameter? Cci.IGenericParameter.AsGenericMethodParameter
         {
             get
             {
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference
+        Cci.IGenericMethodParameterReference? Cci.ITypeReference.AsGenericMethodParameterReference
         {
             get
             {
@@ -74,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IGenericTypeInstanceReference Cci.ITypeReference.AsGenericTypeInstanceReference
+        Cci.IGenericTypeInstanceReference? Cci.ITypeReference.AsGenericTypeInstanceReference
         {
             get { return null; }
         }
 
-        Cci.IGenericTypeParameter Cci.IGenericParameter.AsGenericTypeParameter
+        Cci.IGenericTypeParameter? Cci.IGenericParameter.AsGenericTypeParameter
         {
             get
             {
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference
+        Cci.IGenericTypeParameterReference? Cci.ITypeReference.AsGenericTypeParameterReference
         {
             get
             {
@@ -109,32 +111,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
+        Cci.INamespaceTypeDefinition? Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             return null;
         }
 
-        Cci.INamespaceTypeReference Cci.ITypeReference.AsNamespaceTypeReference
+        Cci.INamespaceTypeReference? Cci.ITypeReference.AsNamespaceTypeReference
         {
             get { return null; }
         }
 
-        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
+        Cci.INestedTypeDefinition? Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
         {
             return null;
         }
 
-        Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference
+        Cci.INestedTypeReference? Cci.ITypeReference.AsNestedTypeReference
         {
             get { return null; }
         }
 
-        Cci.ISpecializedNestedTypeReference Cci.ITypeReference.AsSpecializedNestedTypeReference
+        Cci.ISpecializedNestedTypeReference? Cci.ITypeReference.AsSpecializedNestedTypeReference
         {
             get { return null; }
         }
 
-        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
+        Cci.ITypeDefinition? Cci.ITypeReference.AsTypeDefinition(EmitContext context)
         {
             return null;
         }
@@ -183,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif
         }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+        Cci.IDefinition? Cci.IReference.AsDefinition(EmitContext context)
         {
             Debug.Assert(this.IsDefinition);
             return null;
