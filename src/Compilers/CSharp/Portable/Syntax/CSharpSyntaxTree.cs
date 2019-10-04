@@ -308,7 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpParseOptions options = null,
             string path = "",
             Encoding encoding = null,
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null)
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
+            bool? isGeneratedCode = null)
         {
             if (root == null)
             {
@@ -319,6 +320,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((CompilationUnitSyntax)root).GetConditionalDirectivesStack() :
                 InternalSyntax.DirectiveStack.Empty;
 
+            bool isGenerated = isGeneratedCode.HasValue
+                ? isGeneratedCode.Value
+                : GeneratedCodeUtilities.IsGeneratedCode(
+                    path,
+                    root,
+                    isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia);
+
             return new ParsedSyntaxTree(
                 textOpt: null,
                 encodingOpt: encoding,
@@ -327,7 +335,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options: options ?? CSharpParseOptions.Default,
                 root: root,
                 directives: directives,
-                diagnosticOptions);
+                diagnosticOptions,
+                isGenerated,
+                cloneRoot: true);
         }
 
         /// <summary>
@@ -362,6 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 root: root,
                 directives: InternalSyntax.DirectiveStack.Empty,
                 diagnosticOptions: null,
+                isGeneratedCode: null,
                 cloneRoot: false);
         }
 
@@ -374,9 +385,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             string path = "",
             Encoding encoding = null,
             ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
+            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
         {
-            return ParseText(SourceText.From(text, encoding), options, path, diagnosticOptions, cancellationToken);
+            return ParseText(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
         /// <summary>
@@ -387,6 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpParseOptions options = null,
             string path = "",
             ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
+            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
         {
             if (text == null)
@@ -409,7 +422,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         options,
                         compilationUnit,
                         parser.Directives,
-                        diagnosticOptions: diagnosticOptions);
+                        diagnosticOptions: diagnosticOptions,
+                        isGeneratedCode: isGeneratedCode,
+                        cloneRoot: true);
                     tree.VerifySource();
                     return tree;
                 }
@@ -477,7 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Options,
                     compilationUnit,
                     parser.Directives,
-                    DiagnosticOptions);
+                    DiagnosticOptions,
+                    isGeneratedCode: _isGenerationConfigured ? (bool?)_lazyIsGeneratedCode.Value() : null,
+                    cloneRoot: true);
                 tree.VerifySource(changes);
                 return tree;
             }
@@ -653,7 +670,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                            this,
                            isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
                            cancellationToken: default);
-
                 _lazyIsGeneratedCode = isGenerated.ToThreeState();
             }
 
@@ -663,6 +679,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private CSharpLineDirectiveMap _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
         private NullableContextStateMap _lazyNullableContextStateMap;
+        /// <summary>
+        /// True if this file was marked generated or not generated, in which
+        /// case the value is stored in <see cref="_lazyIsGeneratedCode"/>. False
+        /// if the value was not marked and we're falling back to heuristic.
+        /// </summary>
+        private bool _isGenerationConfigured;
         private ThreeState _lazyIsGeneratedCode = ThreeState.Unknown;
 
         private LinePosition GetLinePosition(int position)
@@ -811,7 +833,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseText(
+            SourceText text,
+            CSharpParseOptions options,
+            string path,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+            CancellationToken cancellationToken)
+            => ParseText(text, options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+
+        // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseText(
+            string text,
+            CSharpParseOptions options,
+            string path,
+            Encoding encoding,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+            CancellationToken cancellationToken)
+            => ParseText(text, options, path, encoding, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+
+        // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree Create(
+            CSharpSyntaxNode root,
+            CSharpParseOptions options,
+            string path,
+            Encoding encoding,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
+            => Create(root, options, path, encoding, diagnosticOptions, isGeneratedCode: null);
+
         // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseText(
             SourceText text,
             CSharpParseOptions options,
@@ -820,6 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => ParseText(text, options, path, diagnosticOptions: null, cancellationToken);
 
         // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseText(
             string text,
             CSharpParseOptions options,
