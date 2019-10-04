@@ -1076,10 +1076,7 @@ namespace CSharpSyntaxGenerator
                             WriteLine("get");
                             OpenBlock();
                             WriteLine("var slot = ((Syntax.InternalSyntax.{0})this.Green).{1};", node.Name, CamelCase(field.Name));
-                            WriteLine("return slot != null");
-                            WriteLine("    ? new SyntaxToken(this, slot, {0}, {1})", GetChildPosition(i), GetChildIndex(i));
-                            WriteLine("    : default;");
-                            CloseBlock();
+                            WriteLine($"return slot != null ? new SyntaxToken(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;"); CloseBlock();
                             CloseBlock();
                         }
                         else
@@ -1095,9 +1092,7 @@ namespace CSharpSyntaxGenerator
                         WriteLine("get");
                         OpenBlock();
                         WriteLine("var slot = this.Green.GetSlot({0});", i);
-                        WriteLine("return slot != null");
-                        WriteLine("    ? new SyntaxTokenList(this, slot, {0}, {1})", GetChildPosition(i), GetChildIndex(i));
-                        WriteLine("    : default;");
+                        WriteLine($"return slot != null ? new SyntaxTokenList(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
                         CloseBlock();
                         CloseBlock();
                     }
@@ -1118,9 +1113,7 @@ namespace CSharpSyntaxGenerator
                             OpenBlock();
 
                             WriteLine("var red = GetRed(ref this.{0}, {1});", CamelCase(field.Name), i);
-                            WriteLine("return red != null", i);
-                            WriteLine("    ? new {0}(red, {1})", field.Type, GetChildIndex(i));
-                            WriteLine("    : default;", field.Type);
+                            WriteLine($"return red != null ? new {field.Type}(red, {GetChildIndex(i)}) : default;");
                             CloseBlock();
                             CloseBlock();
                         }
@@ -1352,9 +1345,7 @@ namespace CSharpSyntaxGenerator
                 }
                 WriteLine(");");
                 WriteLine("var annotations = this.GetAnnotations();");
-                WriteLine("return annotations != null && annotations.Length > 0");
-                WriteLine("    ? newNode.WithAnnotations(annotations)");
-                WriteLine("    : newNode;");
+                WriteLine("return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
                 CloseBlock();
             }
 
