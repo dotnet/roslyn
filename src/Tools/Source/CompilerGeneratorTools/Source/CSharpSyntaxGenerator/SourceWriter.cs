@@ -326,61 +326,60 @@ namespace CSharpSyntaxGenerator
 
             // object reader constructor
             WriteLine();
-            WriteLine("    internal {0}(ObjectReader reader)", node.Name);
-            WriteLine("        : base(reader)");
-            WriteLine("    {");
-
-            WriteLine("      this.SlotCount = {0};", nodeFields.Count);
+            WriteLine("internal {0}(ObjectReader reader)", node.Name);
+            WriteLine("  : base(reader)");
+            OpenBlock();
+            WriteLine("this.SlotCount = {0};", nodeFields.Count);
 
             for (int i = 0, n = nodeFields.Count; i < n; i++)
             {
                 var field = nodeFields[i];
                 string type = GetFieldType(field, green: true);
-                WriteLine("      var {0} = ({1})reader.ReadValue();", CamelCase(field.Name), type);
-                WriteLine("      if ({0} != null)", CamelCase(field.Name));
-                WriteLine("      {");
-                WriteLine("         AdjustFlagsAndWidth({0});", CamelCase(field.Name));
-                WriteLine("         this.{0} = {0};", CamelCase(field.Name), type);
-                WriteLine("      }");
+                WriteLine("var {0} = ({1})reader.ReadValue();", CamelCase(field.Name), type);
+                WriteLine("if ({0} != null)", CamelCase(field.Name));
+                OpenBlock();
+                WriteLine("AdjustFlagsAndWidth({0});", CamelCase(field.Name));
+                WriteLine("this.{0} = {0};", CamelCase(field.Name), type);
+                CloseBlock();
             }
 
             for (int i = 0, n = valueFields.Count; i < n; i++)
             {
                 var field = valueFields[i];
                 string type = GetFieldType(field, green: true);
-                WriteLine("      this.{0} = ({1})reader.{2}();", CamelCase(field.Name), type, GetReaderMethod(type));
+                WriteLine("this.{0} = ({1})reader.{2}();", CamelCase(field.Name), type, GetReaderMethod(type));
             }
 
-            WriteLine("    }");
+            CloseBlock();
 
-            // IWritable 
+            // IWritable
             WriteLine();
-            WriteLine("    internal override void WriteTo(ObjectWriter writer)");
-            WriteLine("    {");
-            WriteLine("      base.WriteTo(writer);");
+            WriteLine("internal override void WriteTo(ObjectWriter writer)");
+            OpenBlock();
+            WriteLine("base.WriteTo(writer);");
 
             for (int i = 0, n = nodeFields.Count; i < n; i++)
             {
                 var field = nodeFields[i];
                 string type = GetFieldType(field, green: true);
-                WriteLine("      writer.WriteValue(this.{0});", CamelCase(field.Name));
+                WriteLine("writer.WriteValue(this.{0});", CamelCase(field.Name));
             }
 
             for (int i = 0, n = valueFields.Count; i < n; i++)
             {
                 var field = valueFields[i];
                 var type = GetFieldType(field, green: true);
-                WriteLine("      writer.{0}(this.{1});", GetWriterMethod(type), CamelCase(field.Name));
+                WriteLine("writer.{0}(this.{1});", GetWriterMethod(type), CamelCase(field.Name));
             }
 
-            WriteLine("    }");
+            CloseBlock();
 
             // IReadable
             WriteLine();
-            WriteLine("    static {0}()", node.Name);
-            WriteLine("    {");
-            WriteLine("       ObjectBinder.RegisterTypeReader(typeof({0}), r => new {0}(r));", node.Name);
-            WriteLine("    }");
+            WriteLine("static {0}()", node.Name);
+            OpenBlock();
+            WriteLine("ObjectBinder.RegisterTypeReader(typeof({0}), r => new {0}(r));", node.Name);
+            CloseBlock();
         }
 
         private string GetWriterMethod(string type)
