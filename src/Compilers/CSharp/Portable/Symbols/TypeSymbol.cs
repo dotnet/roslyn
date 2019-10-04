@@ -696,9 +696,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
         /// <summary>
-        /// Merges nested nullability from an otherwise identical type.
+        /// Merges features of the type with an otherwise identical type. The features to be merged are
+        /// object vs dynamic (dynamic wins), tuple names (dropped in case of conflict), and nullable
+        /// annotations (e.g. in type arguments).
         /// </summary>
-        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance);
+        internal abstract TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance);
 
         /// <summary>
         /// Returns true if the type may contain embedded references

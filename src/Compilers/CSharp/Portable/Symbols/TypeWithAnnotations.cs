@@ -237,11 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Merges top-level and nested nullability from an otherwise identical type.
         /// </summary>
-        internal TypeWithAnnotations MergeNullability(TypeWithAnnotations other, VarianceKind variance)
+        internal TypeWithAnnotations MergeEquivalentTypes(TypeWithAnnotations other, VarianceKind variance)
         {
             TypeSymbol typeSymbol = other.Type;
             NullableAnnotation nullableAnnotation = this.NullableAnnotation.MergeNullableAnnotation(other.NullableAnnotation, variance);
-            TypeSymbol type = Type.MergeNullability(typeSymbol, variance);
+            TypeSymbol type = Type.MergeEquivalentTypes(typeSymbol, variance);
             Debug.Assert((object)type != null);
             return Create(type, nullableAnnotation, CustomModifiers);
         }
@@ -711,18 +711,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations SetUnknownNullabilityForReferenceTypes()
         {
             var typeSymbol = Type;
+            var newTypeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
 
             if (NullableAnnotation != NullableAnnotation.Oblivious)
             {
                 if (!typeSymbol.IsValueType)
                 {
-                    typeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
-
-                    return CreateNonLazyType(typeSymbol, NullableAnnotation.Oblivious, CustomModifiers);
+                    return CreateNonLazyType(newTypeSymbol, NullableAnnotation.Oblivious, CustomModifiers);
                 }
             }
-
-            var newTypeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
 
             if ((object)newTypeSymbol != typeSymbol)
             {
