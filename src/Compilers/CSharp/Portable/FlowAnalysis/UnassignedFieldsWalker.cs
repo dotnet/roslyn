@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var method = (MethodSymbol)_symbol;
-            bool isStatic = method.IsStatic;
+            bool isStatic = !method.RequiresInstanceReceiver();
 
             int thisSlot = -1;
 
