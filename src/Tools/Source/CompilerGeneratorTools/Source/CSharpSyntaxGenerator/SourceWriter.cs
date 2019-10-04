@@ -1363,41 +1363,6 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private void WriteRedWithMethod(Node node)
-        {
-            WriteLine();
-            Write("    public {0} With(", node.Name);
-
-            // parameters
-            for (int f = 0; f < node.Fields.Count; f++)
-            {
-                var field = node.Fields[f];
-                var type = this.GetRedPropertyType(field);
-                Write("Optional<{0}> {1} = default(Optional<{0}>)", type, CamelCase(field.Name));
-                if (f < node.Fields.Count - 1)
-                    Write(", ");
-            }
-            WriteLine(")");
-            WriteLine("    {");
-
-            Write("        return this.Update(");
-
-            for (int f = 0; f < node.Fields.Count; f++)
-            {
-                var field = node.Fields[f];
-                var parameterName = CamelCase(field.Name);
-                WriteLine();
-                Write("                    {0}.HasValue ? {0}.Value : this.{1}", parameterName, field.Name);
-                if (f < node.Fields.Count - 1)
-                    Write(",");
-            }
-
-            WriteLine();
-            WriteLine("                    );");
-
-            WriteLine("    }");
-        }
-
         private void WriteRedWithMethods(Node node)
         {
             for (int f = 0; f < node.Fields.Count; f++)
