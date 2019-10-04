@@ -684,24 +684,30 @@ namespace CSharpSyntaxGenerator
             var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
             var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
 
-            Write("    public {0}{1} {2}(", withSyntaxFactoryContext ? "" : "static ", nd.Name, StripPost(nd.Name, "Syntax"));
+            Write("public {0}{1} {2}(", withSyntaxFactoryContext ? "" : "static ", nd.Name, StripPost(nd.Name, "Syntax"));
             WriteGreenFactoryParameters(nd);
             WriteLine(")");
-            WriteLine("    {");
+            OpenBlock();
 
             // validate kind
             if (nd.Kinds.Count > 1)
             {
-                WriteLine("      switch (kind)");
-                WriteLine("      {");
-                foreach (var k in nd.Kinds)
+                WriteLine("switch (kind)");
+                OpenBlock();
+                for (int i = 0; i < nd.Kinds.Count; i++)
                 {
-                    WriteLine("        case SyntaxKind.{0}:", k.Name);
+                    Write("case SyntaxKind.{0}:", nd.Kinds[i].Name);
+                    if (i == nd.Kinds.Count - 1)
+                    {
+                        WriteLine(" break;");
+                    }
+                    else
+                    {
+                        WriteLine();
+                    }
                 }
-                WriteLine("          break;");
-                WriteLine("        default:");
-                WriteLine("          throw new ArgumentException(nameof(kind));");
-                WriteLine("      }");
+                WriteLine("default: throw new ArgumentException(nameof(kind));");
+                CloseBlock();
             }
 
             // validate parameters
@@ -713,34 +719,51 @@ namespace CSharpSyntaxGenerator
 
                 if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
-                    WriteLine("      if ({0} == null)", CamelCase(field.Name));
-                    WriteLine("        throw new ArgumentNullException(nameof({0}));", CamelCase(field.Name));
+                    WriteLine("if ({0} == null) throw new ArgumentNullException(nameof({0}));", CamelCase(field.Name));
                 }
                 if (field.Type == "SyntaxToken" && field.Kinds != null && field.Kinds.Count > 0)
                 {
                     if (IsOptional(field))
                     {
-                        WriteLine("      if ({0} != null)", CamelCase(field.Name));
-                        WriteLine("      {");
+                        WriteLine("if ({0} != null)", CamelCase(field.Name));
+                        OpenBlock();
                     }
-                    WriteLine("      switch ({0}.Kind)", pname);
-                    WriteLine("      {");
-                    foreach (var kind in field.Kinds)
+
+                    if (field.Kinds.Count == 1 && !IsOptional(field))
                     {
-                        WriteLine("        case SyntaxKind.{0}:", kind.Name);
+                        WriteLine("if ({0}.Kind != SyntaxKind.{1}) throw new ArgumentException(nameof({0}));", pname, field.Kinds[0].Name);
                     }
-                    //we need to check for Kind=None as well as node == null because that's what the red factory will pass
-                    if (IsOptional(field))
+                    else
                     {
-                        WriteLine("        case SyntaxKind.None:");
-                    }
-                    WriteLine("          break;");
-                    WriteLine("        default:");
-                    WriteLine("          throw new ArgumentException(nameof({0}));", pname);
-                    WriteLine("      }");
-                    if (IsOptional(field))
-                    {
-                        WriteLine("      }");
+                        WriteLine("switch ({0}.Kind)", pname);
+                        OpenBlock();
+                        var kinds = field.Kinds.ToList();
+
+                        //we need to check for Kind=None as well as node == null because that's what the red factory will pass
+                        if (IsOptional(field))
+                        {
+                            kinds.Add(new Kind { Name = "None" });
+                        }
+                        for (int j = 0; j < kinds.Count; j++)
+                        {
+                            var kind = kinds[j];
+                            Write("case SyntaxKind.{0}:", kind.Name);
+                            if (j == kinds.Count - 1)
+                            {
+                                WriteLine(" break;");
+                            }
+                            else
+                            {
+                                WriteLine();
+                            }
+                        }
+
+                        WriteLine("default: throw new ArgumentException(nameof({0}));", pname);
+                        CloseBlock();
+                        if (IsOptional(field))
+                        {
+                            CloseBlock();
+                        }
                     }
                 }
             }
@@ -766,49 +789,49 @@ namespace CSharpSyntaxGenerator
 
                 WriteLine();
                 //int hash;
-                WriteLine("      int hash;");
+                WriteLine("int hash;");
                 //SyntaxNode cached = SyntaxNodeCache.TryGetNode(SyntaxKind.IdentifierName, identifier, this.context, out hash);
                 if (withSyntaxFactoryContext)
                 {
-                    Write("      var cached = CSharpSyntaxNodeCache.TryGetNode((int)");
+                    Write("var cached = CSharpSyntaxNodeCache.TryGetNode((int)");
                 }
                 else
                 {
-                    Write("      var cached = SyntaxNodeCache.TryGetNode((int)");
+                    Write("var cached = SyntaxNodeCache.TryGetNode((int)");
                 }
 
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
                 WriteLine(", out hash);");
                 //    if (cached != null) return (IdentifierNameSyntax)cached;
-                WriteLine("      if (cached != null) return ({0})cached;", nd.Name);
+                WriteLine("if (cached != null) return ({0})cached;", nd.Name);
                 WriteLine();
 
                 //var result = new IdentifierNameSyntax(SyntaxKind.IdentifierName, identifier);
-                Write("      var result = new {0}(", nd.Name);
+                Write("var result = new {0}(", nd.Name);
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
                 WriteLine(");");
                 //if (hash >= 0)
-                WriteLine("      if (hash >= 0)");
+                WriteLine("if (hash >= 0)");
                 //{
-                WriteLine("      {");
+                OpenBlock();
                 //    SyntaxNodeCache.AddNode(result, hash);
-                WriteLine("          SyntaxNodeCache.AddNode(result, hash);");
+                WriteLine("SyntaxNodeCache.AddNode(result, hash);");
                 //}
-                WriteLine("      }");
+                CloseBlock();
                 WriteLine();
 
                 //return result;
-                WriteLine("      return result;");
+                WriteLine("return result;");
             }
             else
             {
                 WriteLine();
-                Write("      return new {0}(", nd.Name);
+                Write("return new {0}(", nd.Name);
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
                 WriteLine(");");
             }
 
-            WriteLine("    }");
+            CloseBlock();
         }
 
         private void WriteGreenFactoryParameters(Node nd)
