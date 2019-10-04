@@ -1274,21 +1274,18 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedVisitors()
         {
-            //WriteRedVisitor(true, true);
-            WriteRedVisitor(false, true);
-            WriteRedVisitor(false, false);
+            WriteRedVisitor(genericResult: true);
+            WriteRedVisitor(genericResult: false);
         }
 
-        private void WriteRedVisitor(bool genericArgument, bool genericResult)
+        private void WriteRedVisitor(bool genericResult)
         {
-            string genericArgs =
-                (genericResult && genericArgument) ? "<TArgument, TResult>" :
-                genericResult ? "<TResult>" : "";
+            string genericArgs = genericResult ? "<TResult>" : "";
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
 
             WriteLine();
-            WriteLine("  public partial class CSharpSyntaxVisitor" + genericArgs);
-            WriteLine("  {");
+            WriteLine("public partial class CSharpSyntaxVisitor" + genericArgs);
+            OpenBlock();
             int nWritten = 0;
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
@@ -1297,14 +1294,14 @@ namespace CSharpSyntaxGenerator
                     if (nWritten > 0)
                         WriteLine();
                     nWritten++;
-                    WriteComment(string.Format("<summary>Called when the visitor visits a {0} node.</summary>", node.Name), "    ");
-                    WriteLine("    public virtual " + (genericResult ? "TResult" : "void") + " Visit{0}({1} node{2})", StripPost(node.Name, "Syntax"), node.Name, genericArgument ? ", TArgument argument" : "");
-                    WriteLine("    {");
-                    WriteLine("      " + (genericResult ? "return " : "") + "this.DefaultVisit(node{0});", genericArgument ? ", argument" : "");
-                    WriteLine("    }");
+                    WriteComment(string.Format("<summary>Called when the visitor visits a {0} node.</summary>", node.Name), "");
+                    WriteLine(
+                        "public virtual " + (genericResult ? "TResult" : "void") +
+                        " Visit{0}({1} node)" +
+                        " => this.DefaultVisit(node);", StripPost(node.Name, "Syntax"), node.Name);
                 }
             }
-            WriteLine("  }");
+            CloseBlock();
         }
 
         private void WriteRedUpdateMethod(Node node)

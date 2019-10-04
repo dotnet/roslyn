@@ -10,2591 +10,1301 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-      public partial class CSharpSyntaxVisitor<TResult>
-      {
+    public partial class CSharpSyntaxVisitor<TResult>
+    {
         /// <summary>Called when the visitor visits a IdentifierNameSyntax node.</summary>
-        public virtual TResult VisitIdentifierName(IdentifierNameSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QualifiedNameSyntax node.</summary>
-        public virtual TResult VisitQualifiedName(QualifiedNameSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GenericNameSyntax node.</summary>
-        public virtual TResult VisitGenericName(GenericNameSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeArgumentListSyntax node.</summary>
-        public virtual TResult VisitTypeArgumentList(TypeArgumentListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AliasQualifiedNameSyntax node.</summary>
-        public virtual TResult VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PredefinedTypeSyntax node.</summary>
-        public virtual TResult VisitPredefinedType(PredefinedTypeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitPredefinedType(PredefinedTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayTypeSyntax node.</summary>
-        public virtual TResult VisitArrayType(ArrayTypeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayRankSpecifierSyntax node.</summary>
-        public virtual TResult VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PointerTypeSyntax node.</summary>
-        public virtual TResult VisitPointerType(PointerTypeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableTypeSyntax node.</summary>
-        public virtual TResult VisitNullableType(NullableTypeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleTypeSyntax node.</summary>
-        public virtual TResult VisitTupleType(TupleTypeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleElementSyntax node.</summary>
-        public virtual TResult VisitTupleElement(TupleElementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OmittedTypeArgumentSyntax node.</summary>
-        public virtual TResult VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefTypeSyntax node.</summary>
-        public virtual TResult VisitRefType(RefTypeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedExpressionSyntax node.</summary>
-        public virtual TResult VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleExpressionSyntax node.</summary>
-        public virtual TResult VisitTupleExpression(TupleExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PrefixUnaryExpressionSyntax node.</summary>
-        public virtual TResult VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AwaitExpressionSyntax node.</summary>
-        public virtual TResult VisitAwaitExpression(AwaitExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PostfixUnaryExpressionSyntax node.</summary>
-        public virtual TResult VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MemberAccessExpressionSyntax node.</summary>
-        public virtual TResult VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConditionalAccessExpressionSyntax node.</summary>
-        public virtual TResult VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MemberBindingExpressionSyntax node.</summary>
-        public virtual TResult VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElementBindingExpressionSyntax node.</summary>
-        public virtual TResult VisitElementBindingExpression(ElementBindingExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RangeExpressionSyntax node.</summary>
-        public virtual TResult VisitRangeExpression(RangeExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitElementAccessSyntax node.</summary>
-        public virtual TResult VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BinaryExpressionSyntax node.</summary>
-        public virtual TResult VisitBinaryExpression(BinaryExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitBinaryExpression(BinaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AssignmentExpressionSyntax node.</summary>
-        public virtual TResult VisitAssignmentExpression(AssignmentExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAssignmentExpression(AssignmentExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConditionalExpressionSyntax node.</summary>
-        public virtual TResult VisitConditionalExpression(ConditionalExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitConditionalExpression(ConditionalExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThisExpressionSyntax node.</summary>
-        public virtual TResult VisitThisExpression(ThisExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BaseExpressionSyntax node.</summary>
-        public virtual TResult VisitBaseExpression(BaseExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LiteralExpressionSyntax node.</summary>
-        public virtual TResult VisitLiteralExpression(LiteralExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MakeRefExpressionSyntax node.</summary>
-        public virtual TResult VisitMakeRefExpression(MakeRefExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefTypeExpressionSyntax node.</summary>
-        public virtual TResult VisitRefTypeExpression(RefTypeExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefValueExpressionSyntax node.</summary>
-        public virtual TResult VisitRefValueExpression(RefValueExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CheckedExpressionSyntax node.</summary>
-        public virtual TResult VisitCheckedExpression(CheckedExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefaultExpressionSyntax node.</summary>
-        public virtual TResult VisitDefaultExpression(DefaultExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeOfExpressionSyntax node.</summary>
-        public virtual TResult VisitTypeOfExpression(TypeOfExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SizeOfExpressionSyntax node.</summary>
-        public virtual TResult VisitSizeOfExpression(SizeOfExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InvocationExpressionSyntax node.</summary>
-        public virtual TResult VisitInvocationExpression(InvocationExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitInvocationExpression(InvocationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElementAccessExpressionSyntax node.</summary>
-        public virtual TResult VisitElementAccessExpression(ElementAccessExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitElementAccessExpression(ElementAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArgumentListSyntax node.</summary>
-        public virtual TResult VisitArgumentList(ArgumentListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BracketedArgumentListSyntax node.</summary>
-        public virtual TResult VisitBracketedArgumentList(BracketedArgumentListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArgumentSyntax node.</summary>
-        public virtual TResult VisitArgument(ArgumentSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameColonSyntax node.</summary>
-        public virtual TResult VisitNameColon(NameColonSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DeclarationExpressionSyntax node.</summary>
-        public virtual TResult VisitDeclarationExpression(DeclarationExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CastExpressionSyntax node.</summary>
-        public virtual TResult VisitCastExpression(CastExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousMethodExpressionSyntax node.</summary>
-        public virtual TResult VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SimpleLambdaExpressionSyntax node.</summary>
-        public virtual TResult VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefExpressionSyntax node.</summary>
-        public virtual TResult VisitRefExpression(RefExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitRefExpression(RefExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedLambdaExpressionSyntax node.</summary>
-        public virtual TResult VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InitializerExpressionSyntax node.</summary>
-        public virtual TResult VisitInitializerExpression(InitializerExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ObjectCreationExpressionSyntax node.</summary>
-        public virtual TResult VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousObjectMemberDeclaratorSyntax node.</summary>
-        public virtual TResult VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousObjectCreationExpressionSyntax node.</summary>
-        public virtual TResult VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayCreationExpressionSyntax node.</summary>
-        public virtual TResult VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitArrayCreationExpression(ArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitArrayCreationExpressionSyntax node.</summary>
-        public virtual TResult VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a StackAllocArrayCreationExpressionSyntax node.</summary>
-        public virtual TResult VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
-        public virtual TResult VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
-        public virtual TResult VisitQueryExpression(QueryExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryBodySyntax node.</summary>
-        public virtual TResult VisitQueryBody(QueryBodySyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FromClauseSyntax node.</summary>
-        public virtual TResult VisitFromClause(FromClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LetClauseSyntax node.</summary>
-        public virtual TResult VisitLetClause(LetClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitLetClause(LetClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a JoinClauseSyntax node.</summary>
-        public virtual TResult VisitJoinClause(JoinClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitJoinClause(JoinClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a JoinIntoClauseSyntax node.</summary>
-        public virtual TResult VisitJoinIntoClause(JoinIntoClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitJoinIntoClause(JoinIntoClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhereClauseSyntax node.</summary>
-        public virtual TResult VisitWhereClause(WhereClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitWhereClause(WhereClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OrderByClauseSyntax node.</summary>
-        public virtual TResult VisitOrderByClause(OrderByClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitOrderByClause(OrderByClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OrderingSyntax node.</summary>
-        public virtual TResult VisitOrdering(OrderingSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitOrdering(OrderingSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SelectClauseSyntax node.</summary>
-        public virtual TResult VisitSelectClause(SelectClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSelectClause(SelectClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GroupClauseSyntax node.</summary>
-        public virtual TResult VisitGroupClause(GroupClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitGroupClause(GroupClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryContinuationSyntax node.</summary>
-        public virtual TResult VisitQueryContinuation(QueryContinuationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitQueryContinuation(QueryContinuationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OmittedArraySizeExpressionSyntax node.</summary>
-        public virtual TResult VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringExpressionSyntax node.</summary>
-        public virtual TResult VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IsPatternExpressionSyntax node.</summary>
-        public virtual TResult VisitIsPatternExpression(IsPatternExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitIsPatternExpression(IsPatternExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThrowExpressionSyntax node.</summary>
-        public virtual TResult VisitThrowExpression(ThrowExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitThrowExpression(ThrowExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhenClauseSyntax node.</summary>
-        public virtual TResult VisitWhenClause(WhenClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DiscardPatternSyntax node.</summary>
-        public virtual TResult VisitDiscardPattern(DiscardPatternSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDiscardPattern(DiscardPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DeclarationPatternSyntax node.</summary>
-        public virtual TResult VisitDeclarationPattern(DeclarationPatternSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VarPatternSyntax node.</summary>
-        public virtual TResult VisitVarPattern(VarPatternSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitVarPattern(VarPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RecursivePatternSyntax node.</summary>
-        public virtual TResult VisitRecursivePattern(RecursivePatternSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitRecursivePattern(RecursivePatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PositionalPatternClauseSyntax node.</summary>
-        public virtual TResult VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitPositionalPatternClause(PositionalPatternClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PropertyPatternClauseSyntax node.</summary>
-        public virtual TResult VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SubpatternSyntax node.</summary>
-        public virtual TResult VisitSubpattern(SubpatternSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstantPatternSyntax node.</summary>
-        public virtual TResult VisitConstantPattern(ConstantPatternSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
-        public virtual TResult VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationSyntax node.</summary>
-        public virtual TResult VisitInterpolation(InterpolationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationAlignmentClauseSyntax node.</summary>
-        public virtual TResult VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationFormatClauseSyntax node.</summary>
-        public virtual TResult VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GlobalStatementSyntax node.</summary>
-        public virtual TResult VisitGlobalStatement(GlobalStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitGlobalStatement(GlobalStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BlockSyntax node.</summary>
-        public virtual TResult VisitBlock(BlockSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitBlock(BlockSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LocalFunctionStatementSyntax node.</summary>
-        public virtual TResult VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitLocalFunctionStatement(LocalFunctionStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LocalDeclarationStatementSyntax node.</summary>
-        public virtual TResult VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VariableDeclarationSyntax node.</summary>
-        public virtual TResult VisitVariableDeclaration(VariableDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitVariableDeclaration(VariableDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VariableDeclaratorSyntax node.</summary>
-        public virtual TResult VisitVariableDeclarator(VariableDeclaratorSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitVariableDeclarator(VariableDeclaratorSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EqualsValueClauseSyntax node.</summary>
-        public virtual TResult VisitEqualsValueClause(EqualsValueClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitEqualsValueClause(EqualsValueClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SingleVariableDesignationSyntax node.</summary>
-        public virtual TResult VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSingleVariableDesignation(SingleVariableDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DiscardDesignationSyntax node.</summary>
-        public virtual TResult VisitDiscardDesignation(DiscardDesignationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDiscardDesignation(DiscardDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedVariableDesignationSyntax node.</summary>
-        public virtual TResult VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExpressionStatementSyntax node.</summary>
-        public virtual TResult VisitExpressionStatement(ExpressionStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitExpressionStatement(ExpressionStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EmptyStatementSyntax node.</summary>
-        public virtual TResult VisitEmptyStatement(EmptyStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitEmptyStatement(EmptyStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LabeledStatementSyntax node.</summary>
-        public virtual TResult VisitLabeledStatement(LabeledStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitLabeledStatement(LabeledStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GotoStatementSyntax node.</summary>
-        public virtual TResult VisitGotoStatement(GotoStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitGotoStatement(GotoStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BreakStatementSyntax node.</summary>
-        public virtual TResult VisitBreakStatement(BreakStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitBreakStatement(BreakStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ContinueStatementSyntax node.</summary>
-        public virtual TResult VisitContinueStatement(ContinueStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitContinueStatement(ContinueStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ReturnStatementSyntax node.</summary>
-        public virtual TResult VisitReturnStatement(ReturnStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitReturnStatement(ReturnStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThrowStatementSyntax node.</summary>
-        public virtual TResult VisitThrowStatement(ThrowStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitThrowStatement(ThrowStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a YieldStatementSyntax node.</summary>
-        public virtual TResult VisitYieldStatement(YieldStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitYieldStatement(YieldStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhileStatementSyntax node.</summary>
-        public virtual TResult VisitWhileStatement(WhileStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitWhileStatement(WhileStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DoStatementSyntax node.</summary>
-        public virtual TResult VisitDoStatement(DoStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDoStatement(DoStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForStatementSyntax node.</summary>
-        public virtual TResult VisitForStatement(ForStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitForStatement(ForStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForEachStatementSyntax node.</summary>
-        public virtual TResult VisitForEachStatement(ForEachStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitForEachStatement(ForEachStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForEachVariableStatementSyntax node.</summary>
-        public virtual TResult VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitForEachVariableStatement(ForEachVariableStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UsingStatementSyntax node.</summary>
-        public virtual TResult VisitUsingStatement(UsingStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitUsingStatement(UsingStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FixedStatementSyntax node.</summary>
-        public virtual TResult VisitFixedStatement(FixedStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitFixedStatement(FixedStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CheckedStatementSyntax node.</summary>
-        public virtual TResult VisitCheckedStatement(CheckedStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCheckedStatement(CheckedStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UnsafeStatementSyntax node.</summary>
-        public virtual TResult VisitUnsafeStatement(UnsafeStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitUnsafeStatement(UnsafeStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LockStatementSyntax node.</summary>
-        public virtual TResult VisitLockStatement(LockStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitLockStatement(LockStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IfStatementSyntax node.</summary>
-        public virtual TResult VisitIfStatement(IfStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitIfStatement(IfStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElseClauseSyntax node.</summary>
-        public virtual TResult VisitElseClause(ElseClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitElseClause(ElseClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchStatementSyntax node.</summary>
-        public virtual TResult VisitSwitchStatement(SwitchStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSwitchStatement(SwitchStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchSectionSyntax node.</summary>
-        public virtual TResult VisitSwitchSection(SwitchSectionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSwitchSection(SwitchSectionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CasePatternSwitchLabelSyntax node.</summary>
-        public virtual TResult VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CaseSwitchLabelSyntax node.</summary>
-        public virtual TResult VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefaultSwitchLabelSyntax node.</summary>
-        public virtual TResult VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchExpressionSyntax node.</summary>
-        public virtual TResult VisitSwitchExpression(SwitchExpressionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSwitchExpression(SwitchExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchExpressionArmSyntax node.</summary>
-        public virtual TResult VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSwitchExpressionArm(SwitchExpressionArmSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TryStatementSyntax node.</summary>
-        public virtual TResult VisitTryStatement(TryStatementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchClauseSyntax node.</summary>
-        public virtual TResult VisitCatchClause(CatchClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCatchClause(CatchClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchDeclarationSyntax node.</summary>
-        public virtual TResult VisitCatchDeclaration(CatchDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCatchDeclaration(CatchDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchFilterClauseSyntax node.</summary>
-        public virtual TResult VisitCatchFilterClause(CatchFilterClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCatchFilterClause(CatchFilterClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FinallyClauseSyntax node.</summary>
-        public virtual TResult VisitFinallyClause(FinallyClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitFinallyClause(FinallyClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CompilationUnitSyntax node.</summary>
-        public virtual TResult VisitCompilationUnit(CompilationUnitSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCompilationUnit(CompilationUnitSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExternAliasDirectiveSyntax node.</summary>
-        public virtual TResult VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UsingDirectiveSyntax node.</summary>
-        public virtual TResult VisitUsingDirective(UsingDirectiveSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NamespaceDeclarationSyntax node.</summary>
-        public virtual TResult VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeListSyntax node.</summary>
-        public virtual TResult VisitAttributeList(AttributeListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeTargetSpecifierSyntax node.</summary>
-        public virtual TResult VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeSyntax node.</summary>
-        public virtual TResult VisitAttribute(AttributeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeArgumentListSyntax node.</summary>
-        public virtual TResult VisitAttributeArgumentList(AttributeArgumentListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAttributeArgumentList(AttributeArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeArgumentSyntax node.</summary>
-        public virtual TResult VisitAttributeArgument(AttributeArgumentSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAttributeArgument(AttributeArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameEqualsSyntax node.</summary>
-        public virtual TResult VisitNameEquals(NameEqualsSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitNameEquals(NameEqualsSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterListSyntax node.</summary>
-        public virtual TResult VisitTypeParameterList(TypeParameterListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTypeParameterList(TypeParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterSyntax node.</summary>
-        public virtual TResult VisitTypeParameter(TypeParameterSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ClassDeclarationSyntax node.</summary>
-        public virtual TResult VisitClassDeclaration(ClassDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a StructDeclarationSyntax node.</summary>
-        public virtual TResult VisitStructDeclaration(StructDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterfaceDeclarationSyntax node.</summary>
-        public virtual TResult VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EnumDeclarationSyntax node.</summary>
-        public virtual TResult VisitEnumDeclaration(EnumDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DelegateDeclarationSyntax node.</summary>
-        public virtual TResult VisitDelegateDeclaration(DelegateDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EnumMemberDeclarationSyntax node.</summary>
-        public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BaseListSyntax node.</summary>
-        public virtual TResult VisitBaseList(BaseListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SimpleBaseTypeSyntax node.</summary>
-        public virtual TResult VisitSimpleBaseType(SimpleBaseTypeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterConstraintClauseSyntax node.</summary>
-        public virtual TResult VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorConstraintSyntax node.</summary>
-        public virtual TResult VisitConstructorConstraint(ConstructorConstraintSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ClassOrStructConstraintSyntax node.</summary>
-        public virtual TResult VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeConstraintSyntax node.</summary>
-        public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
-        public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EventFieldDeclarationSyntax node.</summary>
-        public virtual TResult VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExplicitInterfaceSpecifierSyntax node.</summary>
-        public virtual TResult VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MethodDeclarationSyntax node.</summary>
-        public virtual TResult VisitMethodDeclaration(MethodDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitMethodDeclaration(MethodDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OperatorDeclarationSyntax node.</summary>
-        public virtual TResult VisitOperatorDeclaration(OperatorDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConversionOperatorDeclarationSyntax node.</summary>
-        public virtual TResult VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorDeclarationSyntax node.</summary>
-        public virtual TResult VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitConstructorDeclaration(ConstructorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorInitializerSyntax node.</summary>
-        public virtual TResult VisitConstructorInitializer(ConstructorInitializerSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitConstructorInitializer(ConstructorInitializerSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DestructorDeclarationSyntax node.</summary>
-        public virtual TResult VisitDestructorDeclaration(DestructorDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDestructorDeclaration(DestructorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PropertyDeclarationSyntax node.</summary>
-        public virtual TResult VisitPropertyDeclaration(PropertyDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrowExpressionClauseSyntax node.</summary>
-        public virtual TResult VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EventDeclarationSyntax node.</summary>
-        public virtual TResult VisitEventDeclaration(EventDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IndexerDeclarationSyntax node.</summary>
-        public virtual TResult VisitIndexerDeclaration(IndexerDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AccessorListSyntax node.</summary>
-        public virtual TResult VisitAccessorList(AccessorListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AccessorDeclarationSyntax node.</summary>
-        public virtual TResult VisitAccessorDeclaration(AccessorDeclarationSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParameterListSyntax node.</summary>
-        public virtual TResult VisitParameterList(ParameterListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitParameterList(ParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BracketedParameterListSyntax node.</summary>
-        public virtual TResult VisitBracketedParameterList(BracketedParameterListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParameterSyntax node.</summary>
-        public virtual TResult VisitParameter(ParameterSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IncompleteMemberSyntax node.</summary>
-        public virtual TResult VisitIncompleteMember(IncompleteMemberSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SkippedTokensTriviaSyntax node.</summary>
-        public virtual TResult VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DocumentationCommentTriviaSyntax node.</summary>
-        public virtual TResult VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeCrefSyntax node.</summary>
-        public virtual TResult VisitTypeCref(TypeCrefSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QualifiedCrefSyntax node.</summary>
-        public virtual TResult VisitQualifiedCref(QualifiedCrefSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameMemberCrefSyntax node.</summary>
-        public virtual TResult VisitNameMemberCref(NameMemberCrefSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IndexerMemberCrefSyntax node.</summary>
-        public virtual TResult VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OperatorMemberCrefSyntax node.</summary>
-        public virtual TResult VisitOperatorMemberCref(OperatorMemberCrefSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConversionOperatorMemberCrefSyntax node.</summary>
-        public virtual TResult VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefParameterListSyntax node.</summary>
-        public virtual TResult VisitCrefParameterList(CrefParameterListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCrefParameterList(CrefParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefBracketedParameterListSyntax node.</summary>
-        public virtual TResult VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefParameterSyntax node.</summary>
-        public virtual TResult VisitCrefParameter(CrefParameterSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitCrefParameter(CrefParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementSyntax node.</summary>
-        public virtual TResult VisitXmlElement(XmlElementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlElement(XmlElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementStartTagSyntax node.</summary>
-        public virtual TResult VisitXmlElementStartTag(XmlElementStartTagSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlElementStartTag(XmlElementStartTagSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementEndTagSyntax node.</summary>
-        public virtual TResult VisitXmlElementEndTag(XmlElementEndTagSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlElementEndTag(XmlElementEndTagSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlEmptyElementSyntax node.</summary>
-        public virtual TResult VisitXmlEmptyElement(XmlEmptyElementSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlEmptyElement(XmlEmptyElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlNameSyntax node.</summary>
-        public virtual TResult VisitXmlName(XmlNameSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlName(XmlNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlPrefixSyntax node.</summary>
-        public virtual TResult VisitXmlPrefix(XmlPrefixSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlPrefix(XmlPrefixSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlTextAttributeSyntax node.</summary>
-        public virtual TResult VisitXmlTextAttribute(XmlTextAttributeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlTextAttribute(XmlTextAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCrefAttributeSyntax node.</summary>
-        public virtual TResult VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlCrefAttribute(XmlCrefAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlNameAttributeSyntax node.</summary>
-        public virtual TResult VisitXmlNameAttribute(XmlNameAttributeSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlNameAttribute(XmlNameAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlTextSyntax node.</summary>
-        public virtual TResult VisitXmlText(XmlTextSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlText(XmlTextSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCDataSectionSyntax node.</summary>
-        public virtual TResult VisitXmlCDataSection(XmlCDataSectionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlCDataSection(XmlCDataSectionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlProcessingInstructionSyntax node.</summary>
-        public virtual TResult VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCommentSyntax node.</summary>
-        public virtual TResult VisitXmlComment(XmlCommentSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitXmlComment(XmlCommentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IfDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElifDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElseDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EndIfDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RegionDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EndRegionDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ErrorDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WarningDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BadDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefineDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UndefDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LineDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PragmaWarningDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PragmaChecksumDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ReferenceDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LoadDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ShebangDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
+        public virtual TResult VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableDirectiveTriviaSyntax node.</summary>
-        public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
-        {
-          return this.DefaultVisit(node);
-        }
-      }
+        public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+    }
 
-      public partial class CSharpSyntaxVisitor
-      {
+    public partial class CSharpSyntaxVisitor
+    {
         /// <summary>Called when the visitor visits a IdentifierNameSyntax node.</summary>
-        public virtual void VisitIdentifierName(IdentifierNameSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QualifiedNameSyntax node.</summary>
-        public virtual void VisitQualifiedName(QualifiedNameSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GenericNameSyntax node.</summary>
-        public virtual void VisitGenericName(GenericNameSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeArgumentListSyntax node.</summary>
-        public virtual void VisitTypeArgumentList(TypeArgumentListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AliasQualifiedNameSyntax node.</summary>
-        public virtual void VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PredefinedTypeSyntax node.</summary>
-        public virtual void VisitPredefinedType(PredefinedTypeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitPredefinedType(PredefinedTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayTypeSyntax node.</summary>
-        public virtual void VisitArrayType(ArrayTypeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayRankSpecifierSyntax node.</summary>
-        public virtual void VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PointerTypeSyntax node.</summary>
-        public virtual void VisitPointerType(PointerTypeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableTypeSyntax node.</summary>
-        public virtual void VisitNullableType(NullableTypeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleTypeSyntax node.</summary>
-        public virtual void VisitTupleType(TupleTypeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleElementSyntax node.</summary>
-        public virtual void VisitTupleElement(TupleElementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OmittedTypeArgumentSyntax node.</summary>
-        public virtual void VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefTypeSyntax node.</summary>
-        public virtual void VisitRefType(RefTypeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedExpressionSyntax node.</summary>
-        public virtual void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TupleExpressionSyntax node.</summary>
-        public virtual void VisitTupleExpression(TupleExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PrefixUnaryExpressionSyntax node.</summary>
-        public virtual void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AwaitExpressionSyntax node.</summary>
-        public virtual void VisitAwaitExpression(AwaitExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PostfixUnaryExpressionSyntax node.</summary>
-        public virtual void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MemberAccessExpressionSyntax node.</summary>
-        public virtual void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConditionalAccessExpressionSyntax node.</summary>
-        public virtual void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MemberBindingExpressionSyntax node.</summary>
-        public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElementBindingExpressionSyntax node.</summary>
-        public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RangeExpressionSyntax node.</summary>
-        public virtual void VisitRangeExpression(RangeExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitElementAccessSyntax node.</summary>
-        public virtual void VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BinaryExpressionSyntax node.</summary>
-        public virtual void VisitBinaryExpression(BinaryExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitBinaryExpression(BinaryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AssignmentExpressionSyntax node.</summary>
-        public virtual void VisitAssignmentExpression(AssignmentExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAssignmentExpression(AssignmentExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConditionalExpressionSyntax node.</summary>
-        public virtual void VisitConditionalExpression(ConditionalExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitConditionalExpression(ConditionalExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThisExpressionSyntax node.</summary>
-        public virtual void VisitThisExpression(ThisExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BaseExpressionSyntax node.</summary>
-        public virtual void VisitBaseExpression(BaseExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LiteralExpressionSyntax node.</summary>
-        public virtual void VisitLiteralExpression(LiteralExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MakeRefExpressionSyntax node.</summary>
-        public virtual void VisitMakeRefExpression(MakeRefExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefTypeExpressionSyntax node.</summary>
-        public virtual void VisitRefTypeExpression(RefTypeExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefValueExpressionSyntax node.</summary>
-        public virtual void VisitRefValueExpression(RefValueExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CheckedExpressionSyntax node.</summary>
-        public virtual void VisitCheckedExpression(CheckedExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefaultExpressionSyntax node.</summary>
-        public virtual void VisitDefaultExpression(DefaultExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeOfExpressionSyntax node.</summary>
-        public virtual void VisitTypeOfExpression(TypeOfExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SizeOfExpressionSyntax node.</summary>
-        public virtual void VisitSizeOfExpression(SizeOfExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InvocationExpressionSyntax node.</summary>
-        public virtual void VisitInvocationExpression(InvocationExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitInvocationExpression(InvocationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElementAccessExpressionSyntax node.</summary>
-        public virtual void VisitElementAccessExpression(ElementAccessExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitElementAccessExpression(ElementAccessExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArgumentListSyntax node.</summary>
-        public virtual void VisitArgumentList(ArgumentListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BracketedArgumentListSyntax node.</summary>
-        public virtual void VisitBracketedArgumentList(BracketedArgumentListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArgumentSyntax node.</summary>
-        public virtual void VisitArgument(ArgumentSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameColonSyntax node.</summary>
-        public virtual void VisitNameColon(NameColonSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DeclarationExpressionSyntax node.</summary>
-        public virtual void VisitDeclarationExpression(DeclarationExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CastExpressionSyntax node.</summary>
-        public virtual void VisitCastExpression(CastExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousMethodExpressionSyntax node.</summary>
-        public virtual void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SimpleLambdaExpressionSyntax node.</summary>
-        public virtual void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RefExpressionSyntax node.</summary>
-        public virtual void VisitRefExpression(RefExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitRefExpression(RefExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedLambdaExpressionSyntax node.</summary>
-        public virtual void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InitializerExpressionSyntax node.</summary>
-        public virtual void VisitInitializerExpression(InitializerExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ObjectCreationExpressionSyntax node.</summary>
-        public virtual void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousObjectMemberDeclaratorSyntax node.</summary>
-        public virtual void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AnonymousObjectCreationExpressionSyntax node.</summary>
-        public virtual void VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrayCreationExpressionSyntax node.</summary>
-        public virtual void VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitArrayCreationExpression(ArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitArrayCreationExpressionSyntax node.</summary>
-        public virtual void VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a StackAllocArrayCreationExpressionSyntax node.</summary>
-        public virtual void VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
-        public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryExpressionSyntax node.</summary>
-        public virtual void VisitQueryExpression(QueryExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryBodySyntax node.</summary>
-        public virtual void VisitQueryBody(QueryBodySyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FromClauseSyntax node.</summary>
-        public virtual void VisitFromClause(FromClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LetClauseSyntax node.</summary>
-        public virtual void VisitLetClause(LetClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitLetClause(LetClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a JoinClauseSyntax node.</summary>
-        public virtual void VisitJoinClause(JoinClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitJoinClause(JoinClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a JoinIntoClauseSyntax node.</summary>
-        public virtual void VisitJoinIntoClause(JoinIntoClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitJoinIntoClause(JoinIntoClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhereClauseSyntax node.</summary>
-        public virtual void VisitWhereClause(WhereClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitWhereClause(WhereClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OrderByClauseSyntax node.</summary>
-        public virtual void VisitOrderByClause(OrderByClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitOrderByClause(OrderByClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OrderingSyntax node.</summary>
-        public virtual void VisitOrdering(OrderingSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitOrdering(OrderingSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SelectClauseSyntax node.</summary>
-        public virtual void VisitSelectClause(SelectClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSelectClause(SelectClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GroupClauseSyntax node.</summary>
-        public virtual void VisitGroupClause(GroupClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitGroupClause(GroupClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QueryContinuationSyntax node.</summary>
-        public virtual void VisitQueryContinuation(QueryContinuationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitQueryContinuation(QueryContinuationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OmittedArraySizeExpressionSyntax node.</summary>
-        public virtual void VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringExpressionSyntax node.</summary>
-        public virtual void VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IsPatternExpressionSyntax node.</summary>
-        public virtual void VisitIsPatternExpression(IsPatternExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitIsPatternExpression(IsPatternExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThrowExpressionSyntax node.</summary>
-        public virtual void VisitThrowExpression(ThrowExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitThrowExpression(ThrowExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhenClauseSyntax node.</summary>
-        public virtual void VisitWhenClause(WhenClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DiscardPatternSyntax node.</summary>
-        public virtual void VisitDiscardPattern(DiscardPatternSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDiscardPattern(DiscardPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DeclarationPatternSyntax node.</summary>
-        public virtual void VisitDeclarationPattern(DeclarationPatternSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VarPatternSyntax node.</summary>
-        public virtual void VisitVarPattern(VarPatternSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitVarPattern(VarPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RecursivePatternSyntax node.</summary>
-        public virtual void VisitRecursivePattern(RecursivePatternSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitRecursivePattern(RecursivePatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PositionalPatternClauseSyntax node.</summary>
-        public virtual void VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitPositionalPatternClause(PositionalPatternClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PropertyPatternClauseSyntax node.</summary>
-        public virtual void VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SubpatternSyntax node.</summary>
-        public virtual void VisitSubpattern(SubpatternSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstantPatternSyntax node.</summary>
-        public virtual void VisitConstantPattern(ConstantPatternSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolatedStringTextSyntax node.</summary>
-        public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationSyntax node.</summary>
-        public virtual void VisitInterpolation(InterpolationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationAlignmentClauseSyntax node.</summary>
-        public virtual void VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterpolationFormatClauseSyntax node.</summary>
-        public virtual void VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GlobalStatementSyntax node.</summary>
-        public virtual void VisitGlobalStatement(GlobalStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitGlobalStatement(GlobalStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BlockSyntax node.</summary>
-        public virtual void VisitBlock(BlockSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitBlock(BlockSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LocalFunctionStatementSyntax node.</summary>
-        public virtual void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LocalDeclarationStatementSyntax node.</summary>
-        public virtual void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VariableDeclarationSyntax node.</summary>
-        public virtual void VisitVariableDeclaration(VariableDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitVariableDeclaration(VariableDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a VariableDeclaratorSyntax node.</summary>
-        public virtual void VisitVariableDeclarator(VariableDeclaratorSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitVariableDeclarator(VariableDeclaratorSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EqualsValueClauseSyntax node.</summary>
-        public virtual void VisitEqualsValueClause(EqualsValueClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitEqualsValueClause(EqualsValueClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SingleVariableDesignationSyntax node.</summary>
-        public virtual void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DiscardDesignationSyntax node.</summary>
-        public virtual void VisitDiscardDesignation(DiscardDesignationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDiscardDesignation(DiscardDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParenthesizedVariableDesignationSyntax node.</summary>
-        public virtual void VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExpressionStatementSyntax node.</summary>
-        public virtual void VisitExpressionStatement(ExpressionStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitExpressionStatement(ExpressionStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EmptyStatementSyntax node.</summary>
-        public virtual void VisitEmptyStatement(EmptyStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitEmptyStatement(EmptyStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LabeledStatementSyntax node.</summary>
-        public virtual void VisitLabeledStatement(LabeledStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitLabeledStatement(LabeledStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a GotoStatementSyntax node.</summary>
-        public virtual void VisitGotoStatement(GotoStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitGotoStatement(GotoStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BreakStatementSyntax node.</summary>
-        public virtual void VisitBreakStatement(BreakStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitBreakStatement(BreakStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ContinueStatementSyntax node.</summary>
-        public virtual void VisitContinueStatement(ContinueStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitContinueStatement(ContinueStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ReturnStatementSyntax node.</summary>
-        public virtual void VisitReturnStatement(ReturnStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitReturnStatement(ReturnStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ThrowStatementSyntax node.</summary>
-        public virtual void VisitThrowStatement(ThrowStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitThrowStatement(ThrowStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a YieldStatementSyntax node.</summary>
-        public virtual void VisitYieldStatement(YieldStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitYieldStatement(YieldStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WhileStatementSyntax node.</summary>
-        public virtual void VisitWhileStatement(WhileStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitWhileStatement(WhileStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DoStatementSyntax node.</summary>
-        public virtual void VisitDoStatement(DoStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDoStatement(DoStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForStatementSyntax node.</summary>
-        public virtual void VisitForStatement(ForStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitForStatement(ForStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForEachStatementSyntax node.</summary>
-        public virtual void VisitForEachStatement(ForEachStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitForEachStatement(ForEachStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ForEachVariableStatementSyntax node.</summary>
-        public virtual void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitForEachVariableStatement(ForEachVariableStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UsingStatementSyntax node.</summary>
-        public virtual void VisitUsingStatement(UsingStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitUsingStatement(UsingStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FixedStatementSyntax node.</summary>
-        public virtual void VisitFixedStatement(FixedStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitFixedStatement(FixedStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CheckedStatementSyntax node.</summary>
-        public virtual void VisitCheckedStatement(CheckedStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCheckedStatement(CheckedStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UnsafeStatementSyntax node.</summary>
-        public virtual void VisitUnsafeStatement(UnsafeStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitUnsafeStatement(UnsafeStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LockStatementSyntax node.</summary>
-        public virtual void VisitLockStatement(LockStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitLockStatement(LockStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IfStatementSyntax node.</summary>
-        public virtual void VisitIfStatement(IfStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitIfStatement(IfStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElseClauseSyntax node.</summary>
-        public virtual void VisitElseClause(ElseClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitElseClause(ElseClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchStatementSyntax node.</summary>
-        public virtual void VisitSwitchStatement(SwitchStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSwitchStatement(SwitchStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchSectionSyntax node.</summary>
-        public virtual void VisitSwitchSection(SwitchSectionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSwitchSection(SwitchSectionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CasePatternSwitchLabelSyntax node.</summary>
-        public virtual void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CaseSwitchLabelSyntax node.</summary>
-        public virtual void VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefaultSwitchLabelSyntax node.</summary>
-        public virtual void VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchExpressionSyntax node.</summary>
-        public virtual void VisitSwitchExpression(SwitchExpressionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSwitchExpression(SwitchExpressionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SwitchExpressionArmSyntax node.</summary>
-        public virtual void VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSwitchExpressionArm(SwitchExpressionArmSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TryStatementSyntax node.</summary>
-        public virtual void VisitTryStatement(TryStatementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchClauseSyntax node.</summary>
-        public virtual void VisitCatchClause(CatchClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCatchClause(CatchClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchDeclarationSyntax node.</summary>
-        public virtual void VisitCatchDeclaration(CatchDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCatchDeclaration(CatchDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CatchFilterClauseSyntax node.</summary>
-        public virtual void VisitCatchFilterClause(CatchFilterClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCatchFilterClause(CatchFilterClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FinallyClauseSyntax node.</summary>
-        public virtual void VisitFinallyClause(FinallyClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitFinallyClause(FinallyClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CompilationUnitSyntax node.</summary>
-        public virtual void VisitCompilationUnit(CompilationUnitSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCompilationUnit(CompilationUnitSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExternAliasDirectiveSyntax node.</summary>
-        public virtual void VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UsingDirectiveSyntax node.</summary>
-        public virtual void VisitUsingDirective(UsingDirectiveSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NamespaceDeclarationSyntax node.</summary>
-        public virtual void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeListSyntax node.</summary>
-        public virtual void VisitAttributeList(AttributeListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeTargetSpecifierSyntax node.</summary>
-        public virtual void VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeSyntax node.</summary>
-        public virtual void VisitAttribute(AttributeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeArgumentListSyntax node.</summary>
-        public virtual void VisitAttributeArgumentList(AttributeArgumentListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAttributeArgumentList(AttributeArgumentListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AttributeArgumentSyntax node.</summary>
-        public virtual void VisitAttributeArgument(AttributeArgumentSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAttributeArgument(AttributeArgumentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameEqualsSyntax node.</summary>
-        public virtual void VisitNameEquals(NameEqualsSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitNameEquals(NameEqualsSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterListSyntax node.</summary>
-        public virtual void VisitTypeParameterList(TypeParameterListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTypeParameterList(TypeParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterSyntax node.</summary>
-        public virtual void VisitTypeParameter(TypeParameterSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ClassDeclarationSyntax node.</summary>
-        public virtual void VisitClassDeclaration(ClassDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a StructDeclarationSyntax node.</summary>
-        public virtual void VisitStructDeclaration(StructDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a InterfaceDeclarationSyntax node.</summary>
-        public virtual void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EnumDeclarationSyntax node.</summary>
-        public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DelegateDeclarationSyntax node.</summary>
-        public virtual void VisitDelegateDeclaration(DelegateDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EnumMemberDeclarationSyntax node.</summary>
-        public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BaseListSyntax node.</summary>
-        public virtual void VisitBaseList(BaseListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SimpleBaseTypeSyntax node.</summary>
-        public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeParameterConstraintClauseSyntax node.</summary>
-        public virtual void VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorConstraintSyntax node.</summary>
-        public virtual void VisitConstructorConstraint(ConstructorConstraintSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ClassOrStructConstraintSyntax node.</summary>
-        public virtual void VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeConstraintSyntax node.</summary>
-        public virtual void VisitTypeConstraint(TypeConstraintSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a FieldDeclarationSyntax node.</summary>
-        public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EventFieldDeclarationSyntax node.</summary>
-        public virtual void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ExplicitInterfaceSpecifierSyntax node.</summary>
-        public virtual void VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a MethodDeclarationSyntax node.</summary>
-        public virtual void VisitMethodDeclaration(MethodDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitMethodDeclaration(MethodDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OperatorDeclarationSyntax node.</summary>
-        public virtual void VisitOperatorDeclaration(OperatorDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConversionOperatorDeclarationSyntax node.</summary>
-        public virtual void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorDeclarationSyntax node.</summary>
-        public virtual void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitConstructorDeclaration(ConstructorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConstructorInitializerSyntax node.</summary>
-        public virtual void VisitConstructorInitializer(ConstructorInitializerSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitConstructorInitializer(ConstructorInitializerSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DestructorDeclarationSyntax node.</summary>
-        public virtual void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDestructorDeclaration(DestructorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PropertyDeclarationSyntax node.</summary>
-        public virtual void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ArrowExpressionClauseSyntax node.</summary>
-        public virtual void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EventDeclarationSyntax node.</summary>
-        public virtual void VisitEventDeclaration(EventDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IndexerDeclarationSyntax node.</summary>
-        public virtual void VisitIndexerDeclaration(IndexerDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AccessorListSyntax node.</summary>
-        public virtual void VisitAccessorList(AccessorListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a AccessorDeclarationSyntax node.</summary>
-        public virtual void VisitAccessorDeclaration(AccessorDeclarationSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParameterListSyntax node.</summary>
-        public virtual void VisitParameterList(ParameterListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitParameterList(ParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BracketedParameterListSyntax node.</summary>
-        public virtual void VisitBracketedParameterList(BracketedParameterListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ParameterSyntax node.</summary>
-        public virtual void VisitParameter(ParameterSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IncompleteMemberSyntax node.</summary>
-        public virtual void VisitIncompleteMember(IncompleteMemberSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a SkippedTokensTriviaSyntax node.</summary>
-        public virtual void VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DocumentationCommentTriviaSyntax node.</summary>
-        public virtual void VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a TypeCrefSyntax node.</summary>
-        public virtual void VisitTypeCref(TypeCrefSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a QualifiedCrefSyntax node.</summary>
-        public virtual void VisitQualifiedCref(QualifiedCrefSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NameMemberCrefSyntax node.</summary>
-        public virtual void VisitNameMemberCref(NameMemberCrefSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IndexerMemberCrefSyntax node.</summary>
-        public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a OperatorMemberCrefSyntax node.</summary>
-        public virtual void VisitOperatorMemberCref(OperatorMemberCrefSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ConversionOperatorMemberCrefSyntax node.</summary>
-        public virtual void VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefParameterListSyntax node.</summary>
-        public virtual void VisitCrefParameterList(CrefParameterListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCrefParameterList(CrefParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefBracketedParameterListSyntax node.</summary>
-        public virtual void VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a CrefParameterSyntax node.</summary>
-        public virtual void VisitCrefParameter(CrefParameterSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitCrefParameter(CrefParameterSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementSyntax node.</summary>
-        public virtual void VisitXmlElement(XmlElementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlElement(XmlElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementStartTagSyntax node.</summary>
-        public virtual void VisitXmlElementStartTag(XmlElementStartTagSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlElementStartTag(XmlElementStartTagSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlElementEndTagSyntax node.</summary>
-        public virtual void VisitXmlElementEndTag(XmlElementEndTagSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlElementEndTag(XmlElementEndTagSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlEmptyElementSyntax node.</summary>
-        public virtual void VisitXmlEmptyElement(XmlEmptyElementSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlEmptyElement(XmlEmptyElementSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlNameSyntax node.</summary>
-        public virtual void VisitXmlName(XmlNameSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlName(XmlNameSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlPrefixSyntax node.</summary>
-        public virtual void VisitXmlPrefix(XmlPrefixSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlPrefix(XmlPrefixSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlTextAttributeSyntax node.</summary>
-        public virtual void VisitXmlTextAttribute(XmlTextAttributeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlTextAttribute(XmlTextAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCrefAttributeSyntax node.</summary>
-        public virtual void VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlCrefAttribute(XmlCrefAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlNameAttributeSyntax node.</summary>
-        public virtual void VisitXmlNameAttribute(XmlNameAttributeSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlNameAttribute(XmlNameAttributeSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlTextSyntax node.</summary>
-        public virtual void VisitXmlText(XmlTextSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlText(XmlTextSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCDataSectionSyntax node.</summary>
-        public virtual void VisitXmlCDataSection(XmlCDataSectionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlCDataSection(XmlCDataSectionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlProcessingInstructionSyntax node.</summary>
-        public virtual void VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a XmlCommentSyntax node.</summary>
-        public virtual void VisitXmlComment(XmlCommentSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitXmlComment(XmlCommentSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a IfDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElifDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ElseDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EndIfDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a RegionDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a EndRegionDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ErrorDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a WarningDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a BadDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a DefineDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a UndefDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LineDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PragmaWarningDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a PragmaChecksumDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ReferenceDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a LoadDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a ShebangDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
+        public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
         /// <summary>Called when the visitor visits a NullableDirectiveTriviaSyntax node.</summary>
-        public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
-        {
-          this.DefaultVisit(node);
-        }
-      }
+        public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+    }
 
       public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>
       {
