@@ -643,14 +643,11 @@ namespace CSharpSyntaxGenerator
         {
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).ToList();
             WriteLine();
-            WriteLine("  internal static partial class SyntaxFactory");
-            WriteLine("  {");
-
+            WriteLine("internal static partial class SyntaxFactory");
+            OpenBlock();
             WriteGreenFactories(nodes);
-
             WriteGreenTypeList();
-
-            WriteLine("  }");
+            CloseBlock();
         }
 
         private void WriteGreenFactories(List<TreeType> nodes, bool withSyntaxFactoryContext = false)

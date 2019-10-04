@@ -40269,7547 +40269,7547 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
     }
 
-      internal static partial class SyntaxFactory
-      {
-        public static IdentifierNameSyntax IdentifierName(SyntaxToken identifier)
-        {
-    #if DEBUG
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-            case SyntaxKind.GlobalKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.IdentifierName, identifier, out hash);
-          if (cached != null) return (IdentifierNameSyntax)cached;
-
-          var result = new IdentifierNameSyntax(SyntaxKind.IdentifierName, identifier);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static QualifiedNameSyntax QualifiedName(NameSyntax left, SyntaxToken dotToken, SimpleNameSyntax right)
-        {
-    #if DEBUG
-          if (left == null)
-            throw new ArgumentNullException(nameof(left));
-          if (dotToken == null)
-            throw new ArgumentNullException(nameof(dotToken));
-          switch (dotToken.Kind)
-          {
-            case SyntaxKind.DotToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(dotToken));
-          }
-          if (right == null)
-            throw new ArgumentNullException(nameof(right));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.QualifiedName, left, dotToken, right, out hash);
-          if (cached != null) return (QualifiedNameSyntax)cached;
-
-          var result = new QualifiedNameSyntax(SyntaxKind.QualifiedName, left, dotToken, right);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static GenericNameSyntax GenericName(SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
-        {
-    #if DEBUG
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (typeArgumentList == null)
-            throw new ArgumentNullException(nameof(typeArgumentList));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.GenericName, identifier, typeArgumentList, out hash);
-          if (cached != null) return (GenericNameSyntax)cached;
-
-          var result = new GenericNameSyntax(SyntaxKind.GenericName, identifier, typeArgumentList);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static TypeArgumentListSyntax TypeArgumentList(SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeSyntax> arguments, SyntaxToken greaterThanToken)
-        {
-    #if DEBUG
-          if (lessThanToken == null)
-            throw new ArgumentNullException(nameof(lessThanToken));
-          switch (lessThanToken.Kind)
-          {
-            case SyntaxKind.LessThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(lessThanToken));
-          }
-          if (greaterThanToken == null)
-            throw new ArgumentNullException(nameof(greaterThanToken));
-          switch (greaterThanToken.Kind)
-          {
-            case SyntaxKind.GreaterThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(greaterThanToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypeArgumentList, lessThanToken, arguments.Node, greaterThanToken, out hash);
-          if (cached != null) return (TypeArgumentListSyntax)cached;
-
-          var result = new TypeArgumentListSyntax(SyntaxKind.TypeArgumentList, lessThanToken, arguments.Node, greaterThanToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static AliasQualifiedNameSyntax AliasQualifiedName(IdentifierNameSyntax alias, SyntaxToken colonColonToken, SimpleNameSyntax name)
-        {
-    #if DEBUG
-          if (alias == null)
-            throw new ArgumentNullException(nameof(alias));
-          if (colonColonToken == null)
-            throw new ArgumentNullException(nameof(colonColonToken));
-          switch (colonColonToken.Kind)
-          {
-            case SyntaxKind.ColonColonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(colonColonToken));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AliasQualifiedName, alias, colonColonToken, name, out hash);
-          if (cached != null) return (AliasQualifiedNameSyntax)cached;
-
-          var result = new AliasQualifiedNameSyntax(SyntaxKind.AliasQualifiedName, alias, colonColonToken, name);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static PredefinedTypeSyntax PredefinedType(SyntaxToken keyword)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.BoolKeyword:
-            case SyntaxKind.ByteKeyword:
-            case SyntaxKind.SByteKeyword:
-            case SyntaxKind.IntKeyword:
-            case SyntaxKind.UIntKeyword:
-            case SyntaxKind.ShortKeyword:
-            case SyntaxKind.UShortKeyword:
-            case SyntaxKind.LongKeyword:
-            case SyntaxKind.ULongKeyword:
-            case SyntaxKind.FloatKeyword:
-            case SyntaxKind.DoubleKeyword:
-            case SyntaxKind.DecimalKeyword:
-            case SyntaxKind.StringKeyword:
-            case SyntaxKind.CharKeyword:
-            case SyntaxKind.ObjectKeyword:
-            case SyntaxKind.VoidKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PredefinedType, keyword, out hash);
-          if (cached != null) return (PredefinedTypeSyntax)cached;
-
-          var result = new PredefinedTypeSyntax(SyntaxKind.PredefinedType, keyword);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ArrayTypeSyntax ArrayType(TypeSyntax elementType, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers)
-        {
-    #if DEBUG
-          if (elementType == null)
-            throw new ArgumentNullException(nameof(elementType));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArrayType, elementType, rankSpecifiers.Node, out hash);
-          if (cached != null) return (ArrayTypeSyntax)cached;
-
-          var result = new ArrayTypeSyntax(SyntaxKind.ArrayType, elementType, rankSpecifiers.Node);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
-        {
-    #if DEBUG
-          if (openBracketToken == null)
-            throw new ArgumentNullException(nameof(openBracketToken));
-          switch (openBracketToken.Kind)
-          {
-            case SyntaxKind.OpenBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBracketToken));
-          }
-          if (closeBracketToken == null)
-            throw new ArgumentNullException(nameof(closeBracketToken));
-          switch (closeBracketToken.Kind)
-          {
-            case SyntaxKind.CloseBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBracketToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArrayRankSpecifier, openBracketToken, sizes.Node, closeBracketToken, out hash);
-          if (cached != null) return (ArrayRankSpecifierSyntax)cached;
-
-          var result = new ArrayRankSpecifierSyntax(SyntaxKind.ArrayRankSpecifier, openBracketToken, sizes.Node, closeBracketToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static PointerTypeSyntax PointerType(TypeSyntax elementType, SyntaxToken asteriskToken)
-        {
-    #if DEBUG
-          if (elementType == null)
-            throw new ArgumentNullException(nameof(elementType));
-          if (asteriskToken == null)
-            throw new ArgumentNullException(nameof(asteriskToken));
-          switch (asteriskToken.Kind)
-          {
-            case SyntaxKind.AsteriskToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(asteriskToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PointerType, elementType, asteriskToken, out hash);
-          if (cached != null) return (PointerTypeSyntax)cached;
-
-          var result = new PointerTypeSyntax(SyntaxKind.PointerType, elementType, asteriskToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static NullableTypeSyntax NullableType(TypeSyntax elementType, SyntaxToken questionToken)
-        {
-    #if DEBUG
-          if (elementType == null)
-            throw new ArgumentNullException(nameof(elementType));
-          if (questionToken == null)
-            throw new ArgumentNullException(nameof(questionToken));
-          switch (questionToken.Kind)
-          {
-            case SyntaxKind.QuestionToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(questionToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NullableType, elementType, questionToken, out hash);
-          if (cached != null) return (NullableTypeSyntax)cached;
-
-          var result = new NullableTypeSyntax(SyntaxKind.NullableType, elementType, questionToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static TupleTypeSyntax TupleType(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TupleElementSyntax> elements, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TupleType, openParenToken, elements.Node, closeParenToken, out hash);
-          if (cached != null) return (TupleTypeSyntax)cached;
-
-          var result = new TupleTypeSyntax(SyntaxKind.TupleType, openParenToken, elements.Node, closeParenToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static TupleElementSyntax TupleElement(TypeSyntax type, SyntaxToken identifier)
-        {
-    #if DEBUG
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (identifier != null)
-          {
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TupleElement, type, identifier, out hash);
-          if (cached != null) return (TupleElementSyntax)cached;
-
-          var result = new TupleElementSyntax(SyntaxKind.TupleElement, type, identifier);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static OmittedTypeArgumentSyntax OmittedTypeArgument(SyntaxToken omittedTypeArgumentToken)
-        {
-    #if DEBUG
-          if (omittedTypeArgumentToken == null)
-            throw new ArgumentNullException(nameof(omittedTypeArgumentToken));
-          switch (omittedTypeArgumentToken.Kind)
-          {
-            case SyntaxKind.OmittedTypeArgumentToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(omittedTypeArgumentToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.OmittedTypeArgument, omittedTypeArgumentToken, out hash);
-          if (cached != null) return (OmittedTypeArgumentSyntax)cached;
-
-          var result = new OmittedTypeArgumentSyntax(SyntaxKind.OmittedTypeArgument, omittedTypeArgumentToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
-        {
-    #if DEBUG
-          if (refKeyword == null)
-            throw new ArgumentNullException(nameof(refKeyword));
-          switch (refKeyword.Kind)
-          {
-            case SyntaxKind.RefKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(refKeyword));
-          }
-          if (readOnlyKeyword != null)
-          {
-          switch (readOnlyKeyword.Kind)
-          {
-            case SyntaxKind.ReadOnlyKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(readOnlyKeyword));
-          }
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RefType, refKeyword, readOnlyKeyword, type, out hash);
-          if (cached != null) return (RefTypeSyntax)cached;
-
-          var result = new RefTypeSyntax(SyntaxKind.RefType, refKeyword, readOnlyKeyword, type);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ParenthesizedExpressionSyntax ParenthesizedExpression(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ParenthesizedExpression, openParenToken, expression, closeParenToken, out hash);
-          if (cached != null) return (ParenthesizedExpressionSyntax)cached;
-
-          var result = new ParenthesizedExpressionSyntax(SyntaxKind.ParenthesizedExpression, openParenToken, expression, closeParenToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static TupleExpressionSyntax TupleExpression(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TupleExpression, openParenToken, arguments.Node, closeParenToken, out hash);
-          if (cached != null) return (TupleExpressionSyntax)cached;
-
-          var result = new TupleExpressionSyntax(SyntaxKind.TupleExpression, openParenToken, arguments.Node, closeParenToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static PrefixUnaryExpressionSyntax PrefixUnaryExpression(SyntaxKind kind, SyntaxToken operatorToken, ExpressionSyntax operand)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.UnaryPlusExpression:
-            case SyntaxKind.UnaryMinusExpression:
-            case SyntaxKind.BitwiseNotExpression:
-            case SyntaxKind.LogicalNotExpression:
-            case SyntaxKind.PreIncrementExpression:
-            case SyntaxKind.PreDecrementExpression:
-            case SyntaxKind.AddressOfExpression:
-            case SyntaxKind.PointerIndirectionExpression:
-            case SyntaxKind.IndexExpression:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (operatorToken == null)
-            throw new ArgumentNullException(nameof(operatorToken));
-          switch (operatorToken.Kind)
-          {
-            case SyntaxKind.PlusToken:
-            case SyntaxKind.MinusToken:
-            case SyntaxKind.TildeToken:
-            case SyntaxKind.ExclamationToken:
-            case SyntaxKind.PlusPlusToken:
-            case SyntaxKind.MinusMinusToken:
-            case SyntaxKind.AmpersandToken:
-            case SyntaxKind.AsteriskToken:
-            case SyntaxKind.CaretToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorToken));
-          }
-          if (operand == null)
-            throw new ArgumentNullException(nameof(operand));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, operatorToken, operand, out hash);
-          if (cached != null) return (PrefixUnaryExpressionSyntax)cached;
-
-          var result = new PrefixUnaryExpressionSyntax(kind, operatorToken, operand);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (awaitKeyword == null)
-            throw new ArgumentNullException(nameof(awaitKeyword));
-          switch (awaitKeyword.Kind)
-          {
-            case SyntaxKind.AwaitKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(awaitKeyword));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AwaitExpression, awaitKeyword, expression, out hash);
-          if (cached != null) return (AwaitExpressionSyntax)cached;
-
-          var result = new AwaitExpressionSyntax(SyntaxKind.AwaitExpression, awaitKeyword, expression);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static PostfixUnaryExpressionSyntax PostfixUnaryExpression(SyntaxKind kind, ExpressionSyntax operand, SyntaxToken operatorToken)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.PostIncrementExpression:
-            case SyntaxKind.PostDecrementExpression:
-            case SyntaxKind.SuppressNullableWarningExpression:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (operand == null)
-            throw new ArgumentNullException(nameof(operand));
-          if (operatorToken == null)
-            throw new ArgumentNullException(nameof(operatorToken));
-          switch (operatorToken.Kind)
-          {
-            case SyntaxKind.PlusPlusToken:
-            case SyntaxKind.MinusMinusToken:
-            case SyntaxKind.ExclamationToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, operand, operatorToken, out hash);
-          if (cached != null) return (PostfixUnaryExpressionSyntax)cached;
-
-          var result = new PostfixUnaryExpressionSyntax(kind, operand, operatorToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static MemberAccessExpressionSyntax MemberAccessExpression(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.SimpleMemberAccessExpression:
-            case SyntaxKind.PointerMemberAccessExpression:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (operatorToken == null)
-            throw new ArgumentNullException(nameof(operatorToken));
-          switch (operatorToken.Kind)
-          {
-            case SyntaxKind.DotToken:
-            case SyntaxKind.MinusGreaterThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorToken));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, expression, operatorToken, name, out hash);
-          if (cached != null) return (MemberAccessExpressionSyntax)cached;
-
-          var result = new MemberAccessExpressionSyntax(kind, expression, operatorToken, name);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ConditionalAccessExpressionSyntax ConditionalAccessExpression(ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull)
-        {
-    #if DEBUG
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (operatorToken == null)
-            throw new ArgumentNullException(nameof(operatorToken));
-          switch (operatorToken.Kind)
-          {
-            case SyntaxKind.QuestionToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorToken));
-          }
-          if (whenNotNull == null)
-            throw new ArgumentNullException(nameof(whenNotNull));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ConditionalAccessExpression, expression, operatorToken, whenNotNull, out hash);
-          if (cached != null) return (ConditionalAccessExpressionSyntax)cached;
-
-          var result = new ConditionalAccessExpressionSyntax(SyntaxKind.ConditionalAccessExpression, expression, operatorToken, whenNotNull);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static MemberBindingExpressionSyntax MemberBindingExpression(SyntaxToken operatorToken, SimpleNameSyntax name)
-        {
-    #if DEBUG
-          if (operatorToken == null)
-            throw new ArgumentNullException(nameof(operatorToken));
-          switch (operatorToken.Kind)
-          {
-            case SyntaxKind.DotToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorToken));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.MemberBindingExpression, operatorToken, name, out hash);
-          if (cached != null) return (MemberBindingExpressionSyntax)cached;
-
-          var result = new MemberBindingExpressionSyntax(SyntaxKind.MemberBindingExpression, operatorToken, name);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
-        {
-    #if DEBUG
-          if (argumentList == null)
-            throw new ArgumentNullException(nameof(argumentList));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ElementBindingExpression, argumentList, out hash);
-          if (cached != null) return (ElementBindingExpressionSyntax)cached;
-
-          var result = new ElementBindingExpressionSyntax(SyntaxKind.ElementBindingExpression, argumentList);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static RangeExpressionSyntax RangeExpression(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
-        {
-    #if DEBUG
-          if (operatorToken == null)
-            throw new ArgumentNullException(nameof(operatorToken));
-          switch (operatorToken.Kind)
-          {
-            case SyntaxKind.DotDotToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RangeExpression, leftOperand, operatorToken, rightOperand, out hash);
-          if (cached != null) return (RangeExpressionSyntax)cached;
-
-          var result = new RangeExpressionSyntax(SyntaxKind.RangeExpression, leftOperand, operatorToken, rightOperand);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ImplicitElementAccessSyntax ImplicitElementAccess(BracketedArgumentListSyntax argumentList)
-        {
-    #if DEBUG
-          if (argumentList == null)
-            throw new ArgumentNullException(nameof(argumentList));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ImplicitElementAccess, argumentList, out hash);
-          if (cached != null) return (ImplicitElementAccessSyntax)cached;
-
-          var result = new ImplicitElementAccessSyntax(SyntaxKind.ImplicitElementAccess, argumentList);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static BinaryExpressionSyntax BinaryExpression(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.AddExpression:
-            case SyntaxKind.SubtractExpression:
-            case SyntaxKind.MultiplyExpression:
-            case SyntaxKind.DivideExpression:
-            case SyntaxKind.ModuloExpression:
-            case SyntaxKind.LeftShiftExpression:
-            case SyntaxKind.RightShiftExpression:
-            case SyntaxKind.LogicalOrExpression:
-            case SyntaxKind.LogicalAndExpression:
-            case SyntaxKind.BitwiseOrExpression:
-            case SyntaxKind.BitwiseAndExpression:
-            case SyntaxKind.ExclusiveOrExpression:
-            case SyntaxKind.EqualsExpression:
-            case SyntaxKind.NotEqualsExpression:
-            case SyntaxKind.LessThanExpression:
-            case SyntaxKind.LessThanOrEqualExpression:
-            case SyntaxKind.GreaterThanExpression:
-            case SyntaxKind.GreaterThanOrEqualExpression:
-            case SyntaxKind.IsExpression:
-            case SyntaxKind.AsExpression:
-            case SyntaxKind.CoalesceExpression:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (left == null)
-            throw new ArgumentNullException(nameof(left));
-          if (operatorToken == null)
-            throw new ArgumentNullException(nameof(operatorToken));
-          switch (operatorToken.Kind)
-          {
-            case SyntaxKind.PlusToken:
-            case SyntaxKind.MinusToken:
-            case SyntaxKind.AsteriskToken:
-            case SyntaxKind.SlashToken:
-            case SyntaxKind.PercentToken:
-            case SyntaxKind.LessThanLessThanToken:
-            case SyntaxKind.GreaterThanGreaterThanToken:
-            case SyntaxKind.BarBarToken:
-            case SyntaxKind.AmpersandAmpersandToken:
-            case SyntaxKind.BarToken:
-            case SyntaxKind.AmpersandToken:
-            case SyntaxKind.CaretToken:
-            case SyntaxKind.EqualsEqualsToken:
-            case SyntaxKind.ExclamationEqualsToken:
-            case SyntaxKind.LessThanToken:
-            case SyntaxKind.LessThanEqualsToken:
-            case SyntaxKind.GreaterThanToken:
-            case SyntaxKind.GreaterThanEqualsToken:
-            case SyntaxKind.IsKeyword:
-            case SyntaxKind.AsKeyword:
-            case SyntaxKind.QuestionQuestionToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorToken));
-          }
-          if (right == null)
-            throw new ArgumentNullException(nameof(right));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, left, operatorToken, right, out hash);
-          if (cached != null) return (BinaryExpressionSyntax)cached;
-
-          var result = new BinaryExpressionSyntax(kind, left, operatorToken, right);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static AssignmentExpressionSyntax AssignmentExpression(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.SimpleAssignmentExpression:
-            case SyntaxKind.AddAssignmentExpression:
-            case SyntaxKind.SubtractAssignmentExpression:
-            case SyntaxKind.MultiplyAssignmentExpression:
-            case SyntaxKind.DivideAssignmentExpression:
-            case SyntaxKind.ModuloAssignmentExpression:
-            case SyntaxKind.AndAssignmentExpression:
-            case SyntaxKind.ExclusiveOrAssignmentExpression:
-            case SyntaxKind.OrAssignmentExpression:
-            case SyntaxKind.LeftShiftAssignmentExpression:
-            case SyntaxKind.RightShiftAssignmentExpression:
-            case SyntaxKind.CoalesceAssignmentExpression:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (left == null)
-            throw new ArgumentNullException(nameof(left));
-          if (operatorToken == null)
-            throw new ArgumentNullException(nameof(operatorToken));
-          switch (operatorToken.Kind)
-          {
-            case SyntaxKind.EqualsToken:
-            case SyntaxKind.PlusEqualsToken:
-            case SyntaxKind.MinusEqualsToken:
-            case SyntaxKind.AsteriskEqualsToken:
-            case SyntaxKind.SlashEqualsToken:
-            case SyntaxKind.PercentEqualsToken:
-            case SyntaxKind.AmpersandEqualsToken:
-            case SyntaxKind.CaretEqualsToken:
-            case SyntaxKind.BarEqualsToken:
-            case SyntaxKind.LessThanLessThanEqualsToken:
-            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
-            case SyntaxKind.QuestionQuestionEqualsToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorToken));
-          }
-          if (right == null)
-            throw new ArgumentNullException(nameof(right));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, left, operatorToken, right, out hash);
-          if (cached != null) return (AssignmentExpressionSyntax)cached;
-
-          var result = new AssignmentExpressionSyntax(kind, left, operatorToken, right);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ConditionalExpressionSyntax ConditionalExpression(ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse)
-        {
-    #if DEBUG
-          if (condition == null)
-            throw new ArgumentNullException(nameof(condition));
-          if (questionToken == null)
-            throw new ArgumentNullException(nameof(questionToken));
-          switch (questionToken.Kind)
-          {
-            case SyntaxKind.QuestionToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(questionToken));
-          }
-          if (whenTrue == null)
-            throw new ArgumentNullException(nameof(whenTrue));
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-          switch (colonToken.Kind)
-          {
-            case SyntaxKind.ColonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(colonToken));
-          }
-          if (whenFalse == null)
-            throw new ArgumentNullException(nameof(whenFalse));
-    #endif
-
-          return new ConditionalExpressionSyntax(SyntaxKind.ConditionalExpression, condition, questionToken, whenTrue, colonToken, whenFalse);
-        }
-
-        public static ThisExpressionSyntax ThisExpression(SyntaxToken token)
-        {
-    #if DEBUG
-          if (token == null)
-            throw new ArgumentNullException(nameof(token));
-          switch (token.Kind)
-          {
-            case SyntaxKind.ThisKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(token));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ThisExpression, token, out hash);
-          if (cached != null) return (ThisExpressionSyntax)cached;
-
-          var result = new ThisExpressionSyntax(SyntaxKind.ThisExpression, token);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static BaseExpressionSyntax BaseExpression(SyntaxToken token)
-        {
-    #if DEBUG
-          if (token == null)
-            throw new ArgumentNullException(nameof(token));
-          switch (token.Kind)
-          {
-            case SyntaxKind.BaseKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(token));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BaseExpression, token, out hash);
-          if (cached != null) return (BaseExpressionSyntax)cached;
-
-          var result = new BaseExpressionSyntax(SyntaxKind.BaseExpression, token);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static LiteralExpressionSyntax LiteralExpression(SyntaxKind kind, SyntaxToken token)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.ArgListExpression:
-            case SyntaxKind.NumericLiteralExpression:
-            case SyntaxKind.StringLiteralExpression:
-            case SyntaxKind.CharacterLiteralExpression:
-            case SyntaxKind.TrueLiteralExpression:
-            case SyntaxKind.FalseLiteralExpression:
-            case SyntaxKind.NullLiteralExpression:
-            case SyntaxKind.DefaultLiteralExpression:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (token == null)
-            throw new ArgumentNullException(nameof(token));
-          switch (token.Kind)
-          {
-            case SyntaxKind.ArgListKeyword:
-            case SyntaxKind.NumericLiteralToken:
-            case SyntaxKind.StringLiteralToken:
-            case SyntaxKind.CharacterLiteralToken:
-            case SyntaxKind.TrueKeyword:
-            case SyntaxKind.FalseKeyword:
-            case SyntaxKind.NullKeyword:
-            case SyntaxKind.DefaultKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(token));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, token, out hash);
-          if (cached != null) return (LiteralExpressionSyntax)cached;
-
-          var result = new LiteralExpressionSyntax(kind, token);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static MakeRefExpressionSyntax MakeRefExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.MakeRefKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          return new MakeRefExpressionSyntax(SyntaxKind.MakeRefExpression, keyword, openParenToken, expression, closeParenToken);
-        }
-
-        public static RefTypeExpressionSyntax RefTypeExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.RefTypeKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          return new RefTypeExpressionSyntax(SyntaxKind.RefTypeExpression, keyword, openParenToken, expression, closeParenToken);
-        }
-
-        public static RefValueExpressionSyntax RefValueExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken comma, TypeSyntax type, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.RefValueKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (comma == null)
-            throw new ArgumentNullException(nameof(comma));
-          switch (comma.Kind)
-          {
-            case SyntaxKind.CommaToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(comma));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          return new RefValueExpressionSyntax(SyntaxKind.RefValueExpression, keyword, openParenToken, expression, comma, type, closeParenToken);
-        }
-
-        public static CheckedExpressionSyntax CheckedExpression(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.CheckedExpression:
-            case SyntaxKind.UncheckedExpression:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.CheckedKeyword:
-            case SyntaxKind.UncheckedKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          return new CheckedExpressionSyntax(kind, keyword, openParenToken, expression, closeParenToken);
-        }
-
-        public static DefaultExpressionSyntax DefaultExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.DefaultKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          return new DefaultExpressionSyntax(SyntaxKind.DefaultExpression, keyword, openParenToken, type, closeParenToken);
-        }
-
-        public static TypeOfExpressionSyntax TypeOfExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.TypeOfKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          return new TypeOfExpressionSyntax(SyntaxKind.TypeOfExpression, keyword, openParenToken, type, closeParenToken);
-        }
-
-        public static SizeOfExpressionSyntax SizeOfExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.SizeOfKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          return new SizeOfExpressionSyntax(SyntaxKind.SizeOfExpression, keyword, openParenToken, type, closeParenToken);
-        }
-
-        public static InvocationExpressionSyntax InvocationExpression(ExpressionSyntax expression, ArgumentListSyntax argumentList)
-        {
-    #if DEBUG
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (argumentList == null)
-            throw new ArgumentNullException(nameof(argumentList));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.InvocationExpression, expression, argumentList, out hash);
-          if (cached != null) return (InvocationExpressionSyntax)cached;
-
-          var result = new InvocationExpressionSyntax(SyntaxKind.InvocationExpression, expression, argumentList);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ElementAccessExpressionSyntax ElementAccessExpression(ExpressionSyntax expression, BracketedArgumentListSyntax argumentList)
-        {
-    #if DEBUG
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (argumentList == null)
-            throw new ArgumentNullException(nameof(argumentList));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ElementAccessExpression, expression, argumentList, out hash);
-          if (cached != null) return (ElementAccessExpressionSyntax)cached;
-
-          var result = new ElementAccessExpressionSyntax(SyntaxKind.ElementAccessExpression, expression, argumentList);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ArgumentListSyntax ArgumentList(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArgumentList, openParenToken, arguments.Node, closeParenToken, out hash);
-          if (cached != null) return (ArgumentListSyntax)cached;
-
-          var result = new ArgumentListSyntax(SyntaxKind.ArgumentList, openParenToken, arguments.Node, closeParenToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static BracketedArgumentListSyntax BracketedArgumentList(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeBracketToken)
-        {
-    #if DEBUG
-          if (openBracketToken == null)
-            throw new ArgumentNullException(nameof(openBracketToken));
-          switch (openBracketToken.Kind)
-          {
-            case SyntaxKind.OpenBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBracketToken));
-          }
-          if (closeBracketToken == null)
-            throw new ArgumentNullException(nameof(closeBracketToken));
-          switch (closeBracketToken.Kind)
-          {
-            case SyntaxKind.CloseBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBracketToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BracketedArgumentList, openBracketToken, arguments.Node, closeBracketToken, out hash);
-          if (cached != null) return (BracketedArgumentListSyntax)cached;
-
-          var result = new BracketedArgumentListSyntax(SyntaxKind.BracketedArgumentList, openBracketToken, arguments.Node, closeBracketToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (refKindKeyword != null)
-          {
-          switch (refKindKeyword.Kind)
-          {
-            case SyntaxKind.RefKeyword:
-            case SyntaxKind.OutKeyword:
-            case SyntaxKind.InKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(refKindKeyword));
-          }
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Argument, nameColon, refKindKeyword, expression, out hash);
-          if (cached != null) return (ArgumentSyntax)cached;
-
-          var result = new ArgumentSyntax(SyntaxKind.Argument, nameColon, refKindKeyword, expression);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static NameColonSyntax NameColon(IdentifierNameSyntax name, SyntaxToken colonToken)
-        {
-    #if DEBUG
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-          switch (colonToken.Kind)
-          {
-            case SyntaxKind.ColonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(colonToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NameColon, name, colonToken, out hash);
-          if (cached != null) return (NameColonSyntax)cached;
-
-          var result = new NameColonSyntax(SyntaxKind.NameColon, name, colonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static DeclarationExpressionSyntax DeclarationExpression(TypeSyntax type, VariableDesignationSyntax designation)
-        {
-    #if DEBUG
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (designation == null)
-            throw new ArgumentNullException(nameof(designation));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DeclarationExpression, type, designation, out hash);
-          if (cached != null) return (DeclarationExpressionSyntax)cached;
-
-          var result = new DeclarationExpressionSyntax(SyntaxKind.DeclarationExpression, type, designation);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static CastExpressionSyntax CastExpression(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          return new CastExpressionSyntax(SyntaxKind.CastExpression, openParenToken, type, closeParenToken, expression);
-        }
-
-        public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
-        {
-    #if DEBUG
-          if (asyncKeyword != null)
-          {
-          switch (asyncKeyword.Kind)
-          {
-            case SyntaxKind.AsyncKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(asyncKeyword));
-          }
-          }
-          if (delegateKeyword == null)
-            throw new ArgumentNullException(nameof(delegateKeyword));
-          switch (delegateKeyword.Kind)
-          {
-            case SyntaxKind.DelegateKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(delegateKeyword));
-          }
-          if (block == null)
-            throw new ArgumentNullException(nameof(block));
-    #endif
-
-          return new AnonymousMethodExpressionSyntax(SyntaxKind.AnonymousMethodExpression, asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
-        }
-
-        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
-        {
-    #if DEBUG
-          if (asyncKeyword != null)
-          {
-          switch (asyncKeyword.Kind)
-          {
-            case SyntaxKind.AsyncKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(asyncKeyword));
-          }
-          }
-          if (parameter == null)
-            throw new ArgumentNullException(nameof(parameter));
-          if (arrowToken == null)
-            throw new ArgumentNullException(nameof(arrowToken));
-          switch (arrowToken.Kind)
-          {
-            case SyntaxKind.EqualsGreaterThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(arrowToken));
-          }
-    #endif
-
-          return new SimpleLambdaExpressionSyntax(SyntaxKind.SimpleLambdaExpression, asyncKeyword, parameter, arrowToken, block, expressionBody);
-        }
-
-        public static RefExpressionSyntax RefExpression(SyntaxToken refKeyword, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (refKeyword == null)
-            throw new ArgumentNullException(nameof(refKeyword));
-          switch (refKeyword.Kind)
-          {
-            case SyntaxKind.RefKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(refKeyword));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RefExpression, refKeyword, expression, out hash);
-          if (cached != null) return (RefExpressionSyntax)cached;
-
-          var result = new RefExpressionSyntax(SyntaxKind.RefExpression, refKeyword, expression);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
-        {
-    #if DEBUG
-          if (asyncKeyword != null)
-          {
-          switch (asyncKeyword.Kind)
-          {
-            case SyntaxKind.AsyncKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(asyncKeyword));
-          }
-          }
-          if (parameterList == null)
-            throw new ArgumentNullException(nameof(parameterList));
-          if (arrowToken == null)
-            throw new ArgumentNullException(nameof(arrowToken));
-          switch (arrowToken.Kind)
-          {
-            case SyntaxKind.EqualsGreaterThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(arrowToken));
-          }
-    #endif
-
-          return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, asyncKeyword, parameterList, arrowToken, block, expressionBody);
-        }
-
-        public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.ObjectInitializerExpression:
-            case SyntaxKind.CollectionInitializerExpression:
-            case SyntaxKind.ArrayInitializerExpression:
-            case SyntaxKind.ComplexElementInitializerExpression:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, openBraceToken, expressions.Node, closeBraceToken, out hash);
-          if (cached != null) return (InitializerExpressionSyntax)cached;
-
-          var result = new InitializerExpressionSyntax(kind, openBraceToken, expressions.Node, closeBraceToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ObjectCreationExpressionSyntax ObjectCreationExpression(SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax argumentList, InitializerExpressionSyntax initializer)
-        {
-    #if DEBUG
-          if (newKeyword == null)
-            throw new ArgumentNullException(nameof(newKeyword));
-          switch (newKeyword.Kind)
-          {
-            case SyntaxKind.NewKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(newKeyword));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-    #endif
-
-          return new ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression, newKeyword, type, argumentList, initializer);
-        }
-
-        public static AnonymousObjectMemberDeclaratorSyntax AnonymousObjectMemberDeclarator(NameEqualsSyntax nameEquals, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AnonymousObjectMemberDeclarator, nameEquals, expression, out hash);
-          if (cached != null) return (AnonymousObjectMemberDeclaratorSyntax)cached;
-
-          var result = new AnonymousObjectMemberDeclaratorSyntax(SyntaxKind.AnonymousObjectMemberDeclarator, nameEquals, expression);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static AnonymousObjectCreationExpressionSyntax AnonymousObjectCreationExpression(SyntaxToken newKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
-        {
-    #if DEBUG
-          if (newKeyword == null)
-            throw new ArgumentNullException(nameof(newKeyword));
-          switch (newKeyword.Kind)
-          {
-            case SyntaxKind.NewKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(newKeyword));
-          }
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-    #endif
-
-          return new AnonymousObjectCreationExpressionSyntax(SyntaxKind.AnonymousObjectCreationExpression, newKeyword, openBraceToken, initializers.Node, closeBraceToken);
-        }
-
-        public static ArrayCreationExpressionSyntax ArrayCreationExpression(SyntaxToken newKeyword, ArrayTypeSyntax type, InitializerExpressionSyntax initializer)
-        {
-    #if DEBUG
-          if (newKeyword == null)
-            throw new ArgumentNullException(nameof(newKeyword));
-          switch (newKeyword.Kind)
-          {
-            case SyntaxKind.NewKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(newKeyword));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArrayCreationExpression, newKeyword, type, initializer, out hash);
-          if (cached != null) return (ArrayCreationExpressionSyntax)cached;
-
-          var result = new ArrayCreationExpressionSyntax(SyntaxKind.ArrayCreationExpression, newKeyword, type, initializer);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ImplicitArrayCreationExpressionSyntax ImplicitArrayCreationExpression(SyntaxToken newKeyword, SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> commas, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
-        {
-    #if DEBUG
-          if (newKeyword == null)
-            throw new ArgumentNullException(nameof(newKeyword));
-          switch (newKeyword.Kind)
-          {
-            case SyntaxKind.NewKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(newKeyword));
-          }
-          if (openBracketToken == null)
-            throw new ArgumentNullException(nameof(openBracketToken));
-          switch (openBracketToken.Kind)
-          {
-            case SyntaxKind.OpenBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBracketToken));
-          }
-          if (closeBracketToken == null)
-            throw new ArgumentNullException(nameof(closeBracketToken));
-          switch (closeBracketToken.Kind)
-          {
-            case SyntaxKind.CloseBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBracketToken));
-          }
-          if (initializer == null)
-            throw new ArgumentNullException(nameof(initializer));
-    #endif
-
-          return new ImplicitArrayCreationExpressionSyntax(SyntaxKind.ImplicitArrayCreationExpression, newKeyword, openBracketToken, commas.Node, closeBracketToken, initializer);
-        }
-
-        public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer)
-        {
-    #if DEBUG
-          if (stackAllocKeyword == null)
-            throw new ArgumentNullException(nameof(stackAllocKeyword));
-          switch (stackAllocKeyword.Kind)
-          {
-            case SyntaxKind.StackAllocKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(stackAllocKeyword));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.StackAllocArrayCreationExpression, stackAllocKeyword, type, initializer, out hash);
-          if (cached != null) return (StackAllocArrayCreationExpressionSyntax)cached;
-
-          var result = new StackAllocArrayCreationExpressionSyntax(SyntaxKind.StackAllocArrayCreationExpression, stackAllocKeyword, type, initializer);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ImplicitStackAllocArrayCreationExpressionSyntax ImplicitStackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
-        {
-    #if DEBUG
-          if (stackAllocKeyword == null)
-            throw new ArgumentNullException(nameof(stackAllocKeyword));
-          switch (stackAllocKeyword.Kind)
-          {
-            case SyntaxKind.StackAllocKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(stackAllocKeyword));
-          }
-          if (openBracketToken == null)
-            throw new ArgumentNullException(nameof(openBracketToken));
-          switch (openBracketToken.Kind)
-          {
-            case SyntaxKind.OpenBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBracketToken));
-          }
-          if (closeBracketToken == null)
-            throw new ArgumentNullException(nameof(closeBracketToken));
-          switch (closeBracketToken.Kind)
-          {
-            case SyntaxKind.CloseBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBracketToken));
-          }
-          if (initializer == null)
-            throw new ArgumentNullException(nameof(initializer));
-    #endif
-
-          return new ImplicitStackAllocArrayCreationExpressionSyntax(SyntaxKind.ImplicitStackAllocArrayCreationExpression, stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
-        }
-
-        public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)
-        {
-    #if DEBUG
-          if (fromClause == null)
-            throw new ArgumentNullException(nameof(fromClause));
-          if (body == null)
-            throw new ArgumentNullException(nameof(body));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.QueryExpression, fromClause, body, out hash);
-          if (cached != null) return (QueryExpressionSyntax)cached;
-
-          var result = new QueryExpressionSyntax(SyntaxKind.QueryExpression, fromClause, body);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static QueryBodySyntax QueryBody(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax> clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax continuation)
-        {
-    #if DEBUG
-          if (selectOrGroup == null)
-            throw new ArgumentNullException(nameof(selectOrGroup));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.QueryBody, clauses.Node, selectOrGroup, continuation, out hash);
-          if (cached != null) return (QueryBodySyntax)cached;
-
-          var result = new QueryBodySyntax(SyntaxKind.QueryBody, clauses.Node, selectOrGroup, continuation);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static FromClauseSyntax FromClause(SyntaxToken fromKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (fromKeyword == null)
-            throw new ArgumentNullException(nameof(fromKeyword));
-          switch (fromKeyword.Kind)
-          {
-            case SyntaxKind.FromKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(fromKeyword));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (inKeyword == null)
-            throw new ArgumentNullException(nameof(inKeyword));
-          switch (inKeyword.Kind)
-          {
-            case SyntaxKind.InKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(inKeyword));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          return new FromClauseSyntax(SyntaxKind.FromClause, fromKeyword, type, identifier, inKeyword, expression);
-        }
-
-        public static LetClauseSyntax LetClause(SyntaxToken letKeyword, SyntaxToken identifier, SyntaxToken equalsToken, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (letKeyword == null)
-            throw new ArgumentNullException(nameof(letKeyword));
-          switch (letKeyword.Kind)
-          {
-            case SyntaxKind.LetKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(letKeyword));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (equalsToken == null)
-            throw new ArgumentNullException(nameof(equalsToken));
-          switch (equalsToken.Kind)
-          {
-            case SyntaxKind.EqualsToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(equalsToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          return new LetClauseSyntax(SyntaxKind.LetClause, letKeyword, identifier, equalsToken, expression);
-        }
-
-        public static JoinClauseSyntax JoinClause(SyntaxToken joinKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax inExpression, SyntaxToken onKeyword, ExpressionSyntax leftExpression, SyntaxToken equalsKeyword, ExpressionSyntax rightExpression, JoinIntoClauseSyntax into)
-        {
-    #if DEBUG
-          if (joinKeyword == null)
-            throw new ArgumentNullException(nameof(joinKeyword));
-          switch (joinKeyword.Kind)
-          {
-            case SyntaxKind.JoinKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(joinKeyword));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (inKeyword == null)
-            throw new ArgumentNullException(nameof(inKeyword));
-          switch (inKeyword.Kind)
-          {
-            case SyntaxKind.InKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(inKeyword));
-          }
-          if (inExpression == null)
-            throw new ArgumentNullException(nameof(inExpression));
-          if (onKeyword == null)
-            throw new ArgumentNullException(nameof(onKeyword));
-          switch (onKeyword.Kind)
-          {
-            case SyntaxKind.OnKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(onKeyword));
-          }
-          if (leftExpression == null)
-            throw new ArgumentNullException(nameof(leftExpression));
-          if (equalsKeyword == null)
-            throw new ArgumentNullException(nameof(equalsKeyword));
-          switch (equalsKeyword.Kind)
-          {
-            case SyntaxKind.EqualsKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(equalsKeyword));
-          }
-          if (rightExpression == null)
-            throw new ArgumentNullException(nameof(rightExpression));
-    #endif
-
-          return new JoinClauseSyntax(SyntaxKind.JoinClause, joinKeyword, type, identifier, inKeyword, inExpression, onKeyword, leftExpression, equalsKeyword, rightExpression, into);
-        }
-
-        public static JoinIntoClauseSyntax JoinIntoClause(SyntaxToken intoKeyword, SyntaxToken identifier)
-        {
-    #if DEBUG
-          if (intoKeyword == null)
-            throw new ArgumentNullException(nameof(intoKeyword));
-          switch (intoKeyword.Kind)
-          {
-            case SyntaxKind.IntoKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(intoKeyword));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.JoinIntoClause, intoKeyword, identifier, out hash);
-          if (cached != null) return (JoinIntoClauseSyntax)cached;
-
-          var result = new JoinIntoClauseSyntax(SyntaxKind.JoinIntoClause, intoKeyword, identifier);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static WhereClauseSyntax WhereClause(SyntaxToken whereKeyword, ExpressionSyntax condition)
-        {
-    #if DEBUG
-          if (whereKeyword == null)
-            throw new ArgumentNullException(nameof(whereKeyword));
-          switch (whereKeyword.Kind)
-          {
-            case SyntaxKind.WhereKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(whereKeyword));
-          }
-          if (condition == null)
-            throw new ArgumentNullException(nameof(condition));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.WhereClause, whereKeyword, condition, out hash);
-          if (cached != null) return (WhereClauseSyntax)cached;
-
-          var result = new WhereClauseSyntax(SyntaxKind.WhereClause, whereKeyword, condition);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static OrderByClauseSyntax OrderByClause(SyntaxToken orderByKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<OrderingSyntax> orderings)
-        {
-    #if DEBUG
-          if (orderByKeyword == null)
-            throw new ArgumentNullException(nameof(orderByKeyword));
-          switch (orderByKeyword.Kind)
-          {
-            case SyntaxKind.OrderByKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(orderByKeyword));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.OrderByClause, orderByKeyword, orderings.Node, out hash);
-          if (cached != null) return (OrderByClauseSyntax)cached;
-
-          var result = new OrderByClauseSyntax(SyntaxKind.OrderByClause, orderByKeyword, orderings.Node);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static OrderingSyntax Ordering(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken ascendingOrDescendingKeyword)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.AscendingOrdering:
-            case SyntaxKind.DescendingOrdering:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (ascendingOrDescendingKeyword != null)
-          {
-          switch (ascendingOrDescendingKeyword.Kind)
-          {
-            case SyntaxKind.AscendingKeyword:
-            case SyntaxKind.DescendingKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(ascendingOrDescendingKeyword));
-          }
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, expression, ascendingOrDescendingKeyword, out hash);
-          if (cached != null) return (OrderingSyntax)cached;
-
-          var result = new OrderingSyntax(kind, expression, ascendingOrDescendingKeyword);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static SelectClauseSyntax SelectClause(SyntaxToken selectKeyword, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (selectKeyword == null)
-            throw new ArgumentNullException(nameof(selectKeyword));
-          switch (selectKeyword.Kind)
-          {
-            case SyntaxKind.SelectKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(selectKeyword));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SelectClause, selectKeyword, expression, out hash);
-          if (cached != null) return (SelectClauseSyntax)cached;
-
-          var result = new SelectClauseSyntax(SyntaxKind.SelectClause, selectKeyword, expression);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static GroupClauseSyntax GroupClause(SyntaxToken groupKeyword, ExpressionSyntax groupExpression, SyntaxToken byKeyword, ExpressionSyntax byExpression)
-        {
-    #if DEBUG
-          if (groupKeyword == null)
-            throw new ArgumentNullException(nameof(groupKeyword));
-          switch (groupKeyword.Kind)
-          {
-            case SyntaxKind.GroupKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(groupKeyword));
-          }
-          if (groupExpression == null)
-            throw new ArgumentNullException(nameof(groupExpression));
-          if (byKeyword == null)
-            throw new ArgumentNullException(nameof(byKeyword));
-          switch (byKeyword.Kind)
-          {
-            case SyntaxKind.ByKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(byKeyword));
-          }
-          if (byExpression == null)
-            throw new ArgumentNullException(nameof(byExpression));
-    #endif
-
-          return new GroupClauseSyntax(SyntaxKind.GroupClause, groupKeyword, groupExpression, byKeyword, byExpression);
-        }
-
-        public static QueryContinuationSyntax QueryContinuation(SyntaxToken intoKeyword, SyntaxToken identifier, QueryBodySyntax body)
-        {
-    #if DEBUG
-          if (intoKeyword == null)
-            throw new ArgumentNullException(nameof(intoKeyword));
-          switch (intoKeyword.Kind)
-          {
-            case SyntaxKind.IntoKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(intoKeyword));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (body == null)
-            throw new ArgumentNullException(nameof(body));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.QueryContinuation, intoKeyword, identifier, body, out hash);
-          if (cached != null) return (QueryContinuationSyntax)cached;
-
-          var result = new QueryContinuationSyntax(SyntaxKind.QueryContinuation, intoKeyword, identifier, body);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static OmittedArraySizeExpressionSyntax OmittedArraySizeExpression(SyntaxToken omittedArraySizeExpressionToken)
-        {
-    #if DEBUG
-          if (omittedArraySizeExpressionToken == null)
-            throw new ArgumentNullException(nameof(omittedArraySizeExpressionToken));
-          switch (omittedArraySizeExpressionToken.Kind)
-          {
-            case SyntaxKind.OmittedArraySizeExpressionToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(omittedArraySizeExpressionToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.OmittedArraySizeExpression, omittedArraySizeExpressionToken, out hash);
-          if (cached != null) return (OmittedArraySizeExpressionSyntax)cached;
-
-          var result = new OmittedArraySizeExpressionSyntax(SyntaxKind.OmittedArraySizeExpression, omittedArraySizeExpressionToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static InterpolatedStringExpressionSyntax InterpolatedStringExpression(SyntaxToken stringStartToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> contents, SyntaxToken stringEndToken)
-        {
-    #if DEBUG
-          if (stringStartToken == null)
-            throw new ArgumentNullException(nameof(stringStartToken));
-          switch (stringStartToken.Kind)
-          {
-            case SyntaxKind.InterpolatedStringStartToken:
-            case SyntaxKind.InterpolatedVerbatimStringStartToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(stringStartToken));
-          }
-          if (stringEndToken == null)
-            throw new ArgumentNullException(nameof(stringEndToken));
-          switch (stringEndToken.Kind)
-          {
-            case SyntaxKind.InterpolatedStringEndToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(stringEndToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.InterpolatedStringExpression, stringStartToken, contents.Node, stringEndToken, out hash);
-          if (cached != null) return (InterpolatedStringExpressionSyntax)cached;
-
-          var result = new InterpolatedStringExpressionSyntax(SyntaxKind.InterpolatedStringExpression, stringStartToken, contents.Node, stringEndToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static IsPatternExpressionSyntax IsPatternExpression(ExpressionSyntax expression, SyntaxToken isKeyword, PatternSyntax pattern)
-        {
-    #if DEBUG
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (isKeyword == null)
-            throw new ArgumentNullException(nameof(isKeyword));
-          switch (isKeyword.Kind)
-          {
-            case SyntaxKind.IsKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(isKeyword));
-          }
-          if (pattern == null)
-            throw new ArgumentNullException(nameof(pattern));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.IsPatternExpression, expression, isKeyword, pattern, out hash);
-          if (cached != null) return (IsPatternExpressionSyntax)cached;
-
-          var result = new IsPatternExpressionSyntax(SyntaxKind.IsPatternExpression, expression, isKeyword, pattern);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ThrowExpressionSyntax ThrowExpression(SyntaxToken throwKeyword, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (throwKeyword == null)
-            throw new ArgumentNullException(nameof(throwKeyword));
-          switch (throwKeyword.Kind)
-          {
-            case SyntaxKind.ThrowKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(throwKeyword));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ThrowExpression, throwKeyword, expression, out hash);
-          if (cached != null) return (ThrowExpressionSyntax)cached;
-
-          var result = new ThrowExpressionSyntax(SyntaxKind.ThrowExpression, throwKeyword, expression);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static WhenClauseSyntax WhenClause(SyntaxToken whenKeyword, ExpressionSyntax condition)
-        {
-    #if DEBUG
-          if (whenKeyword == null)
-            throw new ArgumentNullException(nameof(whenKeyword));
-          switch (whenKeyword.Kind)
-          {
-            case SyntaxKind.WhenKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(whenKeyword));
-          }
-          if (condition == null)
-            throw new ArgumentNullException(nameof(condition));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.WhenClause, whenKeyword, condition, out hash);
-          if (cached != null) return (WhenClauseSyntax)cached;
-
-          var result = new WhenClauseSyntax(SyntaxKind.WhenClause, whenKeyword, condition);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static DiscardPatternSyntax DiscardPattern(SyntaxToken underscoreToken)
-        {
-    #if DEBUG
-          if (underscoreToken == null)
-            throw new ArgumentNullException(nameof(underscoreToken));
-          switch (underscoreToken.Kind)
-          {
-            case SyntaxKind.UnderscoreToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(underscoreToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DiscardPattern, underscoreToken, out hash);
-          if (cached != null) return (DiscardPatternSyntax)cached;
-
-          var result = new DiscardPatternSyntax(SyntaxKind.DiscardPattern, underscoreToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static DeclarationPatternSyntax DeclarationPattern(TypeSyntax type, VariableDesignationSyntax designation)
-        {
-    #if DEBUG
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (designation == null)
-            throw new ArgumentNullException(nameof(designation));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DeclarationPattern, type, designation, out hash);
-          if (cached != null) return (DeclarationPatternSyntax)cached;
-
-          var result = new DeclarationPatternSyntax(SyntaxKind.DeclarationPattern, type, designation);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static VarPatternSyntax VarPattern(SyntaxToken varKeyword, VariableDesignationSyntax designation)
-        {
-    #if DEBUG
-          if (varKeyword == null)
-            throw new ArgumentNullException(nameof(varKeyword));
-          switch (varKeyword.Kind)
-          {
-            case SyntaxKind.VarKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(varKeyword));
-          }
-          if (designation == null)
-            throw new ArgumentNullException(nameof(designation));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.VarPattern, varKeyword, designation, out hash);
-          if (cached != null) return (VarPatternSyntax)cached;
-
-          var result = new VarPatternSyntax(SyntaxKind.VarPattern, varKeyword, designation);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static RecursivePatternSyntax RecursivePattern(TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
-        {
-    #if DEBUG
-    #endif
-
-          return new RecursivePatternSyntax(SyntaxKind.RecursivePattern, type, positionalPatternClause, propertyPatternClause, designation);
-        }
-
-        public static PositionalPatternClauseSyntax PositionalPatternClause(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PositionalPatternClause, openParenToken, subpatterns.Node, closeParenToken, out hash);
-          if (cached != null) return (PositionalPatternClauseSyntax)cached;
-
-          var result = new PositionalPatternClauseSyntax(SyntaxKind.PositionalPatternClause, openParenToken, subpatterns.Node, closeParenToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
-        {
-    #if DEBUG
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, out hash);
-          if (cached != null) return (PropertyPatternClauseSyntax)cached;
-
-          var result = new PropertyPatternClauseSyntax(SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static SubpatternSyntax Subpattern(NameColonSyntax nameColon, PatternSyntax pattern)
-        {
-    #if DEBUG
-          if (pattern == null)
-            throw new ArgumentNullException(nameof(pattern));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Subpattern, nameColon, pattern, out hash);
-          if (cached != null) return (SubpatternSyntax)cached;
-
-          var result = new SubpatternSyntax(SyntaxKind.Subpattern, nameColon, pattern);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ConstantPatternSyntax ConstantPattern(ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ConstantPattern, expression, out hash);
-          if (cached != null) return (ConstantPatternSyntax)cached;
-
-          var result = new ConstantPatternSyntax(SyntaxKind.ConstantPattern, expression);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static InterpolatedStringTextSyntax InterpolatedStringText(SyntaxToken textToken)
-        {
-    #if DEBUG
-          if (textToken == null)
-            throw new ArgumentNullException(nameof(textToken));
-          switch (textToken.Kind)
-          {
-            case SyntaxKind.InterpolatedStringTextToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(textToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.InterpolatedStringText, textToken, out hash);
-          if (cached != null) return (InterpolatedStringTextSyntax)cached;
-
-          var result = new InterpolatedStringTextSyntax(SyntaxKind.InterpolatedStringText, textToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static InterpolationSyntax Interpolation(SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignmentClause, InterpolationFormatClauseSyntax formatClause, SyntaxToken closeBraceToken)
-        {
-    #if DEBUG
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-    #endif
-
-          return new InterpolationSyntax(SyntaxKind.Interpolation, openBraceToken, expression, alignmentClause, formatClause, closeBraceToken);
-        }
-
-        public static InterpolationAlignmentClauseSyntax InterpolationAlignmentClause(SyntaxToken commaToken, ExpressionSyntax value)
-        {
-    #if DEBUG
-          if (commaToken == null)
-            throw new ArgumentNullException(nameof(commaToken));
-          if (value == null)
-            throw new ArgumentNullException(nameof(value));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.InterpolationAlignmentClause, commaToken, value, out hash);
-          if (cached != null) return (InterpolationAlignmentClauseSyntax)cached;
-
-          var result = new InterpolationAlignmentClauseSyntax(SyntaxKind.InterpolationAlignmentClause, commaToken, value);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static InterpolationFormatClauseSyntax InterpolationFormatClause(SyntaxToken colonToken, SyntaxToken formatStringToken)
-        {
-    #if DEBUG
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-          if (formatStringToken == null)
-            throw new ArgumentNullException(nameof(formatStringToken));
-          switch (formatStringToken.Kind)
-          {
-            case SyntaxKind.InterpolatedStringTextToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(formatStringToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.InterpolationFormatClause, colonToken, formatStringToken, out hash);
-          if (cached != null) return (InterpolationFormatClauseSyntax)cached;
-
-          var result = new InterpolationFormatClauseSyntax(SyntaxKind.InterpolationFormatClause, colonToken, formatStringToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static GlobalStatementSyntax GlobalStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, StatementSyntax statement)
-        {
-    #if DEBUG
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.GlobalStatement, attributeLists.Node, modifiers.Node, statement, out hash);
-          if (cached != null) return (GlobalStatementSyntax)cached;
-
-          var result = new GlobalStatementSyntax(SyntaxKind.GlobalStatement, attributeLists.Node, modifiers.Node, statement);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static BlockSyntax Block(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
-        {
-    #if DEBUG
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken, out hash);
-          if (cached != null) return (BlockSyntax)cached;
-
-          var result = new BlockSyntax(SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static LocalFunctionStatementSyntax LocalFunctionStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (returnType == null)
-            throw new ArgumentNullException(nameof(returnType));
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (parameterList == null)
-            throw new ArgumentNullException(nameof(parameterList));
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new LocalFunctionStatementSyntax(SyntaxKind.LocalFunctionStatement, modifiers.Node, returnType, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken);
-        }
-
-        public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (awaitKeyword != null)
-          {
-          switch (awaitKeyword.Kind)
-          {
-            case SyntaxKind.AwaitKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(awaitKeyword));
-          }
-          }
-          if (usingKeyword != null)
-          {
-          switch (usingKeyword.Kind)
-          {
-            case SyntaxKind.UsingKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(usingKeyword));
-          }
-          }
-          if (declaration == null)
-            throw new ArgumentNullException(nameof(declaration));
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, awaitKeyword, usingKeyword, modifiers.Node, declaration, semicolonToken);
-        }
-
-        public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
-        {
-    #if DEBUG
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.VariableDeclaration, type, variables.Node, out hash);
-          if (cached != null) return (VariableDeclarationSyntax)cached;
-
-          var result = new VariableDeclarationSyntax(SyntaxKind.VariableDeclaration, type, variables.Node);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static VariableDeclaratorSyntax VariableDeclarator(SyntaxToken identifier, BracketedArgumentListSyntax argumentList, EqualsValueClauseSyntax initializer)
-        {
-    #if DEBUG
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.VariableDeclarator, identifier, argumentList, initializer, out hash);
-          if (cached != null) return (VariableDeclaratorSyntax)cached;
-
-          var result = new VariableDeclaratorSyntax(SyntaxKind.VariableDeclarator, identifier, argumentList, initializer);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static EqualsValueClauseSyntax EqualsValueClause(SyntaxToken equalsToken, ExpressionSyntax value)
-        {
-    #if DEBUG
-          if (equalsToken == null)
-            throw new ArgumentNullException(nameof(equalsToken));
-          switch (equalsToken.Kind)
-          {
-            case SyntaxKind.EqualsToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(equalsToken));
-          }
-          if (value == null)
-            throw new ArgumentNullException(nameof(value));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.EqualsValueClause, equalsToken, value, out hash);
-          if (cached != null) return (EqualsValueClauseSyntax)cached;
-
-          var result = new EqualsValueClauseSyntax(SyntaxKind.EqualsValueClause, equalsToken, value);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static SingleVariableDesignationSyntax SingleVariableDesignation(SyntaxToken identifier)
-        {
-    #if DEBUG
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SingleVariableDesignation, identifier, out hash);
-          if (cached != null) return (SingleVariableDesignationSyntax)cached;
-
-          var result = new SingleVariableDesignationSyntax(SyntaxKind.SingleVariableDesignation, identifier);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static DiscardDesignationSyntax DiscardDesignation(SyntaxToken underscoreToken)
-        {
-    #if DEBUG
-          if (underscoreToken == null)
-            throw new ArgumentNullException(nameof(underscoreToken));
-          switch (underscoreToken.Kind)
-          {
-            case SyntaxKind.UnderscoreToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(underscoreToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DiscardDesignation, underscoreToken, out hash);
-          if (cached != null) return (DiscardDesignationSyntax)cached;
-
-          var result = new DiscardDesignationSyntax(SyntaxKind.DiscardDesignation, underscoreToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ParenthesizedVariableDesignationSyntax ParenthesizedVariableDesignation(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDesignationSyntax> variables, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ParenthesizedVariableDesignation, openParenToken, variables.Node, closeParenToken, out hash);
-          if (cached != null) return (ParenthesizedVariableDesignationSyntax)cached;
-
-          var result = new ParenthesizedVariableDesignationSyntax(SyntaxKind.ParenthesizedVariableDesignation, openParenToken, variables.Node, closeParenToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ExpressionStatementSyntax ExpressionStatement(ExpressionSyntax expression, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ExpressionStatement, expression, semicolonToken, out hash);
-          if (cached != null) return (ExpressionStatementSyntax)cached;
-
-          var result = new ExpressionStatementSyntax(SyntaxKind.ExpressionStatement, expression, semicolonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static EmptyStatementSyntax EmptyStatement(SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.EmptyStatement, semicolonToken, out hash);
-          if (cached != null) return (EmptyStatementSyntax)cached;
-
-          var result = new EmptyStatementSyntax(SyntaxKind.EmptyStatement, semicolonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static LabeledStatementSyntax LabeledStatement(SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
-        {
-    #if DEBUG
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-          switch (colonToken.Kind)
-          {
-            case SyntaxKind.ColonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(colonToken));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.LabeledStatement, identifier, colonToken, statement, out hash);
-          if (cached != null) return (LabeledStatementSyntax)cached;
-
-          var result = new LabeledStatementSyntax(SyntaxKind.LabeledStatement, identifier, colonToken, statement);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static GotoStatementSyntax GotoStatement(SyntaxKind kind, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.GotoStatement:
-            case SyntaxKind.GotoCaseStatement:
-            case SyntaxKind.GotoDefaultStatement:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (gotoKeyword == null)
-            throw new ArgumentNullException(nameof(gotoKeyword));
-          switch (gotoKeyword.Kind)
-          {
-            case SyntaxKind.GotoKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(gotoKeyword));
-          }
-          if (caseOrDefaultKeyword != null)
-          {
-          switch (caseOrDefaultKeyword.Kind)
-          {
-            case SyntaxKind.CaseKeyword:
-            case SyntaxKind.DefaultKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(caseOrDefaultKeyword));
-          }
-          }
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          return new GotoStatementSyntax(kind, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
-        }
-
-        public static BreakStatementSyntax BreakStatement(SyntaxToken breakKeyword, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (breakKeyword == null)
-            throw new ArgumentNullException(nameof(breakKeyword));
-          switch (breakKeyword.Kind)
-          {
-            case SyntaxKind.BreakKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(breakKeyword));
-          }
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BreakStatement, breakKeyword, semicolonToken, out hash);
-          if (cached != null) return (BreakStatementSyntax)cached;
-
-          var result = new BreakStatementSyntax(SyntaxKind.BreakStatement, breakKeyword, semicolonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ContinueStatementSyntax ContinueStatement(SyntaxToken continueKeyword, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (continueKeyword == null)
-            throw new ArgumentNullException(nameof(continueKeyword));
-          switch (continueKeyword.Kind)
-          {
-            case SyntaxKind.ContinueKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(continueKeyword));
-          }
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ContinueStatement, continueKeyword, semicolonToken, out hash);
-          if (cached != null) return (ContinueStatementSyntax)cached;
-
-          var result = new ContinueStatementSyntax(SyntaxKind.ContinueStatement, continueKeyword, semicolonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ReturnStatementSyntax ReturnStatement(SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (returnKeyword == null)
-            throw new ArgumentNullException(nameof(returnKeyword));
-          switch (returnKeyword.Kind)
-          {
-            case SyntaxKind.ReturnKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(returnKeyword));
-          }
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ReturnStatement, returnKeyword, expression, semicolonToken, out hash);
-          if (cached != null) return (ReturnStatementSyntax)cached;
-
-          var result = new ReturnStatementSyntax(SyntaxKind.ReturnStatement, returnKeyword, expression, semicolonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ThrowStatementSyntax ThrowStatement(SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (throwKeyword == null)
-            throw new ArgumentNullException(nameof(throwKeyword));
-          switch (throwKeyword.Kind)
-          {
-            case SyntaxKind.ThrowKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(throwKeyword));
-          }
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ThrowStatement, throwKeyword, expression, semicolonToken, out hash);
-          if (cached != null) return (ThrowStatementSyntax)cached;
-
-          var result = new ThrowStatementSyntax(SyntaxKind.ThrowStatement, throwKeyword, expression, semicolonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static YieldStatementSyntax YieldStatement(SyntaxKind kind, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.YieldReturnStatement:
-            case SyntaxKind.YieldBreakStatement:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (yieldKeyword == null)
-            throw new ArgumentNullException(nameof(yieldKeyword));
-          switch (yieldKeyword.Kind)
-          {
-            case SyntaxKind.YieldKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(yieldKeyword));
-          }
-          if (returnOrBreakKeyword == null)
-            throw new ArgumentNullException(nameof(returnOrBreakKeyword));
-          switch (returnOrBreakKeyword.Kind)
-          {
-            case SyntaxKind.ReturnKeyword:
-            case SyntaxKind.BreakKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(returnOrBreakKeyword));
-          }
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          return new YieldStatementSyntax(kind, yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
-        }
-
-        public static WhileStatementSyntax WhileStatement(SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
-        {
-    #if DEBUG
-          if (whileKeyword == null)
-            throw new ArgumentNullException(nameof(whileKeyword));
-          switch (whileKeyword.Kind)
-          {
-            case SyntaxKind.WhileKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(whileKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (condition == null)
-            throw new ArgumentNullException(nameof(condition));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          return new WhileStatementSyntax(SyntaxKind.WhileStatement, whileKeyword, openParenToken, condition, closeParenToken, statement);
-        }
-
-        public static DoStatementSyntax DoStatement(SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (doKeyword == null)
-            throw new ArgumentNullException(nameof(doKeyword));
-          switch (doKeyword.Kind)
-          {
-            case SyntaxKind.DoKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(doKeyword));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-          if (whileKeyword == null)
-            throw new ArgumentNullException(nameof(whileKeyword));
-          switch (whileKeyword.Kind)
-          {
-            case SyntaxKind.WhileKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(whileKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (condition == null)
-            throw new ArgumentNullException(nameof(condition));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          return new DoStatementSyntax(SyntaxKind.DoStatement, doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
-        }
-
-        public static ForStatementSyntax ForStatement(SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
-        {
-    #if DEBUG
-          if (forKeyword == null)
-            throw new ArgumentNullException(nameof(forKeyword));
-          switch (forKeyword.Kind)
-          {
-            case SyntaxKind.ForKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(forKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (firstSemicolonToken == null)
-            throw new ArgumentNullException(nameof(firstSemicolonToken));
-          switch (firstSemicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(firstSemicolonToken));
-          }
-          if (secondSemicolonToken == null)
-            throw new ArgumentNullException(nameof(secondSemicolonToken));
-          switch (secondSemicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(secondSemicolonToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          return new ForStatementSyntax(SyntaxKind.ForStatement, forKeyword, openParenToken, declaration, initializers.Node, firstSemicolonToken, condition, secondSemicolonToken, incrementors.Node, closeParenToken, statement);
-        }
-
-        public static ForEachStatementSyntax ForEachStatement(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
-        {
-    #if DEBUG
-          if (awaitKeyword != null)
-          {
-          switch (awaitKeyword.Kind)
-          {
-            case SyntaxKind.AwaitKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(awaitKeyword));
-          }
-          }
-          if (forEachKeyword == null)
-            throw new ArgumentNullException(nameof(forEachKeyword));
-          switch (forEachKeyword.Kind)
-          {
-            case SyntaxKind.ForEachKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(forEachKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (inKeyword == null)
-            throw new ArgumentNullException(nameof(inKeyword));
-          switch (inKeyword.Kind)
-          {
-            case SyntaxKind.InKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(inKeyword));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          return new ForEachStatementSyntax(SyntaxKind.ForEachStatement, awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
-        }
-
-        public static ForEachVariableStatementSyntax ForEachVariableStatement(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
-        {
-    #if DEBUG
-          if (awaitKeyword != null)
-          {
-          switch (awaitKeyword.Kind)
-          {
-            case SyntaxKind.AwaitKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(awaitKeyword));
-          }
-          }
-          if (forEachKeyword == null)
-            throw new ArgumentNullException(nameof(forEachKeyword));
-          switch (forEachKeyword.Kind)
-          {
-            case SyntaxKind.ForEachKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(forEachKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (variable == null)
-            throw new ArgumentNullException(nameof(variable));
-          if (inKeyword == null)
-            throw new ArgumentNullException(nameof(inKeyword));
-          switch (inKeyword.Kind)
-          {
-            case SyntaxKind.InKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(inKeyword));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          return new ForEachVariableStatementSyntax(SyntaxKind.ForEachVariableStatement, awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
-        }
-
-        public static UsingStatementSyntax UsingStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
-        {
-    #if DEBUG
-          if (awaitKeyword != null)
-          {
-          switch (awaitKeyword.Kind)
-          {
-            case SyntaxKind.AwaitKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(awaitKeyword));
-          }
-          }
-          if (usingKeyword == null)
-            throw new ArgumentNullException(nameof(usingKeyword));
-          switch (usingKeyword.Kind)
-          {
-            case SyntaxKind.UsingKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(usingKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          return new UsingStatementSyntax(SyntaxKind.UsingStatement, awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
-        }
-
-        public static FixedStatementSyntax FixedStatement(SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
-        {
-    #if DEBUG
-          if (fixedKeyword == null)
-            throw new ArgumentNullException(nameof(fixedKeyword));
-          switch (fixedKeyword.Kind)
-          {
-            case SyntaxKind.FixedKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(fixedKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (declaration == null)
-            throw new ArgumentNullException(nameof(declaration));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          return new FixedStatementSyntax(SyntaxKind.FixedStatement, fixedKeyword, openParenToken, declaration, closeParenToken, statement);
-        }
-
-        public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, SyntaxToken keyword, BlockSyntax block)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.CheckedStatement:
-            case SyntaxKind.UncheckedStatement:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.CheckedKeyword:
-            case SyntaxKind.UncheckedKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (block == null)
-            throw new ArgumentNullException(nameof(block));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, keyword, block, out hash);
-          if (cached != null) return (CheckedStatementSyntax)cached;
-
-          var result = new CheckedStatementSyntax(kind, keyword, block);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static UnsafeStatementSyntax UnsafeStatement(SyntaxToken unsafeKeyword, BlockSyntax block)
-        {
-    #if DEBUG
-          if (unsafeKeyword == null)
-            throw new ArgumentNullException(nameof(unsafeKeyword));
-          switch (unsafeKeyword.Kind)
-          {
-            case SyntaxKind.UnsafeKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(unsafeKeyword));
-          }
-          if (block == null)
-            throw new ArgumentNullException(nameof(block));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.UnsafeStatement, unsafeKeyword, block, out hash);
-          if (cached != null) return (UnsafeStatementSyntax)cached;
-
-          var result = new UnsafeStatementSyntax(SyntaxKind.UnsafeStatement, unsafeKeyword, block);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static LockStatementSyntax LockStatement(SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
-        {
-    #if DEBUG
-          if (lockKeyword == null)
-            throw new ArgumentNullException(nameof(lockKeyword));
-          switch (lockKeyword.Kind)
-          {
-            case SyntaxKind.LockKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(lockKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          return new LockStatementSyntax(SyntaxKind.LockStatement, lockKeyword, openParenToken, expression, closeParenToken, statement);
-        }
-
-        public static IfStatementSyntax IfStatement(SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
-        {
-    #if DEBUG
-          if (ifKeyword == null)
-            throw new ArgumentNullException(nameof(ifKeyword));
-          switch (ifKeyword.Kind)
-          {
-            case SyntaxKind.IfKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(ifKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (condition == null)
-            throw new ArgumentNullException(nameof(condition));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          return new IfStatementSyntax(SyntaxKind.IfStatement, ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
-        }
-
-        public static ElseClauseSyntax ElseClause(SyntaxToken elseKeyword, StatementSyntax statement)
-        {
-    #if DEBUG
-          if (elseKeyword == null)
-            throw new ArgumentNullException(nameof(elseKeyword));
-          switch (elseKeyword.Kind)
-          {
-            case SyntaxKind.ElseKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(elseKeyword));
-          }
-          if (statement == null)
-            throw new ArgumentNullException(nameof(statement));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ElseClause, elseKeyword, statement, out hash);
-          if (cached != null) return (ElseClauseSyntax)cached;
-
-          var result = new ElseClauseSyntax(SyntaxKind.ElseClause, elseKeyword, statement);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static SwitchStatementSyntax SwitchStatement(SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
-        {
-    #if DEBUG
-          if (switchKeyword == null)
-            throw new ArgumentNullException(nameof(switchKeyword));
-          switch (switchKeyword.Kind)
-          {
-            case SyntaxKind.SwitchKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(switchKeyword));
-          }
-          if (openParenToken != null)
-          {
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-          if (closeParenToken != null)
-          {
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-          }
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-    #endif
-
-          return new SwitchStatementSyntax(SyntaxKind.SwitchStatement, switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections.Node, closeBraceToken);
-        }
-
-        public static SwitchSectionSyntax SwitchSection(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchLabelSyntax> labels, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements)
-        {
-    #if DEBUG
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SwitchSection, labels.Node, statements.Node, out hash);
-          if (cached != null) return (SwitchSectionSyntax)cached;
-
-          var result = new SwitchSectionSyntax(SyntaxKind.SwitchSection, labels.Node, statements.Node);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static CasePatternSwitchLabelSyntax CasePatternSwitchLabel(SyntaxToken keyword, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken colonToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.CaseKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (pattern == null)
-            throw new ArgumentNullException(nameof(pattern));
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-    #endif
-
-          return new CasePatternSwitchLabelSyntax(SyntaxKind.CasePatternSwitchLabel, keyword, pattern, whenClause, colonToken);
-        }
-
-        public static CaseSwitchLabelSyntax CaseSwitchLabel(SyntaxToken keyword, ExpressionSyntax value, SyntaxToken colonToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.CaseKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (value == null)
-            throw new ArgumentNullException(nameof(value));
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CaseSwitchLabel, keyword, value, colonToken, out hash);
-          if (cached != null) return (CaseSwitchLabelSyntax)cached;
-
-          var result = new CaseSwitchLabelSyntax(SyntaxKind.CaseSwitchLabel, keyword, value, colonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static DefaultSwitchLabelSyntax DefaultSwitchLabel(SyntaxToken keyword, SyntaxToken colonToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.DefaultKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DefaultSwitchLabel, keyword, colonToken, out hash);
-          if (cached != null) return (DefaultSwitchLabelSyntax)cached;
-
-          var result = new DefaultSwitchLabelSyntax(SyntaxKind.DefaultSwitchLabel, keyword, colonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
-        {
-    #if DEBUG
-          if (governingExpression == null)
-            throw new ArgumentNullException(nameof(governingExpression));
-          if (switchKeyword == null)
-            throw new ArgumentNullException(nameof(switchKeyword));
-          switch (switchKeyword.Kind)
-          {
-            case SyntaxKind.SwitchKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(switchKeyword));
-          }
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-    #endif
-
-          return new SwitchExpressionSyntax(SyntaxKind.SwitchExpression, governingExpression, switchKeyword, openBraceToken, arms.Node, closeBraceToken);
-        }
-
-        public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (pattern == null)
-            throw new ArgumentNullException(nameof(pattern));
-          if (equalsGreaterThanToken == null)
-            throw new ArgumentNullException(nameof(equalsGreaterThanToken));
-          switch (equalsGreaterThanToken.Kind)
-          {
-            case SyntaxKind.EqualsGreaterThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(equalsGreaterThanToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          return new SwitchExpressionArmSyntax(SyntaxKind.SwitchExpressionArm, pattern, whenClause, equalsGreaterThanToken, expression);
-        }
-
-        public static TryStatementSyntax TryStatement(SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
-        {
-    #if DEBUG
-          if (tryKeyword == null)
-            throw new ArgumentNullException(nameof(tryKeyword));
-          switch (tryKeyword.Kind)
-          {
-            case SyntaxKind.TryKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(tryKeyword));
-          }
-          if (block == null)
-            throw new ArgumentNullException(nameof(block));
-    #endif
-
-          return new TryStatementSyntax(SyntaxKind.TryStatement, tryKeyword, block, catches.Node, @finally);
-        }
-
-        public static CatchClauseSyntax CatchClause(SyntaxToken catchKeyword, CatchDeclarationSyntax declaration, CatchFilterClauseSyntax filter, BlockSyntax block)
-        {
-    #if DEBUG
-          if (catchKeyword == null)
-            throw new ArgumentNullException(nameof(catchKeyword));
-          switch (catchKeyword.Kind)
-          {
-            case SyntaxKind.CatchKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(catchKeyword));
-          }
-          if (block == null)
-            throw new ArgumentNullException(nameof(block));
-    #endif
-
-          return new CatchClauseSyntax(SyntaxKind.CatchClause, catchKeyword, declaration, filter, block);
-        }
-
-        public static CatchDeclarationSyntax CatchDeclaration(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (identifier != null)
-          {
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          return new CatchDeclarationSyntax(SyntaxKind.CatchDeclaration, openParenToken, type, identifier, closeParenToken);
-        }
-
-        public static CatchFilterClauseSyntax CatchFilterClause(SyntaxToken whenKeyword, SyntaxToken openParenToken, ExpressionSyntax filterExpression, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (whenKeyword == null)
-            throw new ArgumentNullException(nameof(whenKeyword));
-          switch (whenKeyword.Kind)
-          {
-            case SyntaxKind.WhenKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(whenKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (filterExpression == null)
-            throw new ArgumentNullException(nameof(filterExpression));
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          return new CatchFilterClauseSyntax(SyntaxKind.CatchFilterClause, whenKeyword, openParenToken, filterExpression, closeParenToken);
-        }
-
-        public static FinallyClauseSyntax FinallyClause(SyntaxToken finallyKeyword, BlockSyntax block)
-        {
-    #if DEBUG
-          if (finallyKeyword == null)
-            throw new ArgumentNullException(nameof(finallyKeyword));
-          switch (finallyKeyword.Kind)
-          {
-            case SyntaxKind.FinallyKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(finallyKeyword));
-          }
-          if (block == null)
-            throw new ArgumentNullException(nameof(block));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.FinallyClause, finallyKeyword, block, out hash);
-          if (cached != null) return (FinallyClauseSyntax)cached;
-
-          var result = new FinallyClauseSyntax(SyntaxKind.FinallyClause, finallyKeyword, block);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static CompilationUnitSyntax CompilationUnit(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken endOfFileToken)
-        {
-    #if DEBUG
-          if (endOfFileToken == null)
-            throw new ArgumentNullException(nameof(endOfFileToken));
-          switch (endOfFileToken.Kind)
-          {
-            case SyntaxKind.EndOfFileToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfFileToken));
-          }
-    #endif
-
-          return new CompilationUnitSyntax(SyntaxKind.CompilationUnit, externs.Node, usings.Node, attributeLists.Node, members.Node, endOfFileToken);
-        }
-
-        public static ExternAliasDirectiveSyntax ExternAliasDirective(SyntaxToken externKeyword, SyntaxToken aliasKeyword, SyntaxToken identifier, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (externKeyword == null)
-            throw new ArgumentNullException(nameof(externKeyword));
-          switch (externKeyword.Kind)
-          {
-            case SyntaxKind.ExternKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(externKeyword));
-          }
-          if (aliasKeyword == null)
-            throw new ArgumentNullException(nameof(aliasKeyword));
-          switch (aliasKeyword.Kind)
-          {
-            case SyntaxKind.AliasKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(aliasKeyword));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          return new ExternAliasDirectiveSyntax(SyntaxKind.ExternAliasDirective, externKeyword, aliasKeyword, identifier, semicolonToken);
-        }
-
-        public static UsingDirectiveSyntax UsingDirective(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax alias, NameSyntax name, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (usingKeyword == null)
-            throw new ArgumentNullException(nameof(usingKeyword));
-          switch (usingKeyword.Kind)
-          {
-            case SyntaxKind.UsingKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(usingKeyword));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          return new UsingDirectiveSyntax(SyntaxKind.UsingDirective, usingKeyword, staticKeyword, alias, name, semicolonToken);
-        }
-
-        public static NamespaceDeclarationSyntax NamespaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (namespaceKeyword == null)
-            throw new ArgumentNullException(nameof(namespaceKeyword));
-          switch (namespaceKeyword.Kind)
-          {
-            case SyntaxKind.NamespaceKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(namespaceKeyword));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new NamespaceDeclarationSyntax(SyntaxKind.NamespaceDeclaration, attributeLists.Node, modifiers.Node, namespaceKeyword, name, openBraceToken, externs.Node, usings.Node, members.Node, closeBraceToken, semicolonToken);
-        }
-
-        public static AttributeListSyntax AttributeList(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax target, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)
-        {
-    #if DEBUG
-          if (openBracketToken == null)
-            throw new ArgumentNullException(nameof(openBracketToken));
-          switch (openBracketToken.Kind)
-          {
-            case SyntaxKind.OpenBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBracketToken));
-          }
-          if (closeBracketToken == null)
-            throw new ArgumentNullException(nameof(closeBracketToken));
-          switch (closeBracketToken.Kind)
-          {
-            case SyntaxKind.CloseBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBracketToken));
-          }
-    #endif
-
-          return new AttributeListSyntax(SyntaxKind.AttributeList, openBracketToken, target, attributes.Node, closeBracketToken);
-        }
-
-        public static AttributeTargetSpecifierSyntax AttributeTargetSpecifier(SyntaxToken identifier, SyntaxToken colonToken)
-        {
-    #if DEBUG
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-          switch (colonToken.Kind)
-          {
-            case SyntaxKind.ColonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(colonToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AttributeTargetSpecifier, identifier, colonToken, out hash);
-          if (cached != null) return (AttributeTargetSpecifierSyntax)cached;
-
-          var result = new AttributeTargetSpecifierSyntax(SyntaxKind.AttributeTargetSpecifier, identifier, colonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static AttributeSyntax Attribute(NameSyntax name, AttributeArgumentListSyntax argumentList)
-        {
-    #if DEBUG
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, out hash);
-          if (cached != null) return (AttributeSyntax)cached;
-
-          var result = new AttributeSyntax(SyntaxKind.Attribute, name, argumentList);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static AttributeArgumentListSyntax AttributeArgumentList(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AttributeArgumentList, openParenToken, arguments.Node, closeParenToken, out hash);
-          if (cached != null) return (AttributeArgumentListSyntax)cached;
-
-          var result = new AttributeArgumentListSyntax(SyntaxKind.AttributeArgumentList, openParenToken, arguments.Node, closeParenToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static AttributeArgumentSyntax AttributeArgument(NameEqualsSyntax nameEquals, NameColonSyntax nameColon, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AttributeArgument, nameEquals, nameColon, expression, out hash);
-          if (cached != null) return (AttributeArgumentSyntax)cached;
-
-          var result = new AttributeArgumentSyntax(SyntaxKind.AttributeArgument, nameEquals, nameColon, expression);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static NameEqualsSyntax NameEquals(IdentifierNameSyntax name, SyntaxToken equalsToken)
-        {
-    #if DEBUG
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (equalsToken == null)
-            throw new ArgumentNullException(nameof(equalsToken));
-          switch (equalsToken.Kind)
-          {
-            case SyntaxKind.EqualsToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(equalsToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NameEquals, name, equalsToken, out hash);
-          if (cached != null) return (NameEqualsSyntax)cached;
-
-          var result = new NameEqualsSyntax(SyntaxKind.NameEquals, name, equalsToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static TypeParameterListSyntax TypeParameterList(SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterSyntax> parameters, SyntaxToken greaterThanToken)
-        {
-    #if DEBUG
-          if (lessThanToken == null)
-            throw new ArgumentNullException(nameof(lessThanToken));
-          switch (lessThanToken.Kind)
-          {
-            case SyntaxKind.LessThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(lessThanToken));
-          }
-          if (greaterThanToken == null)
-            throw new ArgumentNullException(nameof(greaterThanToken));
-          switch (greaterThanToken.Kind)
-          {
-            case SyntaxKind.GreaterThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(greaterThanToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypeParameterList, lessThanToken, parameters.Node, greaterThanToken, out hash);
-          if (cached != null) return (TypeParameterListSyntax)cached;
-
-          var result = new TypeParameterListSyntax(SyntaxKind.TypeParameterList, lessThanToken, parameters.Node, greaterThanToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static TypeParameterSyntax TypeParameter(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken varianceKeyword, SyntaxToken identifier)
-        {
-    #if DEBUG
-          if (varianceKeyword != null)
-          {
-          switch (varianceKeyword.Kind)
-          {
-            case SyntaxKind.InKeyword:
-            case SyntaxKind.OutKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(varianceKeyword));
-          }
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypeParameter, attributeLists.Node, varianceKeyword, identifier, out hash);
-          if (cached != null) return (TypeParameterSyntax)cached;
-
-          var result = new TypeParameterSyntax(SyntaxKind.TypeParameter, attributeLists.Node, varianceKeyword, identifier);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ClassDeclarationSyntax ClassDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.ClassKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new ClassDeclarationSyntax(SyntaxKind.ClassDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
-        }
-
-        public static StructDeclarationSyntax StructDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.StructKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new StructDeclarationSyntax(SyntaxKind.StructDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
-        }
-
-        public static InterfaceDeclarationSyntax InterfaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.InterfaceKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new InterfaceDeclarationSyntax(SyntaxKind.InterfaceDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
-        }
-
-        public static EnumDeclarationSyntax EnumDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax baseList, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (enumKeyword == null)
-            throw new ArgumentNullException(nameof(enumKeyword));
-          switch (enumKeyword.Kind)
-          {
-            case SyntaxKind.EnumKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(enumKeyword));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new EnumDeclarationSyntax(SyntaxKind.EnumDeclaration, attributeLists.Node, modifiers.Node, enumKeyword, identifier, baseList, openBraceToken, members.Node, closeBraceToken, semicolonToken);
-        }
-
-        public static DelegateDeclarationSyntax DelegateDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (delegateKeyword == null)
-            throw new ArgumentNullException(nameof(delegateKeyword));
-          switch (delegateKeyword.Kind)
-          {
-            case SyntaxKind.DelegateKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(delegateKeyword));
-          }
-          if (returnType == null)
-            throw new ArgumentNullException(nameof(returnType));
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (parameterList == null)
-            throw new ArgumentNullException(nameof(parameterList));
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          return new DelegateDeclarationSyntax(SyntaxKind.DelegateDeclaration, attributeLists.Node, modifiers.Node, delegateKeyword, returnType, identifier, typeParameterList, parameterList, constraintClauses.Node, semicolonToken);
-        }
-
-        public static EnumMemberDeclarationSyntax EnumMemberDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
-        {
-    #if DEBUG
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-    #endif
-
-          return new EnumMemberDeclarationSyntax(SyntaxKind.EnumMemberDeclaration, attributeLists.Node, modifiers.Node, identifier, equalsValue);
-        }
-
-        public static BaseListSyntax BaseList(SyntaxToken colonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<BaseTypeSyntax> types)
-        {
-    #if DEBUG
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-          switch (colonToken.Kind)
-          {
-            case SyntaxKind.ColonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(colonToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BaseList, colonToken, types.Node, out hash);
-          if (cached != null) return (BaseListSyntax)cached;
-
-          var result = new BaseListSyntax(SyntaxKind.BaseList, colonToken, types.Node);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
-        {
-    #if DEBUG
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SimpleBaseType, type, out hash);
-          if (cached != null) return (SimpleBaseTypeSyntax)cached;
-
-          var result = new SimpleBaseTypeSyntax(SyntaxKind.SimpleBaseType, type);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static TypeParameterConstraintClauseSyntax TypeParameterConstraintClause(SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterConstraintSyntax> constraints)
-        {
-    #if DEBUG
-          if (whereKeyword == null)
-            throw new ArgumentNullException(nameof(whereKeyword));
-          switch (whereKeyword.Kind)
-          {
-            case SyntaxKind.WhereKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(whereKeyword));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-          switch (colonToken.Kind)
-          {
-            case SyntaxKind.ColonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(colonToken));
-          }
-    #endif
-
-          return new TypeParameterConstraintClauseSyntax(SyntaxKind.TypeParameterConstraintClause, whereKeyword, name, colonToken, constraints.Node);
-        }
-
-        public static ConstructorConstraintSyntax ConstructorConstraint(SyntaxToken newKeyword, SyntaxToken openParenToken, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (newKeyword == null)
-            throw new ArgumentNullException(nameof(newKeyword));
-          switch (newKeyword.Kind)
-          {
-            case SyntaxKind.NewKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(newKeyword));
-          }
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ConstructorConstraint, newKeyword, openParenToken, closeParenToken, out hash);
-          if (cached != null) return (ConstructorConstraintSyntax)cached;
-
-          var result = new ConstructorConstraintSyntax(SyntaxKind.ConstructorConstraint, newKeyword, openParenToken, closeParenToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.ClassConstraint:
-            case SyntaxKind.StructConstraint:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (classOrStructKeyword == null)
-            throw new ArgumentNullException(nameof(classOrStructKeyword));
-          switch (classOrStructKeyword.Kind)
-          {
-            case SyntaxKind.ClassKeyword:
-            case SyntaxKind.StructKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(classOrStructKeyword));
-          }
-          if (questionToken != null)
-          {
-          switch (questionToken.Kind)
-          {
-            case SyntaxKind.QuestionToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(questionToken));
-          }
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, classOrStructKeyword, questionToken, out hash);
-          if (cached != null) return (ClassOrStructConstraintSyntax)cached;
-
-          var result = new ClassOrStructConstraintSyntax(kind, classOrStructKeyword, questionToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static TypeConstraintSyntax TypeConstraint(TypeSyntax type)
-        {
-    #if DEBUG
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypeConstraint, type, out hash);
-          if (cached != null) return (TypeConstraintSyntax)cached;
-
-          var result = new TypeConstraintSyntax(SyntaxKind.TypeConstraint, type);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static FieldDeclarationSyntax FieldDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (declaration == null)
-            throw new ArgumentNullException(nameof(declaration));
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          return new FieldDeclarationSyntax(SyntaxKind.FieldDeclaration, attributeLists.Node, modifiers.Node, declaration, semicolonToken);
-        }
-
-        public static EventFieldDeclarationSyntax EventFieldDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken eventKeyword, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (eventKeyword == null)
-            throw new ArgumentNullException(nameof(eventKeyword));
-          switch (eventKeyword.Kind)
-          {
-            case SyntaxKind.EventKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(eventKeyword));
-          }
-          if (declaration == null)
-            throw new ArgumentNullException(nameof(declaration));
-          if (semicolonToken == null)
-            throw new ArgumentNullException(nameof(semicolonToken));
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-    #endif
-
-          return new EventFieldDeclarationSyntax(SyntaxKind.EventFieldDeclaration, attributeLists.Node, modifiers.Node, eventKeyword, declaration, semicolonToken);
-        }
-
-        public static ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier(NameSyntax name, SyntaxToken dotToken)
-        {
-    #if DEBUG
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (dotToken == null)
-            throw new ArgumentNullException(nameof(dotToken));
-          switch (dotToken.Kind)
-          {
-            case SyntaxKind.DotToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(dotToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ExplicitInterfaceSpecifier, name, dotToken, out hash);
-          if (cached != null) return (ExplicitInterfaceSpecifierSyntax)cached;
-
-          var result = new ExplicitInterfaceSpecifierSyntax(SyntaxKind.ExplicitInterfaceSpecifier, name, dotToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static MethodDeclarationSyntax MethodDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (returnType == null)
-            throw new ArgumentNullException(nameof(returnType));
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (parameterList == null)
-            throw new ArgumentNullException(nameof(parameterList));
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new MethodDeclarationSyntax(SyntaxKind.MethodDeclaration, attributeLists.Node, modifiers.Node, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken);
-        }
-
-        public static OperatorDeclarationSyntax OperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (returnType == null)
-            throw new ArgumentNullException(nameof(returnType));
-          if (operatorKeyword == null)
-            throw new ArgumentNullException(nameof(operatorKeyword));
-          switch (operatorKeyword.Kind)
-          {
-            case SyntaxKind.OperatorKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorKeyword));
-          }
-          if (operatorToken == null)
-            throw new ArgumentNullException(nameof(operatorToken));
-          switch (operatorToken.Kind)
-          {
-            case SyntaxKind.PlusToken:
-            case SyntaxKind.MinusToken:
-            case SyntaxKind.ExclamationToken:
-            case SyntaxKind.TildeToken:
-            case SyntaxKind.PlusPlusToken:
-            case SyntaxKind.MinusMinusToken:
-            case SyntaxKind.AsteriskToken:
-            case SyntaxKind.SlashToken:
-            case SyntaxKind.PercentToken:
-            case SyntaxKind.LessThanLessThanToken:
-            case SyntaxKind.GreaterThanGreaterThanToken:
-            case SyntaxKind.BarToken:
-            case SyntaxKind.AmpersandToken:
-            case SyntaxKind.CaretToken:
-            case SyntaxKind.EqualsEqualsToken:
-            case SyntaxKind.ExclamationEqualsToken:
-            case SyntaxKind.LessThanToken:
-            case SyntaxKind.LessThanEqualsToken:
-            case SyntaxKind.GreaterThanToken:
-            case SyntaxKind.GreaterThanEqualsToken:
-            case SyntaxKind.FalseKeyword:
-            case SyntaxKind.TrueKeyword:
-            case SyntaxKind.IsKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorToken));
-          }
-          if (parameterList == null)
-            throw new ArgumentNullException(nameof(parameterList));
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new OperatorDeclarationSyntax(SyntaxKind.OperatorDeclaration, attributeLists.Node, modifiers.Node, returnType, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
-        }
-
-        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (implicitOrExplicitKeyword == null)
-            throw new ArgumentNullException(nameof(implicitOrExplicitKeyword));
-          switch (implicitOrExplicitKeyword.Kind)
-          {
-            case SyntaxKind.ImplicitKeyword:
-            case SyntaxKind.ExplicitKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(implicitOrExplicitKeyword));
-          }
-          if (operatorKeyword == null)
-            throw new ArgumentNullException(nameof(operatorKeyword));
-          switch (operatorKeyword.Kind)
-          {
-            case SyntaxKind.OperatorKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorKeyword));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (parameterList == null)
-            throw new ArgumentNullException(nameof(parameterList));
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new ConversionOperatorDeclarationSyntax(SyntaxKind.ConversionOperatorDeclaration, attributeLists.Node, modifiers.Node, implicitOrExplicitKeyword, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken);
-        }
-
-        public static ConstructorDeclarationSyntax ConstructorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax initializer, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (parameterList == null)
-            throw new ArgumentNullException(nameof(parameterList));
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new ConstructorDeclarationSyntax(SyntaxKind.ConstructorDeclaration, attributeLists.Node, modifiers.Node, identifier, parameterList, initializer, body, expressionBody, semicolonToken);
-        }
-
-        public static ConstructorInitializerSyntax ConstructorInitializer(SyntaxKind kind, SyntaxToken colonToken, SyntaxToken thisOrBaseKeyword, ArgumentListSyntax argumentList)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.BaseConstructorInitializer:
-            case SyntaxKind.ThisConstructorInitializer:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-          switch (colonToken.Kind)
-          {
-            case SyntaxKind.ColonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(colonToken));
-          }
-          if (thisOrBaseKeyword == null)
-            throw new ArgumentNullException(nameof(thisOrBaseKeyword));
-          switch (thisOrBaseKeyword.Kind)
-          {
-            case SyntaxKind.BaseKeyword:
-            case SyntaxKind.ThisKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(thisOrBaseKeyword));
-          }
-          if (argumentList == null)
-            throw new ArgumentNullException(nameof(argumentList));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)kind, colonToken, thisOrBaseKeyword, argumentList, out hash);
-          if (cached != null) return (ConstructorInitializerSyntax)cached;
-
-          var result = new ConstructorInitializerSyntax(kind, colonToken, thisOrBaseKeyword, argumentList);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static DestructorDeclarationSyntax DestructorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (tildeToken == null)
-            throw new ArgumentNullException(nameof(tildeToken));
-          switch (tildeToken.Kind)
-          {
-            case SyntaxKind.TildeToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(tildeToken));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (parameterList == null)
-            throw new ArgumentNullException(nameof(parameterList));
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new DestructorDeclarationSyntax(SyntaxKind.DestructorDeclaration, attributeLists.Node, modifiers.Node, tildeToken, identifier, parameterList, body, expressionBody, semicolonToken);
-        }
-
-        public static PropertyDeclarationSyntax PropertyDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new PropertyDeclarationSyntax(SyntaxKind.PropertyDeclaration, attributeLists.Node, modifiers.Node, type, explicitInterfaceSpecifier, identifier, accessorList, expressionBody, initializer, semicolonToken);
-        }
-
-        public static ArrowExpressionClauseSyntax ArrowExpressionClause(SyntaxToken arrowToken, ExpressionSyntax expression)
-        {
-    #if DEBUG
-          if (arrowToken == null)
-            throw new ArgumentNullException(nameof(arrowToken));
-          switch (arrowToken.Kind)
-          {
-            case SyntaxKind.EqualsGreaterThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(arrowToken));
-          }
-          if (expression == null)
-            throw new ArgumentNullException(nameof(expression));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArrowExpressionClause, arrowToken, expression, out hash);
-          if (cached != null) return (ArrowExpressionClauseSyntax)cached;
-
-          var result = new ArrowExpressionClauseSyntax(SyntaxKind.ArrowExpressionClause, arrowToken, expression);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static EventDeclarationSyntax EventDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (eventKeyword == null)
-            throw new ArgumentNullException(nameof(eventKeyword));
-          switch (eventKeyword.Kind)
-          {
-            case SyntaxKind.EventKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(eventKeyword));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new EventDeclarationSyntax(SyntaxKind.EventDeclaration, attributeLists.Node, modifiers.Node, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken);
-        }
-
-        public static IndexerDeclarationSyntax IndexerDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-    #if DEBUG
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-          if (thisKeyword == null)
-            throw new ArgumentNullException(nameof(thisKeyword));
-          switch (thisKeyword.Kind)
-          {
-            case SyntaxKind.ThisKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(thisKeyword));
-          }
-          if (parameterList == null)
-            throw new ArgumentNullException(nameof(parameterList));
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new IndexerDeclarationSyntax(SyntaxKind.IndexerDeclaration, attributeLists.Node, modifiers.Node, type, explicitInterfaceSpecifier, thisKeyword, parameterList, accessorList, expressionBody, semicolonToken);
-        }
-
-        public static AccessorListSyntax AccessorList(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AccessorDeclarationSyntax> accessors, SyntaxToken closeBraceToken)
-        {
-    #if DEBUG
-          if (openBraceToken == null)
-            throw new ArgumentNullException(nameof(openBraceToken));
-          switch (openBraceToken.Kind)
-          {
-            case SyntaxKind.OpenBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBraceToken));
-          }
-          if (closeBraceToken == null)
-            throw new ArgumentNullException(nameof(closeBraceToken));
-          switch (closeBraceToken.Kind)
-          {
-            case SyntaxKind.CloseBraceToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBraceToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AccessorList, openBraceToken, accessors.Node, closeBraceToken, out hash);
-          if (cached != null) return (AccessorListSyntax)cached;
-
-          var result = new AccessorListSyntax(SyntaxKind.AccessorList, openBraceToken, accessors.Node, closeBraceToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.GetAccessorDeclaration:
-            case SyntaxKind.SetAccessorDeclaration:
-            case SyntaxKind.AddAccessorDeclaration:
-            case SyntaxKind.RemoveAccessorDeclaration:
-            case SyntaxKind.UnknownAccessorDeclaration:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (keyword == null)
-            throw new ArgumentNullException(nameof(keyword));
-          switch (keyword.Kind)
-          {
-            case SyntaxKind.GetKeyword:
-            case SyntaxKind.SetKeyword:
-            case SyntaxKind.AddKeyword:
-            case SyntaxKind.RemoveKeyword:
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(keyword));
-          }
-          if (semicolonToken != null)
-          {
-          switch (semicolonToken.Kind)
-          {
-            case SyntaxKind.SemicolonToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(semicolonToken));
-          }
-          }
-    #endif
-
-          return new AccessorDeclarationSyntax(kind, attributeLists.Node, modifiers.Node, keyword, body, expressionBody, semicolonToken);
-        }
-
-        public static ParameterListSyntax ParameterList(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ParameterList, openParenToken, parameters.Node, closeParenToken, out hash);
-          if (cached != null) return (ParameterListSyntax)cached;
-
-          var result = new ParameterListSyntax(SyntaxKind.ParameterList, openParenToken, parameters.Node, closeParenToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static BracketedParameterListSyntax BracketedParameterList(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeBracketToken)
-        {
-    #if DEBUG
-          if (openBracketToken == null)
-            throw new ArgumentNullException(nameof(openBracketToken));
-          switch (openBracketToken.Kind)
-          {
-            case SyntaxKind.OpenBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBracketToken));
-          }
-          if (closeBracketToken == null)
-            throw new ArgumentNullException(nameof(closeBracketToken));
-          switch (closeBracketToken.Kind)
-          {
-            case SyntaxKind.CloseBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBracketToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BracketedParameterList, openBracketToken, parameters.Node, closeBracketToken, out hash);
-          if (cached != null) return (BracketedParameterListSyntax)cached;
-
-          var result = new BracketedParameterListSyntax(SyntaxKind.BracketedParameterList, openBracketToken, parameters.Node, closeBracketToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ParameterSyntax Parameter(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
-        {
-    #if DEBUG
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          switch (identifier.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-            case SyntaxKind.ArgListKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(identifier));
-          }
-    #endif
-
-          return new ParameterSyntax(SyntaxKind.Parameter, attributeLists.Node, modifiers.Node, type, identifier, @default);
-        }
-
-        public static IncompleteMemberSyntax IncompleteMember(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type)
-        {
-    #if DEBUG
-    #endif
-
-          return new IncompleteMemberSyntax(SyntaxKind.IncompleteMember, attributeLists.Node, modifiers.Node, type);
-        }
-
-        public static SkippedTokensTriviaSyntax SkippedTokensTrivia(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> tokens)
-        {
-    #if DEBUG
-    #endif
-
-          return new SkippedTokensTriviaSyntax(SyntaxKind.SkippedTokensTrivia, tokens.Node);
-        }
-
-        public static DocumentationCommentTriviaSyntax DocumentationCommentTrivia(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> content, SyntaxToken endOfComment)
-        {
-          switch (kind)
-          {
-            case SyntaxKind.SingleLineDocumentationCommentTrivia:
-            case SyntaxKind.MultiLineDocumentationCommentTrivia:
-              break;
-            default:
-              throw new ArgumentException(nameof(kind));
-          }
-    #if DEBUG
-          if (endOfComment == null)
-            throw new ArgumentNullException(nameof(endOfComment));
-          switch (endOfComment.Kind)
-          {
-            case SyntaxKind.EndOfDocumentationCommentToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfComment));
-          }
-    #endif
-
-          return new DocumentationCommentTriviaSyntax(kind, content.Node, endOfComment);
-        }
-
-        public static TypeCrefSyntax TypeCref(TypeSyntax type)
-        {
-    #if DEBUG
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypeCref, type, out hash);
-          if (cached != null) return (TypeCrefSyntax)cached;
-
-          var result = new TypeCrefSyntax(SyntaxKind.TypeCref, type);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static QualifiedCrefSyntax QualifiedCref(TypeSyntax container, SyntaxToken dotToken, MemberCrefSyntax member)
-        {
-    #if DEBUG
-          if (container == null)
-            throw new ArgumentNullException(nameof(container));
-          if (dotToken == null)
-            throw new ArgumentNullException(nameof(dotToken));
-          switch (dotToken.Kind)
-          {
-            case SyntaxKind.DotToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(dotToken));
-          }
-          if (member == null)
-            throw new ArgumentNullException(nameof(member));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.QualifiedCref, container, dotToken, member, out hash);
-          if (cached != null) return (QualifiedCrefSyntax)cached;
-
-          var result = new QualifiedCrefSyntax(SyntaxKind.QualifiedCref, container, dotToken, member);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static NameMemberCrefSyntax NameMemberCref(TypeSyntax name, CrefParameterListSyntax parameters)
-        {
-    #if DEBUG
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NameMemberCref, name, parameters, out hash);
-          if (cached != null) return (NameMemberCrefSyntax)cached;
-
-          var result = new NameMemberCrefSyntax(SyntaxKind.NameMemberCref, name, parameters);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax parameters)
-        {
-    #if DEBUG
-          if (thisKeyword == null)
-            throw new ArgumentNullException(nameof(thisKeyword));
-          switch (thisKeyword.Kind)
-          {
-            case SyntaxKind.ThisKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(thisKeyword));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.IndexerMemberCref, thisKeyword, parameters, out hash);
-          if (cached != null) return (IndexerMemberCrefSyntax)cached;
-
-          var result = new IndexerMemberCrefSyntax(SyntaxKind.IndexerMemberCref, thisKeyword, parameters);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax parameters)
-        {
-    #if DEBUG
-          if (operatorKeyword == null)
-            throw new ArgumentNullException(nameof(operatorKeyword));
-          switch (operatorKeyword.Kind)
-          {
-            case SyntaxKind.OperatorKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorKeyword));
-          }
-          if (operatorToken == null)
-            throw new ArgumentNullException(nameof(operatorToken));
-          switch (operatorToken.Kind)
-          {
-            case SyntaxKind.PlusToken:
-            case SyntaxKind.MinusToken:
-            case SyntaxKind.ExclamationToken:
-            case SyntaxKind.TildeToken:
-            case SyntaxKind.PlusPlusToken:
-            case SyntaxKind.MinusMinusToken:
-            case SyntaxKind.AsteriskToken:
-            case SyntaxKind.SlashToken:
-            case SyntaxKind.PercentToken:
-            case SyntaxKind.LessThanLessThanToken:
-            case SyntaxKind.GreaterThanGreaterThanToken:
-            case SyntaxKind.BarToken:
-            case SyntaxKind.AmpersandToken:
-            case SyntaxKind.CaretToken:
-            case SyntaxKind.EqualsEqualsToken:
-            case SyntaxKind.ExclamationEqualsToken:
-            case SyntaxKind.LessThanToken:
-            case SyntaxKind.LessThanEqualsToken:
-            case SyntaxKind.GreaterThanToken:
-            case SyntaxKind.GreaterThanEqualsToken:
-            case SyntaxKind.FalseKeyword:
-            case SyntaxKind.TrueKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.OperatorMemberCref, operatorKeyword, operatorToken, parameters, out hash);
-          if (cached != null) return (OperatorMemberCrefSyntax)cached;
-
-          var result = new OperatorMemberCrefSyntax(SyntaxKind.OperatorMemberCref, operatorKeyword, operatorToken, parameters);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax parameters)
-        {
-    #if DEBUG
-          if (implicitOrExplicitKeyword == null)
-            throw new ArgumentNullException(nameof(implicitOrExplicitKeyword));
-          switch (implicitOrExplicitKeyword.Kind)
-          {
-            case SyntaxKind.ImplicitKeyword:
-            case SyntaxKind.ExplicitKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(implicitOrExplicitKeyword));
-          }
-          if (operatorKeyword == null)
-            throw new ArgumentNullException(nameof(operatorKeyword));
-          switch (operatorKeyword.Kind)
-          {
-            case SyntaxKind.OperatorKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(operatorKeyword));
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-    #endif
-
-          return new ConversionOperatorMemberCrefSyntax(SyntaxKind.ConversionOperatorMemberCref, implicitOrExplicitKeyword, operatorKeyword, type, parameters);
-        }
-
-        public static CrefParameterListSyntax CrefParameterList(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeParenToken)
-        {
-    #if DEBUG
-          if (openParenToken == null)
-            throw new ArgumentNullException(nameof(openParenToken));
-          switch (openParenToken.Kind)
-          {
-            case SyntaxKind.OpenParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openParenToken));
-          }
-          if (closeParenToken == null)
-            throw new ArgumentNullException(nameof(closeParenToken));
-          switch (closeParenToken.Kind)
-          {
-            case SyntaxKind.CloseParenToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeParenToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CrefParameterList, openParenToken, parameters.Node, closeParenToken, out hash);
-          if (cached != null) return (CrefParameterListSyntax)cached;
-
-          var result = new CrefParameterListSyntax(SyntaxKind.CrefParameterList, openParenToken, parameters.Node, closeParenToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static CrefBracketedParameterListSyntax CrefBracketedParameterList(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeBracketToken)
-        {
-    #if DEBUG
-          if (openBracketToken == null)
-            throw new ArgumentNullException(nameof(openBracketToken));
-          switch (openBracketToken.Kind)
-          {
-            case SyntaxKind.OpenBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(openBracketToken));
-          }
-          if (closeBracketToken == null)
-            throw new ArgumentNullException(nameof(closeBracketToken));
-          switch (closeBracketToken.Kind)
-          {
-            case SyntaxKind.CloseBracketToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(closeBracketToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CrefBracketedParameterList, openBracketToken, parameters.Node, closeBracketToken, out hash);
-          if (cached != null) return (CrefBracketedParameterListSyntax)cached;
-
-          var result = new CrefBracketedParameterListSyntax(SyntaxKind.CrefBracketedParameterList, openBracketToken, parameters.Node, closeBracketToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static CrefParameterSyntax CrefParameter(SyntaxToken refKindKeyword, TypeSyntax type)
-        {
-    #if DEBUG
-          if (refKindKeyword != null)
-          {
-          switch (refKindKeyword.Kind)
-          {
-            case SyntaxKind.RefKeyword:
-            case SyntaxKind.OutKeyword:
-            case SyntaxKind.InKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(refKindKeyword));
-          }
-          }
-          if (type == null)
-            throw new ArgumentNullException(nameof(type));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CrefParameter, refKindKeyword, type, out hash);
-          if (cached != null) return (CrefParameterSyntax)cached;
-
-          var result = new CrefParameterSyntax(SyntaxKind.CrefParameter, refKindKeyword, type);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static XmlElementSyntax XmlElement(XmlElementStartTagSyntax startTag, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> content, XmlElementEndTagSyntax endTag)
-        {
-    #if DEBUG
-          if (startTag == null)
-            throw new ArgumentNullException(nameof(startTag));
-          if (endTag == null)
-            throw new ArgumentNullException(nameof(endTag));
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlElement, startTag, content.Node, endTag, out hash);
-          if (cached != null) return (XmlElementSyntax)cached;
-
-          var result = new XmlElementSyntax(SyntaxKind.XmlElement, startTag, content.Node, endTag);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static XmlElementStartTagSyntax XmlElementStartTag(SyntaxToken lessThanToken, XmlNameSyntax name, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken greaterThanToken)
-        {
-    #if DEBUG
-          if (lessThanToken == null)
-            throw new ArgumentNullException(nameof(lessThanToken));
-          switch (lessThanToken.Kind)
-          {
-            case SyntaxKind.LessThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(lessThanToken));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (greaterThanToken == null)
-            throw new ArgumentNullException(nameof(greaterThanToken));
-          switch (greaterThanToken.Kind)
-          {
-            case SyntaxKind.GreaterThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(greaterThanToken));
-          }
-    #endif
-
-          return new XmlElementStartTagSyntax(SyntaxKind.XmlElementStartTag, lessThanToken, name, attributes.Node, greaterThanToken);
-        }
-
-        public static XmlElementEndTagSyntax XmlElementEndTag(SyntaxToken lessThanSlashToken, XmlNameSyntax name, SyntaxToken greaterThanToken)
-        {
-    #if DEBUG
-          if (lessThanSlashToken == null)
-            throw new ArgumentNullException(nameof(lessThanSlashToken));
-          switch (lessThanSlashToken.Kind)
-          {
-            case SyntaxKind.LessThanSlashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(lessThanSlashToken));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (greaterThanToken == null)
-            throw new ArgumentNullException(nameof(greaterThanToken));
-          switch (greaterThanToken.Kind)
-          {
-            case SyntaxKind.GreaterThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(greaterThanToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlElementEndTag, lessThanSlashToken, name, greaterThanToken, out hash);
-          if (cached != null) return (XmlElementEndTagSyntax)cached;
-
-          var result = new XmlElementEndTagSyntax(SyntaxKind.XmlElementEndTag, lessThanSlashToken, name, greaterThanToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static XmlEmptyElementSyntax XmlEmptyElement(SyntaxToken lessThanToken, XmlNameSyntax name, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
-        {
-    #if DEBUG
-          if (lessThanToken == null)
-            throw new ArgumentNullException(nameof(lessThanToken));
-          switch (lessThanToken.Kind)
-          {
-            case SyntaxKind.LessThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(lessThanToken));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (slashGreaterThanToken == null)
-            throw new ArgumentNullException(nameof(slashGreaterThanToken));
-          switch (slashGreaterThanToken.Kind)
-          {
-            case SyntaxKind.SlashGreaterThanToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(slashGreaterThanToken));
-          }
-    #endif
-
-          return new XmlEmptyElementSyntax(SyntaxKind.XmlEmptyElement, lessThanToken, name, attributes.Node, slashGreaterThanToken);
-        }
-
-        public static XmlNameSyntax XmlName(XmlPrefixSyntax prefix, SyntaxToken localName)
-        {
-    #if DEBUG
-          if (localName == null)
-            throw new ArgumentNullException(nameof(localName));
-          switch (localName.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(localName));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlName, prefix, localName, out hash);
-          if (cached != null) return (XmlNameSyntax)cached;
-
-          var result = new XmlNameSyntax(SyntaxKind.XmlName, prefix, localName);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static XmlPrefixSyntax XmlPrefix(SyntaxToken prefix, SyntaxToken colonToken)
-        {
-    #if DEBUG
-          if (prefix == null)
-            throw new ArgumentNullException(nameof(prefix));
-          switch (prefix.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(prefix));
-          }
-          if (colonToken == null)
-            throw new ArgumentNullException(nameof(colonToken));
-          switch (colonToken.Kind)
-          {
-            case SyntaxKind.ColonToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(colonToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlPrefix, prefix, colonToken, out hash);
-          if (cached != null) return (XmlPrefixSyntax)cached;
-
-          var result = new XmlPrefixSyntax(SyntaxKind.XmlPrefix, prefix, colonToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static XmlTextAttributeSyntax XmlTextAttribute(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken endQuoteToken)
-        {
-    #if DEBUG
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (equalsToken == null)
-            throw new ArgumentNullException(nameof(equalsToken));
-          switch (equalsToken.Kind)
-          {
-            case SyntaxKind.EqualsToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(equalsToken));
-          }
-          if (startQuoteToken == null)
-            throw new ArgumentNullException(nameof(startQuoteToken));
-          switch (startQuoteToken.Kind)
-          {
-            case SyntaxKind.SingleQuoteToken:
-            case SyntaxKind.DoubleQuoteToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(startQuoteToken));
-          }
-          if (endQuoteToken == null)
-            throw new ArgumentNullException(nameof(endQuoteToken));
-          switch (endQuoteToken.Kind)
-          {
-            case SyntaxKind.SingleQuoteToken:
-            case SyntaxKind.DoubleQuoteToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endQuoteToken));
-          }
-    #endif
-
-          return new XmlTextAttributeSyntax(SyntaxKind.XmlTextAttribute, name, equalsToken, startQuoteToken, textTokens.Node, endQuoteToken);
-        }
-
-        public static XmlCrefAttributeSyntax XmlCrefAttribute(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, CrefSyntax cref, SyntaxToken endQuoteToken)
-        {
-    #if DEBUG
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (equalsToken == null)
-            throw new ArgumentNullException(nameof(equalsToken));
-          switch (equalsToken.Kind)
-          {
-            case SyntaxKind.EqualsToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(equalsToken));
-          }
-          if (startQuoteToken == null)
-            throw new ArgumentNullException(nameof(startQuoteToken));
-          switch (startQuoteToken.Kind)
-          {
-            case SyntaxKind.SingleQuoteToken:
-            case SyntaxKind.DoubleQuoteToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(startQuoteToken));
-          }
-          if (cref == null)
-            throw new ArgumentNullException(nameof(cref));
-          if (endQuoteToken == null)
-            throw new ArgumentNullException(nameof(endQuoteToken));
-          switch (endQuoteToken.Kind)
-          {
-            case SyntaxKind.SingleQuoteToken:
-            case SyntaxKind.DoubleQuoteToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endQuoteToken));
-          }
-    #endif
-
-          return new XmlCrefAttributeSyntax(SyntaxKind.XmlCrefAttribute, name, equalsToken, startQuoteToken, cref, endQuoteToken);
-        }
-
-        public static XmlNameAttributeSyntax XmlNameAttribute(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, IdentifierNameSyntax identifier, SyntaxToken endQuoteToken)
-        {
-    #if DEBUG
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (equalsToken == null)
-            throw new ArgumentNullException(nameof(equalsToken));
-          switch (equalsToken.Kind)
-          {
-            case SyntaxKind.EqualsToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(equalsToken));
-          }
-          if (startQuoteToken == null)
-            throw new ArgumentNullException(nameof(startQuoteToken));
-          switch (startQuoteToken.Kind)
-          {
-            case SyntaxKind.SingleQuoteToken:
-            case SyntaxKind.DoubleQuoteToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(startQuoteToken));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          if (endQuoteToken == null)
-            throw new ArgumentNullException(nameof(endQuoteToken));
-          switch (endQuoteToken.Kind)
-          {
-            case SyntaxKind.SingleQuoteToken:
-            case SyntaxKind.DoubleQuoteToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endQuoteToken));
-          }
-    #endif
-
-          return new XmlNameAttributeSyntax(SyntaxKind.XmlNameAttribute, name, equalsToken, startQuoteToken, identifier, endQuoteToken);
-        }
-
-        public static XmlTextSyntax XmlText(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens)
-        {
-    #if DEBUG
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlText, textTokens.Node, out hash);
-          if (cached != null) return (XmlTextSyntax)cached;
-
-          var result = new XmlTextSyntax(SyntaxKind.XmlText, textTokens.Node);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static XmlCDataSectionSyntax XmlCDataSection(SyntaxToken startCDataToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken endCDataToken)
-        {
-    #if DEBUG
-          if (startCDataToken == null)
-            throw new ArgumentNullException(nameof(startCDataToken));
-          switch (startCDataToken.Kind)
-          {
-            case SyntaxKind.XmlCDataStartToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(startCDataToken));
-          }
-          if (endCDataToken == null)
-            throw new ArgumentNullException(nameof(endCDataToken));
-          switch (endCDataToken.Kind)
-          {
-            case SyntaxKind.XmlCDataEndToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endCDataToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlCDataSection, startCDataToken, textTokens.Node, endCDataToken, out hash);
-          if (cached != null) return (XmlCDataSectionSyntax)cached;
-
-          var result = new XmlCDataSectionSyntax(SyntaxKind.XmlCDataSection, startCDataToken, textTokens.Node, endCDataToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static XmlProcessingInstructionSyntax XmlProcessingInstruction(SyntaxToken startProcessingInstructionToken, XmlNameSyntax name, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken endProcessingInstructionToken)
-        {
-    #if DEBUG
-          if (startProcessingInstructionToken == null)
-            throw new ArgumentNullException(nameof(startProcessingInstructionToken));
-          switch (startProcessingInstructionToken.Kind)
-          {
-            case SyntaxKind.XmlProcessingInstructionStartToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(startProcessingInstructionToken));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          if (endProcessingInstructionToken == null)
-            throw new ArgumentNullException(nameof(endProcessingInstructionToken));
-          switch (endProcessingInstructionToken.Kind)
-          {
-            case SyntaxKind.XmlProcessingInstructionEndToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endProcessingInstructionToken));
-          }
-    #endif
-
-          return new XmlProcessingInstructionSyntax(SyntaxKind.XmlProcessingInstruction, startProcessingInstructionToken, name, textTokens.Node, endProcessingInstructionToken);
-        }
-
-        public static XmlCommentSyntax XmlComment(SyntaxToken lessThanExclamationMinusMinusToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken minusMinusGreaterThanToken)
-        {
-    #if DEBUG
-          if (lessThanExclamationMinusMinusToken == null)
-            throw new ArgumentNullException(nameof(lessThanExclamationMinusMinusToken));
-          switch (lessThanExclamationMinusMinusToken.Kind)
-          {
-            case SyntaxKind.XmlCommentStartToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(lessThanExclamationMinusMinusToken));
-          }
-          if (minusMinusGreaterThanToken == null)
-            throw new ArgumentNullException(nameof(minusMinusGreaterThanToken));
-          switch (minusMinusGreaterThanToken.Kind)
-          {
-            case SyntaxKind.XmlCommentEndToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(minusMinusGreaterThanToken));
-          }
-    #endif
-
-          int hash;
-          var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlComment, lessThanExclamationMinusMinusToken, textTokens.Node, minusMinusGreaterThanToken, out hash);
-          if (cached != null) return (XmlCommentSyntax)cached;
-
-          var result = new XmlCommentSyntax(SyntaxKind.XmlComment, lessThanExclamationMinusMinusToken, textTokens.Node, minusMinusGreaterThanToken);
-          if (hash >= 0)
-          {
-              SyntaxNodeCache.AddNode(result, hash);
-          }
-
-          return result;
-        }
-
-        public static IfDirectiveTriviaSyntax IfDirectiveTrivia(SyntaxToken hashToken, SyntaxToken ifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (ifKeyword == null)
-            throw new ArgumentNullException(nameof(ifKeyword));
-          switch (ifKeyword.Kind)
-          {
-            case SyntaxKind.IfKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(ifKeyword));
-          }
-          if (condition == null)
-            throw new ArgumentNullException(nameof(condition));
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new IfDirectiveTriviaSyntax(SyntaxKind.IfDirectiveTrivia, hashToken, ifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
-        }
-
-        public static ElifDirectiveTriviaSyntax ElifDirectiveTrivia(SyntaxToken hashToken, SyntaxToken elifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (elifKeyword == null)
-            throw new ArgumentNullException(nameof(elifKeyword));
-          switch (elifKeyword.Kind)
-          {
-            case SyntaxKind.ElifKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(elifKeyword));
-          }
-          if (condition == null)
-            throw new ArgumentNullException(nameof(condition));
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new ElifDirectiveTriviaSyntax(SyntaxKind.ElifDirectiveTrivia, hashToken, elifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
-        }
-
-        public static ElseDirectiveTriviaSyntax ElseDirectiveTrivia(SyntaxToken hashToken, SyntaxToken elseKeyword, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (elseKeyword == null)
-            throw new ArgumentNullException(nameof(elseKeyword));
-          switch (elseKeyword.Kind)
-          {
-            case SyntaxKind.ElseKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(elseKeyword));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new ElseDirectiveTriviaSyntax(SyntaxKind.ElseDirectiveTrivia, hashToken, elseKeyword, endOfDirectiveToken, isActive, branchTaken);
-        }
-
-        public static EndIfDirectiveTriviaSyntax EndIfDirectiveTrivia(SyntaxToken hashToken, SyntaxToken endIfKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (endIfKeyword == null)
-            throw new ArgumentNullException(nameof(endIfKeyword));
-          switch (endIfKeyword.Kind)
-          {
-            case SyntaxKind.EndIfKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(endIfKeyword));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new EndIfDirectiveTriviaSyntax(SyntaxKind.EndIfDirectiveTrivia, hashToken, endIfKeyword, endOfDirectiveToken, isActive);
-        }
-
-        public static RegionDirectiveTriviaSyntax RegionDirectiveTrivia(SyntaxToken hashToken, SyntaxToken regionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (regionKeyword == null)
-            throw new ArgumentNullException(nameof(regionKeyword));
-          switch (regionKeyword.Kind)
-          {
-            case SyntaxKind.RegionKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(regionKeyword));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new RegionDirectiveTriviaSyntax(SyntaxKind.RegionDirectiveTrivia, hashToken, regionKeyword, endOfDirectiveToken, isActive);
-        }
-
-        public static EndRegionDirectiveTriviaSyntax EndRegionDirectiveTrivia(SyntaxToken hashToken, SyntaxToken endRegionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (endRegionKeyword == null)
-            throw new ArgumentNullException(nameof(endRegionKeyword));
-          switch (endRegionKeyword.Kind)
-          {
-            case SyntaxKind.EndRegionKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(endRegionKeyword));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new EndRegionDirectiveTriviaSyntax(SyntaxKind.EndRegionDirectiveTrivia, hashToken, endRegionKeyword, endOfDirectiveToken, isActive);
-        }
-
-        public static ErrorDirectiveTriviaSyntax ErrorDirectiveTrivia(SyntaxToken hashToken, SyntaxToken errorKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (errorKeyword == null)
-            throw new ArgumentNullException(nameof(errorKeyword));
-          switch (errorKeyword.Kind)
-          {
-            case SyntaxKind.ErrorKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(errorKeyword));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new ErrorDirectiveTriviaSyntax(SyntaxKind.ErrorDirectiveTrivia, hashToken, errorKeyword, endOfDirectiveToken, isActive);
-        }
-
-        public static WarningDirectiveTriviaSyntax WarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken warningKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (warningKeyword == null)
-            throw new ArgumentNullException(nameof(warningKeyword));
-          switch (warningKeyword.Kind)
-          {
-            case SyntaxKind.WarningKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(warningKeyword));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new WarningDirectiveTriviaSyntax(SyntaxKind.WarningDirectiveTrivia, hashToken, warningKeyword, endOfDirectiveToken, isActive);
-        }
-
-        public static BadDirectiveTriviaSyntax BadDirectiveTrivia(SyntaxToken hashToken, SyntaxToken identifier, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (identifier == null)
-            throw new ArgumentNullException(nameof(identifier));
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new BadDirectiveTriviaSyntax(SyntaxKind.BadDirectiveTrivia, hashToken, identifier, endOfDirectiveToken, isActive);
-        }
-
-        public static DefineDirectiveTriviaSyntax DefineDirectiveTrivia(SyntaxToken hashToken, SyntaxToken defineKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (defineKeyword == null)
-            throw new ArgumentNullException(nameof(defineKeyword));
-          switch (defineKeyword.Kind)
-          {
-            case SyntaxKind.DefineKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(defineKeyword));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          switch (name.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(name));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new DefineDirectiveTriviaSyntax(SyntaxKind.DefineDirectiveTrivia, hashToken, defineKeyword, name, endOfDirectiveToken, isActive);
-        }
-
-        public static UndefDirectiveTriviaSyntax UndefDirectiveTrivia(SyntaxToken hashToken, SyntaxToken undefKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (undefKeyword == null)
-            throw new ArgumentNullException(nameof(undefKeyword));
-          switch (undefKeyword.Kind)
-          {
-            case SyntaxKind.UndefKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(undefKeyword));
-          }
-          if (name == null)
-            throw new ArgumentNullException(nameof(name));
-          switch (name.Kind)
-          {
-            case SyntaxKind.IdentifierToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(name));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new UndefDirectiveTriviaSyntax(SyntaxKind.UndefDirectiveTrivia, hashToken, undefKeyword, name, endOfDirectiveToken, isActive);
-        }
-
-        public static LineDirectiveTriviaSyntax LineDirectiveTrivia(SyntaxToken hashToken, SyntaxToken lineKeyword, SyntaxToken line, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (lineKeyword == null)
-            throw new ArgumentNullException(nameof(lineKeyword));
-          switch (lineKeyword.Kind)
-          {
-            case SyntaxKind.LineKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(lineKeyword));
-          }
-          if (line == null)
-            throw new ArgumentNullException(nameof(line));
-          switch (line.Kind)
-          {
-            case SyntaxKind.NumericLiteralToken:
-            case SyntaxKind.DefaultKeyword:
-            case SyntaxKind.HiddenKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(line));
-          }
-          if (file != null)
-          {
-          switch (file.Kind)
-          {
-            case SyntaxKind.StringLiteralToken:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(file));
-          }
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new LineDirectiveTriviaSyntax(SyntaxKind.LineDirectiveTrivia, hashToken, lineKeyword, line, file, endOfDirectiveToken, isActive);
-        }
-
-        public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (pragmaKeyword == null)
-            throw new ArgumentNullException(nameof(pragmaKeyword));
-          switch (pragmaKeyword.Kind)
-          {
-            case SyntaxKind.PragmaKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(pragmaKeyword));
-          }
-          if (warningKeyword == null)
-            throw new ArgumentNullException(nameof(warningKeyword));
-          switch (warningKeyword.Kind)
-          {
-            case SyntaxKind.WarningKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(warningKeyword));
-          }
-          if (disableOrRestoreKeyword == null)
-            throw new ArgumentNullException(nameof(disableOrRestoreKeyword));
-          switch (disableOrRestoreKeyword.Kind)
-          {
-            case SyntaxKind.DisableKeyword:
-            case SyntaxKind.RestoreKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(disableOrRestoreKeyword));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new PragmaWarningDirectiveTriviaSyntax(SyntaxKind.PragmaWarningDirectiveTrivia, hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes.Node, endOfDirectiveToken, isActive);
-        }
-
-        public static PragmaChecksumDirectiveTriviaSyntax PragmaChecksumDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (pragmaKeyword == null)
-            throw new ArgumentNullException(nameof(pragmaKeyword));
-          switch (pragmaKeyword.Kind)
-          {
-            case SyntaxKind.PragmaKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(pragmaKeyword));
-          }
-          if (checksumKeyword == null)
-            throw new ArgumentNullException(nameof(checksumKeyword));
-          switch (checksumKeyword.Kind)
-          {
-            case SyntaxKind.ChecksumKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(checksumKeyword));
-          }
-          if (file == null)
-            throw new ArgumentNullException(nameof(file));
-          switch (file.Kind)
-          {
-            case SyntaxKind.StringLiteralToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(file));
-          }
-          if (guid == null)
-            throw new ArgumentNullException(nameof(guid));
-          switch (guid.Kind)
-          {
-            case SyntaxKind.StringLiteralToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(guid));
-          }
-          if (bytes == null)
-            throw new ArgumentNullException(nameof(bytes));
-          switch (bytes.Kind)
-          {
-            case SyntaxKind.StringLiteralToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(bytes));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new PragmaChecksumDirectiveTriviaSyntax(SyntaxKind.PragmaChecksumDirectiveTrivia, hashToken, pragmaKeyword, checksumKeyword, file, guid, bytes, endOfDirectiveToken, isActive);
-        }
-
-        public static ReferenceDirectiveTriviaSyntax ReferenceDirectiveTrivia(SyntaxToken hashToken, SyntaxToken referenceKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (referenceKeyword == null)
-            throw new ArgumentNullException(nameof(referenceKeyword));
-          switch (referenceKeyword.Kind)
-          {
-            case SyntaxKind.ReferenceKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(referenceKeyword));
-          }
-          if (file == null)
-            throw new ArgumentNullException(nameof(file));
-          switch (file.Kind)
-          {
-            case SyntaxKind.StringLiteralToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(file));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new ReferenceDirectiveTriviaSyntax(SyntaxKind.ReferenceDirectiveTrivia, hashToken, referenceKeyword, file, endOfDirectiveToken, isActive);
-        }
-
-        public static LoadDirectiveTriviaSyntax LoadDirectiveTrivia(SyntaxToken hashToken, SyntaxToken loadKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (loadKeyword == null)
-            throw new ArgumentNullException(nameof(loadKeyword));
-          switch (loadKeyword.Kind)
-          {
-            case SyntaxKind.LoadKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(loadKeyword));
-          }
-          if (file == null)
-            throw new ArgumentNullException(nameof(file));
-          switch (file.Kind)
-          {
-            case SyntaxKind.StringLiteralToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(file));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new LoadDirectiveTriviaSyntax(SyntaxKind.LoadDirectiveTrivia, hashToken, loadKeyword, file, endOfDirectiveToken, isActive);
-        }
-
-        public static ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (exclamationToken == null)
-            throw new ArgumentNullException(nameof(exclamationToken));
-          switch (exclamationToken.Kind)
-          {
-            case SyntaxKind.ExclamationToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(exclamationToken));
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, endOfDirectiveToken, isActive);
-        }
-
-        public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive)
-        {
-    #if DEBUG
-          if (hashToken == null)
-            throw new ArgumentNullException(nameof(hashToken));
-          switch (hashToken.Kind)
-          {
-            case SyntaxKind.HashToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(hashToken));
-          }
-          if (nullableKeyword == null)
-            throw new ArgumentNullException(nameof(nullableKeyword));
-          switch (nullableKeyword.Kind)
-          {
-            case SyntaxKind.NullableKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(nullableKeyword));
-          }
-          if (settingToken == null)
-            throw new ArgumentNullException(nameof(settingToken));
-          switch (settingToken.Kind)
-          {
-            case SyntaxKind.EnableKeyword:
-            case SyntaxKind.DisableKeyword:
-            case SyntaxKind.RestoreKeyword:
-              break;
-            default:
-              throw new ArgumentException(nameof(settingToken));
-          }
-          if (targetToken != null)
-          {
-          switch (targetToken.Kind)
-          {
-            case SyntaxKind.WarningsKeyword:
-            case SyntaxKind.AnnotationsKeyword:
-            case SyntaxKind.None:
-              break;
-            default:
-              throw new ArgumentException(nameof(targetToken));
-          }
-          }
-          if (endOfDirectiveToken == null)
-            throw new ArgumentNullException(nameof(endOfDirectiveToken));
-          switch (endOfDirectiveToken.Kind)
-          {
-            case SyntaxKind.EndOfDirectiveToken:
-              break;
-            default:
-              throw new ArgumentException(nameof(endOfDirectiveToken));
-          }
-    #endif
-
-          return new NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia, hashToken, nullableKeyword, settingToken, targetToken, endOfDirectiveToken, isActive);
-        }
-
-        internal static IEnumerable<Type> GetNodeTypes()
-        {
-            return new Type[] {
-               typeof(IdentifierNameSyntax),
-               typeof(QualifiedNameSyntax),
-               typeof(GenericNameSyntax),
-               typeof(TypeArgumentListSyntax),
-               typeof(AliasQualifiedNameSyntax),
-               typeof(PredefinedTypeSyntax),
-               typeof(ArrayTypeSyntax),
-               typeof(ArrayRankSpecifierSyntax),
-               typeof(PointerTypeSyntax),
-               typeof(NullableTypeSyntax),
-               typeof(TupleTypeSyntax),
-               typeof(TupleElementSyntax),
-               typeof(OmittedTypeArgumentSyntax),
-               typeof(RefTypeSyntax),
-               typeof(ParenthesizedExpressionSyntax),
-               typeof(TupleExpressionSyntax),
-               typeof(PrefixUnaryExpressionSyntax),
-               typeof(AwaitExpressionSyntax),
-               typeof(PostfixUnaryExpressionSyntax),
-               typeof(MemberAccessExpressionSyntax),
-               typeof(ConditionalAccessExpressionSyntax),
-               typeof(MemberBindingExpressionSyntax),
-               typeof(ElementBindingExpressionSyntax),
-               typeof(RangeExpressionSyntax),
-               typeof(ImplicitElementAccessSyntax),
-               typeof(BinaryExpressionSyntax),
-               typeof(AssignmentExpressionSyntax),
-               typeof(ConditionalExpressionSyntax),
-               typeof(ThisExpressionSyntax),
-               typeof(BaseExpressionSyntax),
-               typeof(LiteralExpressionSyntax),
-               typeof(MakeRefExpressionSyntax),
-               typeof(RefTypeExpressionSyntax),
-               typeof(RefValueExpressionSyntax),
-               typeof(CheckedExpressionSyntax),
-               typeof(DefaultExpressionSyntax),
-               typeof(TypeOfExpressionSyntax),
-               typeof(SizeOfExpressionSyntax),
-               typeof(InvocationExpressionSyntax),
-               typeof(ElementAccessExpressionSyntax),
-               typeof(ArgumentListSyntax),
-               typeof(BracketedArgumentListSyntax),
-               typeof(ArgumentSyntax),
-               typeof(NameColonSyntax),
-               typeof(DeclarationExpressionSyntax),
-               typeof(CastExpressionSyntax),
-               typeof(AnonymousMethodExpressionSyntax),
-               typeof(SimpleLambdaExpressionSyntax),
-               typeof(RefExpressionSyntax),
-               typeof(ParenthesizedLambdaExpressionSyntax),
-               typeof(InitializerExpressionSyntax),
-               typeof(ObjectCreationExpressionSyntax),
-               typeof(AnonymousObjectMemberDeclaratorSyntax),
-               typeof(AnonymousObjectCreationExpressionSyntax),
-               typeof(ArrayCreationExpressionSyntax),
-               typeof(ImplicitArrayCreationExpressionSyntax),
-               typeof(StackAllocArrayCreationExpressionSyntax),
-               typeof(ImplicitStackAllocArrayCreationExpressionSyntax),
-               typeof(QueryExpressionSyntax),
-               typeof(QueryBodySyntax),
-               typeof(FromClauseSyntax),
-               typeof(LetClauseSyntax),
-               typeof(JoinClauseSyntax),
-               typeof(JoinIntoClauseSyntax),
-               typeof(WhereClauseSyntax),
-               typeof(OrderByClauseSyntax),
-               typeof(OrderingSyntax),
-               typeof(SelectClauseSyntax),
-               typeof(GroupClauseSyntax),
-               typeof(QueryContinuationSyntax),
-               typeof(OmittedArraySizeExpressionSyntax),
-               typeof(InterpolatedStringExpressionSyntax),
-               typeof(IsPatternExpressionSyntax),
-               typeof(ThrowExpressionSyntax),
-               typeof(WhenClauseSyntax),
-               typeof(DiscardPatternSyntax),
-               typeof(DeclarationPatternSyntax),
-               typeof(VarPatternSyntax),
-               typeof(RecursivePatternSyntax),
-               typeof(PositionalPatternClauseSyntax),
-               typeof(PropertyPatternClauseSyntax),
-               typeof(SubpatternSyntax),
-               typeof(ConstantPatternSyntax),
-               typeof(InterpolatedStringTextSyntax),
-               typeof(InterpolationSyntax),
-               typeof(InterpolationAlignmentClauseSyntax),
-               typeof(InterpolationFormatClauseSyntax),
-               typeof(GlobalStatementSyntax),
-               typeof(BlockSyntax),
-               typeof(LocalFunctionStatementSyntax),
-               typeof(LocalDeclarationStatementSyntax),
-               typeof(VariableDeclarationSyntax),
-               typeof(VariableDeclaratorSyntax),
-               typeof(EqualsValueClauseSyntax),
-               typeof(SingleVariableDesignationSyntax),
-               typeof(DiscardDesignationSyntax),
-               typeof(ParenthesizedVariableDesignationSyntax),
-               typeof(ExpressionStatementSyntax),
-               typeof(EmptyStatementSyntax),
-               typeof(LabeledStatementSyntax),
-               typeof(GotoStatementSyntax),
-               typeof(BreakStatementSyntax),
-               typeof(ContinueStatementSyntax),
-               typeof(ReturnStatementSyntax),
-               typeof(ThrowStatementSyntax),
-               typeof(YieldStatementSyntax),
-               typeof(WhileStatementSyntax),
-               typeof(DoStatementSyntax),
-               typeof(ForStatementSyntax),
-               typeof(ForEachStatementSyntax),
-               typeof(ForEachVariableStatementSyntax),
-               typeof(UsingStatementSyntax),
-               typeof(FixedStatementSyntax),
-               typeof(CheckedStatementSyntax),
-               typeof(UnsafeStatementSyntax),
-               typeof(LockStatementSyntax),
-               typeof(IfStatementSyntax),
-               typeof(ElseClauseSyntax),
-               typeof(SwitchStatementSyntax),
-               typeof(SwitchSectionSyntax),
-               typeof(CasePatternSwitchLabelSyntax),
-               typeof(CaseSwitchLabelSyntax),
-               typeof(DefaultSwitchLabelSyntax),
-               typeof(SwitchExpressionSyntax),
-               typeof(SwitchExpressionArmSyntax),
-               typeof(TryStatementSyntax),
-               typeof(CatchClauseSyntax),
-               typeof(CatchDeclarationSyntax),
-               typeof(CatchFilterClauseSyntax),
-               typeof(FinallyClauseSyntax),
-               typeof(CompilationUnitSyntax),
-               typeof(ExternAliasDirectiveSyntax),
-               typeof(UsingDirectiveSyntax),
-               typeof(NamespaceDeclarationSyntax),
-               typeof(AttributeListSyntax),
-               typeof(AttributeTargetSpecifierSyntax),
-               typeof(AttributeSyntax),
-               typeof(AttributeArgumentListSyntax),
-               typeof(AttributeArgumentSyntax),
-               typeof(NameEqualsSyntax),
-               typeof(TypeParameterListSyntax),
-               typeof(TypeParameterSyntax),
-               typeof(ClassDeclarationSyntax),
-               typeof(StructDeclarationSyntax),
-               typeof(InterfaceDeclarationSyntax),
-               typeof(EnumDeclarationSyntax),
-               typeof(DelegateDeclarationSyntax),
-               typeof(EnumMemberDeclarationSyntax),
-               typeof(BaseListSyntax),
-               typeof(SimpleBaseTypeSyntax),
-               typeof(TypeParameterConstraintClauseSyntax),
-               typeof(ConstructorConstraintSyntax),
-               typeof(ClassOrStructConstraintSyntax),
-               typeof(TypeConstraintSyntax),
-               typeof(FieldDeclarationSyntax),
-               typeof(EventFieldDeclarationSyntax),
-               typeof(ExplicitInterfaceSpecifierSyntax),
-               typeof(MethodDeclarationSyntax),
-               typeof(OperatorDeclarationSyntax),
-               typeof(ConversionOperatorDeclarationSyntax),
-               typeof(ConstructorDeclarationSyntax),
-               typeof(ConstructorInitializerSyntax),
-               typeof(DestructorDeclarationSyntax),
-               typeof(PropertyDeclarationSyntax),
-               typeof(ArrowExpressionClauseSyntax),
-               typeof(EventDeclarationSyntax),
-               typeof(IndexerDeclarationSyntax),
-               typeof(AccessorListSyntax),
-               typeof(AccessorDeclarationSyntax),
-               typeof(ParameterListSyntax),
-               typeof(BracketedParameterListSyntax),
-               typeof(ParameterSyntax),
-               typeof(IncompleteMemberSyntax),
-               typeof(SkippedTokensTriviaSyntax),
-               typeof(DocumentationCommentTriviaSyntax),
-               typeof(TypeCrefSyntax),
-               typeof(QualifiedCrefSyntax),
-               typeof(NameMemberCrefSyntax),
-               typeof(IndexerMemberCrefSyntax),
-               typeof(OperatorMemberCrefSyntax),
-               typeof(ConversionOperatorMemberCrefSyntax),
-               typeof(CrefParameterListSyntax),
-               typeof(CrefBracketedParameterListSyntax),
-               typeof(CrefParameterSyntax),
-               typeof(XmlElementSyntax),
-               typeof(XmlElementStartTagSyntax),
-               typeof(XmlElementEndTagSyntax),
-               typeof(XmlEmptyElementSyntax),
-               typeof(XmlNameSyntax),
-               typeof(XmlPrefixSyntax),
-               typeof(XmlTextAttributeSyntax),
-               typeof(XmlCrefAttributeSyntax),
-               typeof(XmlNameAttributeSyntax),
-               typeof(XmlTextSyntax),
-               typeof(XmlCDataSectionSyntax),
-               typeof(XmlProcessingInstructionSyntax),
-               typeof(XmlCommentSyntax),
-               typeof(IfDirectiveTriviaSyntax),
-               typeof(ElifDirectiveTriviaSyntax),
-               typeof(ElseDirectiveTriviaSyntax),
-               typeof(EndIfDirectiveTriviaSyntax),
-               typeof(RegionDirectiveTriviaSyntax),
-               typeof(EndRegionDirectiveTriviaSyntax),
-               typeof(ErrorDirectiveTriviaSyntax),
-               typeof(WarningDirectiveTriviaSyntax),
-               typeof(BadDirectiveTriviaSyntax),
-               typeof(DefineDirectiveTriviaSyntax),
-               typeof(UndefDirectiveTriviaSyntax),
-               typeof(LineDirectiveTriviaSyntax),
-               typeof(PragmaWarningDirectiveTriviaSyntax),
-               typeof(PragmaChecksumDirectiveTriviaSyntax),
-               typeof(ReferenceDirectiveTriviaSyntax),
-               typeof(LoadDirectiveTriviaSyntax),
-               typeof(ShebangDirectiveTriviaSyntax),
-               typeof(NullableDirectiveTriviaSyntax)
-            };
-        }
-      }
+    internal static partial class SyntaxFactory
+    {
+            public static IdentifierNameSyntax IdentifierName(SyntaxToken identifier)
+            {
+        #if DEBUG
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.GlobalKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.IdentifierName, identifier, out hash);
+              if (cached != null) return (IdentifierNameSyntax)cached;
+
+              var result = new IdentifierNameSyntax(SyntaxKind.IdentifierName, identifier);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static QualifiedNameSyntax QualifiedName(NameSyntax left, SyntaxToken dotToken, SimpleNameSyntax right)
+            {
+        #if DEBUG
+              if (left == null)
+                throw new ArgumentNullException(nameof(left));
+              if (dotToken == null)
+                throw new ArgumentNullException(nameof(dotToken));
+              switch (dotToken.Kind)
+              {
+                case SyntaxKind.DotToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(dotToken));
+              }
+              if (right == null)
+                throw new ArgumentNullException(nameof(right));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.QualifiedName, left, dotToken, right, out hash);
+              if (cached != null) return (QualifiedNameSyntax)cached;
+
+              var result = new QualifiedNameSyntax(SyntaxKind.QualifiedName, left, dotToken, right);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static GenericNameSyntax GenericName(SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
+            {
+        #if DEBUG
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (typeArgumentList == null)
+                throw new ArgumentNullException(nameof(typeArgumentList));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.GenericName, identifier, typeArgumentList, out hash);
+              if (cached != null) return (GenericNameSyntax)cached;
+
+              var result = new GenericNameSyntax(SyntaxKind.GenericName, identifier, typeArgumentList);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static TypeArgumentListSyntax TypeArgumentList(SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeSyntax> arguments, SyntaxToken greaterThanToken)
+            {
+        #if DEBUG
+              if (lessThanToken == null)
+                throw new ArgumentNullException(nameof(lessThanToken));
+              switch (lessThanToken.Kind)
+              {
+                case SyntaxKind.LessThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(lessThanToken));
+              }
+              if (greaterThanToken == null)
+                throw new ArgumentNullException(nameof(greaterThanToken));
+              switch (greaterThanToken.Kind)
+              {
+                case SyntaxKind.GreaterThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(greaterThanToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypeArgumentList, lessThanToken, arguments.Node, greaterThanToken, out hash);
+              if (cached != null) return (TypeArgumentListSyntax)cached;
+
+              var result = new TypeArgumentListSyntax(SyntaxKind.TypeArgumentList, lessThanToken, arguments.Node, greaterThanToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static AliasQualifiedNameSyntax AliasQualifiedName(IdentifierNameSyntax alias, SyntaxToken colonColonToken, SimpleNameSyntax name)
+            {
+        #if DEBUG
+              if (alias == null)
+                throw new ArgumentNullException(nameof(alias));
+              if (colonColonToken == null)
+                throw new ArgumentNullException(nameof(colonColonToken));
+              switch (colonColonToken.Kind)
+              {
+                case SyntaxKind.ColonColonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(colonColonToken));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AliasQualifiedName, alias, colonColonToken, name, out hash);
+              if (cached != null) return (AliasQualifiedNameSyntax)cached;
+
+              var result = new AliasQualifiedNameSyntax(SyntaxKind.AliasQualifiedName, alias, colonColonToken, name);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static PredefinedTypeSyntax PredefinedType(SyntaxToken keyword)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.BoolKeyword:
+                case SyntaxKind.ByteKeyword:
+                case SyntaxKind.SByteKeyword:
+                case SyntaxKind.IntKeyword:
+                case SyntaxKind.UIntKeyword:
+                case SyntaxKind.ShortKeyword:
+                case SyntaxKind.UShortKeyword:
+                case SyntaxKind.LongKeyword:
+                case SyntaxKind.ULongKeyword:
+                case SyntaxKind.FloatKeyword:
+                case SyntaxKind.DoubleKeyword:
+                case SyntaxKind.DecimalKeyword:
+                case SyntaxKind.StringKeyword:
+                case SyntaxKind.CharKeyword:
+                case SyntaxKind.ObjectKeyword:
+                case SyntaxKind.VoidKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PredefinedType, keyword, out hash);
+              if (cached != null) return (PredefinedTypeSyntax)cached;
+
+              var result = new PredefinedTypeSyntax(SyntaxKind.PredefinedType, keyword);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ArrayTypeSyntax ArrayType(TypeSyntax elementType, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers)
+            {
+        #if DEBUG
+              if (elementType == null)
+                throw new ArgumentNullException(nameof(elementType));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArrayType, elementType, rankSpecifiers.Node, out hash);
+              if (cached != null) return (ArrayTypeSyntax)cached;
+
+              var result = new ArrayTypeSyntax(SyntaxKind.ArrayType, elementType, rankSpecifiers.Node);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
+            {
+        #if DEBUG
+              if (openBracketToken == null)
+                throw new ArgumentNullException(nameof(openBracketToken));
+              switch (openBracketToken.Kind)
+              {
+                case SyntaxKind.OpenBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBracketToken));
+              }
+              if (closeBracketToken == null)
+                throw new ArgumentNullException(nameof(closeBracketToken));
+              switch (closeBracketToken.Kind)
+              {
+                case SyntaxKind.CloseBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBracketToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArrayRankSpecifier, openBracketToken, sizes.Node, closeBracketToken, out hash);
+              if (cached != null) return (ArrayRankSpecifierSyntax)cached;
+
+              var result = new ArrayRankSpecifierSyntax(SyntaxKind.ArrayRankSpecifier, openBracketToken, sizes.Node, closeBracketToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static PointerTypeSyntax PointerType(TypeSyntax elementType, SyntaxToken asteriskToken)
+            {
+        #if DEBUG
+              if (elementType == null)
+                throw new ArgumentNullException(nameof(elementType));
+              if (asteriskToken == null)
+                throw new ArgumentNullException(nameof(asteriskToken));
+              switch (asteriskToken.Kind)
+              {
+                case SyntaxKind.AsteriskToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(asteriskToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PointerType, elementType, asteriskToken, out hash);
+              if (cached != null) return (PointerTypeSyntax)cached;
+
+              var result = new PointerTypeSyntax(SyntaxKind.PointerType, elementType, asteriskToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static NullableTypeSyntax NullableType(TypeSyntax elementType, SyntaxToken questionToken)
+            {
+        #if DEBUG
+              if (elementType == null)
+                throw new ArgumentNullException(nameof(elementType));
+              if (questionToken == null)
+                throw new ArgumentNullException(nameof(questionToken));
+              switch (questionToken.Kind)
+              {
+                case SyntaxKind.QuestionToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(questionToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NullableType, elementType, questionToken, out hash);
+              if (cached != null) return (NullableTypeSyntax)cached;
+
+              var result = new NullableTypeSyntax(SyntaxKind.NullableType, elementType, questionToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static TupleTypeSyntax TupleType(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TupleElementSyntax> elements, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TupleType, openParenToken, elements.Node, closeParenToken, out hash);
+              if (cached != null) return (TupleTypeSyntax)cached;
+
+              var result = new TupleTypeSyntax(SyntaxKind.TupleType, openParenToken, elements.Node, closeParenToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static TupleElementSyntax TupleElement(TypeSyntax type, SyntaxToken identifier)
+            {
+        #if DEBUG
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (identifier != null)
+              {
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TupleElement, type, identifier, out hash);
+              if (cached != null) return (TupleElementSyntax)cached;
+
+              var result = new TupleElementSyntax(SyntaxKind.TupleElement, type, identifier);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static OmittedTypeArgumentSyntax OmittedTypeArgument(SyntaxToken omittedTypeArgumentToken)
+            {
+        #if DEBUG
+              if (omittedTypeArgumentToken == null)
+                throw new ArgumentNullException(nameof(omittedTypeArgumentToken));
+              switch (omittedTypeArgumentToken.Kind)
+              {
+                case SyntaxKind.OmittedTypeArgumentToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(omittedTypeArgumentToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.OmittedTypeArgument, omittedTypeArgumentToken, out hash);
+              if (cached != null) return (OmittedTypeArgumentSyntax)cached;
+
+              var result = new OmittedTypeArgumentSyntax(SyntaxKind.OmittedTypeArgument, omittedTypeArgumentToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
+            {
+        #if DEBUG
+              if (refKeyword == null)
+                throw new ArgumentNullException(nameof(refKeyword));
+              switch (refKeyword.Kind)
+              {
+                case SyntaxKind.RefKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(refKeyword));
+              }
+              if (readOnlyKeyword != null)
+              {
+              switch (readOnlyKeyword.Kind)
+              {
+                case SyntaxKind.ReadOnlyKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(readOnlyKeyword));
+              }
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RefType, refKeyword, readOnlyKeyword, type, out hash);
+              if (cached != null) return (RefTypeSyntax)cached;
+
+              var result = new RefTypeSyntax(SyntaxKind.RefType, refKeyword, readOnlyKeyword, type);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ParenthesizedExpressionSyntax ParenthesizedExpression(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ParenthesizedExpression, openParenToken, expression, closeParenToken, out hash);
+              if (cached != null) return (ParenthesizedExpressionSyntax)cached;
+
+              var result = new ParenthesizedExpressionSyntax(SyntaxKind.ParenthesizedExpression, openParenToken, expression, closeParenToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static TupleExpressionSyntax TupleExpression(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TupleExpression, openParenToken, arguments.Node, closeParenToken, out hash);
+              if (cached != null) return (TupleExpressionSyntax)cached;
+
+              var result = new TupleExpressionSyntax(SyntaxKind.TupleExpression, openParenToken, arguments.Node, closeParenToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static PrefixUnaryExpressionSyntax PrefixUnaryExpression(SyntaxKind kind, SyntaxToken operatorToken, ExpressionSyntax operand)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.UnaryPlusExpression:
+                case SyntaxKind.UnaryMinusExpression:
+                case SyntaxKind.BitwiseNotExpression:
+                case SyntaxKind.LogicalNotExpression:
+                case SyntaxKind.PreIncrementExpression:
+                case SyntaxKind.PreDecrementExpression:
+                case SyntaxKind.AddressOfExpression:
+                case SyntaxKind.PointerIndirectionExpression:
+                case SyntaxKind.IndexExpression:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (operatorToken == null)
+                throw new ArgumentNullException(nameof(operatorToken));
+              switch (operatorToken.Kind)
+              {
+                case SyntaxKind.PlusToken:
+                case SyntaxKind.MinusToken:
+                case SyntaxKind.TildeToken:
+                case SyntaxKind.ExclamationToken:
+                case SyntaxKind.PlusPlusToken:
+                case SyntaxKind.MinusMinusToken:
+                case SyntaxKind.AmpersandToken:
+                case SyntaxKind.AsteriskToken:
+                case SyntaxKind.CaretToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorToken));
+              }
+              if (operand == null)
+                throw new ArgumentNullException(nameof(operand));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, operatorToken, operand, out hash);
+              if (cached != null) return (PrefixUnaryExpressionSyntax)cached;
+
+              var result = new PrefixUnaryExpressionSyntax(kind, operatorToken, operand);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (awaitKeyword == null)
+                throw new ArgumentNullException(nameof(awaitKeyword));
+              switch (awaitKeyword.Kind)
+              {
+                case SyntaxKind.AwaitKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(awaitKeyword));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AwaitExpression, awaitKeyword, expression, out hash);
+              if (cached != null) return (AwaitExpressionSyntax)cached;
+
+              var result = new AwaitExpressionSyntax(SyntaxKind.AwaitExpression, awaitKeyword, expression);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static PostfixUnaryExpressionSyntax PostfixUnaryExpression(SyntaxKind kind, ExpressionSyntax operand, SyntaxToken operatorToken)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.PostIncrementExpression:
+                case SyntaxKind.PostDecrementExpression:
+                case SyntaxKind.SuppressNullableWarningExpression:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (operand == null)
+                throw new ArgumentNullException(nameof(operand));
+              if (operatorToken == null)
+                throw new ArgumentNullException(nameof(operatorToken));
+              switch (operatorToken.Kind)
+              {
+                case SyntaxKind.PlusPlusToken:
+                case SyntaxKind.MinusMinusToken:
+                case SyntaxKind.ExclamationToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, operand, operatorToken, out hash);
+              if (cached != null) return (PostfixUnaryExpressionSyntax)cached;
+
+              var result = new PostfixUnaryExpressionSyntax(kind, operand, operatorToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static MemberAccessExpressionSyntax MemberAccessExpression(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.PointerMemberAccessExpression:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (operatorToken == null)
+                throw new ArgumentNullException(nameof(operatorToken));
+              switch (operatorToken.Kind)
+              {
+                case SyntaxKind.DotToken:
+                case SyntaxKind.MinusGreaterThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorToken));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, expression, operatorToken, name, out hash);
+              if (cached != null) return (MemberAccessExpressionSyntax)cached;
+
+              var result = new MemberAccessExpressionSyntax(kind, expression, operatorToken, name);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ConditionalAccessExpressionSyntax ConditionalAccessExpression(ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull)
+            {
+        #if DEBUG
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (operatorToken == null)
+                throw new ArgumentNullException(nameof(operatorToken));
+              switch (operatorToken.Kind)
+              {
+                case SyntaxKind.QuestionToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorToken));
+              }
+              if (whenNotNull == null)
+                throw new ArgumentNullException(nameof(whenNotNull));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ConditionalAccessExpression, expression, operatorToken, whenNotNull, out hash);
+              if (cached != null) return (ConditionalAccessExpressionSyntax)cached;
+
+              var result = new ConditionalAccessExpressionSyntax(SyntaxKind.ConditionalAccessExpression, expression, operatorToken, whenNotNull);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static MemberBindingExpressionSyntax MemberBindingExpression(SyntaxToken operatorToken, SimpleNameSyntax name)
+            {
+        #if DEBUG
+              if (operatorToken == null)
+                throw new ArgumentNullException(nameof(operatorToken));
+              switch (operatorToken.Kind)
+              {
+                case SyntaxKind.DotToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorToken));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.MemberBindingExpression, operatorToken, name, out hash);
+              if (cached != null) return (MemberBindingExpressionSyntax)cached;
+
+              var result = new MemberBindingExpressionSyntax(SyntaxKind.MemberBindingExpression, operatorToken, name);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
+            {
+        #if DEBUG
+              if (argumentList == null)
+                throw new ArgumentNullException(nameof(argumentList));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ElementBindingExpression, argumentList, out hash);
+              if (cached != null) return (ElementBindingExpressionSyntax)cached;
+
+              var result = new ElementBindingExpressionSyntax(SyntaxKind.ElementBindingExpression, argumentList);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static RangeExpressionSyntax RangeExpression(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
+            {
+        #if DEBUG
+              if (operatorToken == null)
+                throw new ArgumentNullException(nameof(operatorToken));
+              switch (operatorToken.Kind)
+              {
+                case SyntaxKind.DotDotToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RangeExpression, leftOperand, operatorToken, rightOperand, out hash);
+              if (cached != null) return (RangeExpressionSyntax)cached;
+
+              var result = new RangeExpressionSyntax(SyntaxKind.RangeExpression, leftOperand, operatorToken, rightOperand);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ImplicitElementAccessSyntax ImplicitElementAccess(BracketedArgumentListSyntax argumentList)
+            {
+        #if DEBUG
+              if (argumentList == null)
+                throw new ArgumentNullException(nameof(argumentList));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ImplicitElementAccess, argumentList, out hash);
+              if (cached != null) return (ImplicitElementAccessSyntax)cached;
+
+              var result = new ImplicitElementAccessSyntax(SyntaxKind.ImplicitElementAccess, argumentList);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static BinaryExpressionSyntax BinaryExpression(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.AddExpression:
+                case SyntaxKind.SubtractExpression:
+                case SyntaxKind.MultiplyExpression:
+                case SyntaxKind.DivideExpression:
+                case SyntaxKind.ModuloExpression:
+                case SyntaxKind.LeftShiftExpression:
+                case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.LogicalOrExpression:
+                case SyntaxKind.LogicalAndExpression:
+                case SyntaxKind.BitwiseOrExpression:
+                case SyntaxKind.BitwiseAndExpression:
+                case SyntaxKind.ExclusiveOrExpression:
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                case SyntaxKind.LessThanExpression:
+                case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.GreaterThanExpression:
+                case SyntaxKind.GreaterThanOrEqualExpression:
+                case SyntaxKind.IsExpression:
+                case SyntaxKind.AsExpression:
+                case SyntaxKind.CoalesceExpression:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (left == null)
+                throw new ArgumentNullException(nameof(left));
+              if (operatorToken == null)
+                throw new ArgumentNullException(nameof(operatorToken));
+              switch (operatorToken.Kind)
+              {
+                case SyntaxKind.PlusToken:
+                case SyntaxKind.MinusToken:
+                case SyntaxKind.AsteriskToken:
+                case SyntaxKind.SlashToken:
+                case SyntaxKind.PercentToken:
+                case SyntaxKind.LessThanLessThanToken:
+                case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.BarBarToken:
+                case SyntaxKind.AmpersandAmpersandToken:
+                case SyntaxKind.BarToken:
+                case SyntaxKind.AmpersandToken:
+                case SyntaxKind.CaretToken:
+                case SyntaxKind.EqualsEqualsToken:
+                case SyntaxKind.ExclamationEqualsToken:
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.LessThanEqualsToken:
+                case SyntaxKind.GreaterThanToken:
+                case SyntaxKind.GreaterThanEqualsToken:
+                case SyntaxKind.IsKeyword:
+                case SyntaxKind.AsKeyword:
+                case SyntaxKind.QuestionQuestionToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorToken));
+              }
+              if (right == null)
+                throw new ArgumentNullException(nameof(right));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, left, operatorToken, right, out hash);
+              if (cached != null) return (BinaryExpressionSyntax)cached;
+
+              var result = new BinaryExpressionSyntax(kind, left, operatorToken, right);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static AssignmentExpressionSyntax AssignmentExpression(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.SimpleAssignmentExpression:
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (left == null)
+                throw new ArgumentNullException(nameof(left));
+              if (operatorToken == null)
+                throw new ArgumentNullException(nameof(operatorToken));
+              switch (operatorToken.Kind)
+              {
+                case SyntaxKind.EqualsToken:
+                case SyntaxKind.PlusEqualsToken:
+                case SyntaxKind.MinusEqualsToken:
+                case SyntaxKind.AsteriskEqualsToken:
+                case SyntaxKind.SlashEqualsToken:
+                case SyntaxKind.PercentEqualsToken:
+                case SyntaxKind.AmpersandEqualsToken:
+                case SyntaxKind.CaretEqualsToken:
+                case SyntaxKind.BarEqualsToken:
+                case SyntaxKind.LessThanLessThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.QuestionQuestionEqualsToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorToken));
+              }
+              if (right == null)
+                throw new ArgumentNullException(nameof(right));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, left, operatorToken, right, out hash);
+              if (cached != null) return (AssignmentExpressionSyntax)cached;
+
+              var result = new AssignmentExpressionSyntax(kind, left, operatorToken, right);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ConditionalExpressionSyntax ConditionalExpression(ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse)
+            {
+        #if DEBUG
+              if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+              if (questionToken == null)
+                throw new ArgumentNullException(nameof(questionToken));
+              switch (questionToken.Kind)
+              {
+                case SyntaxKind.QuestionToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(questionToken));
+              }
+              if (whenTrue == null)
+                throw new ArgumentNullException(nameof(whenTrue));
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+              switch (colonToken.Kind)
+              {
+                case SyntaxKind.ColonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(colonToken));
+              }
+              if (whenFalse == null)
+                throw new ArgumentNullException(nameof(whenFalse));
+        #endif
+
+              return new ConditionalExpressionSyntax(SyntaxKind.ConditionalExpression, condition, questionToken, whenTrue, colonToken, whenFalse);
+            }
+
+            public static ThisExpressionSyntax ThisExpression(SyntaxToken token)
+            {
+        #if DEBUG
+              if (token == null)
+                throw new ArgumentNullException(nameof(token));
+              switch (token.Kind)
+              {
+                case SyntaxKind.ThisKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(token));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ThisExpression, token, out hash);
+              if (cached != null) return (ThisExpressionSyntax)cached;
+
+              var result = new ThisExpressionSyntax(SyntaxKind.ThisExpression, token);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static BaseExpressionSyntax BaseExpression(SyntaxToken token)
+            {
+        #if DEBUG
+              if (token == null)
+                throw new ArgumentNullException(nameof(token));
+              switch (token.Kind)
+              {
+                case SyntaxKind.BaseKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(token));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BaseExpression, token, out hash);
+              if (cached != null) return (BaseExpressionSyntax)cached;
+
+              var result = new BaseExpressionSyntax(SyntaxKind.BaseExpression, token);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static LiteralExpressionSyntax LiteralExpression(SyntaxKind kind, SyntaxToken token)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.ArgListExpression:
+                case SyntaxKind.NumericLiteralExpression:
+                case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.CharacterLiteralExpression:
+                case SyntaxKind.TrueLiteralExpression:
+                case SyntaxKind.FalseLiteralExpression:
+                case SyntaxKind.NullLiteralExpression:
+                case SyntaxKind.DefaultLiteralExpression:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (token == null)
+                throw new ArgumentNullException(nameof(token));
+              switch (token.Kind)
+              {
+                case SyntaxKind.ArgListKeyword:
+                case SyntaxKind.NumericLiteralToken:
+                case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.CharacterLiteralToken:
+                case SyntaxKind.TrueKeyword:
+                case SyntaxKind.FalseKeyword:
+                case SyntaxKind.NullKeyword:
+                case SyntaxKind.DefaultKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(token));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, token, out hash);
+              if (cached != null) return (LiteralExpressionSyntax)cached;
+
+              var result = new LiteralExpressionSyntax(kind, token);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static MakeRefExpressionSyntax MakeRefExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.MakeRefKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              return new MakeRefExpressionSyntax(SyntaxKind.MakeRefExpression, keyword, openParenToken, expression, closeParenToken);
+            }
+
+            public static RefTypeExpressionSyntax RefTypeExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.RefTypeKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              return new RefTypeExpressionSyntax(SyntaxKind.RefTypeExpression, keyword, openParenToken, expression, closeParenToken);
+            }
+
+            public static RefValueExpressionSyntax RefValueExpression(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken comma, TypeSyntax type, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.RefValueKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (comma == null)
+                throw new ArgumentNullException(nameof(comma));
+              switch (comma.Kind)
+              {
+                case SyntaxKind.CommaToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(comma));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              return new RefValueExpressionSyntax(SyntaxKind.RefValueExpression, keyword, openParenToken, expression, comma, type, closeParenToken);
+            }
+
+            public static CheckedExpressionSyntax CheckedExpression(SyntaxKind kind, SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.CheckedExpression:
+                case SyntaxKind.UncheckedExpression:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.CheckedKeyword:
+                case SyntaxKind.UncheckedKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              return new CheckedExpressionSyntax(kind, keyword, openParenToken, expression, closeParenToken);
+            }
+
+            public static DefaultExpressionSyntax DefaultExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.DefaultKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              return new DefaultExpressionSyntax(SyntaxKind.DefaultExpression, keyword, openParenToken, type, closeParenToken);
+            }
+
+            public static TypeOfExpressionSyntax TypeOfExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.TypeOfKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              return new TypeOfExpressionSyntax(SyntaxKind.TypeOfExpression, keyword, openParenToken, type, closeParenToken);
+            }
+
+            public static SizeOfExpressionSyntax SizeOfExpression(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.SizeOfKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              return new SizeOfExpressionSyntax(SyntaxKind.SizeOfExpression, keyword, openParenToken, type, closeParenToken);
+            }
+
+            public static InvocationExpressionSyntax InvocationExpression(ExpressionSyntax expression, ArgumentListSyntax argumentList)
+            {
+        #if DEBUG
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (argumentList == null)
+                throw new ArgumentNullException(nameof(argumentList));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.InvocationExpression, expression, argumentList, out hash);
+              if (cached != null) return (InvocationExpressionSyntax)cached;
+
+              var result = new InvocationExpressionSyntax(SyntaxKind.InvocationExpression, expression, argumentList);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ElementAccessExpressionSyntax ElementAccessExpression(ExpressionSyntax expression, BracketedArgumentListSyntax argumentList)
+            {
+        #if DEBUG
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (argumentList == null)
+                throw new ArgumentNullException(nameof(argumentList));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ElementAccessExpression, expression, argumentList, out hash);
+              if (cached != null) return (ElementAccessExpressionSyntax)cached;
+
+              var result = new ElementAccessExpressionSyntax(SyntaxKind.ElementAccessExpression, expression, argumentList);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ArgumentListSyntax ArgumentList(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArgumentList, openParenToken, arguments.Node, closeParenToken, out hash);
+              if (cached != null) return (ArgumentListSyntax)cached;
+
+              var result = new ArgumentListSyntax(SyntaxKind.ArgumentList, openParenToken, arguments.Node, closeParenToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static BracketedArgumentListSyntax BracketedArgumentList(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeBracketToken)
+            {
+        #if DEBUG
+              if (openBracketToken == null)
+                throw new ArgumentNullException(nameof(openBracketToken));
+              switch (openBracketToken.Kind)
+              {
+                case SyntaxKind.OpenBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBracketToken));
+              }
+              if (closeBracketToken == null)
+                throw new ArgumentNullException(nameof(closeBracketToken));
+              switch (closeBracketToken.Kind)
+              {
+                case SyntaxKind.CloseBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBracketToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BracketedArgumentList, openBracketToken, arguments.Node, closeBracketToken, out hash);
+              if (cached != null) return (BracketedArgumentListSyntax)cached;
+
+              var result = new BracketedArgumentListSyntax(SyntaxKind.BracketedArgumentList, openBracketToken, arguments.Node, closeBracketToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (refKindKeyword != null)
+              {
+              switch (refKindKeyword.Kind)
+              {
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(refKindKeyword));
+              }
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Argument, nameColon, refKindKeyword, expression, out hash);
+              if (cached != null) return (ArgumentSyntax)cached;
+
+              var result = new ArgumentSyntax(SyntaxKind.Argument, nameColon, refKindKeyword, expression);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static NameColonSyntax NameColon(IdentifierNameSyntax name, SyntaxToken colonToken)
+            {
+        #if DEBUG
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+              switch (colonToken.Kind)
+              {
+                case SyntaxKind.ColonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(colonToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NameColon, name, colonToken, out hash);
+              if (cached != null) return (NameColonSyntax)cached;
+
+              var result = new NameColonSyntax(SyntaxKind.NameColon, name, colonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static DeclarationExpressionSyntax DeclarationExpression(TypeSyntax type, VariableDesignationSyntax designation)
+            {
+        #if DEBUG
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (designation == null)
+                throw new ArgumentNullException(nameof(designation));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DeclarationExpression, type, designation, out hash);
+              if (cached != null) return (DeclarationExpressionSyntax)cached;
+
+              var result = new DeclarationExpressionSyntax(SyntaxKind.DeclarationExpression, type, designation);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static CastExpressionSyntax CastExpression(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              return new CastExpressionSyntax(SyntaxKind.CastExpression, openParenToken, type, closeParenToken, expression);
+            }
+
+            public static AnonymousMethodExpressionSyntax AnonymousMethodExpression(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, BlockSyntax block, ExpressionSyntax expressionBody)
+            {
+        #if DEBUG
+              if (asyncKeyword != null)
+              {
+              switch (asyncKeyword.Kind)
+              {
+                case SyntaxKind.AsyncKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(asyncKeyword));
+              }
+              }
+              if (delegateKeyword == null)
+                throw new ArgumentNullException(nameof(delegateKeyword));
+              switch (delegateKeyword.Kind)
+              {
+                case SyntaxKind.DelegateKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(delegateKeyword));
+              }
+              if (block == null)
+                throw new ArgumentNullException(nameof(block));
+        #endif
+
+              return new AnonymousMethodExpressionSyntax(SyntaxKind.AnonymousMethodExpression, asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
+            }
+
+            public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+            {
+        #if DEBUG
+              if (asyncKeyword != null)
+              {
+              switch (asyncKeyword.Kind)
+              {
+                case SyntaxKind.AsyncKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(asyncKeyword));
+              }
+              }
+              if (parameter == null)
+                throw new ArgumentNullException(nameof(parameter));
+              if (arrowToken == null)
+                throw new ArgumentNullException(nameof(arrowToken));
+              switch (arrowToken.Kind)
+              {
+                case SyntaxKind.EqualsGreaterThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(arrowToken));
+              }
+        #endif
+
+              return new SimpleLambdaExpressionSyntax(SyntaxKind.SimpleLambdaExpression, asyncKeyword, parameter, arrowToken, block, expressionBody);
+            }
+
+            public static RefExpressionSyntax RefExpression(SyntaxToken refKeyword, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (refKeyword == null)
+                throw new ArgumentNullException(nameof(refKeyword));
+              switch (refKeyword.Kind)
+              {
+                case SyntaxKind.RefKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(refKeyword));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RefExpression, refKeyword, expression, out hash);
+              if (cached != null) return (RefExpressionSyntax)cached;
+
+              var result = new RefExpressionSyntax(SyntaxKind.RefExpression, refKeyword, expression);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+            {
+        #if DEBUG
+              if (asyncKeyword != null)
+              {
+              switch (asyncKeyword.Kind)
+              {
+                case SyntaxKind.AsyncKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(asyncKeyword));
+              }
+              }
+              if (parameterList == null)
+                throw new ArgumentNullException(nameof(parameterList));
+              if (arrowToken == null)
+                throw new ArgumentNullException(nameof(arrowToken));
+              switch (arrowToken.Kind)
+              {
+                case SyntaxKind.EqualsGreaterThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(arrowToken));
+              }
+        #endif
+
+              return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, asyncKeyword, parameterList, arrowToken, block, expressionBody);
+            }
+
+            public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.ObjectInitializerExpression:
+                case SyntaxKind.CollectionInitializerExpression:
+                case SyntaxKind.ArrayInitializerExpression:
+                case SyntaxKind.ComplexElementInitializerExpression:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, openBraceToken, expressions.Node, closeBraceToken, out hash);
+              if (cached != null) return (InitializerExpressionSyntax)cached;
+
+              var result = new InitializerExpressionSyntax(kind, openBraceToken, expressions.Node, closeBraceToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ObjectCreationExpressionSyntax ObjectCreationExpression(SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax argumentList, InitializerExpressionSyntax initializer)
+            {
+        #if DEBUG
+              if (newKeyword == null)
+                throw new ArgumentNullException(nameof(newKeyword));
+              switch (newKeyword.Kind)
+              {
+                case SyntaxKind.NewKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(newKeyword));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+        #endif
+
+              return new ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression, newKeyword, type, argumentList, initializer);
+            }
+
+            public static AnonymousObjectMemberDeclaratorSyntax AnonymousObjectMemberDeclarator(NameEqualsSyntax nameEquals, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AnonymousObjectMemberDeclarator, nameEquals, expression, out hash);
+              if (cached != null) return (AnonymousObjectMemberDeclaratorSyntax)cached;
+
+              var result = new AnonymousObjectMemberDeclaratorSyntax(SyntaxKind.AnonymousObjectMemberDeclarator, nameEquals, expression);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static AnonymousObjectCreationExpressionSyntax AnonymousObjectCreationExpression(SyntaxToken newKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
+            {
+        #if DEBUG
+              if (newKeyword == null)
+                throw new ArgumentNullException(nameof(newKeyword));
+              switch (newKeyword.Kind)
+              {
+                case SyntaxKind.NewKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(newKeyword));
+              }
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+        #endif
+
+              return new AnonymousObjectCreationExpressionSyntax(SyntaxKind.AnonymousObjectCreationExpression, newKeyword, openBraceToken, initializers.Node, closeBraceToken);
+            }
+
+            public static ArrayCreationExpressionSyntax ArrayCreationExpression(SyntaxToken newKeyword, ArrayTypeSyntax type, InitializerExpressionSyntax initializer)
+            {
+        #if DEBUG
+              if (newKeyword == null)
+                throw new ArgumentNullException(nameof(newKeyword));
+              switch (newKeyword.Kind)
+              {
+                case SyntaxKind.NewKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(newKeyword));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArrayCreationExpression, newKeyword, type, initializer, out hash);
+              if (cached != null) return (ArrayCreationExpressionSyntax)cached;
+
+              var result = new ArrayCreationExpressionSyntax(SyntaxKind.ArrayCreationExpression, newKeyword, type, initializer);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ImplicitArrayCreationExpressionSyntax ImplicitArrayCreationExpression(SyntaxToken newKeyword, SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> commas, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
+            {
+        #if DEBUG
+              if (newKeyword == null)
+                throw new ArgumentNullException(nameof(newKeyword));
+              switch (newKeyword.Kind)
+              {
+                case SyntaxKind.NewKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(newKeyword));
+              }
+              if (openBracketToken == null)
+                throw new ArgumentNullException(nameof(openBracketToken));
+              switch (openBracketToken.Kind)
+              {
+                case SyntaxKind.OpenBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBracketToken));
+              }
+              if (closeBracketToken == null)
+                throw new ArgumentNullException(nameof(closeBracketToken));
+              switch (closeBracketToken.Kind)
+              {
+                case SyntaxKind.CloseBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBracketToken));
+              }
+              if (initializer == null)
+                throw new ArgumentNullException(nameof(initializer));
+        #endif
+
+              return new ImplicitArrayCreationExpressionSyntax(SyntaxKind.ImplicitArrayCreationExpression, newKeyword, openBracketToken, commas.Node, closeBracketToken, initializer);
+            }
+
+            public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax initializer)
+            {
+        #if DEBUG
+              if (stackAllocKeyword == null)
+                throw new ArgumentNullException(nameof(stackAllocKeyword));
+              switch (stackAllocKeyword.Kind)
+              {
+                case SyntaxKind.StackAllocKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(stackAllocKeyword));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.StackAllocArrayCreationExpression, stackAllocKeyword, type, initializer, out hash);
+              if (cached != null) return (StackAllocArrayCreationExpressionSyntax)cached;
+
+              var result = new StackAllocArrayCreationExpressionSyntax(SyntaxKind.StackAllocArrayCreationExpression, stackAllocKeyword, type, initializer);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ImplicitStackAllocArrayCreationExpressionSyntax ImplicitStackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
+            {
+        #if DEBUG
+              if (stackAllocKeyword == null)
+                throw new ArgumentNullException(nameof(stackAllocKeyword));
+              switch (stackAllocKeyword.Kind)
+              {
+                case SyntaxKind.StackAllocKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(stackAllocKeyword));
+              }
+              if (openBracketToken == null)
+                throw new ArgumentNullException(nameof(openBracketToken));
+              switch (openBracketToken.Kind)
+              {
+                case SyntaxKind.OpenBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBracketToken));
+              }
+              if (closeBracketToken == null)
+                throw new ArgumentNullException(nameof(closeBracketToken));
+              switch (closeBracketToken.Kind)
+              {
+                case SyntaxKind.CloseBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBracketToken));
+              }
+              if (initializer == null)
+                throw new ArgumentNullException(nameof(initializer));
+        #endif
+
+              return new ImplicitStackAllocArrayCreationExpressionSyntax(SyntaxKind.ImplicitStackAllocArrayCreationExpression, stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
+            }
+
+            public static QueryExpressionSyntax QueryExpression(FromClauseSyntax fromClause, QueryBodySyntax body)
+            {
+        #if DEBUG
+              if (fromClause == null)
+                throw new ArgumentNullException(nameof(fromClause));
+              if (body == null)
+                throw new ArgumentNullException(nameof(body));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.QueryExpression, fromClause, body, out hash);
+              if (cached != null) return (QueryExpressionSyntax)cached;
+
+              var result = new QueryExpressionSyntax(SyntaxKind.QueryExpression, fromClause, body);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static QueryBodySyntax QueryBody(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<QueryClauseSyntax> clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax continuation)
+            {
+        #if DEBUG
+              if (selectOrGroup == null)
+                throw new ArgumentNullException(nameof(selectOrGroup));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.QueryBody, clauses.Node, selectOrGroup, continuation, out hash);
+              if (cached != null) return (QueryBodySyntax)cached;
+
+              var result = new QueryBodySyntax(SyntaxKind.QueryBody, clauses.Node, selectOrGroup, continuation);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static FromClauseSyntax FromClause(SyntaxToken fromKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (fromKeyword == null)
+                throw new ArgumentNullException(nameof(fromKeyword));
+              switch (fromKeyword.Kind)
+              {
+                case SyntaxKind.FromKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(fromKeyword));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (inKeyword == null)
+                throw new ArgumentNullException(nameof(inKeyword));
+              switch (inKeyword.Kind)
+              {
+                case SyntaxKind.InKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(inKeyword));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              return new FromClauseSyntax(SyntaxKind.FromClause, fromKeyword, type, identifier, inKeyword, expression);
+            }
+
+            public static LetClauseSyntax LetClause(SyntaxToken letKeyword, SyntaxToken identifier, SyntaxToken equalsToken, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (letKeyword == null)
+                throw new ArgumentNullException(nameof(letKeyword));
+              switch (letKeyword.Kind)
+              {
+                case SyntaxKind.LetKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(letKeyword));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (equalsToken == null)
+                throw new ArgumentNullException(nameof(equalsToken));
+              switch (equalsToken.Kind)
+              {
+                case SyntaxKind.EqualsToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(equalsToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              return new LetClauseSyntax(SyntaxKind.LetClause, letKeyword, identifier, equalsToken, expression);
+            }
+
+            public static JoinClauseSyntax JoinClause(SyntaxToken joinKeyword, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax inExpression, SyntaxToken onKeyword, ExpressionSyntax leftExpression, SyntaxToken equalsKeyword, ExpressionSyntax rightExpression, JoinIntoClauseSyntax into)
+            {
+        #if DEBUG
+              if (joinKeyword == null)
+                throw new ArgumentNullException(nameof(joinKeyword));
+              switch (joinKeyword.Kind)
+              {
+                case SyntaxKind.JoinKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(joinKeyword));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (inKeyword == null)
+                throw new ArgumentNullException(nameof(inKeyword));
+              switch (inKeyword.Kind)
+              {
+                case SyntaxKind.InKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(inKeyword));
+              }
+              if (inExpression == null)
+                throw new ArgumentNullException(nameof(inExpression));
+              if (onKeyword == null)
+                throw new ArgumentNullException(nameof(onKeyword));
+              switch (onKeyword.Kind)
+              {
+                case SyntaxKind.OnKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(onKeyword));
+              }
+              if (leftExpression == null)
+                throw new ArgumentNullException(nameof(leftExpression));
+              if (equalsKeyword == null)
+                throw new ArgumentNullException(nameof(equalsKeyword));
+              switch (equalsKeyword.Kind)
+              {
+                case SyntaxKind.EqualsKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(equalsKeyword));
+              }
+              if (rightExpression == null)
+                throw new ArgumentNullException(nameof(rightExpression));
+        #endif
+
+              return new JoinClauseSyntax(SyntaxKind.JoinClause, joinKeyword, type, identifier, inKeyword, inExpression, onKeyword, leftExpression, equalsKeyword, rightExpression, into);
+            }
+
+            public static JoinIntoClauseSyntax JoinIntoClause(SyntaxToken intoKeyword, SyntaxToken identifier)
+            {
+        #if DEBUG
+              if (intoKeyword == null)
+                throw new ArgumentNullException(nameof(intoKeyword));
+              switch (intoKeyword.Kind)
+              {
+                case SyntaxKind.IntoKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(intoKeyword));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.JoinIntoClause, intoKeyword, identifier, out hash);
+              if (cached != null) return (JoinIntoClauseSyntax)cached;
+
+              var result = new JoinIntoClauseSyntax(SyntaxKind.JoinIntoClause, intoKeyword, identifier);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static WhereClauseSyntax WhereClause(SyntaxToken whereKeyword, ExpressionSyntax condition)
+            {
+        #if DEBUG
+              if (whereKeyword == null)
+                throw new ArgumentNullException(nameof(whereKeyword));
+              switch (whereKeyword.Kind)
+              {
+                case SyntaxKind.WhereKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(whereKeyword));
+              }
+              if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.WhereClause, whereKeyword, condition, out hash);
+              if (cached != null) return (WhereClauseSyntax)cached;
+
+              var result = new WhereClauseSyntax(SyntaxKind.WhereClause, whereKeyword, condition);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static OrderByClauseSyntax OrderByClause(SyntaxToken orderByKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<OrderingSyntax> orderings)
+            {
+        #if DEBUG
+              if (orderByKeyword == null)
+                throw new ArgumentNullException(nameof(orderByKeyword));
+              switch (orderByKeyword.Kind)
+              {
+                case SyntaxKind.OrderByKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(orderByKeyword));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.OrderByClause, orderByKeyword, orderings.Node, out hash);
+              if (cached != null) return (OrderByClauseSyntax)cached;
+
+              var result = new OrderByClauseSyntax(SyntaxKind.OrderByClause, orderByKeyword, orderings.Node);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static OrderingSyntax Ordering(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken ascendingOrDescendingKeyword)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.AscendingOrdering:
+                case SyntaxKind.DescendingOrdering:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (ascendingOrDescendingKeyword != null)
+              {
+              switch (ascendingOrDescendingKeyword.Kind)
+              {
+                case SyntaxKind.AscendingKeyword:
+                case SyntaxKind.DescendingKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(ascendingOrDescendingKeyword));
+              }
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, expression, ascendingOrDescendingKeyword, out hash);
+              if (cached != null) return (OrderingSyntax)cached;
+
+              var result = new OrderingSyntax(kind, expression, ascendingOrDescendingKeyword);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static SelectClauseSyntax SelectClause(SyntaxToken selectKeyword, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (selectKeyword == null)
+                throw new ArgumentNullException(nameof(selectKeyword));
+              switch (selectKeyword.Kind)
+              {
+                case SyntaxKind.SelectKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(selectKeyword));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SelectClause, selectKeyword, expression, out hash);
+              if (cached != null) return (SelectClauseSyntax)cached;
+
+              var result = new SelectClauseSyntax(SyntaxKind.SelectClause, selectKeyword, expression);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static GroupClauseSyntax GroupClause(SyntaxToken groupKeyword, ExpressionSyntax groupExpression, SyntaxToken byKeyword, ExpressionSyntax byExpression)
+            {
+        #if DEBUG
+              if (groupKeyword == null)
+                throw new ArgumentNullException(nameof(groupKeyword));
+              switch (groupKeyword.Kind)
+              {
+                case SyntaxKind.GroupKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(groupKeyword));
+              }
+              if (groupExpression == null)
+                throw new ArgumentNullException(nameof(groupExpression));
+              if (byKeyword == null)
+                throw new ArgumentNullException(nameof(byKeyword));
+              switch (byKeyword.Kind)
+              {
+                case SyntaxKind.ByKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(byKeyword));
+              }
+              if (byExpression == null)
+                throw new ArgumentNullException(nameof(byExpression));
+        #endif
+
+              return new GroupClauseSyntax(SyntaxKind.GroupClause, groupKeyword, groupExpression, byKeyword, byExpression);
+            }
+
+            public static QueryContinuationSyntax QueryContinuation(SyntaxToken intoKeyword, SyntaxToken identifier, QueryBodySyntax body)
+            {
+        #if DEBUG
+              if (intoKeyword == null)
+                throw new ArgumentNullException(nameof(intoKeyword));
+              switch (intoKeyword.Kind)
+              {
+                case SyntaxKind.IntoKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(intoKeyword));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (body == null)
+                throw new ArgumentNullException(nameof(body));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.QueryContinuation, intoKeyword, identifier, body, out hash);
+              if (cached != null) return (QueryContinuationSyntax)cached;
+
+              var result = new QueryContinuationSyntax(SyntaxKind.QueryContinuation, intoKeyword, identifier, body);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static OmittedArraySizeExpressionSyntax OmittedArraySizeExpression(SyntaxToken omittedArraySizeExpressionToken)
+            {
+        #if DEBUG
+              if (omittedArraySizeExpressionToken == null)
+                throw new ArgumentNullException(nameof(omittedArraySizeExpressionToken));
+              switch (omittedArraySizeExpressionToken.Kind)
+              {
+                case SyntaxKind.OmittedArraySizeExpressionToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(omittedArraySizeExpressionToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.OmittedArraySizeExpression, omittedArraySizeExpressionToken, out hash);
+              if (cached != null) return (OmittedArraySizeExpressionSyntax)cached;
+
+              var result = new OmittedArraySizeExpressionSyntax(SyntaxKind.OmittedArraySizeExpression, omittedArraySizeExpressionToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static InterpolatedStringExpressionSyntax InterpolatedStringExpression(SyntaxToken stringStartToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<InterpolatedStringContentSyntax> contents, SyntaxToken stringEndToken)
+            {
+        #if DEBUG
+              if (stringStartToken == null)
+                throw new ArgumentNullException(nameof(stringStartToken));
+              switch (stringStartToken.Kind)
+              {
+                case SyntaxKind.InterpolatedStringStartToken:
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(stringStartToken));
+              }
+              if (stringEndToken == null)
+                throw new ArgumentNullException(nameof(stringEndToken));
+              switch (stringEndToken.Kind)
+              {
+                case SyntaxKind.InterpolatedStringEndToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(stringEndToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.InterpolatedStringExpression, stringStartToken, contents.Node, stringEndToken, out hash);
+              if (cached != null) return (InterpolatedStringExpressionSyntax)cached;
+
+              var result = new InterpolatedStringExpressionSyntax(SyntaxKind.InterpolatedStringExpression, stringStartToken, contents.Node, stringEndToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static IsPatternExpressionSyntax IsPatternExpression(ExpressionSyntax expression, SyntaxToken isKeyword, PatternSyntax pattern)
+            {
+        #if DEBUG
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (isKeyword == null)
+                throw new ArgumentNullException(nameof(isKeyword));
+              switch (isKeyword.Kind)
+              {
+                case SyntaxKind.IsKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(isKeyword));
+              }
+              if (pattern == null)
+                throw new ArgumentNullException(nameof(pattern));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.IsPatternExpression, expression, isKeyword, pattern, out hash);
+              if (cached != null) return (IsPatternExpressionSyntax)cached;
+
+              var result = new IsPatternExpressionSyntax(SyntaxKind.IsPatternExpression, expression, isKeyword, pattern);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ThrowExpressionSyntax ThrowExpression(SyntaxToken throwKeyword, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (throwKeyword == null)
+                throw new ArgumentNullException(nameof(throwKeyword));
+              switch (throwKeyword.Kind)
+              {
+                case SyntaxKind.ThrowKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(throwKeyword));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ThrowExpression, throwKeyword, expression, out hash);
+              if (cached != null) return (ThrowExpressionSyntax)cached;
+
+              var result = new ThrowExpressionSyntax(SyntaxKind.ThrowExpression, throwKeyword, expression);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static WhenClauseSyntax WhenClause(SyntaxToken whenKeyword, ExpressionSyntax condition)
+            {
+        #if DEBUG
+              if (whenKeyword == null)
+                throw new ArgumentNullException(nameof(whenKeyword));
+              switch (whenKeyword.Kind)
+              {
+                case SyntaxKind.WhenKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(whenKeyword));
+              }
+              if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.WhenClause, whenKeyword, condition, out hash);
+              if (cached != null) return (WhenClauseSyntax)cached;
+
+              var result = new WhenClauseSyntax(SyntaxKind.WhenClause, whenKeyword, condition);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static DiscardPatternSyntax DiscardPattern(SyntaxToken underscoreToken)
+            {
+        #if DEBUG
+              if (underscoreToken == null)
+                throw new ArgumentNullException(nameof(underscoreToken));
+              switch (underscoreToken.Kind)
+              {
+                case SyntaxKind.UnderscoreToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(underscoreToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DiscardPattern, underscoreToken, out hash);
+              if (cached != null) return (DiscardPatternSyntax)cached;
+
+              var result = new DiscardPatternSyntax(SyntaxKind.DiscardPattern, underscoreToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static DeclarationPatternSyntax DeclarationPattern(TypeSyntax type, VariableDesignationSyntax designation)
+            {
+        #if DEBUG
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (designation == null)
+                throw new ArgumentNullException(nameof(designation));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DeclarationPattern, type, designation, out hash);
+              if (cached != null) return (DeclarationPatternSyntax)cached;
+
+              var result = new DeclarationPatternSyntax(SyntaxKind.DeclarationPattern, type, designation);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static VarPatternSyntax VarPattern(SyntaxToken varKeyword, VariableDesignationSyntax designation)
+            {
+        #if DEBUG
+              if (varKeyword == null)
+                throw new ArgumentNullException(nameof(varKeyword));
+              switch (varKeyword.Kind)
+              {
+                case SyntaxKind.VarKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(varKeyword));
+              }
+              if (designation == null)
+                throw new ArgumentNullException(nameof(designation));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.VarPattern, varKeyword, designation, out hash);
+              if (cached != null) return (VarPatternSyntax)cached;
+
+              var result = new VarPatternSyntax(SyntaxKind.VarPattern, varKeyword, designation);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static RecursivePatternSyntax RecursivePattern(TypeSyntax type, PositionalPatternClauseSyntax positionalPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+            {
+        #if DEBUG
+        #endif
+
+              return new RecursivePatternSyntax(SyntaxKind.RecursivePattern, type, positionalPatternClause, propertyPatternClause, designation);
+            }
+
+            public static PositionalPatternClauseSyntax PositionalPatternClause(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PositionalPatternClause, openParenToken, subpatterns.Node, closeParenToken, out hash);
+              if (cached != null) return (PositionalPatternClauseSyntax)cached;
+
+              var result = new PositionalPatternClauseSyntax(SyntaxKind.PositionalPatternClause, openParenToken, subpatterns.Node, closeParenToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+            {
+        #if DEBUG
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, out hash);
+              if (cached != null) return (PropertyPatternClauseSyntax)cached;
+
+              var result = new PropertyPatternClauseSyntax(SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static SubpatternSyntax Subpattern(NameColonSyntax nameColon, PatternSyntax pattern)
+            {
+        #if DEBUG
+              if (pattern == null)
+                throw new ArgumentNullException(nameof(pattern));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Subpattern, nameColon, pattern, out hash);
+              if (cached != null) return (SubpatternSyntax)cached;
+
+              var result = new SubpatternSyntax(SyntaxKind.Subpattern, nameColon, pattern);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ConstantPatternSyntax ConstantPattern(ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ConstantPattern, expression, out hash);
+              if (cached != null) return (ConstantPatternSyntax)cached;
+
+              var result = new ConstantPatternSyntax(SyntaxKind.ConstantPattern, expression);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static InterpolatedStringTextSyntax InterpolatedStringText(SyntaxToken textToken)
+            {
+        #if DEBUG
+              if (textToken == null)
+                throw new ArgumentNullException(nameof(textToken));
+              switch (textToken.Kind)
+              {
+                case SyntaxKind.InterpolatedStringTextToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(textToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.InterpolatedStringText, textToken, out hash);
+              if (cached != null) return (InterpolatedStringTextSyntax)cached;
+
+              var result = new InterpolatedStringTextSyntax(SyntaxKind.InterpolatedStringText, textToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static InterpolationSyntax Interpolation(SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax alignmentClause, InterpolationFormatClauseSyntax formatClause, SyntaxToken closeBraceToken)
+            {
+        #if DEBUG
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+        #endif
+
+              return new InterpolationSyntax(SyntaxKind.Interpolation, openBraceToken, expression, alignmentClause, formatClause, closeBraceToken);
+            }
+
+            public static InterpolationAlignmentClauseSyntax InterpolationAlignmentClause(SyntaxToken commaToken, ExpressionSyntax value)
+            {
+        #if DEBUG
+              if (commaToken == null)
+                throw new ArgumentNullException(nameof(commaToken));
+              if (value == null)
+                throw new ArgumentNullException(nameof(value));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.InterpolationAlignmentClause, commaToken, value, out hash);
+              if (cached != null) return (InterpolationAlignmentClauseSyntax)cached;
+
+              var result = new InterpolationAlignmentClauseSyntax(SyntaxKind.InterpolationAlignmentClause, commaToken, value);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static InterpolationFormatClauseSyntax InterpolationFormatClause(SyntaxToken colonToken, SyntaxToken formatStringToken)
+            {
+        #if DEBUG
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+              if (formatStringToken == null)
+                throw new ArgumentNullException(nameof(formatStringToken));
+              switch (formatStringToken.Kind)
+              {
+                case SyntaxKind.InterpolatedStringTextToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(formatStringToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.InterpolationFormatClause, colonToken, formatStringToken, out hash);
+              if (cached != null) return (InterpolationFormatClauseSyntax)cached;
+
+              var result = new InterpolationFormatClauseSyntax(SyntaxKind.InterpolationFormatClause, colonToken, formatStringToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static GlobalStatementSyntax GlobalStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, StatementSyntax statement)
+            {
+        #if DEBUG
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.GlobalStatement, attributeLists.Node, modifiers.Node, statement, out hash);
+              if (cached != null) return (GlobalStatementSyntax)cached;
+
+              var result = new GlobalStatementSyntax(SyntaxKind.GlobalStatement, attributeLists.Node, modifiers.Node, statement);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static BlockSyntax Block(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+            {
+        #if DEBUG
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken, out hash);
+              if (cached != null) return (BlockSyntax)cached;
+
+              var result = new BlockSyntax(SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static LocalFunctionStatementSyntax LocalFunctionStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (returnType == null)
+                throw new ArgumentNullException(nameof(returnType));
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (parameterList == null)
+                throw new ArgumentNullException(nameof(parameterList));
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new LocalFunctionStatementSyntax(SyntaxKind.LocalFunctionStatement, modifiers.Node, returnType, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken);
+            }
+
+            public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (awaitKeyword != null)
+              {
+              switch (awaitKeyword.Kind)
+              {
+                case SyntaxKind.AwaitKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(awaitKeyword));
+              }
+              }
+              if (usingKeyword != null)
+              {
+              switch (usingKeyword.Kind)
+              {
+                case SyntaxKind.UsingKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(usingKeyword));
+              }
+              }
+              if (declaration == null)
+                throw new ArgumentNullException(nameof(declaration));
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, awaitKeyword, usingKeyword, modifiers.Node, declaration, semicolonToken);
+            }
+
+            public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
+            {
+        #if DEBUG
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.VariableDeclaration, type, variables.Node, out hash);
+              if (cached != null) return (VariableDeclarationSyntax)cached;
+
+              var result = new VariableDeclarationSyntax(SyntaxKind.VariableDeclaration, type, variables.Node);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static VariableDeclaratorSyntax VariableDeclarator(SyntaxToken identifier, BracketedArgumentListSyntax argumentList, EqualsValueClauseSyntax initializer)
+            {
+        #if DEBUG
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.VariableDeclarator, identifier, argumentList, initializer, out hash);
+              if (cached != null) return (VariableDeclaratorSyntax)cached;
+
+              var result = new VariableDeclaratorSyntax(SyntaxKind.VariableDeclarator, identifier, argumentList, initializer);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static EqualsValueClauseSyntax EqualsValueClause(SyntaxToken equalsToken, ExpressionSyntax value)
+            {
+        #if DEBUG
+              if (equalsToken == null)
+                throw new ArgumentNullException(nameof(equalsToken));
+              switch (equalsToken.Kind)
+              {
+                case SyntaxKind.EqualsToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(equalsToken));
+              }
+              if (value == null)
+                throw new ArgumentNullException(nameof(value));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.EqualsValueClause, equalsToken, value, out hash);
+              if (cached != null) return (EqualsValueClauseSyntax)cached;
+
+              var result = new EqualsValueClauseSyntax(SyntaxKind.EqualsValueClause, equalsToken, value);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static SingleVariableDesignationSyntax SingleVariableDesignation(SyntaxToken identifier)
+            {
+        #if DEBUG
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SingleVariableDesignation, identifier, out hash);
+              if (cached != null) return (SingleVariableDesignationSyntax)cached;
+
+              var result = new SingleVariableDesignationSyntax(SyntaxKind.SingleVariableDesignation, identifier);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static DiscardDesignationSyntax DiscardDesignation(SyntaxToken underscoreToken)
+            {
+        #if DEBUG
+              if (underscoreToken == null)
+                throw new ArgumentNullException(nameof(underscoreToken));
+              switch (underscoreToken.Kind)
+              {
+                case SyntaxKind.UnderscoreToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(underscoreToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DiscardDesignation, underscoreToken, out hash);
+              if (cached != null) return (DiscardDesignationSyntax)cached;
+
+              var result = new DiscardDesignationSyntax(SyntaxKind.DiscardDesignation, underscoreToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ParenthesizedVariableDesignationSyntax ParenthesizedVariableDesignation(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDesignationSyntax> variables, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ParenthesizedVariableDesignation, openParenToken, variables.Node, closeParenToken, out hash);
+              if (cached != null) return (ParenthesizedVariableDesignationSyntax)cached;
+
+              var result = new ParenthesizedVariableDesignationSyntax(SyntaxKind.ParenthesizedVariableDesignation, openParenToken, variables.Node, closeParenToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ExpressionStatementSyntax ExpressionStatement(ExpressionSyntax expression, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ExpressionStatement, expression, semicolonToken, out hash);
+              if (cached != null) return (ExpressionStatementSyntax)cached;
+
+              var result = new ExpressionStatementSyntax(SyntaxKind.ExpressionStatement, expression, semicolonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static EmptyStatementSyntax EmptyStatement(SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.EmptyStatement, semicolonToken, out hash);
+              if (cached != null) return (EmptyStatementSyntax)cached;
+
+              var result = new EmptyStatementSyntax(SyntaxKind.EmptyStatement, semicolonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static LabeledStatementSyntax LabeledStatement(SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
+            {
+        #if DEBUG
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+              switch (colonToken.Kind)
+              {
+                case SyntaxKind.ColonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(colonToken));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.LabeledStatement, identifier, colonToken, statement, out hash);
+              if (cached != null) return (LabeledStatementSyntax)cached;
+
+              var result = new LabeledStatementSyntax(SyntaxKind.LabeledStatement, identifier, colonToken, statement);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static GotoStatementSyntax GotoStatement(SyntaxKind kind, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.GotoStatement:
+                case SyntaxKind.GotoCaseStatement:
+                case SyntaxKind.GotoDefaultStatement:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (gotoKeyword == null)
+                throw new ArgumentNullException(nameof(gotoKeyword));
+              switch (gotoKeyword.Kind)
+              {
+                case SyntaxKind.GotoKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(gotoKeyword));
+              }
+              if (caseOrDefaultKeyword != null)
+              {
+              switch (caseOrDefaultKeyword.Kind)
+              {
+                case SyntaxKind.CaseKeyword:
+                case SyntaxKind.DefaultKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(caseOrDefaultKeyword));
+              }
+              }
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              return new GotoStatementSyntax(kind, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
+            }
+
+            public static BreakStatementSyntax BreakStatement(SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (breakKeyword == null)
+                throw new ArgumentNullException(nameof(breakKeyword));
+              switch (breakKeyword.Kind)
+              {
+                case SyntaxKind.BreakKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(breakKeyword));
+              }
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BreakStatement, breakKeyword, semicolonToken, out hash);
+              if (cached != null) return (BreakStatementSyntax)cached;
+
+              var result = new BreakStatementSyntax(SyntaxKind.BreakStatement, breakKeyword, semicolonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ContinueStatementSyntax ContinueStatement(SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (continueKeyword == null)
+                throw new ArgumentNullException(nameof(continueKeyword));
+              switch (continueKeyword.Kind)
+              {
+                case SyntaxKind.ContinueKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(continueKeyword));
+              }
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ContinueStatement, continueKeyword, semicolonToken, out hash);
+              if (cached != null) return (ContinueStatementSyntax)cached;
+
+              var result = new ContinueStatementSyntax(SyntaxKind.ContinueStatement, continueKeyword, semicolonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ReturnStatementSyntax ReturnStatement(SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (returnKeyword == null)
+                throw new ArgumentNullException(nameof(returnKeyword));
+              switch (returnKeyword.Kind)
+              {
+                case SyntaxKind.ReturnKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(returnKeyword));
+              }
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ReturnStatement, returnKeyword, expression, semicolonToken, out hash);
+              if (cached != null) return (ReturnStatementSyntax)cached;
+
+              var result = new ReturnStatementSyntax(SyntaxKind.ReturnStatement, returnKeyword, expression, semicolonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ThrowStatementSyntax ThrowStatement(SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (throwKeyword == null)
+                throw new ArgumentNullException(nameof(throwKeyword));
+              switch (throwKeyword.Kind)
+              {
+                case SyntaxKind.ThrowKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(throwKeyword));
+              }
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ThrowStatement, throwKeyword, expression, semicolonToken, out hash);
+              if (cached != null) return (ThrowStatementSyntax)cached;
+
+              var result = new ThrowStatementSyntax(SyntaxKind.ThrowStatement, throwKeyword, expression, semicolonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static YieldStatementSyntax YieldStatement(SyntaxKind kind, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.YieldReturnStatement:
+                case SyntaxKind.YieldBreakStatement:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (yieldKeyword == null)
+                throw new ArgumentNullException(nameof(yieldKeyword));
+              switch (yieldKeyword.Kind)
+              {
+                case SyntaxKind.YieldKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(yieldKeyword));
+              }
+              if (returnOrBreakKeyword == null)
+                throw new ArgumentNullException(nameof(returnOrBreakKeyword));
+              switch (returnOrBreakKeyword.Kind)
+              {
+                case SyntaxKind.ReturnKeyword:
+                case SyntaxKind.BreakKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(returnOrBreakKeyword));
+              }
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              return new YieldStatementSyntax(kind, yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
+            }
+
+            public static WhileStatementSyntax WhileStatement(SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
+            {
+        #if DEBUG
+              if (whileKeyword == null)
+                throw new ArgumentNullException(nameof(whileKeyword));
+              switch (whileKeyword.Kind)
+              {
+                case SyntaxKind.WhileKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(whileKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              return new WhileStatementSyntax(SyntaxKind.WhileStatement, whileKeyword, openParenToken, condition, closeParenToken, statement);
+            }
+
+            public static DoStatementSyntax DoStatement(SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (doKeyword == null)
+                throw new ArgumentNullException(nameof(doKeyword));
+              switch (doKeyword.Kind)
+              {
+                case SyntaxKind.DoKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(doKeyword));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+              if (whileKeyword == null)
+                throw new ArgumentNullException(nameof(whileKeyword));
+              switch (whileKeyword.Kind)
+              {
+                case SyntaxKind.WhileKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(whileKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              return new DoStatementSyntax(SyntaxKind.DoStatement, doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
+            }
+
+            public static ForStatementSyntax ForStatement(SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
+            {
+        #if DEBUG
+              if (forKeyword == null)
+                throw new ArgumentNullException(nameof(forKeyword));
+              switch (forKeyword.Kind)
+              {
+                case SyntaxKind.ForKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(forKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (firstSemicolonToken == null)
+                throw new ArgumentNullException(nameof(firstSemicolonToken));
+              switch (firstSemicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(firstSemicolonToken));
+              }
+              if (secondSemicolonToken == null)
+                throw new ArgumentNullException(nameof(secondSemicolonToken));
+              switch (secondSemicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(secondSemicolonToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              return new ForStatementSyntax(SyntaxKind.ForStatement, forKeyword, openParenToken, declaration, initializers.Node, firstSemicolonToken, condition, secondSemicolonToken, incrementors.Node, closeParenToken, statement);
+            }
+
+            public static ForEachStatementSyntax ForEachStatement(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+            {
+        #if DEBUG
+              if (awaitKeyword != null)
+              {
+              switch (awaitKeyword.Kind)
+              {
+                case SyntaxKind.AwaitKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(awaitKeyword));
+              }
+              }
+              if (forEachKeyword == null)
+                throw new ArgumentNullException(nameof(forEachKeyword));
+              switch (forEachKeyword.Kind)
+              {
+                case SyntaxKind.ForEachKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(forEachKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (inKeyword == null)
+                throw new ArgumentNullException(nameof(inKeyword));
+              switch (inKeyword.Kind)
+              {
+                case SyntaxKind.InKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(inKeyword));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              return new ForEachStatementSyntax(SyntaxKind.ForEachStatement, awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
+            }
+
+            public static ForEachVariableStatementSyntax ForEachVariableStatement(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+            {
+        #if DEBUG
+              if (awaitKeyword != null)
+              {
+              switch (awaitKeyword.Kind)
+              {
+                case SyntaxKind.AwaitKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(awaitKeyword));
+              }
+              }
+              if (forEachKeyword == null)
+                throw new ArgumentNullException(nameof(forEachKeyword));
+              switch (forEachKeyword.Kind)
+              {
+                case SyntaxKind.ForEachKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(forEachKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (variable == null)
+                throw new ArgumentNullException(nameof(variable));
+              if (inKeyword == null)
+                throw new ArgumentNullException(nameof(inKeyword));
+              switch (inKeyword.Kind)
+              {
+                case SyntaxKind.InKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(inKeyword));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              return new ForEachVariableStatementSyntax(SyntaxKind.ForEachVariableStatement, awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
+            }
+
+            public static UsingStatementSyntax UsingStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+            {
+        #if DEBUG
+              if (awaitKeyword != null)
+              {
+              switch (awaitKeyword.Kind)
+              {
+                case SyntaxKind.AwaitKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(awaitKeyword));
+              }
+              }
+              if (usingKeyword == null)
+                throw new ArgumentNullException(nameof(usingKeyword));
+              switch (usingKeyword.Kind)
+              {
+                case SyntaxKind.UsingKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(usingKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              return new UsingStatementSyntax(SyntaxKind.UsingStatement, awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
+            }
+
+            public static FixedStatementSyntax FixedStatement(SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
+            {
+        #if DEBUG
+              if (fixedKeyword == null)
+                throw new ArgumentNullException(nameof(fixedKeyword));
+              switch (fixedKeyword.Kind)
+              {
+                case SyntaxKind.FixedKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(fixedKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (declaration == null)
+                throw new ArgumentNullException(nameof(declaration));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              return new FixedStatementSyntax(SyntaxKind.FixedStatement, fixedKeyword, openParenToken, declaration, closeParenToken, statement);
+            }
+
+            public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, SyntaxToken keyword, BlockSyntax block)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.CheckedStatement:
+                case SyntaxKind.UncheckedStatement:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.CheckedKeyword:
+                case SyntaxKind.UncheckedKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (block == null)
+                throw new ArgumentNullException(nameof(block));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, keyword, block, out hash);
+              if (cached != null) return (CheckedStatementSyntax)cached;
+
+              var result = new CheckedStatementSyntax(kind, keyword, block);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static UnsafeStatementSyntax UnsafeStatement(SyntaxToken unsafeKeyword, BlockSyntax block)
+            {
+        #if DEBUG
+              if (unsafeKeyword == null)
+                throw new ArgumentNullException(nameof(unsafeKeyword));
+              switch (unsafeKeyword.Kind)
+              {
+                case SyntaxKind.UnsafeKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(unsafeKeyword));
+              }
+              if (block == null)
+                throw new ArgumentNullException(nameof(block));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.UnsafeStatement, unsafeKeyword, block, out hash);
+              if (cached != null) return (UnsafeStatementSyntax)cached;
+
+              var result = new UnsafeStatementSyntax(SyntaxKind.UnsafeStatement, unsafeKeyword, block);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static LockStatementSyntax LockStatement(SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+            {
+        #if DEBUG
+              if (lockKeyword == null)
+                throw new ArgumentNullException(nameof(lockKeyword));
+              switch (lockKeyword.Kind)
+              {
+                case SyntaxKind.LockKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(lockKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              return new LockStatementSyntax(SyntaxKind.LockStatement, lockKeyword, openParenToken, expression, closeParenToken, statement);
+            }
+
+            public static IfStatementSyntax IfStatement(SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
+            {
+        #if DEBUG
+              if (ifKeyword == null)
+                throw new ArgumentNullException(nameof(ifKeyword));
+              switch (ifKeyword.Kind)
+              {
+                case SyntaxKind.IfKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(ifKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              return new IfStatementSyntax(SyntaxKind.IfStatement, ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
+            }
+
+            public static ElseClauseSyntax ElseClause(SyntaxToken elseKeyword, StatementSyntax statement)
+            {
+        #if DEBUG
+              if (elseKeyword == null)
+                throw new ArgumentNullException(nameof(elseKeyword));
+              switch (elseKeyword.Kind)
+              {
+                case SyntaxKind.ElseKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(elseKeyword));
+              }
+              if (statement == null)
+                throw new ArgumentNullException(nameof(statement));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ElseClause, elseKeyword, statement, out hash);
+              if (cached != null) return (ElseClauseSyntax)cached;
+
+              var result = new ElseClauseSyntax(SyntaxKind.ElseClause, elseKeyword, statement);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static SwitchStatementSyntax SwitchStatement(SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
+            {
+        #if DEBUG
+              if (switchKeyword == null)
+                throw new ArgumentNullException(nameof(switchKeyword));
+              switch (switchKeyword.Kind)
+              {
+                case SyntaxKind.SwitchKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(switchKeyword));
+              }
+              if (openParenToken != null)
+              {
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+              if (closeParenToken != null)
+              {
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+              }
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+        #endif
+
+              return new SwitchStatementSyntax(SyntaxKind.SwitchStatement, switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections.Node, closeBraceToken);
+            }
+
+            public static SwitchSectionSyntax SwitchSection(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchLabelSyntax> labels, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements)
+            {
+        #if DEBUG
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SwitchSection, labels.Node, statements.Node, out hash);
+              if (cached != null) return (SwitchSectionSyntax)cached;
+
+              var result = new SwitchSectionSyntax(SyntaxKind.SwitchSection, labels.Node, statements.Node);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static CasePatternSwitchLabelSyntax CasePatternSwitchLabel(SyntaxToken keyword, PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken colonToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.CaseKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (pattern == null)
+                throw new ArgumentNullException(nameof(pattern));
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+        #endif
+
+              return new CasePatternSwitchLabelSyntax(SyntaxKind.CasePatternSwitchLabel, keyword, pattern, whenClause, colonToken);
+            }
+
+            public static CaseSwitchLabelSyntax CaseSwitchLabel(SyntaxToken keyword, ExpressionSyntax value, SyntaxToken colonToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.CaseKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (value == null)
+                throw new ArgumentNullException(nameof(value));
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CaseSwitchLabel, keyword, value, colonToken, out hash);
+              if (cached != null) return (CaseSwitchLabelSyntax)cached;
+
+              var result = new CaseSwitchLabelSyntax(SyntaxKind.CaseSwitchLabel, keyword, value, colonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static DefaultSwitchLabelSyntax DefaultSwitchLabel(SyntaxToken keyword, SyntaxToken colonToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.DefaultKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DefaultSwitchLabel, keyword, colonToken, out hash);
+              if (cached != null) return (DefaultSwitchLabelSyntax)cached;
+
+              var result = new DefaultSwitchLabelSyntax(SyntaxKind.DefaultSwitchLabel, keyword, colonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static SwitchExpressionSyntax SwitchExpression(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
+            {
+        #if DEBUG
+              if (governingExpression == null)
+                throw new ArgumentNullException(nameof(governingExpression));
+              if (switchKeyword == null)
+                throw new ArgumentNullException(nameof(switchKeyword));
+              switch (switchKeyword.Kind)
+              {
+                case SyntaxKind.SwitchKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(switchKeyword));
+              }
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+        #endif
+
+              return new SwitchExpressionSyntax(SyntaxKind.SwitchExpression, governingExpression, switchKeyword, openBraceToken, arms.Node, closeBraceToken);
+            }
+
+            public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (pattern == null)
+                throw new ArgumentNullException(nameof(pattern));
+              if (equalsGreaterThanToken == null)
+                throw new ArgumentNullException(nameof(equalsGreaterThanToken));
+              switch (equalsGreaterThanToken.Kind)
+              {
+                case SyntaxKind.EqualsGreaterThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(equalsGreaterThanToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              return new SwitchExpressionArmSyntax(SyntaxKind.SwitchExpressionArm, pattern, whenClause, equalsGreaterThanToken, expression);
+            }
+
+            public static TryStatementSyntax TryStatement(SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
+            {
+        #if DEBUG
+              if (tryKeyword == null)
+                throw new ArgumentNullException(nameof(tryKeyword));
+              switch (tryKeyword.Kind)
+              {
+                case SyntaxKind.TryKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(tryKeyword));
+              }
+              if (block == null)
+                throw new ArgumentNullException(nameof(block));
+        #endif
+
+              return new TryStatementSyntax(SyntaxKind.TryStatement, tryKeyword, block, catches.Node, @finally);
+            }
+
+            public static CatchClauseSyntax CatchClause(SyntaxToken catchKeyword, CatchDeclarationSyntax declaration, CatchFilterClauseSyntax filter, BlockSyntax block)
+            {
+        #if DEBUG
+              if (catchKeyword == null)
+                throw new ArgumentNullException(nameof(catchKeyword));
+              switch (catchKeyword.Kind)
+              {
+                case SyntaxKind.CatchKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(catchKeyword));
+              }
+              if (block == null)
+                throw new ArgumentNullException(nameof(block));
+        #endif
+
+              return new CatchClauseSyntax(SyntaxKind.CatchClause, catchKeyword, declaration, filter, block);
+            }
+
+            public static CatchDeclarationSyntax CatchDeclaration(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (identifier != null)
+              {
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              return new CatchDeclarationSyntax(SyntaxKind.CatchDeclaration, openParenToken, type, identifier, closeParenToken);
+            }
+
+            public static CatchFilterClauseSyntax CatchFilterClause(SyntaxToken whenKeyword, SyntaxToken openParenToken, ExpressionSyntax filterExpression, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (whenKeyword == null)
+                throw new ArgumentNullException(nameof(whenKeyword));
+              switch (whenKeyword.Kind)
+              {
+                case SyntaxKind.WhenKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(whenKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (filterExpression == null)
+                throw new ArgumentNullException(nameof(filterExpression));
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              return new CatchFilterClauseSyntax(SyntaxKind.CatchFilterClause, whenKeyword, openParenToken, filterExpression, closeParenToken);
+            }
+
+            public static FinallyClauseSyntax FinallyClause(SyntaxToken finallyKeyword, BlockSyntax block)
+            {
+        #if DEBUG
+              if (finallyKeyword == null)
+                throw new ArgumentNullException(nameof(finallyKeyword));
+              switch (finallyKeyword.Kind)
+              {
+                case SyntaxKind.FinallyKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(finallyKeyword));
+              }
+              if (block == null)
+                throw new ArgumentNullException(nameof(block));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.FinallyClause, finallyKeyword, block, out hash);
+              if (cached != null) return (FinallyClauseSyntax)cached;
+
+              var result = new FinallyClauseSyntax(SyntaxKind.FinallyClause, finallyKeyword, block);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static CompilationUnitSyntax CompilationUnit(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken endOfFileToken)
+            {
+        #if DEBUG
+              if (endOfFileToken == null)
+                throw new ArgumentNullException(nameof(endOfFileToken));
+              switch (endOfFileToken.Kind)
+              {
+                case SyntaxKind.EndOfFileToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfFileToken));
+              }
+        #endif
+
+              return new CompilationUnitSyntax(SyntaxKind.CompilationUnit, externs.Node, usings.Node, attributeLists.Node, members.Node, endOfFileToken);
+            }
+
+            public static ExternAliasDirectiveSyntax ExternAliasDirective(SyntaxToken externKeyword, SyntaxToken aliasKeyword, SyntaxToken identifier, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (externKeyword == null)
+                throw new ArgumentNullException(nameof(externKeyword));
+              switch (externKeyword.Kind)
+              {
+                case SyntaxKind.ExternKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(externKeyword));
+              }
+              if (aliasKeyword == null)
+                throw new ArgumentNullException(nameof(aliasKeyword));
+              switch (aliasKeyword.Kind)
+              {
+                case SyntaxKind.AliasKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(aliasKeyword));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              return new ExternAliasDirectiveSyntax(SyntaxKind.ExternAliasDirective, externKeyword, aliasKeyword, identifier, semicolonToken);
+            }
+
+            public static UsingDirectiveSyntax UsingDirective(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax alias, NameSyntax name, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (usingKeyword == null)
+                throw new ArgumentNullException(nameof(usingKeyword));
+              switch (usingKeyword.Kind)
+              {
+                case SyntaxKind.UsingKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(usingKeyword));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              return new UsingDirectiveSyntax(SyntaxKind.UsingDirective, usingKeyword, staticKeyword, alias, name, semicolonToken);
+            }
+
+            public static NamespaceDeclarationSyntax NamespaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<ExternAliasDirectiveSyntax> externs, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<UsingDirectiveSyntax> usings, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (namespaceKeyword == null)
+                throw new ArgumentNullException(nameof(namespaceKeyword));
+              switch (namespaceKeyword.Kind)
+              {
+                case SyntaxKind.NamespaceKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(namespaceKeyword));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new NamespaceDeclarationSyntax(SyntaxKind.NamespaceDeclaration, attributeLists.Node, modifiers.Node, namespaceKeyword, name, openBraceToken, externs.Node, usings.Node, members.Node, closeBraceToken, semicolonToken);
+            }
+
+            public static AttributeListSyntax AttributeList(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax target, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)
+            {
+        #if DEBUG
+              if (openBracketToken == null)
+                throw new ArgumentNullException(nameof(openBracketToken));
+              switch (openBracketToken.Kind)
+              {
+                case SyntaxKind.OpenBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBracketToken));
+              }
+              if (closeBracketToken == null)
+                throw new ArgumentNullException(nameof(closeBracketToken));
+              switch (closeBracketToken.Kind)
+              {
+                case SyntaxKind.CloseBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBracketToken));
+              }
+        #endif
+
+              return new AttributeListSyntax(SyntaxKind.AttributeList, openBracketToken, target, attributes.Node, closeBracketToken);
+            }
+
+            public static AttributeTargetSpecifierSyntax AttributeTargetSpecifier(SyntaxToken identifier, SyntaxToken colonToken)
+            {
+        #if DEBUG
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+              switch (colonToken.Kind)
+              {
+                case SyntaxKind.ColonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(colonToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AttributeTargetSpecifier, identifier, colonToken, out hash);
+              if (cached != null) return (AttributeTargetSpecifierSyntax)cached;
+
+              var result = new AttributeTargetSpecifierSyntax(SyntaxKind.AttributeTargetSpecifier, identifier, colonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static AttributeSyntax Attribute(NameSyntax name, AttributeArgumentListSyntax argumentList)
+            {
+        #if DEBUG
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Attribute, name, argumentList, out hash);
+              if (cached != null) return (AttributeSyntax)cached;
+
+              var result = new AttributeSyntax(SyntaxKind.Attribute, name, argumentList);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static AttributeArgumentListSyntax AttributeArgumentList(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AttributeArgumentList, openParenToken, arguments.Node, closeParenToken, out hash);
+              if (cached != null) return (AttributeArgumentListSyntax)cached;
+
+              var result = new AttributeArgumentListSyntax(SyntaxKind.AttributeArgumentList, openParenToken, arguments.Node, closeParenToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static AttributeArgumentSyntax AttributeArgument(NameEqualsSyntax nameEquals, NameColonSyntax nameColon, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AttributeArgument, nameEquals, nameColon, expression, out hash);
+              if (cached != null) return (AttributeArgumentSyntax)cached;
+
+              var result = new AttributeArgumentSyntax(SyntaxKind.AttributeArgument, nameEquals, nameColon, expression);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static NameEqualsSyntax NameEquals(IdentifierNameSyntax name, SyntaxToken equalsToken)
+            {
+        #if DEBUG
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (equalsToken == null)
+                throw new ArgumentNullException(nameof(equalsToken));
+              switch (equalsToken.Kind)
+              {
+                case SyntaxKind.EqualsToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(equalsToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NameEquals, name, equalsToken, out hash);
+              if (cached != null) return (NameEqualsSyntax)cached;
+
+              var result = new NameEqualsSyntax(SyntaxKind.NameEquals, name, equalsToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static TypeParameterListSyntax TypeParameterList(SyntaxToken lessThanToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterSyntax> parameters, SyntaxToken greaterThanToken)
+            {
+        #if DEBUG
+              if (lessThanToken == null)
+                throw new ArgumentNullException(nameof(lessThanToken));
+              switch (lessThanToken.Kind)
+              {
+                case SyntaxKind.LessThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(lessThanToken));
+              }
+              if (greaterThanToken == null)
+                throw new ArgumentNullException(nameof(greaterThanToken));
+              switch (greaterThanToken.Kind)
+              {
+                case SyntaxKind.GreaterThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(greaterThanToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypeParameterList, lessThanToken, parameters.Node, greaterThanToken, out hash);
+              if (cached != null) return (TypeParameterListSyntax)cached;
+
+              var result = new TypeParameterListSyntax(SyntaxKind.TypeParameterList, lessThanToken, parameters.Node, greaterThanToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static TypeParameterSyntax TypeParameter(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken varianceKeyword, SyntaxToken identifier)
+            {
+        #if DEBUG
+              if (varianceKeyword != null)
+              {
+              switch (varianceKeyword.Kind)
+              {
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.OutKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(varianceKeyword));
+              }
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypeParameter, attributeLists.Node, varianceKeyword, identifier, out hash);
+              if (cached != null) return (TypeParameterSyntax)cached;
+
+              var result = new TypeParameterSyntax(SyntaxKind.TypeParameter, attributeLists.Node, varianceKeyword, identifier);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ClassDeclarationSyntax ClassDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.ClassKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new ClassDeclarationSyntax(SyntaxKind.ClassDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+            }
+
+            public static StructDeclarationSyntax StructDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.StructKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new StructDeclarationSyntax(SyntaxKind.StructDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+            }
+
+            public static InterfaceDeclarationSyntax InterfaceDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, BaseListSyntax baseList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.InterfaceKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new InterfaceDeclarationSyntax(SyntaxKind.InterfaceDeclaration, attributeLists.Node, modifiers.Node, keyword, identifier, typeParameterList, baseList, constraintClauses.Node, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+            }
+
+            public static EnumDeclarationSyntax EnumDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax baseList, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (enumKeyword == null)
+                throw new ArgumentNullException(nameof(enumKeyword));
+              switch (enumKeyword.Kind)
+              {
+                case SyntaxKind.EnumKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(enumKeyword));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new EnumDeclarationSyntax(SyntaxKind.EnumDeclaration, attributeLists.Node, modifiers.Node, enumKeyword, identifier, baseList, openBraceToken, members.Node, closeBraceToken, semicolonToken);
+            }
+
+            public static DelegateDeclarationSyntax DelegateDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (delegateKeyword == null)
+                throw new ArgumentNullException(nameof(delegateKeyword));
+              switch (delegateKeyword.Kind)
+              {
+                case SyntaxKind.DelegateKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(delegateKeyword));
+              }
+              if (returnType == null)
+                throw new ArgumentNullException(nameof(returnType));
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (parameterList == null)
+                throw new ArgumentNullException(nameof(parameterList));
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              return new DelegateDeclarationSyntax(SyntaxKind.DelegateDeclaration, attributeLists.Node, modifiers.Node, delegateKeyword, returnType, identifier, typeParameterList, parameterList, constraintClauses.Node, semicolonToken);
+            }
+
+            public static EnumMemberDeclarationSyntax EnumMemberDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
+            {
+        #if DEBUG
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+        #endif
+
+              return new EnumMemberDeclarationSyntax(SyntaxKind.EnumMemberDeclaration, attributeLists.Node, modifiers.Node, identifier, equalsValue);
+            }
+
+            public static BaseListSyntax BaseList(SyntaxToken colonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<BaseTypeSyntax> types)
+            {
+        #if DEBUG
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+              switch (colonToken.Kind)
+              {
+                case SyntaxKind.ColonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(colonToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BaseList, colonToken, types.Node, out hash);
+              if (cached != null) return (BaseListSyntax)cached;
+
+              var result = new BaseListSyntax(SyntaxKind.BaseList, colonToken, types.Node);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
+            {
+        #if DEBUG
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SimpleBaseType, type, out hash);
+              if (cached != null) return (SimpleBaseTypeSyntax)cached;
+
+              var result = new SimpleBaseTypeSyntax(SyntaxKind.SimpleBaseType, type);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static TypeParameterConstraintClauseSyntax TypeParameterConstraintClause(SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<TypeParameterConstraintSyntax> constraints)
+            {
+        #if DEBUG
+              if (whereKeyword == null)
+                throw new ArgumentNullException(nameof(whereKeyword));
+              switch (whereKeyword.Kind)
+              {
+                case SyntaxKind.WhereKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(whereKeyword));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+              switch (colonToken.Kind)
+              {
+                case SyntaxKind.ColonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(colonToken));
+              }
+        #endif
+
+              return new TypeParameterConstraintClauseSyntax(SyntaxKind.TypeParameterConstraintClause, whereKeyword, name, colonToken, constraints.Node);
+            }
+
+            public static ConstructorConstraintSyntax ConstructorConstraint(SyntaxToken newKeyword, SyntaxToken openParenToken, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (newKeyword == null)
+                throw new ArgumentNullException(nameof(newKeyword));
+              switch (newKeyword.Kind)
+              {
+                case SyntaxKind.NewKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(newKeyword));
+              }
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ConstructorConstraint, newKeyword, openParenToken, closeParenToken, out hash);
+              if (cached != null) return (ConstructorConstraintSyntax)cached;
+
+              var result = new ConstructorConstraintSyntax(SyntaxKind.ConstructorConstraint, newKeyword, openParenToken, closeParenToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ClassOrStructConstraintSyntax ClassOrStructConstraint(SyntaxKind kind, SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.ClassConstraint:
+                case SyntaxKind.StructConstraint:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (classOrStructKeyword == null)
+                throw new ArgumentNullException(nameof(classOrStructKeyword));
+              switch (classOrStructKeyword.Kind)
+              {
+                case SyntaxKind.ClassKeyword:
+                case SyntaxKind.StructKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(classOrStructKeyword));
+              }
+              if (questionToken != null)
+              {
+              switch (questionToken.Kind)
+              {
+                case SyntaxKind.QuestionToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(questionToken));
+              }
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, classOrStructKeyword, questionToken, out hash);
+              if (cached != null) return (ClassOrStructConstraintSyntax)cached;
+
+              var result = new ClassOrStructConstraintSyntax(kind, classOrStructKeyword, questionToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static TypeConstraintSyntax TypeConstraint(TypeSyntax type)
+            {
+        #if DEBUG
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypeConstraint, type, out hash);
+              if (cached != null) return (TypeConstraintSyntax)cached;
+
+              var result = new TypeConstraintSyntax(SyntaxKind.TypeConstraint, type);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static FieldDeclarationSyntax FieldDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (declaration == null)
+                throw new ArgumentNullException(nameof(declaration));
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              return new FieldDeclarationSyntax(SyntaxKind.FieldDeclaration, attributeLists.Node, modifiers.Node, declaration, semicolonToken);
+            }
+
+            public static EventFieldDeclarationSyntax EventFieldDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken eventKeyword, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (eventKeyword == null)
+                throw new ArgumentNullException(nameof(eventKeyword));
+              switch (eventKeyword.Kind)
+              {
+                case SyntaxKind.EventKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(eventKeyword));
+              }
+              if (declaration == null)
+                throw new ArgumentNullException(nameof(declaration));
+              if (semicolonToken == null)
+                throw new ArgumentNullException(nameof(semicolonToken));
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+        #endif
+
+              return new EventFieldDeclarationSyntax(SyntaxKind.EventFieldDeclaration, attributeLists.Node, modifiers.Node, eventKeyword, declaration, semicolonToken);
+            }
+
+            public static ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier(NameSyntax name, SyntaxToken dotToken)
+            {
+        #if DEBUG
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (dotToken == null)
+                throw new ArgumentNullException(nameof(dotToken));
+              switch (dotToken.Kind)
+              {
+                case SyntaxKind.DotToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(dotToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ExplicitInterfaceSpecifier, name, dotToken, out hash);
+              if (cached != null) return (ExplicitInterfaceSpecifierSyntax)cached;
+
+              var result = new ExplicitInterfaceSpecifierSyntax(SyntaxKind.ExplicitInterfaceSpecifier, name, dotToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static MethodDeclarationSyntax MethodDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (returnType == null)
+                throw new ArgumentNullException(nameof(returnType));
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (parameterList == null)
+                throw new ArgumentNullException(nameof(parameterList));
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new MethodDeclarationSyntax(SyntaxKind.MethodDeclaration, attributeLists.Node, modifiers.Node, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken);
+            }
+
+            public static OperatorDeclarationSyntax OperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (returnType == null)
+                throw new ArgumentNullException(nameof(returnType));
+              if (operatorKeyword == null)
+                throw new ArgumentNullException(nameof(operatorKeyword));
+              switch (operatorKeyword.Kind)
+              {
+                case SyntaxKind.OperatorKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorKeyword));
+              }
+              if (operatorToken == null)
+                throw new ArgumentNullException(nameof(operatorToken));
+              switch (operatorToken.Kind)
+              {
+                case SyntaxKind.PlusToken:
+                case SyntaxKind.MinusToken:
+                case SyntaxKind.ExclamationToken:
+                case SyntaxKind.TildeToken:
+                case SyntaxKind.PlusPlusToken:
+                case SyntaxKind.MinusMinusToken:
+                case SyntaxKind.AsteriskToken:
+                case SyntaxKind.SlashToken:
+                case SyntaxKind.PercentToken:
+                case SyntaxKind.LessThanLessThanToken:
+                case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.BarToken:
+                case SyntaxKind.AmpersandToken:
+                case SyntaxKind.CaretToken:
+                case SyntaxKind.EqualsEqualsToken:
+                case SyntaxKind.ExclamationEqualsToken:
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.LessThanEqualsToken:
+                case SyntaxKind.GreaterThanToken:
+                case SyntaxKind.GreaterThanEqualsToken:
+                case SyntaxKind.FalseKeyword:
+                case SyntaxKind.TrueKeyword:
+                case SyntaxKind.IsKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorToken));
+              }
+              if (parameterList == null)
+                throw new ArgumentNullException(nameof(parameterList));
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new OperatorDeclarationSyntax(SyntaxKind.OperatorDeclaration, attributeLists.Node, modifiers.Node, returnType, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
+            }
+
+            public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (implicitOrExplicitKeyword == null)
+                throw new ArgumentNullException(nameof(implicitOrExplicitKeyword));
+              switch (implicitOrExplicitKeyword.Kind)
+              {
+                case SyntaxKind.ImplicitKeyword:
+                case SyntaxKind.ExplicitKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(implicitOrExplicitKeyword));
+              }
+              if (operatorKeyword == null)
+                throw new ArgumentNullException(nameof(operatorKeyword));
+              switch (operatorKeyword.Kind)
+              {
+                case SyntaxKind.OperatorKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorKeyword));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (parameterList == null)
+                throw new ArgumentNullException(nameof(parameterList));
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new ConversionOperatorDeclarationSyntax(SyntaxKind.ConversionOperatorDeclaration, attributeLists.Node, modifiers.Node, implicitOrExplicitKeyword, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken);
+            }
+
+            public static ConstructorDeclarationSyntax ConstructorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax initializer, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (parameterList == null)
+                throw new ArgumentNullException(nameof(parameterList));
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new ConstructorDeclarationSyntax(SyntaxKind.ConstructorDeclaration, attributeLists.Node, modifiers.Node, identifier, parameterList, initializer, body, expressionBody, semicolonToken);
+            }
+
+            public static ConstructorInitializerSyntax ConstructorInitializer(SyntaxKind kind, SyntaxToken colonToken, SyntaxToken thisOrBaseKeyword, ArgumentListSyntax argumentList)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.BaseConstructorInitializer:
+                case SyntaxKind.ThisConstructorInitializer:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+              switch (colonToken.Kind)
+              {
+                case SyntaxKind.ColonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(colonToken));
+              }
+              if (thisOrBaseKeyword == null)
+                throw new ArgumentNullException(nameof(thisOrBaseKeyword));
+              switch (thisOrBaseKeyword.Kind)
+              {
+                case SyntaxKind.BaseKeyword:
+                case SyntaxKind.ThisKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(thisOrBaseKeyword));
+              }
+              if (argumentList == null)
+                throw new ArgumentNullException(nameof(argumentList));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)kind, colonToken, thisOrBaseKeyword, argumentList, out hash);
+              if (cached != null) return (ConstructorInitializerSyntax)cached;
+
+              var result = new ConstructorInitializerSyntax(kind, colonToken, thisOrBaseKeyword, argumentList);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static DestructorDeclarationSyntax DestructorDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (tildeToken == null)
+                throw new ArgumentNullException(nameof(tildeToken));
+              switch (tildeToken.Kind)
+              {
+                case SyntaxKind.TildeToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(tildeToken));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (parameterList == null)
+                throw new ArgumentNullException(nameof(parameterList));
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new DestructorDeclarationSyntax(SyntaxKind.DestructorDeclaration, attributeLists.Node, modifiers.Node, tildeToken, identifier, parameterList, body, expressionBody, semicolonToken);
+            }
+
+            public static PropertyDeclarationSyntax PropertyDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, EqualsValueClauseSyntax initializer, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new PropertyDeclarationSyntax(SyntaxKind.PropertyDeclaration, attributeLists.Node, modifiers.Node, type, explicitInterfaceSpecifier, identifier, accessorList, expressionBody, initializer, semicolonToken);
+            }
+
+            public static ArrowExpressionClauseSyntax ArrowExpressionClause(SyntaxToken arrowToken, ExpressionSyntax expression)
+            {
+        #if DEBUG
+              if (arrowToken == null)
+                throw new ArgumentNullException(nameof(arrowToken));
+              switch (arrowToken.Kind)
+              {
+                case SyntaxKind.EqualsGreaterThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(arrowToken));
+              }
+              if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ArrowExpressionClause, arrowToken, expression, out hash);
+              if (cached != null) return (ArrowExpressionClauseSyntax)cached;
+
+              var result = new ArrowExpressionClauseSyntax(SyntaxKind.ArrowExpressionClause, arrowToken, expression);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static EventDeclarationSyntax EventDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax accessorList, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (eventKeyword == null)
+                throw new ArgumentNullException(nameof(eventKeyword));
+              switch (eventKeyword.Kind)
+              {
+                case SyntaxKind.EventKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(eventKeyword));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new EventDeclarationSyntax(SyntaxKind.EventDeclaration, attributeLists.Node, modifiers.Node, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken);
+            }
+
+            public static IndexerDeclarationSyntax IndexerDeclaration(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax accessorList, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+            {
+        #if DEBUG
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+              if (thisKeyword == null)
+                throw new ArgumentNullException(nameof(thisKeyword));
+              switch (thisKeyword.Kind)
+              {
+                case SyntaxKind.ThisKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(thisKeyword));
+              }
+              if (parameterList == null)
+                throw new ArgumentNullException(nameof(parameterList));
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new IndexerDeclarationSyntax(SyntaxKind.IndexerDeclaration, attributeLists.Node, modifiers.Node, type, explicitInterfaceSpecifier, thisKeyword, parameterList, accessorList, expressionBody, semicolonToken);
+            }
+
+            public static AccessorListSyntax AccessorList(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AccessorDeclarationSyntax> accessors, SyntaxToken closeBraceToken)
+            {
+        #if DEBUG
+              if (openBraceToken == null)
+                throw new ArgumentNullException(nameof(openBraceToken));
+              switch (openBraceToken.Kind)
+              {
+                case SyntaxKind.OpenBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBraceToken));
+              }
+              if (closeBraceToken == null)
+                throw new ArgumentNullException(nameof(closeBraceToken));
+              switch (closeBraceToken.Kind)
+              {
+                case SyntaxKind.CloseBraceToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBraceToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.AccessorList, openBraceToken, accessors.Node, closeBraceToken, out hash);
+              if (cached != null) return (AccessorListSyntax)cached;
+
+              var result = new AccessorListSyntax(SyntaxKind.AccessorList, openBraceToken, accessors.Node, closeBraceToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, SyntaxToken keyword, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.UnknownAccessorDeclaration:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (keyword == null)
+                throw new ArgumentNullException(nameof(keyword));
+              switch (keyword.Kind)
+              {
+                case SyntaxKind.GetKeyword:
+                case SyntaxKind.SetKeyword:
+                case SyntaxKind.AddKeyword:
+                case SyntaxKind.RemoveKeyword:
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(keyword));
+              }
+              if (semicolonToken != null)
+              {
+              switch (semicolonToken.Kind)
+              {
+                case SyntaxKind.SemicolonToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(semicolonToken));
+              }
+              }
+        #endif
+
+              return new AccessorDeclarationSyntax(kind, attributeLists.Node, modifiers.Node, keyword, body, expressionBody, semicolonToken);
+            }
+
+            public static ParameterListSyntax ParameterList(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ParameterList, openParenToken, parameters.Node, closeParenToken, out hash);
+              if (cached != null) return (ParameterListSyntax)cached;
+
+              var result = new ParameterListSyntax(SyntaxKind.ParameterList, openParenToken, parameters.Node, closeParenToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static BracketedParameterListSyntax BracketedParameterList(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeBracketToken)
+            {
+        #if DEBUG
+              if (openBracketToken == null)
+                throw new ArgumentNullException(nameof(openBracketToken));
+              switch (openBracketToken.Kind)
+              {
+                case SyntaxKind.OpenBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBracketToken));
+              }
+              if (closeBracketToken == null)
+                throw new ArgumentNullException(nameof(closeBracketToken));
+              switch (closeBracketToken.Kind)
+              {
+                case SyntaxKind.CloseBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBracketToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BracketedParameterList, openBracketToken, parameters.Node, closeBracketToken, out hash);
+              if (cached != null) return (BracketedParameterListSyntax)cached;
+
+              var result = new BracketedParameterListSyntax(SyntaxKind.BracketedParameterList, openBracketToken, parameters.Node, closeBracketToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ParameterSyntax Parameter(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken identifier, EqualsValueClauseSyntax @default)
+            {
+        #if DEBUG
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              switch (identifier.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.ArgListKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(identifier));
+              }
+        #endif
+
+              return new ParameterSyntax(SyntaxKind.Parameter, attributeLists.Node, modifiers.Node, type, identifier, @default);
+            }
+
+            public static IncompleteMemberSyntax IncompleteMember(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax type)
+            {
+        #if DEBUG
+        #endif
+
+              return new IncompleteMemberSyntax(SyntaxKind.IncompleteMember, attributeLists.Node, modifiers.Node, type);
+            }
+
+            public static SkippedTokensTriviaSyntax SkippedTokensTrivia(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> tokens)
+            {
+        #if DEBUG
+        #endif
+
+              return new SkippedTokensTriviaSyntax(SyntaxKind.SkippedTokensTrivia, tokens.Node);
+            }
+
+            public static DocumentationCommentTriviaSyntax DocumentationCommentTrivia(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> content, SyntaxToken endOfComment)
+            {
+              switch (kind)
+              {
+                case SyntaxKind.SingleLineDocumentationCommentTrivia:
+                case SyntaxKind.MultiLineDocumentationCommentTrivia:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(kind));
+              }
+        #if DEBUG
+              if (endOfComment == null)
+                throw new ArgumentNullException(nameof(endOfComment));
+              switch (endOfComment.Kind)
+              {
+                case SyntaxKind.EndOfDocumentationCommentToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfComment));
+              }
+        #endif
+
+              return new DocumentationCommentTriviaSyntax(kind, content.Node, endOfComment);
+            }
+
+            public static TypeCrefSyntax TypeCref(TypeSyntax type)
+            {
+        #if DEBUG
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypeCref, type, out hash);
+              if (cached != null) return (TypeCrefSyntax)cached;
+
+              var result = new TypeCrefSyntax(SyntaxKind.TypeCref, type);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static QualifiedCrefSyntax QualifiedCref(TypeSyntax container, SyntaxToken dotToken, MemberCrefSyntax member)
+            {
+        #if DEBUG
+              if (container == null)
+                throw new ArgumentNullException(nameof(container));
+              if (dotToken == null)
+                throw new ArgumentNullException(nameof(dotToken));
+              switch (dotToken.Kind)
+              {
+                case SyntaxKind.DotToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(dotToken));
+              }
+              if (member == null)
+                throw new ArgumentNullException(nameof(member));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.QualifiedCref, container, dotToken, member, out hash);
+              if (cached != null) return (QualifiedCrefSyntax)cached;
+
+              var result = new QualifiedCrefSyntax(SyntaxKind.QualifiedCref, container, dotToken, member);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static NameMemberCrefSyntax NameMemberCref(TypeSyntax name, CrefParameterListSyntax parameters)
+            {
+        #if DEBUG
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.NameMemberCref, name, parameters, out hash);
+              if (cached != null) return (NameMemberCrefSyntax)cached;
+
+              var result = new NameMemberCrefSyntax(SyntaxKind.NameMemberCref, name, parameters);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax parameters)
+            {
+        #if DEBUG
+              if (thisKeyword == null)
+                throw new ArgumentNullException(nameof(thisKeyword));
+              switch (thisKeyword.Kind)
+              {
+                case SyntaxKind.ThisKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(thisKeyword));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.IndexerMemberCref, thisKeyword, parameters, out hash);
+              if (cached != null) return (IndexerMemberCrefSyntax)cached;
+
+              var result = new IndexerMemberCrefSyntax(SyntaxKind.IndexerMemberCref, thisKeyword, parameters);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax parameters)
+            {
+        #if DEBUG
+              if (operatorKeyword == null)
+                throw new ArgumentNullException(nameof(operatorKeyword));
+              switch (operatorKeyword.Kind)
+              {
+                case SyntaxKind.OperatorKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorKeyword));
+              }
+              if (operatorToken == null)
+                throw new ArgumentNullException(nameof(operatorToken));
+              switch (operatorToken.Kind)
+              {
+                case SyntaxKind.PlusToken:
+                case SyntaxKind.MinusToken:
+                case SyntaxKind.ExclamationToken:
+                case SyntaxKind.TildeToken:
+                case SyntaxKind.PlusPlusToken:
+                case SyntaxKind.MinusMinusToken:
+                case SyntaxKind.AsteriskToken:
+                case SyntaxKind.SlashToken:
+                case SyntaxKind.PercentToken:
+                case SyntaxKind.LessThanLessThanToken:
+                case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.BarToken:
+                case SyntaxKind.AmpersandToken:
+                case SyntaxKind.CaretToken:
+                case SyntaxKind.EqualsEqualsToken:
+                case SyntaxKind.ExclamationEqualsToken:
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.LessThanEqualsToken:
+                case SyntaxKind.GreaterThanToken:
+                case SyntaxKind.GreaterThanEqualsToken:
+                case SyntaxKind.FalseKeyword:
+                case SyntaxKind.TrueKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.OperatorMemberCref, operatorKeyword, operatorToken, parameters, out hash);
+              if (cached != null) return (OperatorMemberCrefSyntax)cached;
+
+              var result = new OperatorMemberCrefSyntax(SyntaxKind.OperatorMemberCref, operatorKeyword, operatorToken, parameters);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax parameters)
+            {
+        #if DEBUG
+              if (implicitOrExplicitKeyword == null)
+                throw new ArgumentNullException(nameof(implicitOrExplicitKeyword));
+              switch (implicitOrExplicitKeyword.Kind)
+              {
+                case SyntaxKind.ImplicitKeyword:
+                case SyntaxKind.ExplicitKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(implicitOrExplicitKeyword));
+              }
+              if (operatorKeyword == null)
+                throw new ArgumentNullException(nameof(operatorKeyword));
+              switch (operatorKeyword.Kind)
+              {
+                case SyntaxKind.OperatorKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(operatorKeyword));
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+        #endif
+
+              return new ConversionOperatorMemberCrefSyntax(SyntaxKind.ConversionOperatorMemberCref, implicitOrExplicitKeyword, operatorKeyword, type, parameters);
+            }
+
+            public static CrefParameterListSyntax CrefParameterList(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeParenToken)
+            {
+        #if DEBUG
+              if (openParenToken == null)
+                throw new ArgumentNullException(nameof(openParenToken));
+              switch (openParenToken.Kind)
+              {
+                case SyntaxKind.OpenParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openParenToken));
+              }
+              if (closeParenToken == null)
+                throw new ArgumentNullException(nameof(closeParenToken));
+              switch (closeParenToken.Kind)
+              {
+                case SyntaxKind.CloseParenToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeParenToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CrefParameterList, openParenToken, parameters.Node, closeParenToken, out hash);
+              if (cached != null) return (CrefParameterListSyntax)cached;
+
+              var result = new CrefParameterListSyntax(SyntaxKind.CrefParameterList, openParenToken, parameters.Node, closeParenToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static CrefBracketedParameterListSyntax CrefBracketedParameterList(SyntaxToken openBracketToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeBracketToken)
+            {
+        #if DEBUG
+              if (openBracketToken == null)
+                throw new ArgumentNullException(nameof(openBracketToken));
+              switch (openBracketToken.Kind)
+              {
+                case SyntaxKind.OpenBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(openBracketToken));
+              }
+              if (closeBracketToken == null)
+                throw new ArgumentNullException(nameof(closeBracketToken));
+              switch (closeBracketToken.Kind)
+              {
+                case SyntaxKind.CloseBracketToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(closeBracketToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CrefBracketedParameterList, openBracketToken, parameters.Node, closeBracketToken, out hash);
+              if (cached != null) return (CrefBracketedParameterListSyntax)cached;
+
+              var result = new CrefBracketedParameterListSyntax(SyntaxKind.CrefBracketedParameterList, openBracketToken, parameters.Node, closeBracketToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static CrefParameterSyntax CrefParameter(SyntaxToken refKindKeyword, TypeSyntax type)
+            {
+        #if DEBUG
+              if (refKindKeyword != null)
+              {
+              switch (refKindKeyword.Kind)
+              {
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.OutKeyword:
+                case SyntaxKind.InKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(refKindKeyword));
+              }
+              }
+              if (type == null)
+                throw new ArgumentNullException(nameof(type));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.CrefParameter, refKindKeyword, type, out hash);
+              if (cached != null) return (CrefParameterSyntax)cached;
+
+              var result = new CrefParameterSyntax(SyntaxKind.CrefParameter, refKindKeyword, type);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static XmlElementSyntax XmlElement(XmlElementStartTagSyntax startTag, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlNodeSyntax> content, XmlElementEndTagSyntax endTag)
+            {
+        #if DEBUG
+              if (startTag == null)
+                throw new ArgumentNullException(nameof(startTag));
+              if (endTag == null)
+                throw new ArgumentNullException(nameof(endTag));
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlElement, startTag, content.Node, endTag, out hash);
+              if (cached != null) return (XmlElementSyntax)cached;
+
+              var result = new XmlElementSyntax(SyntaxKind.XmlElement, startTag, content.Node, endTag);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static XmlElementStartTagSyntax XmlElementStartTag(SyntaxToken lessThanToken, XmlNameSyntax name, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken greaterThanToken)
+            {
+        #if DEBUG
+              if (lessThanToken == null)
+                throw new ArgumentNullException(nameof(lessThanToken));
+              switch (lessThanToken.Kind)
+              {
+                case SyntaxKind.LessThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(lessThanToken));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (greaterThanToken == null)
+                throw new ArgumentNullException(nameof(greaterThanToken));
+              switch (greaterThanToken.Kind)
+              {
+                case SyntaxKind.GreaterThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(greaterThanToken));
+              }
+        #endif
+
+              return new XmlElementStartTagSyntax(SyntaxKind.XmlElementStartTag, lessThanToken, name, attributes.Node, greaterThanToken);
+            }
+
+            public static XmlElementEndTagSyntax XmlElementEndTag(SyntaxToken lessThanSlashToken, XmlNameSyntax name, SyntaxToken greaterThanToken)
+            {
+        #if DEBUG
+              if (lessThanSlashToken == null)
+                throw new ArgumentNullException(nameof(lessThanSlashToken));
+              switch (lessThanSlashToken.Kind)
+              {
+                case SyntaxKind.LessThanSlashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(lessThanSlashToken));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (greaterThanToken == null)
+                throw new ArgumentNullException(nameof(greaterThanToken));
+              switch (greaterThanToken.Kind)
+              {
+                case SyntaxKind.GreaterThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(greaterThanToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlElementEndTag, lessThanSlashToken, name, greaterThanToken, out hash);
+              if (cached != null) return (XmlElementEndTagSyntax)cached;
+
+              var result = new XmlElementEndTagSyntax(SyntaxKind.XmlElementEndTag, lessThanSlashToken, name, greaterThanToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static XmlEmptyElementSyntax XmlEmptyElement(SyntaxToken lessThanToken, XmlNameSyntax name, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
+            {
+        #if DEBUG
+              if (lessThanToken == null)
+                throw new ArgumentNullException(nameof(lessThanToken));
+              switch (lessThanToken.Kind)
+              {
+                case SyntaxKind.LessThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(lessThanToken));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (slashGreaterThanToken == null)
+                throw new ArgumentNullException(nameof(slashGreaterThanToken));
+              switch (slashGreaterThanToken.Kind)
+              {
+                case SyntaxKind.SlashGreaterThanToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(slashGreaterThanToken));
+              }
+        #endif
+
+              return new XmlEmptyElementSyntax(SyntaxKind.XmlEmptyElement, lessThanToken, name, attributes.Node, slashGreaterThanToken);
+            }
+
+            public static XmlNameSyntax XmlName(XmlPrefixSyntax prefix, SyntaxToken localName)
+            {
+        #if DEBUG
+              if (localName == null)
+                throw new ArgumentNullException(nameof(localName));
+              switch (localName.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(localName));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlName, prefix, localName, out hash);
+              if (cached != null) return (XmlNameSyntax)cached;
+
+              var result = new XmlNameSyntax(SyntaxKind.XmlName, prefix, localName);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static XmlPrefixSyntax XmlPrefix(SyntaxToken prefix, SyntaxToken colonToken)
+            {
+        #if DEBUG
+              if (prefix == null)
+                throw new ArgumentNullException(nameof(prefix));
+              switch (prefix.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(prefix));
+              }
+              if (colonToken == null)
+                throw new ArgumentNullException(nameof(colonToken));
+              switch (colonToken.Kind)
+              {
+                case SyntaxKind.ColonToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(colonToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlPrefix, prefix, colonToken, out hash);
+              if (cached != null) return (XmlPrefixSyntax)cached;
+
+              var result = new XmlPrefixSyntax(SyntaxKind.XmlPrefix, prefix, colonToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static XmlTextAttributeSyntax XmlTextAttribute(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken endQuoteToken)
+            {
+        #if DEBUG
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (equalsToken == null)
+                throw new ArgumentNullException(nameof(equalsToken));
+              switch (equalsToken.Kind)
+              {
+                case SyntaxKind.EqualsToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(equalsToken));
+              }
+              if (startQuoteToken == null)
+                throw new ArgumentNullException(nameof(startQuoteToken));
+              switch (startQuoteToken.Kind)
+              {
+                case SyntaxKind.SingleQuoteToken:
+                case SyntaxKind.DoubleQuoteToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(startQuoteToken));
+              }
+              if (endQuoteToken == null)
+                throw new ArgumentNullException(nameof(endQuoteToken));
+              switch (endQuoteToken.Kind)
+              {
+                case SyntaxKind.SingleQuoteToken:
+                case SyntaxKind.DoubleQuoteToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endQuoteToken));
+              }
+        #endif
+
+              return new XmlTextAttributeSyntax(SyntaxKind.XmlTextAttribute, name, equalsToken, startQuoteToken, textTokens.Node, endQuoteToken);
+            }
+
+            public static XmlCrefAttributeSyntax XmlCrefAttribute(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, CrefSyntax cref, SyntaxToken endQuoteToken)
+            {
+        #if DEBUG
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (equalsToken == null)
+                throw new ArgumentNullException(nameof(equalsToken));
+              switch (equalsToken.Kind)
+              {
+                case SyntaxKind.EqualsToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(equalsToken));
+              }
+              if (startQuoteToken == null)
+                throw new ArgumentNullException(nameof(startQuoteToken));
+              switch (startQuoteToken.Kind)
+              {
+                case SyntaxKind.SingleQuoteToken:
+                case SyntaxKind.DoubleQuoteToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(startQuoteToken));
+              }
+              if (cref == null)
+                throw new ArgumentNullException(nameof(cref));
+              if (endQuoteToken == null)
+                throw new ArgumentNullException(nameof(endQuoteToken));
+              switch (endQuoteToken.Kind)
+              {
+                case SyntaxKind.SingleQuoteToken:
+                case SyntaxKind.DoubleQuoteToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endQuoteToken));
+              }
+        #endif
+
+              return new XmlCrefAttributeSyntax(SyntaxKind.XmlCrefAttribute, name, equalsToken, startQuoteToken, cref, endQuoteToken);
+            }
+
+            public static XmlNameAttributeSyntax XmlNameAttribute(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, IdentifierNameSyntax identifier, SyntaxToken endQuoteToken)
+            {
+        #if DEBUG
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (equalsToken == null)
+                throw new ArgumentNullException(nameof(equalsToken));
+              switch (equalsToken.Kind)
+              {
+                case SyntaxKind.EqualsToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(equalsToken));
+              }
+              if (startQuoteToken == null)
+                throw new ArgumentNullException(nameof(startQuoteToken));
+              switch (startQuoteToken.Kind)
+              {
+                case SyntaxKind.SingleQuoteToken:
+                case SyntaxKind.DoubleQuoteToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(startQuoteToken));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              if (endQuoteToken == null)
+                throw new ArgumentNullException(nameof(endQuoteToken));
+              switch (endQuoteToken.Kind)
+              {
+                case SyntaxKind.SingleQuoteToken:
+                case SyntaxKind.DoubleQuoteToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endQuoteToken));
+              }
+        #endif
+
+              return new XmlNameAttributeSyntax(SyntaxKind.XmlNameAttribute, name, equalsToken, startQuoteToken, identifier, endQuoteToken);
+            }
+
+            public static XmlTextSyntax XmlText(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens)
+            {
+        #if DEBUG
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlText, textTokens.Node, out hash);
+              if (cached != null) return (XmlTextSyntax)cached;
+
+              var result = new XmlTextSyntax(SyntaxKind.XmlText, textTokens.Node);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static XmlCDataSectionSyntax XmlCDataSection(SyntaxToken startCDataToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken endCDataToken)
+            {
+        #if DEBUG
+              if (startCDataToken == null)
+                throw new ArgumentNullException(nameof(startCDataToken));
+              switch (startCDataToken.Kind)
+              {
+                case SyntaxKind.XmlCDataStartToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(startCDataToken));
+              }
+              if (endCDataToken == null)
+                throw new ArgumentNullException(nameof(endCDataToken));
+              switch (endCDataToken.Kind)
+              {
+                case SyntaxKind.XmlCDataEndToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endCDataToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlCDataSection, startCDataToken, textTokens.Node, endCDataToken, out hash);
+              if (cached != null) return (XmlCDataSectionSyntax)cached;
+
+              var result = new XmlCDataSectionSyntax(SyntaxKind.XmlCDataSection, startCDataToken, textTokens.Node, endCDataToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static XmlProcessingInstructionSyntax XmlProcessingInstruction(SyntaxToken startProcessingInstructionToken, XmlNameSyntax name, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken endProcessingInstructionToken)
+            {
+        #if DEBUG
+              if (startProcessingInstructionToken == null)
+                throw new ArgumentNullException(nameof(startProcessingInstructionToken));
+              switch (startProcessingInstructionToken.Kind)
+              {
+                case SyntaxKind.XmlProcessingInstructionStartToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(startProcessingInstructionToken));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              if (endProcessingInstructionToken == null)
+                throw new ArgumentNullException(nameof(endProcessingInstructionToken));
+              switch (endProcessingInstructionToken.Kind)
+              {
+                case SyntaxKind.XmlProcessingInstructionEndToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endProcessingInstructionToken));
+              }
+        #endif
+
+              return new XmlProcessingInstructionSyntax(SyntaxKind.XmlProcessingInstruction, startProcessingInstructionToken, name, textTokens.Node, endProcessingInstructionToken);
+            }
+
+            public static XmlCommentSyntax XmlComment(SyntaxToken lessThanExclamationMinusMinusToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> textTokens, SyntaxToken minusMinusGreaterThanToken)
+            {
+        #if DEBUG
+              if (lessThanExclamationMinusMinusToken == null)
+                throw new ArgumentNullException(nameof(lessThanExclamationMinusMinusToken));
+              switch (lessThanExclamationMinusMinusToken.Kind)
+              {
+                case SyntaxKind.XmlCommentStartToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(lessThanExclamationMinusMinusToken));
+              }
+              if (minusMinusGreaterThanToken == null)
+                throw new ArgumentNullException(nameof(minusMinusGreaterThanToken));
+              switch (minusMinusGreaterThanToken.Kind)
+              {
+                case SyntaxKind.XmlCommentEndToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(minusMinusGreaterThanToken));
+              }
+        #endif
+
+              int hash;
+              var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.XmlComment, lessThanExclamationMinusMinusToken, textTokens.Node, minusMinusGreaterThanToken, out hash);
+              if (cached != null) return (XmlCommentSyntax)cached;
+
+              var result = new XmlCommentSyntax(SyntaxKind.XmlComment, lessThanExclamationMinusMinusToken, textTokens.Node, minusMinusGreaterThanToken);
+              if (hash >= 0)
+              {
+                  SyntaxNodeCache.AddNode(result, hash);
+              }
+
+              return result;
+            }
+
+            public static IfDirectiveTriviaSyntax IfDirectiveTrivia(SyntaxToken hashToken, SyntaxToken ifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (ifKeyword == null)
+                throw new ArgumentNullException(nameof(ifKeyword));
+              switch (ifKeyword.Kind)
+              {
+                case SyntaxKind.IfKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(ifKeyword));
+              }
+              if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new IfDirectiveTriviaSyntax(SyntaxKind.IfDirectiveTrivia, hashToken, ifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
+            }
+
+            public static ElifDirectiveTriviaSyntax ElifDirectiveTrivia(SyntaxToken hashToken, SyntaxToken elifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (elifKeyword == null)
+                throw new ArgumentNullException(nameof(elifKeyword));
+              switch (elifKeyword.Kind)
+              {
+                case SyntaxKind.ElifKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(elifKeyword));
+              }
+              if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new ElifDirectiveTriviaSyntax(SyntaxKind.ElifDirectiveTrivia, hashToken, elifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
+            }
+
+            public static ElseDirectiveTriviaSyntax ElseDirectiveTrivia(SyntaxToken hashToken, SyntaxToken elseKeyword, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (elseKeyword == null)
+                throw new ArgumentNullException(nameof(elseKeyword));
+              switch (elseKeyword.Kind)
+              {
+                case SyntaxKind.ElseKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(elseKeyword));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new ElseDirectiveTriviaSyntax(SyntaxKind.ElseDirectiveTrivia, hashToken, elseKeyword, endOfDirectiveToken, isActive, branchTaken);
+            }
+
+            public static EndIfDirectiveTriviaSyntax EndIfDirectiveTrivia(SyntaxToken hashToken, SyntaxToken endIfKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (endIfKeyword == null)
+                throw new ArgumentNullException(nameof(endIfKeyword));
+              switch (endIfKeyword.Kind)
+              {
+                case SyntaxKind.EndIfKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endIfKeyword));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new EndIfDirectiveTriviaSyntax(SyntaxKind.EndIfDirectiveTrivia, hashToken, endIfKeyword, endOfDirectiveToken, isActive);
+            }
+
+            public static RegionDirectiveTriviaSyntax RegionDirectiveTrivia(SyntaxToken hashToken, SyntaxToken regionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (regionKeyword == null)
+                throw new ArgumentNullException(nameof(regionKeyword));
+              switch (regionKeyword.Kind)
+              {
+                case SyntaxKind.RegionKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(regionKeyword));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new RegionDirectiveTriviaSyntax(SyntaxKind.RegionDirectiveTrivia, hashToken, regionKeyword, endOfDirectiveToken, isActive);
+            }
+
+            public static EndRegionDirectiveTriviaSyntax EndRegionDirectiveTrivia(SyntaxToken hashToken, SyntaxToken endRegionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (endRegionKeyword == null)
+                throw new ArgumentNullException(nameof(endRegionKeyword));
+              switch (endRegionKeyword.Kind)
+              {
+                case SyntaxKind.EndRegionKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endRegionKeyword));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new EndRegionDirectiveTriviaSyntax(SyntaxKind.EndRegionDirectiveTrivia, hashToken, endRegionKeyword, endOfDirectiveToken, isActive);
+            }
+
+            public static ErrorDirectiveTriviaSyntax ErrorDirectiveTrivia(SyntaxToken hashToken, SyntaxToken errorKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (errorKeyword == null)
+                throw new ArgumentNullException(nameof(errorKeyword));
+              switch (errorKeyword.Kind)
+              {
+                case SyntaxKind.ErrorKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(errorKeyword));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new ErrorDirectiveTriviaSyntax(SyntaxKind.ErrorDirectiveTrivia, hashToken, errorKeyword, endOfDirectiveToken, isActive);
+            }
+
+            public static WarningDirectiveTriviaSyntax WarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken warningKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (warningKeyword == null)
+                throw new ArgumentNullException(nameof(warningKeyword));
+              switch (warningKeyword.Kind)
+              {
+                case SyntaxKind.WarningKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(warningKeyword));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new WarningDirectiveTriviaSyntax(SyntaxKind.WarningDirectiveTrivia, hashToken, warningKeyword, endOfDirectiveToken, isActive);
+            }
+
+            public static BadDirectiveTriviaSyntax BadDirectiveTrivia(SyntaxToken hashToken, SyntaxToken identifier, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new BadDirectiveTriviaSyntax(SyntaxKind.BadDirectiveTrivia, hashToken, identifier, endOfDirectiveToken, isActive);
+            }
+
+            public static DefineDirectiveTriviaSyntax DefineDirectiveTrivia(SyntaxToken hashToken, SyntaxToken defineKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (defineKeyword == null)
+                throw new ArgumentNullException(nameof(defineKeyword));
+              switch (defineKeyword.Kind)
+              {
+                case SyntaxKind.DefineKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(defineKeyword));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              switch (name.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(name));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new DefineDirectiveTriviaSyntax(SyntaxKind.DefineDirectiveTrivia, hashToken, defineKeyword, name, endOfDirectiveToken, isActive);
+            }
+
+            public static UndefDirectiveTriviaSyntax UndefDirectiveTrivia(SyntaxToken hashToken, SyntaxToken undefKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (undefKeyword == null)
+                throw new ArgumentNullException(nameof(undefKeyword));
+              switch (undefKeyword.Kind)
+              {
+                case SyntaxKind.UndefKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(undefKeyword));
+              }
+              if (name == null)
+                throw new ArgumentNullException(nameof(name));
+              switch (name.Kind)
+              {
+                case SyntaxKind.IdentifierToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(name));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new UndefDirectiveTriviaSyntax(SyntaxKind.UndefDirectiveTrivia, hashToken, undefKeyword, name, endOfDirectiveToken, isActive);
+            }
+
+            public static LineDirectiveTriviaSyntax LineDirectiveTrivia(SyntaxToken hashToken, SyntaxToken lineKeyword, SyntaxToken line, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (lineKeyword == null)
+                throw new ArgumentNullException(nameof(lineKeyword));
+              switch (lineKeyword.Kind)
+              {
+                case SyntaxKind.LineKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(lineKeyword));
+              }
+              if (line == null)
+                throw new ArgumentNullException(nameof(line));
+              switch (line.Kind)
+              {
+                case SyntaxKind.NumericLiteralToken:
+                case SyntaxKind.DefaultKeyword:
+                case SyntaxKind.HiddenKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(line));
+              }
+              if (file != null)
+              {
+              switch (file.Kind)
+              {
+                case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(file));
+              }
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new LineDirectiveTriviaSyntax(SyntaxKind.LineDirectiveTrivia, hashToken, lineKeyword, line, file, endOfDirectiveToken, isActive);
+            }
+
+            public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (pragmaKeyword == null)
+                throw new ArgumentNullException(nameof(pragmaKeyword));
+              switch (pragmaKeyword.Kind)
+              {
+                case SyntaxKind.PragmaKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(pragmaKeyword));
+              }
+              if (warningKeyword == null)
+                throw new ArgumentNullException(nameof(warningKeyword));
+              switch (warningKeyword.Kind)
+              {
+                case SyntaxKind.WarningKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(warningKeyword));
+              }
+              if (disableOrRestoreKeyword == null)
+                throw new ArgumentNullException(nameof(disableOrRestoreKeyword));
+              switch (disableOrRestoreKeyword.Kind)
+              {
+                case SyntaxKind.DisableKeyword:
+                case SyntaxKind.RestoreKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(disableOrRestoreKeyword));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new PragmaWarningDirectiveTriviaSyntax(SyntaxKind.PragmaWarningDirectiveTrivia, hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes.Node, endOfDirectiveToken, isActive);
+            }
+
+            public static PragmaChecksumDirectiveTriviaSyntax PragmaChecksumDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (pragmaKeyword == null)
+                throw new ArgumentNullException(nameof(pragmaKeyword));
+              switch (pragmaKeyword.Kind)
+              {
+                case SyntaxKind.PragmaKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(pragmaKeyword));
+              }
+              if (checksumKeyword == null)
+                throw new ArgumentNullException(nameof(checksumKeyword));
+              switch (checksumKeyword.Kind)
+              {
+                case SyntaxKind.ChecksumKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(checksumKeyword));
+              }
+              if (file == null)
+                throw new ArgumentNullException(nameof(file));
+              switch (file.Kind)
+              {
+                case SyntaxKind.StringLiteralToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(file));
+              }
+              if (guid == null)
+                throw new ArgumentNullException(nameof(guid));
+              switch (guid.Kind)
+              {
+                case SyntaxKind.StringLiteralToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(guid));
+              }
+              if (bytes == null)
+                throw new ArgumentNullException(nameof(bytes));
+              switch (bytes.Kind)
+              {
+                case SyntaxKind.StringLiteralToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(bytes));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new PragmaChecksumDirectiveTriviaSyntax(SyntaxKind.PragmaChecksumDirectiveTrivia, hashToken, pragmaKeyword, checksumKeyword, file, guid, bytes, endOfDirectiveToken, isActive);
+            }
+
+            public static ReferenceDirectiveTriviaSyntax ReferenceDirectiveTrivia(SyntaxToken hashToken, SyntaxToken referenceKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (referenceKeyword == null)
+                throw new ArgumentNullException(nameof(referenceKeyword));
+              switch (referenceKeyword.Kind)
+              {
+                case SyntaxKind.ReferenceKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(referenceKeyword));
+              }
+              if (file == null)
+                throw new ArgumentNullException(nameof(file));
+              switch (file.Kind)
+              {
+                case SyntaxKind.StringLiteralToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(file));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new ReferenceDirectiveTriviaSyntax(SyntaxKind.ReferenceDirectiveTrivia, hashToken, referenceKeyword, file, endOfDirectiveToken, isActive);
+            }
+
+            public static LoadDirectiveTriviaSyntax LoadDirectiveTrivia(SyntaxToken hashToken, SyntaxToken loadKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (loadKeyword == null)
+                throw new ArgumentNullException(nameof(loadKeyword));
+              switch (loadKeyword.Kind)
+              {
+                case SyntaxKind.LoadKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(loadKeyword));
+              }
+              if (file == null)
+                throw new ArgumentNullException(nameof(file));
+              switch (file.Kind)
+              {
+                case SyntaxKind.StringLiteralToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(file));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new LoadDirectiveTriviaSyntax(SyntaxKind.LoadDirectiveTrivia, hashToken, loadKeyword, file, endOfDirectiveToken, isActive);
+            }
+
+            public static ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (exclamationToken == null)
+                throw new ArgumentNullException(nameof(exclamationToken));
+              switch (exclamationToken.Kind)
+              {
+                case SyntaxKind.ExclamationToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(exclamationToken));
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, endOfDirectiveToken, isActive);
+            }
+
+            public static NullableDirectiveTriviaSyntax NullableDirectiveTrivia(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive)
+            {
+        #if DEBUG
+              if (hashToken == null)
+                throw new ArgumentNullException(nameof(hashToken));
+              switch (hashToken.Kind)
+              {
+                case SyntaxKind.HashToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(hashToken));
+              }
+              if (nullableKeyword == null)
+                throw new ArgumentNullException(nameof(nullableKeyword));
+              switch (nullableKeyword.Kind)
+              {
+                case SyntaxKind.NullableKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(nullableKeyword));
+              }
+              if (settingToken == null)
+                throw new ArgumentNullException(nameof(settingToken));
+              switch (settingToken.Kind)
+              {
+                case SyntaxKind.EnableKeyword:
+                case SyntaxKind.DisableKeyword:
+                case SyntaxKind.RestoreKeyword:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(settingToken));
+              }
+              if (targetToken != null)
+              {
+              switch (targetToken.Kind)
+              {
+                case SyntaxKind.WarningsKeyword:
+                case SyntaxKind.AnnotationsKeyword:
+                case SyntaxKind.None:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(targetToken));
+              }
+              }
+              if (endOfDirectiveToken == null)
+                throw new ArgumentNullException(nameof(endOfDirectiveToken));
+              switch (endOfDirectiveToken.Kind)
+              {
+                case SyntaxKind.EndOfDirectiveToken:
+                  break;
+                default:
+                  throw new ArgumentException(nameof(endOfDirectiveToken));
+              }
+        #endif
+
+              return new NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia, hashToken, nullableKeyword, settingToken, targetToken, endOfDirectiveToken, isActive);
+            }
+
+            internal static IEnumerable<Type> GetNodeTypes()
+            {
+                return new Type[] {
+                   typeof(IdentifierNameSyntax),
+                   typeof(QualifiedNameSyntax),
+                   typeof(GenericNameSyntax),
+                   typeof(TypeArgumentListSyntax),
+                   typeof(AliasQualifiedNameSyntax),
+                   typeof(PredefinedTypeSyntax),
+                   typeof(ArrayTypeSyntax),
+                   typeof(ArrayRankSpecifierSyntax),
+                   typeof(PointerTypeSyntax),
+                   typeof(NullableTypeSyntax),
+                   typeof(TupleTypeSyntax),
+                   typeof(TupleElementSyntax),
+                   typeof(OmittedTypeArgumentSyntax),
+                   typeof(RefTypeSyntax),
+                   typeof(ParenthesizedExpressionSyntax),
+                   typeof(TupleExpressionSyntax),
+                   typeof(PrefixUnaryExpressionSyntax),
+                   typeof(AwaitExpressionSyntax),
+                   typeof(PostfixUnaryExpressionSyntax),
+                   typeof(MemberAccessExpressionSyntax),
+                   typeof(ConditionalAccessExpressionSyntax),
+                   typeof(MemberBindingExpressionSyntax),
+                   typeof(ElementBindingExpressionSyntax),
+                   typeof(RangeExpressionSyntax),
+                   typeof(ImplicitElementAccessSyntax),
+                   typeof(BinaryExpressionSyntax),
+                   typeof(AssignmentExpressionSyntax),
+                   typeof(ConditionalExpressionSyntax),
+                   typeof(ThisExpressionSyntax),
+                   typeof(BaseExpressionSyntax),
+                   typeof(LiteralExpressionSyntax),
+                   typeof(MakeRefExpressionSyntax),
+                   typeof(RefTypeExpressionSyntax),
+                   typeof(RefValueExpressionSyntax),
+                   typeof(CheckedExpressionSyntax),
+                   typeof(DefaultExpressionSyntax),
+                   typeof(TypeOfExpressionSyntax),
+                   typeof(SizeOfExpressionSyntax),
+                   typeof(InvocationExpressionSyntax),
+                   typeof(ElementAccessExpressionSyntax),
+                   typeof(ArgumentListSyntax),
+                   typeof(BracketedArgumentListSyntax),
+                   typeof(ArgumentSyntax),
+                   typeof(NameColonSyntax),
+                   typeof(DeclarationExpressionSyntax),
+                   typeof(CastExpressionSyntax),
+                   typeof(AnonymousMethodExpressionSyntax),
+                   typeof(SimpleLambdaExpressionSyntax),
+                   typeof(RefExpressionSyntax),
+                   typeof(ParenthesizedLambdaExpressionSyntax),
+                   typeof(InitializerExpressionSyntax),
+                   typeof(ObjectCreationExpressionSyntax),
+                   typeof(AnonymousObjectMemberDeclaratorSyntax),
+                   typeof(AnonymousObjectCreationExpressionSyntax),
+                   typeof(ArrayCreationExpressionSyntax),
+                   typeof(ImplicitArrayCreationExpressionSyntax),
+                   typeof(StackAllocArrayCreationExpressionSyntax),
+                   typeof(ImplicitStackAllocArrayCreationExpressionSyntax),
+                   typeof(QueryExpressionSyntax),
+                   typeof(QueryBodySyntax),
+                   typeof(FromClauseSyntax),
+                   typeof(LetClauseSyntax),
+                   typeof(JoinClauseSyntax),
+                   typeof(JoinIntoClauseSyntax),
+                   typeof(WhereClauseSyntax),
+                   typeof(OrderByClauseSyntax),
+                   typeof(OrderingSyntax),
+                   typeof(SelectClauseSyntax),
+                   typeof(GroupClauseSyntax),
+                   typeof(QueryContinuationSyntax),
+                   typeof(OmittedArraySizeExpressionSyntax),
+                   typeof(InterpolatedStringExpressionSyntax),
+                   typeof(IsPatternExpressionSyntax),
+                   typeof(ThrowExpressionSyntax),
+                   typeof(WhenClauseSyntax),
+                   typeof(DiscardPatternSyntax),
+                   typeof(DeclarationPatternSyntax),
+                   typeof(VarPatternSyntax),
+                   typeof(RecursivePatternSyntax),
+                   typeof(PositionalPatternClauseSyntax),
+                   typeof(PropertyPatternClauseSyntax),
+                   typeof(SubpatternSyntax),
+                   typeof(ConstantPatternSyntax),
+                   typeof(InterpolatedStringTextSyntax),
+                   typeof(InterpolationSyntax),
+                   typeof(InterpolationAlignmentClauseSyntax),
+                   typeof(InterpolationFormatClauseSyntax),
+                   typeof(GlobalStatementSyntax),
+                   typeof(BlockSyntax),
+                   typeof(LocalFunctionStatementSyntax),
+                   typeof(LocalDeclarationStatementSyntax),
+                   typeof(VariableDeclarationSyntax),
+                   typeof(VariableDeclaratorSyntax),
+                   typeof(EqualsValueClauseSyntax),
+                   typeof(SingleVariableDesignationSyntax),
+                   typeof(DiscardDesignationSyntax),
+                   typeof(ParenthesizedVariableDesignationSyntax),
+                   typeof(ExpressionStatementSyntax),
+                   typeof(EmptyStatementSyntax),
+                   typeof(LabeledStatementSyntax),
+                   typeof(GotoStatementSyntax),
+                   typeof(BreakStatementSyntax),
+                   typeof(ContinueStatementSyntax),
+                   typeof(ReturnStatementSyntax),
+                   typeof(ThrowStatementSyntax),
+                   typeof(YieldStatementSyntax),
+                   typeof(WhileStatementSyntax),
+                   typeof(DoStatementSyntax),
+                   typeof(ForStatementSyntax),
+                   typeof(ForEachStatementSyntax),
+                   typeof(ForEachVariableStatementSyntax),
+                   typeof(UsingStatementSyntax),
+                   typeof(FixedStatementSyntax),
+                   typeof(CheckedStatementSyntax),
+                   typeof(UnsafeStatementSyntax),
+                   typeof(LockStatementSyntax),
+                   typeof(IfStatementSyntax),
+                   typeof(ElseClauseSyntax),
+                   typeof(SwitchStatementSyntax),
+                   typeof(SwitchSectionSyntax),
+                   typeof(CasePatternSwitchLabelSyntax),
+                   typeof(CaseSwitchLabelSyntax),
+                   typeof(DefaultSwitchLabelSyntax),
+                   typeof(SwitchExpressionSyntax),
+                   typeof(SwitchExpressionArmSyntax),
+                   typeof(TryStatementSyntax),
+                   typeof(CatchClauseSyntax),
+                   typeof(CatchDeclarationSyntax),
+                   typeof(CatchFilterClauseSyntax),
+                   typeof(FinallyClauseSyntax),
+                   typeof(CompilationUnitSyntax),
+                   typeof(ExternAliasDirectiveSyntax),
+                   typeof(UsingDirectiveSyntax),
+                   typeof(NamespaceDeclarationSyntax),
+                   typeof(AttributeListSyntax),
+                   typeof(AttributeTargetSpecifierSyntax),
+                   typeof(AttributeSyntax),
+                   typeof(AttributeArgumentListSyntax),
+                   typeof(AttributeArgumentSyntax),
+                   typeof(NameEqualsSyntax),
+                   typeof(TypeParameterListSyntax),
+                   typeof(TypeParameterSyntax),
+                   typeof(ClassDeclarationSyntax),
+                   typeof(StructDeclarationSyntax),
+                   typeof(InterfaceDeclarationSyntax),
+                   typeof(EnumDeclarationSyntax),
+                   typeof(DelegateDeclarationSyntax),
+                   typeof(EnumMemberDeclarationSyntax),
+                   typeof(BaseListSyntax),
+                   typeof(SimpleBaseTypeSyntax),
+                   typeof(TypeParameterConstraintClauseSyntax),
+                   typeof(ConstructorConstraintSyntax),
+                   typeof(ClassOrStructConstraintSyntax),
+                   typeof(TypeConstraintSyntax),
+                   typeof(FieldDeclarationSyntax),
+                   typeof(EventFieldDeclarationSyntax),
+                   typeof(ExplicitInterfaceSpecifierSyntax),
+                   typeof(MethodDeclarationSyntax),
+                   typeof(OperatorDeclarationSyntax),
+                   typeof(ConversionOperatorDeclarationSyntax),
+                   typeof(ConstructorDeclarationSyntax),
+                   typeof(ConstructorInitializerSyntax),
+                   typeof(DestructorDeclarationSyntax),
+                   typeof(PropertyDeclarationSyntax),
+                   typeof(ArrowExpressionClauseSyntax),
+                   typeof(EventDeclarationSyntax),
+                   typeof(IndexerDeclarationSyntax),
+                   typeof(AccessorListSyntax),
+                   typeof(AccessorDeclarationSyntax),
+                   typeof(ParameterListSyntax),
+                   typeof(BracketedParameterListSyntax),
+                   typeof(ParameterSyntax),
+                   typeof(IncompleteMemberSyntax),
+                   typeof(SkippedTokensTriviaSyntax),
+                   typeof(DocumentationCommentTriviaSyntax),
+                   typeof(TypeCrefSyntax),
+                   typeof(QualifiedCrefSyntax),
+                   typeof(NameMemberCrefSyntax),
+                   typeof(IndexerMemberCrefSyntax),
+                   typeof(OperatorMemberCrefSyntax),
+                   typeof(ConversionOperatorMemberCrefSyntax),
+                   typeof(CrefParameterListSyntax),
+                   typeof(CrefBracketedParameterListSyntax),
+                   typeof(CrefParameterSyntax),
+                   typeof(XmlElementSyntax),
+                   typeof(XmlElementStartTagSyntax),
+                   typeof(XmlElementEndTagSyntax),
+                   typeof(XmlEmptyElementSyntax),
+                   typeof(XmlNameSyntax),
+                   typeof(XmlPrefixSyntax),
+                   typeof(XmlTextAttributeSyntax),
+                   typeof(XmlCrefAttributeSyntax),
+                   typeof(XmlNameAttributeSyntax),
+                   typeof(XmlTextSyntax),
+                   typeof(XmlCDataSectionSyntax),
+                   typeof(XmlProcessingInstructionSyntax),
+                   typeof(XmlCommentSyntax),
+                   typeof(IfDirectiveTriviaSyntax),
+                   typeof(ElifDirectiveTriviaSyntax),
+                   typeof(ElseDirectiveTriviaSyntax),
+                   typeof(EndIfDirectiveTriviaSyntax),
+                   typeof(RegionDirectiveTriviaSyntax),
+                   typeof(EndRegionDirectiveTriviaSyntax),
+                   typeof(ErrorDirectiveTriviaSyntax),
+                   typeof(WarningDirectiveTriviaSyntax),
+                   typeof(BadDirectiveTriviaSyntax),
+                   typeof(DefineDirectiveTriviaSyntax),
+                   typeof(UndefDirectiveTriviaSyntax),
+                   typeof(LineDirectiveTriviaSyntax),
+                   typeof(PragmaWarningDirectiveTriviaSyntax),
+                   typeof(PragmaChecksumDirectiveTriviaSyntax),
+                   typeof(ReferenceDirectiveTriviaSyntax),
+                   typeof(LoadDirectiveTriviaSyntax),
+                   typeof(ShebangDirectiveTriviaSyntax),
+                   typeof(NullableDirectiveTriviaSyntax)
+                };
+            }
+    }
 }
