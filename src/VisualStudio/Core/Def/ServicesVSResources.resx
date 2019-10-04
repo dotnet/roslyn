@@ -1323,4 +1323,7 @@ I agree to all of the foregoing:</value>
   <data name="Updating_severity" xml:space="preserve">
     <value>Updating severity</value>
   </data>
+  <data name="Visual_Studio_detected_an_editorconfig_file_at_the_root_of_your_solution_Would_you_like_to_add_it_as_a_solution_item" xml:space="preserve">
+    <value>Visual Studio detected an .editorconfig file at the root of your solution. Would you like to add it as a solution item?</value>
+  </data>
 </root>

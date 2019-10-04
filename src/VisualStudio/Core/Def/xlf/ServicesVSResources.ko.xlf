@@ -517,6 +517,11 @@
         <target state="translated">호출로 반환된 값은 암시적으로 무시됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_detected_an_editorconfig_file_at_the_root_of_your_solution_Would_you_like_to_add_it_as_a_solution_item">
+        <source>Visual Studio detected an .editorconfig file at the root of your solution. Would you like to add it as a solution item?</source>
+        <target state="new">Visual Studio detected an .editorconfig file at the root of your solution. Would you like to add it as a solution item?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
         <target state="translated">'{0}'을(를) 일시 중단하신 것으로 보입니다. 계속 탐색하고 리팩터링하려면 키 매핑을 다시 설정하세요.</target>

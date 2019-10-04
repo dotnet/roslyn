@@ -3452,6 +3452,16 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Visual Studio detected an .editorconfig file at the root of your solution. Would you like to add it as a solution item?.
+        /// </summary>
+        internal static string Visual_Studio_detected_an_editorconfig_file_at_the_root_of_your_solution_Would_you_like_to_add_it_as_a_solution_item {
+            get {
+                return ResourceManager.GetString("Visual_Studio_detected_an_editorconfig_file_at_the_root_of_your_solution_Would_yo" +
+                        "u_like_to_add_it_as_a_solution_item", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Visual Studio has suspended some advanced features to improve performance..
         /// </summary>
         internal static string Visual_Studio_has_suspended_some_advanced_features_to_improve_performance {

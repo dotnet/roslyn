@@ -517,6 +517,11 @@
         <target state="translated">Çağrı ile döndürülen değer örtük olarak yok sayıldı</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_detected_an_editorconfig_file_at_the_root_of_your_solution_Would_you_like_to_add_it_as_a_solution_item">
+        <source>Visual Studio detected an .editorconfig file at the root of your solution. Would you like to add it as a solution item?</source>
+        <target state="new">Visual Studio detected an .editorconfig file at the root of your solution. Would you like to add it as a solution item?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
         <source>We notice you suspended '{0}'. Reset keymappings to continue to navigate and refactor.</source>
         <target state="translated">'{0}' öğesini askıya aldığınızı fark ettik. Gezintiye ve yeniden düzenlemeye devam etmek için tuş eşlemelerini sıfırlayın.</target>

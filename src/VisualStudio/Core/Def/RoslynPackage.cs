@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -47,6 +48,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
+        private SolutionUserOptionsProvider _solutionUserOptionsProvider;
+        private AnalyzerConfigDocumentAsSolutionItemHandler _analyzerConfigDocumentAsSolutionItemHandler;
+
+        public RoslynPackage()
+        {
+            foreach (var optionName in SolutionUserOptionNames.AllOptionNames)
+            {
+                AddOptionKey(optionName);
+            }
+        }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -74,6 +85,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             _componentModel.GetExtensions<IOptionPersister>();
+
+            _analyzerConfigDocumentAsSolutionItemHandler = this.ComponentModel.GetService<AnalyzerConfigDocumentAsSolutionItemHandler>();
+            _solutionUserOptionsProvider = this.ComponentModel.GetService<SolutionUserOptionsProvider>();
+            var vsSolution = (IVsSolution)await this.GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
+            _solutionUserOptionsProvider.Initialize(vsSolution);
 
             RoslynTelemetrySetup.Initialize(this);
 
@@ -186,6 +202,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 _solutionEventMonitor = null;
             }
 
+            _solutionUserOptionsProvider?.Dispose();
+            _solutionUserOptionsProvider = null;
+
+            _analyzerConfigDocumentAsSolutionItemHandler?.Dispose();
+            _analyzerConfigDocumentAsSolutionItemHandler = null;
+
             base.Dispose(disposing);
         }
 
@@ -230,6 +252,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 _ruleSetEventHandler.Unregister();
                 _ruleSetEventHandler = null;
             }
+        }
+
+        protected override void OnLoadOptions(string key, Stream stream)
+        {
+            _solutionUserOptionsProvider?.OnLoadOption(key, stream);
+            base.OnLoadOptions(key, stream);
+        }
+
+        protected override void OnSaveOptions(string key, Stream stream)
+        {
+            _solutionUserOptionsProvider?.OnSaveOption(key, stream);
+            base.OnSaveOptions(key, stream);
         }
 
         private void TrackBulkFileOperations()
