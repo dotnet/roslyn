@@ -7,8 +7,6 @@
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Scripting</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <!-- https://github.com/NuGet/Home/issues/8583 -->
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <PackageDescription>
       Microsoft .NET Compiler Platform ("Roslyn") CSharp and VB scripting package.
     </PackageDescription>
