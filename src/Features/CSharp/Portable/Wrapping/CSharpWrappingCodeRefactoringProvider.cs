@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
                 new CSharpArgumentWrapper(),
                 new CSharpParameterWrapper(),
                 new CSharpBinaryExpressionWrapper(),
-                new CSharpChainedExpressionWrapper());
+                new CSharpChainedExpressionWrapper(),
+                new CSharpInitializerExpressionWrapper());
 
         [ImportingConstructor]
         public CSharpWrappingCodeRefactoringProvider()
