@@ -431,5 +431,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 First = False
             Next
         End Sub
+
+        Public Overrides Function TryGetTargetTypeName(node As SyntaxNode, ByRef instanceTypeName As String) As Boolean
+            instanceTypeName = Nothing
+            Return False
+        End Function
     End Class
 End Namespace

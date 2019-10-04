@@ -15,19 +15,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IdentifierInfo _identifierInfo;
         private readonly ContextInfo _contextInfo;
         private readonly DeclarationInfo _declarationInfo;
+        private readonly ExtensionMethodInfo _extensionMethodInfo;
 
         private SyntaxTreeIndex(
             Checksum checksum,
             LiteralInfo literalInfo,
             IdentifierInfo identifierInfo,
             ContextInfo contextInfo,
-            DeclarationInfo declarationInfo)
+            DeclarationInfo declarationInfo,
+            ExtensionMethodInfo extensionMethodInfo)
         {
             this.Checksum = checksum;
             _literalInfo = literalInfo;
             _identifierInfo = identifierInfo;
             _contextInfo = contextInfo;
             _declarationInfo = declarationInfo;
+            _extensionMethodInfo = extensionMethodInfo;
         }
 
         private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new ConditionalWeakTable<Document, SyntaxTreeIndex>();

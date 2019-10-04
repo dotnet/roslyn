@@ -1936,5 +1936,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node)
             => CSharpSyntaxGenerator.GetAttributeLists(node);
+
+        public bool IsUsingAliasDirective(SyntaxNode node)
+            => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
     }
 }

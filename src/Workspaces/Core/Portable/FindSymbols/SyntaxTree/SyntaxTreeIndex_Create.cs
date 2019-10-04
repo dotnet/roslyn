@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
     {
         bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
+
+        bool TryGetTargetTypeName(SyntaxNode node, out string instanceTypeName);
     }
 
     internal sealed partial class SyntaxTreeIndex
@@ -60,6 +63,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
+            var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
+            var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
+
             try
             {
                 var containsForEachStatement = false;
@@ -73,6 +79,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var containsDeconstruction = false;
                 var containsAwait = false;
                 var containsTupleExpressionOrTupleType = false;
+                var containsUsingAliasDirective = false;
 
                 var predefinedTypes = (int)PredefinedType.None;
                 var predefinedOperators = (int)PredefinedOperator.None;
@@ -103,6 +110,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsTupleExpressionOrTupleType = containsTupleExpressionOrTupleType ||
                                 syntaxFacts.IsTupleExpression(node) || syntaxFacts.IsTupleType(node);
 
+                            containsUsingAliasDirective = containsUsingAliasDirective || syntaxFacts.IsUsingAliasDirective(node);
+
                             // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
                             // crash because the document's syntax root doesn't contain the span of the node returned
                             // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
@@ -117,7 +126,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             {
                                 if (root.FullSpan.Contains(declaredSymbolInfo.Span))
                                 {
+                                    var declaredSymbolInfoIndex = declaredSymbolInfos.Count;
                                     declaredSymbolInfos.Add(declaredSymbolInfo);
+
+                                    AddExtensionMethodInfo(infoFactory, node, containsUsingAliasDirective, declaredSymbolInfoIndex, declaredSymbolInfo, simpleExtensionMethodInfoBuilder, complexExtensionMethodInfoBuilder);
                                 }
                                 else
                                 {
@@ -214,14 +226,69 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsAwait,
                             containsTupleExpressionOrTupleType),
                     new DeclarationInfo(
-                            declaredSymbolInfos.ToImmutableAndFree()));
+                            declaredSymbolInfos.ToImmutableAndFree()),
+                    new ExtensionMethodInfo(
+                        simpleExtensionMethodInfoBuilder.ToImmutableDictionary(GetKey, GetImmutableValue),
+                        complexExtensionMethodInfoBuilder.ToImmutable()));
             }
             finally
             {
                 Free(ignoreCase, identifiers, escapedIdentifiers);
                 StringLiteralHashSetPool.ClearAndFree(stringLiterals);
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
+                simpleExtensionMethodInfoBuilder.Free();
+                complexExtensionMethodInfoBuilder.Free();
             }
+
+            static void AddExtensionMethodInfo(
+                IDeclaredSymbolInfoFactoryService infoFactory,
+                SyntaxNode node,
+                bool containsUsingAliasDirective,
+                int declaredSymbolInfoIndex,
+                DeclaredSymbolInfo declaredSymbolInfo,
+                PooledDictionary<string, ArrayBuilder<int>> simpleInfoBuilder,
+                ArrayBuilder<int> complextInfoBuilder)
+            {
+                if (declaredSymbolInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
+                {
+                    return;
+                }
+
+                // If there's using alias, we don't even try to figure out if the alias is related
+                // to the target type, simply treated it as complex type.
+                if (containsUsingAliasDirective || declaredSymbolInfo.TypeParameterCount > 0)
+                {
+                    complextInfoBuilder.Add(declaredSymbolInfoIndex);
+                    return;
+                }
+
+                if (!infoFactory.TryGetTargetTypeName(node, out var instanceTypeName))
+                {
+                    return;
+                }
+
+                // complex type
+                if (instanceTypeName == null)
+                {
+                    complextInfoBuilder.Add(declaredSymbolInfoIndex);
+                    return;
+                }
+
+                // simple type
+                if (!simpleInfoBuilder.TryGetValue(instanceTypeName, out var arrayBuilder))
+                {
+                    arrayBuilder = ArrayBuilder<int>.GetInstance();
+                    simpleInfoBuilder[instanceTypeName] = arrayBuilder;
+                }
+
+                arrayBuilder.Add(declaredSymbolInfoIndex);
+            }
+
+            static string GetKey(KeyValuePair<string, ArrayBuilder<int>> kvp)
+                => kvp.Key;
+
+            static ImmutableArray<int> GetImmutableValue(KeyValuePair<string, ArrayBuilder<int>> kvp)
+                => kvp.Value.ToImmutableAndFree();
         }
 
         private static StringTable GetStringTable(Project project)

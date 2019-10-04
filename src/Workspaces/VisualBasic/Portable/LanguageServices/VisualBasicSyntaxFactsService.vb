@@ -2062,5 +2062,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ISyntaxFactsService_IsExpressionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsExpressionStatement
             Return MyBase.IsExpressionStatement(node)
         End Function
+
+        Public Function IsUsingAliasDirective(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsUsingAliasDirective
+            Dim importStatement = TryCast(node, ImportsStatementSyntax)
+
+            If (importStatement IsNot Nothing) Then
+                For Each importsClause In importStatement.ImportsClauses
+
+                    If importsClause.Kind = SyntaxKind.SimpleImportsClause Then
+                        Dim simpleImportsClause = DirectCast(importsClause, SimpleImportsClauseSyntax)
+
+                        If simpleImportsClause.Alias IsNot Nothing Then
+                            Return True
+                        End If
+                    End If
+                Next
+            End If
+
+            Return False
+        End Function
     End Class
 End Namespace

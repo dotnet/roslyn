@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -492,5 +491,70 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         private bool IsExtensionMethod(MethodDeclarationSyntax method)
             => method.ParameterList.Parameters.Count > 0 &&
                method.ParameterList.Parameters[0].Modifiers.Any(SyntaxKind.ThisKeyword);
+
+        public override bool TryGetTargetTypeName(SyntaxNode node, out string targetTypeName)
+        {
+            if (node is MethodDeclarationSyntax methodDeclaration && IsExtensionMethod(methodDeclaration))
+            {
+                targetTypeName = GetTypeName(methodDeclaration.ParameterList.Parameters[0].Type);
+                return true;
+            }
+
+            targetTypeName = null;
+            return false;
+
+            static string GetTypeName(TypeSyntax typeNode)
+            {
+                switch (typeNode)
+                {
+                    case SimpleNameSyntax simpleNameNode:
+                        return simpleNameNode.Identifier.Text;
+
+                    case PredefinedTypeSyntax predefinedTypeNode:
+                        return GetSpecialTypeName(predefinedTypeNode);
+
+                    case AliasQualifiedNameSyntax aliasQualifiedNameNode:
+                        return GetTypeName(aliasQualifiedNameNode.Name);
+
+                    // TODO: Revisit this if we see a lot of extention methods for array types.
+                    //       For now treat it as complex type.
+                    //case ArrayTypeSyntax arrayNode:
+                    //    return GetTypeName(arrayNode.ElementType);
+
+                    case QualifiedNameSyntax qualifiedNameNode:
+                        return GetTypeName(qualifiedNameNode.Right);
+
+                    case NullableTypeSyntax nullableNode:
+                        return GetTypeName(nullableNode.ElementType);
+                }
+
+                // This is a complex type, we will not try to filter them with type name.
+                return null;
+            }
+
+            static string GetSpecialTypeName(PredefinedTypeSyntax predefinedTypeNode)
+            {
+                var kind = predefinedTypeNode.Keyword.Kind();
+                return kind switch
+                {
+                    SyntaxKind.BoolKeyword => "Boolean",
+                    SyntaxKind.ByteKeyword => "Byte",
+                    SyntaxKind.SByteKeyword => "SByte",
+                    SyntaxKind.ShortKeyword => "Int16",
+                    SyntaxKind.UShortKeyword => "UInt16",
+                    SyntaxKind.IntKeyword => "Int32",
+                    SyntaxKind.UIntKeyword => "UInt32",
+                    SyntaxKind.LongKeyword => "Int64",
+                    SyntaxKind.ULongKeyword => "UInt64",
+                    SyntaxKind.DoubleKeyword => "Double",
+                    SyntaxKind.FloatKeyword => "Single",
+                    SyntaxKind.DecimalKeyword => "Decimal",
+                    SyntaxKind.StringKeyword => "String",
+                    SyntaxKind.CharKeyword => "Char",
+                    SyntaxKind.ObjectKeyword => "Object",
+                    _ => null,
+                };
+            }
+        }
     }
 }

@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public abstract bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
+        public abstract bool TryGetTargetTypeName(SyntaxNode node, out string InstanceTypeName);
     }
 
     internal abstract class AbstractSyntaxFactsService

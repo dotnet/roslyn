@@ -2,13 +2,29 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal sealed partial class SyntaxTreeIndex
     {
         public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos => _declarationInfo.DeclaredSymbolInfos;
+
+        public ImmutableDictionary<string, ImmutableArray<int>> SimpleExtensionMethodInfo 
+            => _extensionMethodInfo.SimpleExtensionMethodInfo;
+        public ImmutableArray<int> ComplexExtensionMethodInfo
+            => _extensionMethodInfo.ComplexExtensionMethodInfo;
+        public bool ContainsExtensionMethod => SimpleExtensionMethodInfo.Count > 0 || ComplexExtensionMethodInfo.Length > 0;
+        public bool TryGetDeclaredSymbolInfo(int index, out DeclaredSymbolInfo declaredSymbolInfo)
+        {
+            if (index >= DeclaredSymbolInfos.Length)
+            {
+                declaredSymbolInfo = default;
+                return false;
+            }
+
+            declaredSymbolInfo = DeclaredSymbolInfos[index];
+            return true;
+        }
 
         public bool ProbablyContainsIdentifier(string identifier) => _identifierInfo.ProbablyContainsIdentifier(identifier);
         public bool ProbablyContainsEscapedIdentifier(string identifier) => _identifierInfo.ProbablyContainsEscapedIdentifier(identifier);
