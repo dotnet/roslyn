@@ -64,13 +64,13 @@ namespace CSharpSyntaxGenerator
 
             WriteLine();
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
-            WriteLine("{");
-            WriteLine("    using Microsoft.CodeAnalysis.CSharp.Syntax;");
-            WriteLine();
+            OpenBlock();
+            WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
             WriteLine("}");
+            CloseBlock();
         }
 
         private void WriteGreenTypes()
