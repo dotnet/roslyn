@@ -69,15 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
             }
 
-            var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfoOpt(binder.Compilation);
-            if (diagnosticInfo is object)
-            {
-                foreach (var attributeList in syntax.AttributeLists)
-                {
-                    _declarationDiagnostics.Add(diagnosticInfo, attributeList.Location);
-                }
-            }
-
             foreach (var param in syntax.ParameterList.Parameters)
             {
                 ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);

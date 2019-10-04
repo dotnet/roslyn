@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // incomplete members must be processed before we add any nodes to the body:
                                 AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
 
-                                body.Members.Add(_syntaxFactory.GlobalStatement(ParseUsingStatement()));
+                                body.Members.Add(_syntaxFactory.GlobalStatement(ParseUsingStatement(attributes: default)));
                                 seen = NamespaceParts.MembersAndStatements;
                             }
                             else
@@ -1974,14 +1974,14 @@ tryAgain:
                         case SyntaxKind.UnsafeKeyword:
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                             {
-                                return _syntaxFactory.GlobalStatement(ParseUnsafeStatement());
+                                return _syntaxFactory.GlobalStatement(ParseUnsafeStatement(attributes));
                             }
                             break;
 
                         case SyntaxKind.FixedKeyword:
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                             {
-                                return _syntaxFactory.GlobalStatement(ParseFixedStatement());
+                                return _syntaxFactory.GlobalStatement(ParseFixedStatement(attributes));
                             }
                             break;
 
@@ -1990,14 +1990,14 @@ tryAgain:
                             {
                                 case SyntaxKind.OpenParenToken:
                                 case SyntaxKind.OpenBraceToken:
-                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement());
+                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
                             }
                             break;
 
                         case SyntaxKind.NewKeyword:
                             if (IsPossibleNewExpression())
                             {
-                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement());
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement(attributes));
                             }
                             break;
                     }
@@ -2092,7 +2092,7 @@ tryAgain:
                     _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
 
                     // Any expression is allowed, not just expression statements:
-                    var statement = this.ParseStatementNoDeclaration(allowAnyExpression: true);
+                    var statement = this.TryParseStatementNoDeclaration(attributes, allowAnyExpression: true);
 
                     _termState = saveTerm;
                     if (statement != null)
@@ -2447,7 +2447,7 @@ parse_member_name:;
 
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
-                blockBody = this.ParseBlock(isMethodBody: true);
+                blockBody = this.ParseBlock(attributes: default, isMethodBody: true);
             }
 
             if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
@@ -2471,25 +2471,6 @@ parse_member_name:;
             else if (parseSemicolonAfterBlock && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
             {
                 semicolon = this.EatTokenWithPrejudice(ErrorCode.ERR_UnexpectedSemicolon);
-            }
-        }
-
-        private void ParseBodyOrSemicolon(out BlockSyntax body, out SyntaxToken semicolon)
-        {
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-            {
-                body = this.ParseBlock(isMethodBody: true);
-
-                semicolon = null;
-                if (this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
-                {
-                    semicolon = this.EatTokenWithPrejudice(ErrorCode.ERR_UnexpectedSemicolon);
-                }
-            }
-            else
-            {
-                semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-                body = null;
             }
         }
 
@@ -3302,7 +3283,7 @@ parse_member_name:;
                     {
                         if (!IsTerminator())
                         {
-                            blockBody = this.ParseBlock(isMethodBody: true, isAccessorBody: true);
+                            blockBody = this.ParseBlock(attributes: default, isMethodBody: true, isAccessorBody: true);
                         }
                         else
                         {
@@ -6291,12 +6272,14 @@ done:;
         public StatementSyntax ParseStatement()
         {
             return ParseWithStackGuard(
-                () => ParseStatementCore() ?? ParseExpressionStatement(),
-                () => SyntaxFactory.EmptyStatement(SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
+                () => TryParseStatementCore() ?? ParseExpressionStatement(attributes: default),
+                () => SyntaxFactory.EmptyStatement(attributeLists: default, SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken)));
         }
 
-        private StatementSyntax ParseStatementCore()
+        /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
+        private StatementSyntax TryParseStatementCore()
         {
+            var resetPointBeforeStatement = this.GetResetPoint();
             try
             {
                 _recursionDepth++;
@@ -6307,11 +6290,12 @@ done:;
                     return (StatementSyntax)this.EatNode();
                 }
 
-                // First, try to parse as a non-declaration statement. If the statement is a single
-                // expression then we only allow legal expression statements. (That is, "new C();",
-                // "C();", "x = y;" and so on.)
+                // All statements allow attributes in the syntax model (though not all support them in terms of the langauge).
+                // Start by parsing out the optional attributes that can proceed everything. Then determine how to
+                // parse the actual construct that follows.
+                var attributes = this.ParseAttributeDeclarations();
 
-                StatementSyntax result = ParseStatementNoDeclaration(allowAnyExpression: false);
+                StatementSyntax result = TryParseStatementNoDeclaration(attributes, allowAnyExpression: false);
                 if (result != null)
                 {
                     return result;
@@ -6321,20 +6305,31 @@ done:;
                 // it as either a declaration or as an "await X();" statement that is in a non-async
                 // method. 
 
-                return ParsePossibleDeclarationOrBadAwaitStatement();
+                result = TryParsePossibleDeclarationOrBadAwaitStatement(attributes);
+                if (result != null)
+                {
+                    return result;
+                }
+
+                // We didn't successfully parse anything.  If we parsed any attributes, we have to rewind
+                // to before them so that they don't get lost.
+                this.Reset(ref resetPointBeforeStatement);
+                return null;
             }
             finally
             {
                 _recursionDepth--;
+                this.Release(ref resetPointBeforeStatement);
             }
         }
 
-        private StatementSyntax ParsePossibleDeclarationOrBadAwaitStatement()
+        /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
+        private StatementSyntax TryParsePossibleDeclarationOrBadAwaitStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             ResetPoint resetPointBeforeStatement = this.GetResetPoint();
             try
             {
-                StatementSyntax result = ParsePossibleDeclarationOrBadAwaitStatement(ref resetPointBeforeStatement);
+                StatementSyntax result = TryParsePossibleDeclarationOrBadAwaitStatement(attributes, ref resetPointBeforeStatement);
                 return result;
             }
             finally
@@ -6343,7 +6338,9 @@ done:;
             }
         }
 
-        private StatementSyntax ParsePossibleDeclarationOrBadAwaitStatement(ref ResetPoint resetPointBeforeStatement)
+        /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
+        private StatementSyntax TryParsePossibleDeclarationOrBadAwaitStatement(
+            SyntaxList<AttributeListSyntax> attributes, ref ResetPoint resetPointBeforeStatement)
         {
             // Precondition: We have already attempted to parse the statement as a non-declaration and failed.
             //
@@ -6365,7 +6362,7 @@ done:;
             //    await expression regardless of whether the method is marked as "async".
 
             bool beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
-            StatementSyntax result = ParseLocalDeclarationStatement();
+            StatementSyntax result = TryParseLocalDeclarationStatement(attributes);
 
             // Case (1)
             if (result == null)
@@ -6391,7 +6388,7 @@ done:;
 
             this.Reset(ref resetPointBeforeStatement);
             IsInAsync = true;
-            result = ParseStatementNoDeclaration(allowAnyExpression: false);
+            result = TryParseStatementNoDeclaration(attributes, allowAnyExpression: false);
             IsInAsync = false;
 
             if (!result.ContainsDiagnostics)
@@ -6406,7 +6403,7 @@ done:;
             // a malformed local declaration, so back up and re-parse it.
 
             this.Reset(ref resetPointBeforeStatement);
-            result = ParseLocalDeclarationStatement();
+            result = TryParseLocalDeclarationStatement(attributes);
             Debug.Assert(result.ContainsDiagnostics);
 
             return result;
@@ -6418,90 +6415,94 @@ done:;
         /// <remarks>
         /// Variable declarations in global code are parsed as field declarations so we need to fallback if we encounter a declaration statement.
         /// </remarks>
-        private StatementSyntax ParseStatementNoDeclaration(bool allowAnyExpression)
+        /// <returns><c>null</c> when a statement cannot be parsed at this location.</returns>
+        private StatementSyntax TryParseStatementNoDeclaration(
+            SyntaxList<AttributeListSyntax> attributes, bool allowAnyExpression)
         {
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.FixedKeyword:
-                    return this.ParseFixedStatement();
+                    return this.ParseFixedStatement(attributes);
                 case SyntaxKind.BreakKeyword:
-                    return this.ParseBreakStatement();
+                    return this.ParseBreakStatement(attributes);
                 case SyntaxKind.ContinueKeyword:
-                    return this.ParseContinueStatement();
+                    return this.ParseContinueStatement(attributes);
                 case SyntaxKind.TryKeyword:
                 case SyntaxKind.CatchKeyword:
                 case SyntaxKind.FinallyKeyword:
-                    return this.ParseTryStatement();
+                    return this.ParseTryStatement(attributes);
                 case SyntaxKind.CheckedKeyword:
                 case SyntaxKind.UncheckedKeyword:
-                    return this.ParseCheckedStatement();
+                    return this.ParseCheckedStatement(attributes);
                 case SyntaxKind.ConstKeyword:
                     return null;
                 case SyntaxKind.DoKeyword:
-                    return this.ParseDoStatement();
+                    return this.ParseDoStatement(attributes);
                 case SyntaxKind.ForKeyword:
-                    return this.ParseForOrForEachStatement();
+                    return this.ParseForOrForEachStatement(attributes);
                 case SyntaxKind.ForEachKeyword:
-                    return this.ParseForEachStatement(awaitTokenOpt: default);
+                    return this.ParseForEachStatement(attributes, awaitTokenOpt: default);
                 case SyntaxKind.GotoKeyword:
-                    return this.ParseGotoStatement();
+                    return this.ParseGotoStatement(attributes);
                 case SyntaxKind.IfKeyword:
                 case SyntaxKind.ElseKeyword: // Including 'else' keyword to handle 'else without if' error cases 
-                    return this.ParseIfStatement();
+                    return this.ParseIfStatement(attributes);
                 case SyntaxKind.LockKeyword:
-                    return this.ParseLockStatement();
+                    return this.ParseLockStatement(attributes);
                 case SyntaxKind.ReturnKeyword:
-                    return this.ParseReturnStatement();
+                    return this.ParseReturnStatement(attributes);
                 case SyntaxKind.SwitchKeyword:
-                    return this.ParseSwitchStatement();
+                    return this.ParseSwitchStatement(attributes);
                 case SyntaxKind.ThrowKeyword:
-                    return this.ParseThrowStatement();
+                    return this.ParseThrowStatement(attributes);
                 case SyntaxKind.UnsafeKeyword:
                     // Checking for brace to disambiguate between unsafe statement and unsafe local function
                     if (this.IsPossibleUnsafeStatement())
                     {
-                        return this.ParseUnsafeStatement();
+                        return this.ParseUnsafeStatement(attributes);
                     }
                     break;
                 case SyntaxKind.UsingKeyword:
-                    return PeekToken(1).Kind == SyntaxKind.OpenParenToken ? this.ParseUsingStatement() : this.ParseLocalDeclarationStatement();
+                    return PeekToken(1).Kind == SyntaxKind.OpenParenToken
+                        ? this.ParseUsingStatement(attributes)
+                        : this.TryParseLocalDeclarationStatement(attributes);
                 case SyntaxKind.WhileKeyword:
-                    return this.ParseWhileStatement();
+                    return this.ParseWhileStatement(attributes);
                 case SyntaxKind.OpenBraceToken:
-                    return this.ParseBlock();
+                    return this.ParseBlock(attributes);
                 case SyntaxKind.SemicolonToken:
-                    return _syntaxFactory.EmptyStatement(this.EatToken());
+                    return _syntaxFactory.EmptyStatement(attributes, this.EatToken());
                 case SyntaxKind.IdentifierToken:
                     if (isPossibleAwaitForEach())
                     {
-                        return this.ParseForEachStatement(parseAwaitKeywordForAsyncStreams());
+                        return this.ParseForEachStatement(attributes, parseAwaitKeywordForAsyncStreams());
                     }
                     else if (isPossibleAwaitUsing())
                     {
                         if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
                         {
-                            return this.ParseUsingStatement(parseAwaitKeywordForAsyncStreams());
+                            return this.ParseUsingStatement(attributes, parseAwaitKeywordForAsyncStreams());
                         }
                         else
                         {
-                            return this.ParseLocalDeclarationStatement(parseAwaitKeywordForAsyncStreams());
+                            return this.TryParseLocalDeclarationStatement(attributes, parseAwaitKeywordForAsyncStreams());
                         }
                     }
                     else if (this.IsPossibleLabeledStatement())
                     {
-                        return this.ParseLabeledStatement();
+                        return this.ParseLabeledStatement(attributes);
                     }
                     else if (this.IsPossibleYieldStatement())
                     {
-                        return this.ParseYieldStatement();
+                        return this.ParseYieldStatement(attributes);
                     }
                     else if (this.IsPossibleAwaitExpressionStatement())
                     {
-                        return this.ParseExpressionStatement();
+                        return this.ParseExpressionStatement(attributes);
                     }
                     else if (this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: allowAnyExpression))
                     {
-                        return this.ParseExpressionStatement(this.ParseQueryExpression(0));
+                        return this.ParseExpressionStatement(attributes, this.ParseQueryExpression(0));
                     }
                     break;
             }
@@ -6512,7 +6513,7 @@ done:;
             }
             else
             {
-                return this.ParseExpressionStatement();
+                return this.ParseExpressionStatement(attributes);
             }
 
             bool isPossibleAwaitForEach()
@@ -6968,16 +6969,21 @@ done:;
             return null;
         }
 
+        private BlockSyntax ParsePossiblyAttributedBlock(bool isMethodBody = false, bool isAccessorBody = false)
+            => ParseBlock(this.ParseAttributeDeclarations(), isMethodBody, isAccessorBody);
+
         // If "isMethodBody" is true, then this is the immediate body of a method/accessor.
         // In this case, we create a many-child list if the body is not a small single statement.
         // This then allows a "with many weak children" red node when the red node is created.
         // If "isAccessorBody" is true, then we produce a special diagnostic if the open brace is
         // missing.  Also, "isMethodBody" must be true.
-        private BlockSyntax ParseBlock(bool isMethodBody = false, bool isAccessorBody = false)
+        private BlockSyntax ParseBlock(SyntaxList<AttributeListSyntax> attributes, bool isMethodBody = false, bool isAccessorBody = false)
         {
             // Check again for incremental re-use, since ParseBlock is called from a bunch of places
             // other than ParseStatementCore()
-            if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNodeKind == SyntaxKind.Block)
+            if (this.IsIncrementalAndFactoryContextMatches &&
+                this.CurrentNodeKind == SyntaxKind.Block &&
+                attributes.Count == 0)
             {
                 return (BlockSyntax)this.EatNode();
             }
@@ -7010,7 +7016,7 @@ done:;
                     statementList = statements;
                 }
 
-                return _syntaxFactory.Block(openBrace, statementList, closeBrace);
+                return _syntaxFactory.Block(attributes, openBrace, statementList, closeBrace);
             }
             finally
             {
@@ -7055,7 +7061,7 @@ done:;
             {
                 if (this.IsPossibleStatement(acceptAccessibilityMods: true))
                 {
-                    var statement = this.ParseStatementCore();
+                    var statement = this.TryParseStatementCore();
                     if (statement != null)
                     {
                         statements.Add(statement);
@@ -7155,7 +7161,7 @@ done:;
             }
         }
 
-        private FixedStatementSyntax ParseFixedStatement()
+        private FixedStatementSyntax ParseFixedStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             var @fixed = this.EatToken(SyntaxKind.FixedKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
@@ -7167,7 +7173,7 @@ done:;
 
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             StatementSyntax statement = this.ParseEmbeddedStatement();
-            return _syntaxFactory.FixedStatement(@fixed, openParen, decl, closeParen, statement);
+            return _syntaxFactory.FixedStatement(attributes, @fixed, openParen, decl, closeParen, statement);
         }
 
         private bool IsEndOfFixedStatement()
@@ -7182,7 +7188,7 @@ done:;
             // The consumers of embedded statements are expecting to receive a non-null statement 
             // yet there are several error conditions that can lead ParseStatementCore to return 
             // null.  When that occurs create an error empty Statement and return it to the caller.
-            StatementSyntax statement = this.ParseStatementCore() ?? SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
+            StatementSyntax statement = this.TryParseStatementCore() ?? SyntaxFactory.EmptyStatement(attributeLists: default, EatToken(SyntaxKind.SemicolonToken));
 
             switch (statement.Kind)
             {
@@ -7200,7 +7206,7 @@ done:;
                             !semicolonToken.GetDiagnostics().Contains(diagnosticInfo => (ErrorCode)diagnosticInfo.Code == ErrorCode.ERR_SemicolonExpected))
                         {
                             semicolonToken = this.AddError(semicolonToken, ErrorCode.ERR_SemicolonExpected);
-                            statement = expressionStatementSyntax.Update(expressionStatementSyntax.Expression, semicolonToken);
+                            statement = expressionStatementSyntax.Update(expressionStatementSyntax.AttributeLists, expressionStatementSyntax.Expression, semicolonToken);
                         }
                     }
 
@@ -7210,21 +7216,21 @@ done:;
             return statement;
         }
 
-        private BreakStatementSyntax ParseBreakStatement()
+        private BreakStatementSyntax ParseBreakStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             var breakKeyword = this.EatToken(SyntaxKind.BreakKeyword);
             var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-            return _syntaxFactory.BreakStatement(breakKeyword, semicolon);
+            return _syntaxFactory.BreakStatement(attributes, breakKeyword, semicolon);
         }
 
-        private ContinueStatementSyntax ParseContinueStatement()
+        private ContinueStatementSyntax ParseContinueStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             var continueKeyword = this.EatToken(SyntaxKind.ContinueKeyword);
             var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-            return _syntaxFactory.ContinueStatement(continueKeyword, semicolon);
+            return _syntaxFactory.ContinueStatement(attributes, continueKeyword, semicolon);
         }
 
-        private TryStatementSyntax ParseTryStatement()
+        private TryStatementSyntax ParseTryStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             var isInTry = _isInTry;
             _isInTry = true;
@@ -7234,13 +7240,14 @@ done:;
             BlockSyntax block;
             if (@try.IsMissing)
             {
-                block = _syntaxFactory.Block(this.EatToken(SyntaxKind.OpenBraceToken), default(SyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
+                block = _syntaxFactory.Block(
+                    attributeLists: default, this.EatToken(SyntaxKind.OpenBraceToken), default(SyntaxList<StatementSyntax>), this.EatToken(SyntaxKind.CloseBraceToken));
             }
             else
             {
                 var saveTerm = _termState;
                 _termState |= TerminatorState.IsEndOfTryBlock;
-                block = this.ParseBlock();
+                block = this.ParsePossiblyAttributedBlock();
                 _termState = saveTerm;
             }
 
@@ -7264,7 +7271,7 @@ done:;
                 {
                     hasEnd = true;
                     var fin = this.EatToken();
-                    var finBlock = this.ParseBlock();
+                    var finBlock = this.ParsePossiblyAttributedBlock();
                     @finally = _syntaxFactory.FinallyClause(fin, finBlock);
                 }
 
@@ -7276,6 +7283,7 @@ done:;
                     @finally = _syntaxFactory.FinallyClause(
                         SyntaxToken.CreateMissing(SyntaxKind.FinallyKeyword, null, null),
                         _syntaxFactory.Block(
+                            attributeLists: default,
                             SyntaxToken.CreateMissing(SyntaxKind.OpenBraceToken, null, null),
                             default(SyntaxList<StatementSyntax>),
                             SyntaxToken.CreateMissing(SyntaxKind.CloseBraceToken, null, null)));
@@ -7283,7 +7291,7 @@ done:;
 
                 _isInTry = isInTry;
 
-                return _syntaxFactory.TryStatement(@try, block, catches, @finally);
+                return _syntaxFactory.TryStatement(attributes, @try, block, catches, @finally);
             }
             finally
             {
@@ -7354,7 +7362,7 @@ done:;
             }
 
             _termState |= TerminatorState.IsEndOfCatchBlock;
-            var block = this.ParseBlock();
+            var block = this.ParsePossiblyAttributedBlock();
             _termState = saveTerm;
 
             return _syntaxFactory.CatchClause(@catch, decl, filter, block);
@@ -7384,21 +7392,21 @@ done:;
                 || this.CurrentToken.Kind == SyntaxKind.FinallyKeyword;
         }
 
-        private StatementSyntax ParseCheckedStatement()
+        private StatementSyntax ParseCheckedStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.CheckedKeyword || this.CurrentToken.Kind == SyntaxKind.UncheckedKeyword);
 
             if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
-                return this.ParseExpressionStatement();
+                return this.ParseExpressionStatement(attributes);
             }
 
             var spec = this.EatToken();
-            var block = this.ParseBlock();
-            return _syntaxFactory.CheckedStatement(SyntaxFacts.GetCheckStatement(spec.Kind), spec, block);
+            var block = this.ParsePossiblyAttributedBlock();
+            return _syntaxFactory.CheckedStatement(SyntaxFacts.GetCheckStatement(spec.Kind), attributes, spec, block);
         }
 
-        private DoStatementSyntax ParseDoStatement()
+        private DoStatementSyntax ParseDoStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.DoKeyword);
             var @do = this.EatToken(SyntaxKind.DoKeyword);
@@ -7413,7 +7421,7 @@ done:;
 
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-            return _syntaxFactory.DoStatement(@do, statement, @while, openParen, expression, closeParen, semicolon);
+            return _syntaxFactory.DoStatement(attributes, @do, statement, @while, openParen, expression, closeParen, semicolon);
         }
 
         private bool IsEndOfDoWhileExpression()
@@ -7422,7 +7430,7 @@ done:;
                 || this.CurrentToken.Kind == SyntaxKind.SemicolonToken;
         }
 
-        private StatementSyntax ParseForOrForEachStatement()
+        private StatementSyntax ParseForOrForEachStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             // Check if the user wrote the following accidentally:
             //
@@ -7446,13 +7454,13 @@ done:;
                 {
                     // Looks like a foreach statement.  Parse it that way instead
                     this.Reset(ref resetPoint);
-                    return this.ParseForEachStatement(awaitTokenOpt: default);
+                    return this.ParseForEachStatement(attributes, awaitTokenOpt: default);
                 }
                 else
                 {
                     // Normal for statement.
                     this.Reset(ref resetPoint);
-                    return this.ParseForStatement();
+                    return this.ParseForStatement(attributes);
                 }
             }
             finally
@@ -7461,7 +7469,7 @@ done:;
             }
         }
 
-        private ForStatementSyntax ParseForStatement()
+        private ForStatementSyntax ParseForStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForKeyword);
 
@@ -7524,7 +7532,7 @@ done:;
 
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
                 var statement = ParseEmbeddedStatement();
-                return _syntaxFactory.ForStatement(forToken, openParen, decl, initializers, semi, condition, semi2, incrementors, closeParen, statement);
+                return _syntaxFactory.ForStatement(attributes, forToken, openParen, decl, initializers, semi, condition, semi2, incrementors, closeParen, statement);
             }
             finally
             {
@@ -7586,7 +7594,8 @@ tryAgain:
                 expected);
         }
 
-        private CommonForEachStatementSyntax ParseForEachStatement(SyntaxToken awaitTokenOpt)
+        private CommonForEachStatementSyntax ParseForEachStatement(
+            SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitTokenOpt)
         {
             // Can be a 'for' keyword if the user typed: 'for (SomeType t in'
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForEachKeyword || this.CurrentToken.Kind == SyntaxKind.ForKeyword);
@@ -7653,11 +7662,11 @@ tryAgain:
                             throw ExceptionUtilities.UnexpectedValue(decl.designation.Kind);
                     }
 
-                    return _syntaxFactory.ForEachStatement(awaitTokenOpt, @foreach, openParen, decl.Type, identifier, @in, expression, closeParen, statement);
+                    return _syntaxFactory.ForEachStatement(attributes, awaitTokenOpt, @foreach, openParen, decl.Type, identifier, @in, expression, closeParen, statement);
                 }
             }
 
-            return _syntaxFactory.ForEachVariableStatement(awaitTokenOpt, @foreach, openParen, variable, @in, expression, closeParen, statement);
+            return _syntaxFactory.ForEachVariableStatement(attributes, awaitTokenOpt, @foreach, openParen, variable, @in, expression, closeParen, statement);
         }
 
         private static bool IsValidForeachVariable(ExpressionSyntax variable)
@@ -7678,7 +7687,7 @@ tryAgain:
             }
         }
 
-        private GotoStatementSyntax ParseGotoStatement()
+        private GotoStatementSyntax ParseGotoStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.GotoKeyword);
 
@@ -7708,10 +7717,10 @@ tryAgain:
             }
 
             var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-            return _syntaxFactory.GotoStatement(kind, @goto, caseOrDefault, arg, semicolon);
+            return _syntaxFactory.GotoStatement(kind, attributes, @goto, caseOrDefault, arg, semicolon);
         }
 
-        private IfStatementSyntax ParseIfStatement()
+        private IfStatementSyntax ParseIfStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword || this.CurrentToken.Kind == SyntaxKind.ElseKeyword);
 
@@ -7722,10 +7731,12 @@ tryAgain:
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-            var statement = firstTokenIsElse ? this.ParseExpressionStatement() : this.ParseEmbeddedStatement();
+            var statement = firstTokenIsElse
+                ? this.ParseExpressionStatement(attributes: default)
+                : this.ParseEmbeddedStatement();
             var elseClause = this.ParseElseClauseOpt();
 
-            return _syntaxFactory.IfStatement(@if, openParen, condition, closeParen, statement, elseClause);
+            return _syntaxFactory.IfStatement(attributes, @if, openParen, condition, closeParen, statement, elseClause);
         }
 
         private ElseClauseSyntax ParseElseClauseOpt()
@@ -7740,7 +7751,7 @@ tryAgain:
             return _syntaxFactory.ElseClause(elseToken, elseStatement);
         }
 
-        private LockStatementSyntax ParseLockStatement()
+        private LockStatementSyntax ParseLockStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.LockKeyword);
             var @lock = this.EatToken(SyntaxKind.LockKeyword);
@@ -7748,10 +7759,10 @@ tryAgain:
             var expression = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement();
-            return _syntaxFactory.LockStatement(@lock, openParen, expression, closeParen, statement);
+            return _syntaxFactory.LockStatement(attributes, @lock, openParen, expression, closeParen, statement);
         }
 
-        private ReturnStatementSyntax ParseReturnStatement()
+        private ReturnStatementSyntax ParseReturnStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ReturnKeyword);
             var @return = this.EatToken(SyntaxKind.ReturnKeyword);
@@ -7762,10 +7773,10 @@ tryAgain:
             }
 
             var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-            return _syntaxFactory.ReturnStatement(@return, arg, semicolon);
+            return _syntaxFactory.ReturnStatement(attributes, @return, arg, semicolon);
         }
 
-        private YieldStatementSyntax ParseYieldStatement()
+        private YieldStatementSyntax ParseYieldStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.YieldKeyword);
 
@@ -7796,10 +7807,10 @@ tryAgain:
             }
 
             var semi = this.EatToken(SyntaxKind.SemicolonToken);
-            return _syntaxFactory.YieldStatement(kind, yieldToken, returnOrBreak, arg, semi);
+            return _syntaxFactory.YieldStatement(kind, attributes, yieldToken, returnOrBreak, arg, semi);
         }
 
-        private SwitchStatementSyntax ParseSwitchStatement()
+        private SwitchStatementSyntax ParseSwitchStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.SwitchKeyword);
             var @switch = this.EatToken(SyntaxKind.SwitchKeyword);
@@ -7842,7 +7853,7 @@ tryAgain:
                 }
 
                 var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-                return _syntaxFactory.SwitchStatement(@switch, openParen, expression, closeParen, openBrace, sections, closeBrace);
+                return _syntaxFactory.SwitchStatement(attributes, @switch, openParen, expression, closeParen, openBrace, sections, closeBrace);
             }
             finally
             {
@@ -7932,7 +7943,7 @@ tryAgain:
             }
         }
 
-        private ThrowStatementSyntax ParseThrowStatement()
+        private ThrowStatementSyntax ParseThrowStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ThrowKeyword);
             var @throw = this.EatToken(SyntaxKind.ThrowKeyword);
@@ -7943,18 +7954,18 @@ tryAgain:
             }
 
             var semi = this.EatToken(SyntaxKind.SemicolonToken);
-            return _syntaxFactory.ThrowStatement(@throw, arg, semi);
+            return _syntaxFactory.ThrowStatement(attributes, @throw, arg, semi);
         }
 
-        private UnsafeStatementSyntax ParseUnsafeStatement()
+        private UnsafeStatementSyntax ParseUnsafeStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.UnsafeKeyword);
             var @unsafe = this.EatToken(SyntaxKind.UnsafeKeyword);
-            var block = this.ParseBlock();
-            return _syntaxFactory.UnsafeStatement(@unsafe, block);
+            var block = this.ParsePossiblyAttributedBlock();
+            return _syntaxFactory.UnsafeStatement(attributes, @unsafe, block);
         }
 
-        private UsingStatementSyntax ParseUsingStatement(SyntaxToken awaitTokenOpt = default)
+        private UsingStatementSyntax ParseUsingStatement(SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitTokenOpt = default)
         {
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
@@ -7969,7 +7980,7 @@ tryAgain:
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement();
 
-            return _syntaxFactory.UsingStatement(awaitTokenOpt, @using, openParen, declaration, expression, closeParen, statement);
+            return _syntaxFactory.UsingStatement(attributes, awaitTokenOpt, @using, openParen, declaration, expression, closeParen, statement);
         }
 
         private void ParseUsingExpression(ref VariableDeclarationSyntax declaration, ref ExpressionSyntax expression, ref ResetPoint resetPoint)
@@ -8066,7 +8077,7 @@ tryAgain:
             return condition1 || (condition2 && condition3);
         }
 
-        private WhileStatementSyntax ParseWhileStatement()
+        private WhileStatementSyntax ParseWhileStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.WhileKeyword);
             var @while = this.EatToken(SyntaxKind.WhileKeyword);
@@ -8074,10 +8085,10 @@ tryAgain:
             var condition = this.ParseExpressionCore();
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement();
-            return _syntaxFactory.WhileStatement(@while, openParen, condition, closeParen, statement);
+            return _syntaxFactory.WhileStatement(attributes, @while, openParen, condition, closeParen, statement);
         }
 
-        private LabeledStatementSyntax ParseLabeledStatement()
+        private LabeledStatementSyntax ParseLabeledStatement(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
 
@@ -8088,14 +8099,17 @@ tryAgain:
             var label = this.ParseIdentifierToken();
             var colon = this.EatToken(SyntaxKind.ColonToken);
             Debug.Assert(!colon.IsMissing);
-            var statement = this.ParseStatementCore() ?? SyntaxFactory.EmptyStatement(EatToken(SyntaxKind.SemicolonToken));
-            return _syntaxFactory.LabeledStatement(label, colon, statement);
+            var statement = this.TryParseStatementCore() ?? SyntaxFactory.EmptyStatement(attributeLists: null, EatToken(SyntaxKind.SemicolonToken));
+            return _syntaxFactory.LabeledStatement(attributes, label, colon, statement);
         }
 
         /// <summary>
         /// Parses any kind of local declaration statement: local variable or local function.
         /// </summary>
-        private StatementSyntax ParseLocalDeclarationStatement(SyntaxToken awaitKeywordOpt = default)
+        /// <returns><c>null</c> if a local declaration could not be parsed at the current
+        /// location.</returns>
+        private StatementSyntax TryParseLocalDeclarationStatement(
+            SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitKeywordOpt = default)
         {
             var usingKeyword = TryEatToken(SyntaxKind.UsingKeyword);
             if (usingKeyword != null)
@@ -8103,8 +8117,6 @@ tryAgain:
                 usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);
             }
             bool canParseAsLocalFunction = usingKeyword == null;
-
-            var attributes = ParseAttributeDeclarations();
 
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods);
@@ -8153,12 +8165,12 @@ tryAgain:
                 }
                 var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
                 return _syntaxFactory.LocalDeclarationStatement(
+                    attributes,
                     awaitKeywordOpt,
                     usingKeyword,
                     mods.ToList(),
                     _syntaxFactory.VariableDeclaration(type, variables),
-                    semicolon
-                    );
+                    semicolon);
             }
             finally
             {
@@ -8532,12 +8544,12 @@ tryAgain:
                 semicolon);
         }
 
-        private ExpressionStatementSyntax ParseExpressionStatement()
+        private ExpressionStatementSyntax ParseExpressionStatement(SyntaxList<AttributeListSyntax> attributes)
         {
-            return ParseExpressionStatement(this.ParseExpressionCore());
+            return ParseExpressionStatement(attributes, this.ParseExpressionCore());
         }
 
-        private ExpressionStatementSyntax ParseExpressionStatement(ExpressionSyntax expression)
+        private ExpressionStatementSyntax ParseExpressionStatement(SyntaxList<AttributeListSyntax> attributes, ExpressionSyntax expression)
         {
             SyntaxToken semicolon;
             if (IsScript && this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
@@ -8551,7 +8563,7 @@ tryAgain:
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 
-            return _syntaxFactory.ExpressionStatement(expression, semicolon);
+            return _syntaxFactory.ExpressionStatement(attributes, expression, semicolon);
         }
 
         public ExpressionSyntax ParseExpression()
@@ -10812,13 +10824,14 @@ tryAgain:
                     @delegate,
                     parameterList,
                     _syntaxFactory.Block(
+                        attributeLists: default,
                         openBrace,
                         statements: default,
                         SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)),
                     expressionBody: null);
             }
 
-            var body = this.ParseBlock();
+            var body = this.ParseBlock(attributes: default);
             IsInAsync = parentScopeIsInAsync;
             return _syntaxFactory.AnonymousMethodExpression(
                 asyncToken, @delegate, parameterList, body, expressionBody: null);
@@ -10872,7 +10885,7 @@ tryAgain:
 
         private (BlockSyntax, ExpressionSyntax) ParseLambdaBody()
             => CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                ? (ParseBlock(), default(ExpressionSyntax))
+                ? (ParseBlock(attributes: default), default(ExpressionSyntax))
                 : (default(BlockSyntax), ParsePossibleRefExpression());
 
         private ParameterListSyntax ParseLambdaParameterList()

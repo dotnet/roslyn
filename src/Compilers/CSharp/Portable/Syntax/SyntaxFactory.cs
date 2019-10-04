@@ -2538,6 +2538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var openParen = needsParens ? SyntaxFactory.Token(SyntaxKind.OpenParenToken) : default;
             var closeParen = needsParens ? SyntaxFactory.Token(SyntaxKind.CloseParenToken) : default;
             return SyntaxFactory.SwitchStatement(
+                attributeLists: default,
                 SyntaxFactory.Token(SyntaxKind.SwitchKeyword),
                 openParen,
                 expression,
