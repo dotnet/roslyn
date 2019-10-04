@@ -1259,21 +1259,17 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedAcceptMethods(Node node)
         {
-            //WriteRedAcceptMethod(node, true, true);
-            WriteRedAcceptMethod(node, false, true);
-            WriteRedAcceptMethod(node, false, false);
+            WriteLine();
+            WriteRedAcceptMethod(node, false);
+            WriteRedAcceptMethod(node, true);
         }
 
-        private void WriteRedAcceptMethod(Node node, bool genericArgument, bool genericResult)
+        private void WriteRedAcceptMethod(Node node, bool genericResult)
         {
-            string genericArgs =
-                (genericResult && genericArgument) ? "<TArgument, TResult>" :
-                genericResult ? "<TResult>" : "";
-            WriteLine();
-            WriteLine("    public override " + (genericResult ? "TResult" : "void") + " Accept" + genericArgs + "(CSharpSyntaxVisitor" + genericArgs + " visitor{0})", genericArgument ? ", TArgument argument" : "");
-            WriteLine("    {");
-            WriteLine("        " + (genericResult ? "return " : "") + "visitor.Visit{0}(this{1});", StripPost(node.Name, "Syntax"), genericArgument ? ", argument" : "");
-            WriteLine("    }");
+            string genericArgs = genericResult ? "<TResult>" : "";
+            WriteLine(
+                "public override " + (genericResult ? "TResult" : "void") + " Accept" + genericArgs + "(CSharpSyntaxVisitor" + genericArgs + " visitor)" +
+                " => visitor.Visit{0}(this);", StripPost(node.Name, "Syntax"));
         }
 
         private void WriteRedVisitors()
