@@ -915,17 +915,17 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRedType(TreeType node)
         {
-            WriteComment(node.TypeComment, "  ");
+            WriteComment(node.TypeComment, "");
 
             if (node is AbstractNode)
             {
-                AbstractNode nd = (AbstractNode)node;
-                WriteLine("  public abstract partial class {0} : {1}", node.Name, node.Base);
-                WriteLine("  {");
-                WriteLine("    internal {0}(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)", node.Name);
-                WriteLine("      : base(green, parent, position)");
-                WriteLine("    {");
-                WriteLine("    }");
+                var nd = (AbstractNode)node;
+                WriteLine("public abstract partial class {0} : {1}", node.Name, node.Base);
+                OpenBlock();
+                WriteLine("internal {0}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)", node.Name);
+                WriteLine("  : base(green, parent, position)");
+                OpenBlock();
+                CloseBlock();
 
                 var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
                 var nodeFields = GetNodeOrNodeListFields(nd);
@@ -938,17 +938,17 @@ namespace CSharpSyntaxGenerator
                         //red SyntaxLists can't contain tokens, so we switch to SyntaxTokenList
                         var fieldType = GetRedFieldType(field);
                         WriteLine();
-                        WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), fieldType, field.Name);
-                        WriteLine($"    public {node.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
-                        WriteLine($"    internal abstract {node.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
+                        WriteComment(field.PropertyComment, "");
+                        WriteLine("{0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), fieldType, field.Name);
+                        WriteLine($"public {node.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
+                        WriteLine($"internal abstract {node.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
 
                         if (IsAnyList(field.Type))
                         {
                             var argType = GetElementType(field.Type);
                             WriteLine();
-                            WriteLine("    public {0} Add{1}(params {2}[] items) => Add{1}Core(items);", node.Name, field.Name, argType);
-                            WriteLine("    internal abstract {0} Add{1}Core(params {2}[] items);", node.Name, field.Name, argType);
+                            WriteLine("public {0} Add{1}(params {2}[] items) => Add{1}Core(items);", node.Name, field.Name, argType);
+                            WriteLine("internal abstract {0} Add{1}Core(params {2}[] items);", node.Name, field.Name, argType);
                         }
                         else
                         {
@@ -963,8 +963,8 @@ namespace CSharpSyntaxGenerator
                                         var argType = GetElementType(referencedNodeField.Type);
 
                                         WriteLine();
-                                        WriteLine("    public {0} Add{1}{2}(params {3}[] items) => Add{1}{2}Core(items);", node.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType);
-                                        WriteLine("    internal abstract {0} Add{1}{2}Core(params {3}[] items);", node.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType);
+                                        WriteLine("public {0} Add{1}{2}(params {3}[] items) => Add{1}{2}Core(items);", node.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType);
+                                        WriteLine("internal abstract {0} Add{1}{2}Core(params {3}[] items);", node.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType);
                                     }
                                 }
                             }
@@ -976,8 +976,8 @@ namespace CSharpSyntaxGenerator
                 {
                     var field = valueFields[i];
                     WriteLine();
-                    WriteComment(field.PropertyComment, "    ");
-                    WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                    WriteComment(field.PropertyComment, "");
+                    WriteLine("{0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), field.Type, field.Name);
                 }
 
                 var baseType = GetTreeType(node.Base);
@@ -991,7 +991,7 @@ namespace CSharpSyntaxGenerator
 
                     foreach (var baseField in baseNodeFields)
                     {
-                        WriteLine($"    public new {node.Name} With{baseField.Name}({GetRedFieldType(baseField)} {CamelCase(baseField.Name)}) => ({node.Name})With{baseField.Name}Core({CamelCase(baseField.Name)});");
+                        WriteLine($"public new {node.Name} With{baseField.Name}({GetRedFieldType(baseField)} {CamelCase(baseField.Name)}) => ({node.Name})With{baseField.Name}Core({CamelCase(baseField.Name)});");
                     }
 
                     foreach (var baseField in baseNodeFields)
@@ -1000,7 +1000,7 @@ namespace CSharpSyntaxGenerator
                         {
                             var argType = GetElementType(baseField.Type);
                             WriteLine();
-                            WriteLine("    public new {0} Add{1}(params {2}[] items) => ({0})Add{1}Core(items);", node.Name, baseField.Name, argType);
+                            WriteLine("public new {0} Add{1}(params {2}[] items) => ({0})Add{1}Core(items);", node.Name, baseField.Name, argType);
                         }
                         else
                         {
@@ -1016,7 +1016,7 @@ namespace CSharpSyntaxGenerator
                                         var argType = GetElementType(referencedNodeField.Type);
 
                                         WriteLine();
-                                        WriteLine("    public new {0} Add{1}{2}(params {3}[] items) => Add{1}{2}Core(items);", baseType.Name, StripPost(baseField.Name, "Opt"), referencedNodeField.Name, argType);
+                                        WriteLine("public new {0} Add{1}{2}(params {3}[] items) => Add{1}{2}Core(items);", baseType.Name, StripPost(baseField.Name, "Opt"), referencedNodeField.Name, argType);
                                     }
                                 }
                             }
@@ -1024,13 +1024,13 @@ namespace CSharpSyntaxGenerator
                     }
                 }
 
-                WriteLine("  }");
+                CloseBlock();
             }
             else if (node is Node)
             {
-                Node nd = (Node)node;
-                WriteLine("  public sealed partial class {0} : {1}", node.Name, node.Base);
-                WriteLine("  {");
+                var nd = (Node)node;
+                WriteLine("public sealed partial class {0} : {1}", node.Name, node.Base);
+                OpenBlock();
 
                 var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
                 var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
@@ -1039,27 +1039,26 @@ namespace CSharpSyntaxGenerator
                 {
                     var field = nodeFields[i];
                     if (field.Type != "SyntaxToken"
-                        && field.Type != "SyntaxList<SyntaxToken>"
-                        )
+                        && field.Type != "SyntaxList<SyntaxToken>")
                     {
                         if (IsSeparatedNodeList(field.Type) || field.Type == "SyntaxNodeOrTokenList")
                         {
-                            WriteLine("    private SyntaxNode {0};", CamelCase(field.Name));
+                            WriteLine("private SyntaxNode {0};", CamelCase(field.Name));
                         }
                         else
                         {
                             var type = GetFieldType(field, green: false);
-                            WriteLine("    private {0} {1};", type, CamelCase(field.Name));
+                            WriteLine("private {0} {1};", type, CamelCase(field.Name));
                         }
                     }
                 }
 
                 // write constructor
                 WriteLine();
-                WriteLine("    internal {0}(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)", node.Name);
-                WriteLine("        : base(green, parent, position)");
-                WriteLine("    {");
-                WriteLine("    }");
+                WriteLine("internal {0}(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)", node.Name);
+                WriteLine("  : base(green, parent, position)");
+                OpenBlock();
+                CloseBlock();
                 WriteLine();
 
                 // property accessors
@@ -1068,78 +1067,75 @@ namespace CSharpSyntaxGenerator
                     var field = nodeFields[i];
                     if (field.Type == "SyntaxToken")
                     {
-                        WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    {0} {1}{2} {3} ", "public", OverrideOrNewModifier(field), field.Type, field.Name);
-                        WriteLine("    {");
+                        WriteComment(field.PropertyComment, "");
+                        Write("{0} {1}{2} {3}", "public", OverrideOrNewModifier(field), field.Type, field.Name);
                         if (IsOptional(field))
                         {
-                            WriteLine("        get");
-                            WriteLine("        {");
-                            WriteLine("            var slot = ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{0})this.Green).{1};", node.Name, CamelCase(field.Name));
-                            WriteLine("            if (slot != null)");
-                            WriteLine("                return new SyntaxToken(this, slot, {0}, {1});", GetChildPosition(i), GetChildIndex(i));
                             WriteLine();
-                            WriteLine("            return default(SyntaxToken);");
-                            WriteLine("        }");
+                            OpenBlock();
+                            WriteLine("get");
+                            OpenBlock();
+                            WriteLine("var slot = ((Syntax.InternalSyntax.{0})this.Green).{1};", node.Name, CamelCase(field.Name));
+                            WriteLine("return slot != null");
+                            WriteLine("    ? new SyntaxToken(this, slot, {0}, {1})", GetChildPosition(i), GetChildIndex(i));
+                            WriteLine("    : default;");
+                            CloseBlock();
+                            CloseBlock();
                         }
                         else
                         {
-                            WriteLine("      get {{ return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{0})this.Green).{1}, {2}, {3}); }}", node.Name, CamelCase(field.Name), GetChildPosition(i), GetChildIndex(i));
+                            WriteLine(" => new SyntaxToken(this, ((Syntax.InternalSyntax.{0})this.Green).{1}, {2}, {3});", node.Name, CamelCase(field.Name), GetChildPosition(i), GetChildIndex(i));
                         }
-                        WriteLine("    }");
                     }
                     else if (field.Type == "SyntaxList<SyntaxToken>")
                     {
-                        WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    {0} {1}SyntaxTokenList {2} ", "public", OverrideOrNewModifier(field), field.Name);
-                        WriteLine("    {");
-                        WriteLine("        get");
-                        WriteLine("        {");
-                        WriteLine("            var slot = this.Green.GetSlot({0});", i);
-                        WriteLine("            if (slot != null)");
-                        WriteLine("                return new SyntaxTokenList(this, slot, {0}, {1});", GetChildPosition(i), GetChildIndex(i));
-                        WriteLine();
-                        WriteLine("            return default(SyntaxTokenList);");
-                        WriteLine("        }");
-                        WriteLine("    }");
+                        WriteComment(field.PropertyComment, "");
+                        WriteLine("{0} {1}SyntaxTokenList {2}", "public", OverrideOrNewModifier(field), field.Name);
+                        OpenBlock();
+                        WriteLine("get");
+                        OpenBlock();
+                        WriteLine("var slot = this.Green.GetSlot({0});", i);
+                        WriteLine("return slot != null");
+                        WriteLine("    ? new SyntaxTokenList(this, slot, {0}, {1})", GetChildPosition(i), GetChildIndex(i));
+                        WriteLine("    : default;");
+                        CloseBlock();
+                        CloseBlock();
                     }
                     else
                     {
-                        WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    {0} {1}{2} {3} ", "public", OverrideOrNewModifier(field), field.Type, field.Name);
-                        WriteLine("    {");
-                        WriteLine("        get");
-                        WriteLine("        {");
+                        WriteComment(field.PropertyComment, "");
+                        Write("{0} {1}{2} {3}", "public", OverrideOrNewModifier(field), field.Type, field.Name);
 
                         if (IsNodeList(field.Type))
                         {
-                            WriteLine("            return new {0}(this.GetRed(ref this.{1}, {2}));", field.Type, CamelCase(field.Name), i);
+                            WriteLine(" => new {0}(GetRed(ref this.{1}, {2}));", field.Type, CamelCase(field.Name), i);
                         }
                         else if (IsSeparatedNodeList(field.Type))
                         {
-                            WriteLine("            var red = this.GetRed(ref this.{0}, {1});", CamelCase(field.Name), i);
-                            WriteLine("            if (red != null)", i);
-                            WriteLine("                return new {0}(red, {1});", field.Type, GetChildIndex(i));
                             WriteLine();
-                            WriteLine("            return default({0});", field.Type);
+                            OpenBlock();
+                            WriteLine("get");
+                            OpenBlock();
+
+                            WriteLine("var red = GetRed(ref this.{0}, {1});", CamelCase(field.Name), i);
+                            WriteLine("return red != null", i);
+                            WriteLine("    ? new {0}(red, {1})", field.Type, GetChildIndex(i));
+                            WriteLine("    : default;", field.Type);
+                            CloseBlock();
+                            CloseBlock();
                         }
                         else if (field.Type == "SyntaxNodeOrTokenList")
                         {
                             throw new InvalidOperationException("field cannot be a random SyntaxNodeOrTokenList");
                         }
+                        else if (i == 0)
+                        {
+                            WriteLine(" => GetRedAtZero(ref this.{0});", CamelCase(field.Name));
+                        }
                         else
                         {
-                            if (i == 0)
-                            {
-                                WriteLine("            return this.GetRedAtZero(ref this.{0});", CamelCase(field.Name));
-                            }
-                            else
-                            {
-                                WriteLine("            return this.GetRed(ref this.{0}, {1});", CamelCase(field.Name), i);
-                            }
+                            WriteLine(" => GetRed(ref this.{0}, {1});", CamelCase(field.Name), i);
                         }
-                        WriteLine("        }");
-                        WriteLine("    }");
                     }
                     WriteLine();
                 }
@@ -1147,61 +1143,88 @@ namespace CSharpSyntaxGenerator
                 for (int i = 0, n = valueFields.Count; i < n; i++)
                 {
                     var field = valueFields[i];
-                    WriteComment(field.PropertyComment, "    ");
-                    WriteLine("    {0} {1}{2} {3} {{ get {{ return ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.{4})this.Green).{3}; }} }}",
-                        "public", OverrideOrNewModifier(field), field.Type, field.Name, node.Name
-                        );
+                    WriteComment(field.PropertyComment, "");
+                    WriteLine("{0} {1}{2} {3} => ((Syntax.InternalSyntax.{4})this.Green).{3};",
+                        "public", OverrideOrNewModifier(field), field.Type, field.Name, node.Name);
                     WriteLine();
                 }
 
-                //GetNodeSlot forces creation of a red node.
-                WriteLine("    internal override SyntaxNode GetNodeSlot(int index)");
-                WriteLine("    {");
-                WriteLine("        switch (index)");
-                WriteLine("        {");
-                for (int i = 0, n = nodeFields.Count; i < n; i++)
                 {
-                    var field = nodeFields[i];
+                    //GetNodeSlot forces creation of a red node.
+                    Write("internal override SyntaxNode GetNodeSlot(int index)");
 
-                    if (field.Type != "SyntaxToken" && field.Type != "SyntaxList<SyntaxToken>")
+                    var relevantNodes = nodeFields.Select((field, index) => (field, index))
+                                                  .Where(t => t.field.Type != "SyntaxToken" && t.field.Type != "SyntaxList<SyntaxToken>");
+                    if (!relevantNodes.Any())
                     {
-                        if (i == 0)
+                        WriteLine(" => null;");
+                    }
+                    else if (relevantNodes.Count() == 1)
+                    {
+                        var (field, index) = relevantNodes.Single();
+                        var whenTrue = index == 0
+                            ? $"GetRedAtZero(ref this.{CamelCase(field.Name)})"
+                            : $"GetRed(ref this.{CamelCase(field.Name)}, {index})";
+
+                        WriteLine($" => index == {index} ? {whenTrue} : null;");
+                    }
+                    else
+                    {
+                        WriteLine();
+                        Indent();
+                        WriteLine("=> index switch");
+                        OpenBlock();
+                        foreach (var (field, index) in relevantNodes)
                         {
-                            WriteLine("            case {0}: return this.GetRedAtZero(ref this.{1});", i, CamelCase(field.Name));
+                            WriteLine(index == 0
+                                ? "{0} => GetRedAtZero(ref this.{1}),"
+                                : "{0} => GetRed(ref this.{1}, {0}),", index, CamelCase(field.Name));
                         }
-                        else
-                        {
-                            WriteLine("            case {0}: return this.GetRed(ref this.{1}, {0});", i, CamelCase(field.Name));
-                        }
+                        WriteLine("_ => null,");
+                        CloseBlock(";");
+                        Unindent();
                     }
                 }
-                WriteLine("            default: return null;");
-                WriteLine("        }");
-                WriteLine("    }");
 
-                //GetCachedSlot returns a red node if we have it.
-                WriteLine("    internal override SyntaxNode GetCachedSlot(int index)");
-                WriteLine("    {");
-                WriteLine("        switch (index)");
-                WriteLine("        {");
-                for (int i = 0, n = nodeFields.Count; i < n; i++)
+                WriteLine();
+
                 {
-                    var field = nodeFields[i];
-                    if (field.Type != "SyntaxToken" && field.Type != "SyntaxList<SyntaxToken>")
+                    //GetCachedSlot returns a red node if we have it.
+                    Write("internal override SyntaxNode GetCachedSlot(int index)");
+
+                    var relevantNodes = nodeFields.Select((field, index) => (field, index))
+                                                  .Where(t => t.field.Type != "SyntaxToken" && t.field.Type != "SyntaxList<SyntaxToken>");
+                    if (!relevantNodes.Any())
                     {
-                        WriteLine("            case {0}: return this.{1};", i, CamelCase(field.Name));
+                        WriteLine(" => null;");
+                    }
+                    else if (relevantNodes.Count() == 1)
+                    {
+                        var (field, index) = relevantNodes.Single();
+                        WriteLine($" => index == {index} ? this.{CamelCase(field.Name)} : null;");
+                    }
+                    else
+                    {
+                        WriteLine();
+                        Indent();
+                        WriteLine("=> index switch");
+                        OpenBlock();
+                        foreach (var (field, index) in relevantNodes)
+                        {
+                            WriteLine($"{index} => this.{CamelCase(field.Name)},");
+                        }
+                        WriteLine("_ => null,");
+                        CloseBlock(";");
+                        Unindent();
                     }
                 }
-                WriteLine("            default: return null;");
-                WriteLine("        }");
-                WriteLine("    }");
 
                 this.WriteRedAcceptMethods(nd);
                 this.WriteRedUpdateMethod(nd);
                 this.WriteRedWithMethods(nd);
                 this.WriteRedListHelperMethods(nd);
 
-                WriteLine("  }");
+                CloseBlock();
             }
         }
 
