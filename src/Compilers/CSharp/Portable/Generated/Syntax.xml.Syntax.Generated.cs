@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new GenericNameSyntax WithIdentifier(SyntaxToken identifier) => Update(identifier, this.TypeArgumentList);
         public GenericNameSyntax WithTypeArgumentList(TypeArgumentListSyntax typeArgumentList) => Update(this.Identifier, typeArgumentList);
 
-        public GenericNameSyntax AddTypeArgumentListArguments(params TypeSyntax[] items)=> WithTypeArgumentList(this.TypeArgumentList.WithArguments(this.TypeArgumentList.Arguments.AddRange(items)));
+        public GenericNameSyntax AddTypeArgumentListArguments(params TypeSyntax[] items) => WithTypeArgumentList(this.TypeArgumentList.WithArguments(this.TypeArgumentList.Arguments.AddRange(items)));
     }
 
     /// <summary>Class which represents the syntax node for type argument list.</summary>
@@ -1129,7 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ElementBindingExpressionSyntax WithArgumentList(BracketedArgumentListSyntax argumentList) => Update(argumentList);
 
-        public ElementBindingExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)=> WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
+        public ElementBindingExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
 
     /// <summary>Class which represents the syntax node for a range expression.</summary>
@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ImplicitElementAccessSyntax WithArgumentList(BracketedArgumentListSyntax argumentList) => Update(argumentList);
 
-        public ImplicitElementAccessSyntax AddArgumentListArguments(params ArgumentSyntax[] items)=> WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
+        public ImplicitElementAccessSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
 
     /// <summary>Class which represents an expression that has a binary operator.</summary>
@@ -1945,7 +1945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public InvocationExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.ArgumentList);
         public InvocationExpressionSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.Expression, argumentList);
 
-        public InvocationExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)=> WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
+        public InvocationExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
 
     /// <summary>Class which represents the syntax node for element access expression.</summary>
@@ -2001,7 +2001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ElementAccessExpressionSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.ArgumentList);
         public ElementAccessExpressionSyntax WithArgumentList(BracketedArgumentListSyntax argumentList) => Update(this.Expression, argumentList);
 
-        public ElementAccessExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)=> WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
+        public ElementAccessExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
 
     /// <summary>Provides the base class from which the classes that represent argument list syntax nodes are derived. This is an abstract class.</summary>
@@ -2485,7 +2485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return WithParameterList(parameterList.WithParameters(parameterList.Parameters.AddRange(items)));
         }
         internal override AnonymousFunctionExpressionSyntax AddBlockStatementsCore(params StatementSyntax[] items) => AddBlockStatements(items);
-        public new AnonymousMethodExpressionSyntax AddBlockStatements(params StatementSyntax[] items)=> WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
+        public new AnonymousMethodExpressionSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
     /// <summary>Provides the base class from which the classes that represent lambda expressions are derived.</summary>
@@ -2595,8 +2595,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax expressionBody) => WithExpressionBody(expressionBody);
         public new SimpleLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody) => Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, this.Block, expressionBody);
 
-        public SimpleLambdaExpressionSyntax AddParameterAttributeLists(params AttributeListSyntax[] items)=> WithParameter(this.Parameter.WithAttributeLists(this.Parameter.AttributeLists.AddRange(items)));
-        public SimpleLambdaExpressionSyntax AddParameterModifiers(params SyntaxToken[] items)=> WithParameter(this.Parameter.WithModifiers(this.Parameter.Modifiers.AddRange(items)));
+        public SimpleLambdaExpressionSyntax AddParameterAttributeLists(params AttributeListSyntax[] items) => WithParameter(this.Parameter.WithAttributeLists(this.Parameter.AttributeLists.AddRange(items)));
+        public SimpleLambdaExpressionSyntax AddParameterModifiers(params SyntaxToken[] items) => WithParameter(this.Parameter.WithModifiers(this.Parameter.Modifiers.AddRange(items)));
         internal override AnonymousFunctionExpressionSyntax AddBlockStatementsCore(params StatementSyntax[] items) => AddBlockStatements(items);
         public new SimpleLambdaExpressionSyntax AddBlockStatements(params StatementSyntax[] items)
         {
@@ -2730,7 +2730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax expressionBody) => WithExpressionBody(expressionBody);
         public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax expressionBody) => Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
 
-        public ParenthesizedLambdaExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)=> WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+        public ParenthesizedLambdaExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         internal override AnonymousFunctionExpressionSyntax AddBlockStatementsCore(params StatementSyntax[] items) => AddBlockStatements(items);
         public new ParenthesizedLambdaExpressionSyntax AddBlockStatements(params StatementSyntax[] items)
         {
@@ -3036,7 +3036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ArrayCreationExpressionSyntax WithType(ArrayTypeSyntax type) => Update(this.NewKeyword, type, this.Initializer);
         public ArrayCreationExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.NewKeyword, this.Type, initializer);
 
-        public ArrayCreationExpressionSyntax AddTypeRankSpecifiers(params ArrayRankSpecifierSyntax[] items)=> WithType(this.Type.WithRankSpecifiers(this.Type.RankSpecifiers.AddRange(items)));
+        public ArrayCreationExpressionSyntax AddTypeRankSpecifiers(params ArrayRankSpecifierSyntax[] items) => WithType(this.Type.WithRankSpecifiers(this.Type.RankSpecifiers.AddRange(items)));
     }
 
     /// <summary>Class which represents the syntax node for implicit array creation expression.</summary>
@@ -3101,7 +3101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ImplicitArrayCreationExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.NewKeyword, this.OpenBracketToken, this.Commas, this.CloseBracketToken, initializer);
 
         public ImplicitArrayCreationExpressionSyntax AddCommas(params SyntaxToken[] items) => WithCommas(this.Commas.AddRange(items));
-        public ImplicitArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items)=> WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
+        public ImplicitArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items) => WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
     }
 
     /// <summary>Class which represents the syntax node for stackalloc array creation expression.</summary>
@@ -3210,7 +3210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ImplicitStackAllocArrayCreationExpressionSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.StackAllocKeyword, this.OpenBracketToken, closeBracketToken, this.Initializer);
         public ImplicitStackAllocArrayCreationExpressionSyntax WithInitializer(InitializerExpressionSyntax initializer) => Update(this.StackAllocKeyword, this.OpenBracketToken, this.CloseBracketToken, initializer);
 
-        public ImplicitStackAllocArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items)=> WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
+        public ImplicitStackAllocArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items) => WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
     }
 
     public abstract partial class QueryClauseSyntax : CSharpSyntaxNode
@@ -3279,7 +3279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public QueryExpressionSyntax WithFromClause(FromClauseSyntax fromClause) => Update(fromClause, this.Body);
         public QueryExpressionSyntax WithBody(QueryBodySyntax body) => Update(this.FromClause, body);
 
-        public QueryExpressionSyntax AddBodyClauses(params QueryClauseSyntax[] items)=> WithBody(this.Body.WithClauses(this.Body.Clauses.AddRange(items)));
+        public QueryExpressionSyntax AddBodyClauses(params QueryClauseSyntax[] items) => WithBody(this.Body.WithClauses(this.Body.Clauses.AddRange(items)));
     }
 
     public sealed partial class QueryBodySyntax : CSharpSyntaxNode
@@ -3839,7 +3839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public QueryContinuationSyntax WithIdentifier(SyntaxToken identifier) => Update(this.IntoKeyword, identifier, this.Body);
         public QueryContinuationSyntax WithBody(QueryBodySyntax body) => Update(this.IntoKeyword, this.Identifier, body);
 
-        public QueryContinuationSyntax AddBodyClauses(params QueryClauseSyntax[] items)=> WithBody(this.Body.WithClauses(this.Body.Clauses.AddRange(items)));
+        public QueryContinuationSyntax AddBodyClauses(params QueryClauseSyntax[] items) => WithBody(this.Body.WithClauses(this.Body.Clauses.AddRange(items)));
     }
 
     /// <summary>Class which represents a placeholder in an array size list.</summary>
@@ -4862,7 +4862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
             return WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
         }
-        public LocalFunctionStatementSyntax AddParameterListParameters(params ParameterSyntax[] items)=> WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+        public LocalFunctionStatementSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         public LocalFunctionStatementSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => WithConstraintClauses(this.ConstraintClauses.AddRange(items));
         public LocalFunctionStatementSyntax AddBodyStatements(params StatementSyntax[] items)
         {
@@ -4946,7 +4946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public LocalDeclarationStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AwaitKeyword, this.UsingKeyword, this.Modifiers, this.Declaration, semicolonToken);
 
         public LocalDeclarationStatementSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
-        public LocalDeclarationStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)=> WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
+        public LocalDeclarationStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
     public sealed partial class VariableDeclarationSyntax : CSharpSyntaxNode
@@ -6207,7 +6207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FixedStatementSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.FixedKeyword, this.OpenParenToken, this.Declaration, closeParenToken, this.Statement);
         public FixedStatementSyntax WithStatement(StatementSyntax statement) => Update(this.FixedKeyword, this.OpenParenToken, this.Declaration, this.CloseParenToken, statement);
 
-        public FixedStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)=> WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
+        public FixedStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
     public sealed partial class CheckedStatementSyntax : StatementSyntax
@@ -6247,7 +6247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CheckedStatementSyntax WithKeyword(SyntaxToken keyword) => Update(keyword, this.Block);
         public CheckedStatementSyntax WithBlock(BlockSyntax block) => Update(this.Keyword, block);
 
-        public CheckedStatementSyntax AddBlockStatements(params StatementSyntax[] items)=> WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
+        public CheckedStatementSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
     public sealed partial class UnsafeStatementSyntax : StatementSyntax
@@ -6287,7 +6287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public UnsafeStatementSyntax WithUnsafeKeyword(SyntaxToken unsafeKeyword) => Update(unsafeKeyword, this.Block);
         public UnsafeStatementSyntax WithBlock(BlockSyntax block) => Update(this.UnsafeKeyword, block);
 
-        public UnsafeStatementSyntax AddBlockStatements(params StatementSyntax[] items)=> WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
+        public UnsafeStatementSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
     public sealed partial class LockStatementSyntax : StatementSyntax
@@ -7013,7 +7013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public TryStatementSyntax WithCatches(SyntaxList<CatchClauseSyntax> catches) => Update(this.TryKeyword, this.Block, catches, this.Finally);
         public TryStatementSyntax WithFinally(FinallyClauseSyntax @finally) => Update(this.TryKeyword, this.Block, this.Catches, @finally);
 
-        public TryStatementSyntax AddBlockStatements(params StatementSyntax[] items)=> WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
+        public TryStatementSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
         public TryStatementSyntax AddCatches(params CatchClauseSyntax[] items) => WithCatches(this.Catches.AddRange(items));
     }
 
@@ -7076,7 +7076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public CatchClauseSyntax WithFilter(CatchFilterClauseSyntax filter) => Update(this.CatchKeyword, this.Declaration, filter, this.Block);
         public CatchClauseSyntax WithBlock(BlockSyntax block) => Update(this.CatchKeyword, this.Declaration, this.Filter, block);
 
-        public CatchClauseSyntax AddBlockStatements(params StatementSyntax[] items)=> WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
+        public CatchClauseSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
     public sealed partial class CatchDeclarationSyntax : CSharpSyntaxNode
@@ -7213,7 +7213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public FinallyClauseSyntax WithFinallyKeyword(SyntaxToken finallyKeyword) => Update(finallyKeyword, this.Block);
         public FinallyClauseSyntax WithBlock(BlockSyntax block) => Update(this.FinallyKeyword, block);
 
-        public FinallyClauseSyntax AddBlockStatements(params StatementSyntax[] items)=> WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
+        public FinallyClauseSyntax AddBlockStatements(params StatementSyntax[] items) => WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
     public sealed partial class CompilationUnitSyntax : CSharpSyntaxNode
@@ -8719,7 +8719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
             return WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
         }
-        public DelegateDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)=> WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+        public DelegateDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         public DelegateDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
 
@@ -9207,7 +9207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
         public new FieldDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         internal override BaseFieldDeclarationSyntax AddDeclarationVariablesCore(params VariableDeclaratorSyntax[] items) => AddDeclarationVariables(items);
-        public new FieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)=> WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
+        public new FieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
     public sealed partial class EventFieldDeclarationSyntax : BaseFieldDeclarationSyntax
@@ -9287,7 +9287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
         public new EventFieldDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         internal override BaseFieldDeclarationSyntax AddDeclarationVariablesCore(params VariableDeclaratorSyntax[] items) => AddDeclarationVariables(items);
-        public new EventFieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)=> WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
+        public new EventFieldDeclarationSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items) => WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
 
     public sealed partial class ExplicitInterfaceSpecifierSyntax : CSharpSyntaxNode
@@ -9502,7 +9502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
         }
         internal override BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
-        public new MethodDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)=> WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+        public new MethodDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         public MethodDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => WithConstraintClauses(this.ConstraintClauses.AddRange(items));
         internal override BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items) => AddBodyStatements(items);
         public new MethodDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
@@ -9626,7 +9626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
         public new OperatorDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         internal override BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
-        public new OperatorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)=> WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+        public new OperatorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         internal override BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items) => AddBodyStatements(items);
         public new OperatorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
         {
@@ -9749,7 +9749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
         public new ConversionOperatorDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         internal override BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
-        public new ConversionOperatorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)=> WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+        public new ConversionOperatorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         internal override BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items) => AddBodyStatements(items);
         public new ConversionOperatorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
         {
@@ -9867,7 +9867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
         public new ConstructorDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         internal override BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
-        public new ConstructorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)=> WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+        public new ConstructorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         internal override BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items) => AddBodyStatements(items);
         public new ConstructorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
         {
@@ -9919,7 +9919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ConstructorInitializerSyntax WithThisOrBaseKeyword(SyntaxToken thisOrBaseKeyword) => Update(this.ColonToken, thisOrBaseKeyword, this.ArgumentList);
         public ConstructorInitializerSyntax WithArgumentList(ArgumentListSyntax argumentList) => Update(this.ColonToken, this.ThisOrBaseKeyword, argumentList);
 
-        public ConstructorInitializerSyntax AddArgumentListArguments(params ArgumentSyntax[] items)=> WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
+        public ConstructorInitializerSyntax AddArgumentListArguments(params ArgumentSyntax[] items) => WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
 
     /// <summary>Destructor declaration syntax.</summary>
@@ -10029,7 +10029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
         public new DestructorDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
         internal override BaseMethodDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
-        public new DestructorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)=> WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+        public new DestructorDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         internal override BaseMethodDeclarationSyntax AddBodyStatementsCore(params StatementSyntax[] items) => AddBodyStatements(items);
         public new DestructorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
         {
@@ -10450,7 +10450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new IndexerDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
         internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
         public new IndexerDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
-        public IndexerDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)=> WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
+        public IndexerDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items) => WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
         internal override BasePropertyDeclarationSyntax AddAccessorListAccessorsCore(params AccessorDeclarationSyntax[] items) => AddAccessorListAccessors(items);
         public new IndexerDeclarationSyntax AddAccessorListAccessors(params AccessorDeclarationSyntax[] items)
         {
@@ -11579,7 +11579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public XmlElementSyntax WithContent(SyntaxList<XmlNodeSyntax> content) => Update(this.StartTag, content, this.EndTag);
         public XmlElementSyntax WithEndTag(XmlElementEndTagSyntax endTag) => Update(this.StartTag, this.Content, endTag);
 
-        public XmlElementSyntax AddStartTagAttributes(params XmlAttributeSyntax[] items)=> WithStartTag(this.StartTag.WithAttributes(this.StartTag.Attributes.AddRange(items)));
+        public XmlElementSyntax AddStartTagAttributes(params XmlAttributeSyntax[] items) => WithStartTag(this.StartTag.WithAttributes(this.StartTag.Attributes.AddRange(items)));
         public XmlElementSyntax AddContent(params XmlNodeSyntax[] items) => WithContent(this.Content.AddRange(items));
     }
 
