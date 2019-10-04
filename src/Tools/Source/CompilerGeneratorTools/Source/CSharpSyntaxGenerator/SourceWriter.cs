@@ -1908,8 +1908,8 @@ namespace CSharpSyntaxGenerator
 
             this.WriteLine();
 
-            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
-            Write("    {0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
+            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "");
+            Write("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
 
             bool hasPreviousParameter = false;
             if (nd.Kinds.Count > 1)
@@ -1933,10 +1933,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
             WriteLine(")");
-
-            WriteLine("    {");
-
-            Write("      return SyntaxFactory.{0}(", StripPost(nd.Name, "Syntax"));
+            Write("    => SyntaxFactory.{0}(", StripPost(nd.Name, "Syntax"));
 
             bool hasPreviousArgument = false;
             if (nd.Kinds.Count > 1)
@@ -1967,8 +1964,6 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteLine(");");
-
-            WriteLine("    }");
         }
 
         private Field DetermineMinimalOptionalField(Node nd)
