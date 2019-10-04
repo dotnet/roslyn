@@ -1833,7 +1833,8 @@ namespace CSharpSyntaxGenerator
 
             if (IsOptional(field) || IsAnyList(field.Type))
             {
-                return string.Format("default({0})", GetRedPropertyType(field));
+                var type = GetRedPropertyType(field);
+                return type == "SyntaxTokenList" ? "default(SyntaxTokenList)" : "default";
             }
             else if (field.Type == "SyntaxToken")
             {
