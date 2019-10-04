@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expr = _syntax.Expression;
                 ReportBadAwaitDiagnostics(expr, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
-                var placeholder = new BoundAwaitableValuePlaceholder(expr, valEscape:/*PROTOTYPE*/LocalScopeDepth, builder.MoveNextMethod?.ReturnType ?? CreateErrorType());
+                var placeholder = new BoundAwaitableValuePlaceholder(expr, valEscape: this.LocalScopeDepth, builder.MoveNextMethod?.ReturnType ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
 
                 if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expr = _syntax.Expression;
             ReportBadAwaitDiagnostics(expr, _syntax.AwaitKeyword.GetLocation(), diagnostics, ref hasErrors);
 
-            var placeholder = new BoundAwaitableValuePlaceholder(expr, valEscape:/*PROTOTYPE*/LocalScopeDepth, awaitableType);
+            var placeholder = new BoundAwaitableValuePlaceholder(expr, valEscape: this.LocalScopeDepth, awaitableType);
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
             return hasErrors;
         }
