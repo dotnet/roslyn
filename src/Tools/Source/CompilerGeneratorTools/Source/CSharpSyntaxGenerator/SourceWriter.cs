@@ -568,8 +568,8 @@ namespace CSharpSyntaxGenerator
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
 
             WriteLine();
-            WriteLine("  internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>");
-            WriteLine("  {");
+            WriteLine("internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>");
+            OpenBlock();
             int nWritten = 0;
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
@@ -580,47 +580,46 @@ namespace CSharpSyntaxGenerator
                     if (nWritten > 0)
                         WriteLine();
                     nWritten++;
-                    WriteLine("    public override CSharpSyntaxNode Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name);
-                    WriteLine("    {");
-                    for (int f = 0; f < nodeFields.Count; f++)
+                    WriteLine("public override CSharpSyntaxNode Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name);
+                    Indent();
+
+                    if (nodeFields.Count == 0)
                     {
-                        var field = nodeFields[f];
-                        if (IsAnyList(field.Type))
-                        {
-                            WriteLine("      var {0} = this.VisitList(node.{1});", CamelCase(field.Name), field.Name);
-                        }
-                        else
-                        {
-                            WriteLine("      var {0} = ({1})this.Visit(node.{2});", CamelCase(field.Name), field.Type, field.Name);
-                        }
+                        WriteLine("=> node;");
                     }
-                    if (nodeFields.Count > 0)
+                    else
                     {
-                        Write("      return node.Update(");
+                        Write("=> node.Update(");
+
                         for (int f = 0; f < node.Fields.Count; f++)
                         {
-                            var field = node.Fields[f];
                             if (f > 0)
-                                Write(", ");
-                            if (IsNodeOrNodeList(field.Type))
                             {
-                                Write(CamelCase(field.Name));
+                                Write(", ");
+                            }
+                            var field = node.Fields[f];
+                            if (IsAnyList(field.Type))
+                            {
+                                Write("VisitList(node.{1})", CamelCase(field.Name), field.Name);
+                            }
+                            else if (IsNode(field.Type))
+                            {
+                                Write("({1})Visit(node.{2})", CamelCase(field.Name), field.Type, field.Name);
                             }
                             else
                             {
                                 Write("node.{0}", field.Name);
                             }
                         }
+
                         WriteLine(");");
                     }
-                    else
-                    {
-                        WriteLine("      return node;");
-                    }
-                    WriteLine("    }");
+
+                    Unindent();
                 }
             }
-            WriteLine("  }");
+
+            CloseBlock();
         }
 
         private void WriteContextualGreenFactories()
