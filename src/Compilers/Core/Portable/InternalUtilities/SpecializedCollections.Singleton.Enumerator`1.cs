@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections;
 using System.Collections.Generic;
 
@@ -22,7 +24,7 @@ namespace Roslyn.Utilities
 
                 public T Current => _loneValue;
 
-                object IEnumerator.Current => _loneValue;
+                object? IEnumerator.Current => _loneValue;
 
                 public void Dispose()
                 {
