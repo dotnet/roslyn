@@ -452,8 +452,8 @@ namespace CSharpSyntaxGenerator
         private void WriteSetDiagnostics(Node node)
         {
             WriteLine();
-            WriteLine("    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)");
-            Write("        => new {0}(this.Kind, ", node.Name);
+            WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)");
+            Write("    => new {0}(this.Kind, ", node.Name);
             for (int f = 0; f < node.Fields.Count; f++)
             {
                 var field = node.Fields[f];
