@@ -1605,8 +1605,8 @@ namespace CSharpSyntaxGenerator
         {
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).OfType<Node>().ToList();
             WriteLine();
-            WriteLine("  public static partial class SyntaxFactory");
-            WriteLine("  {");
+            WriteLine("public static partial class SyntaxFactory");
+            OpenBlock();
 
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
@@ -1622,7 +1622,7 @@ namespace CSharpSyntaxGenerator
                 this.WriteKindConverters(node);
             }
 
-            WriteLine("  }");
+            CloseBlock();
         }
 
         protected bool CanBeAutoCreated(Node node, Field field)
