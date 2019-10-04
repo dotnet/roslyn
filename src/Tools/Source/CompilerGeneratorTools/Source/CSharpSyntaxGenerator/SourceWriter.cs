@@ -473,33 +473,25 @@ namespace CSharpSyntaxGenerator
 
         private void WriteGreenVisitors()
         {
-            //WriteGreenVisitor(true, true);
-            //WriteLine();
-            WriteGreenVisitor(false, true);
-            WriteLine();
-            WriteGreenVisitor(false, false);
+            WriteGreenVisitor(withResult: true);
+            WriteGreenVisitor(withResult: false);
         }
 
-        private void WriteGreenVisitor(bool withArgument, bool withResult)
+        private void WriteGreenVisitor(bool withResult)
         {
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
 
             WriteLine();
-            WriteLine("  internal partial class CSharpSyntaxVisitor" + (withResult ? "<" + (withArgument ? "TArgument, " : "") + "TResult>" : ""));
-            WriteLine("  {");
-            int nWritten = 0;
+            WriteLine("internal partial class CSharpSyntaxVisitor" + (withResult ? "<TResult>" : ""));
+            OpenBlock();
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
                 if (nodes[i] is Node node)
                 {
-                    if (nWritten > 0)
-                        WriteLine();
-                    nWritten++;
-
-                    WriteLine("    public virtual {0} Visit{1}({2} node{3}) => this.DefaultVisit(node{4});", withResult ? "TResult" : "void", StripPost(node.Name, "Syntax"), node.Name, withArgument ? ", TArgument argument" : "", withArgument ? ", argument" : "");
+                    WriteLine("public virtual {0} Visit{1}({2} node) => this.DefaultVisit(node);", withResult ? "TResult" : "void", StripPost(node.Name, "Syntax"), node.Name);
                 }
             }
-            WriteLine("  }");
+            CloseBlock();
         }
 
         private void WriteGreenUpdateMethod(Node node)

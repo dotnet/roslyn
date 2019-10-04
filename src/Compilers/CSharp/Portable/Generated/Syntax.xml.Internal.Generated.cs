@@ -31856,872 +31856,443 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-      internal partial class CSharpSyntaxVisitor<TResult>
-      {
+    internal partial class CSharpSyntaxVisitor<TResult>
+    {
         public virtual TResult VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitPredefinedType(PredefinedTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitBinaryExpression(BinaryExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAssignmentExpression(AssignmentExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitConditionalExpression(ConditionalExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitInvocationExpression(InvocationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitElementAccessExpression(ElementAccessExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitRefExpression(RefExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitArrayCreationExpression(ArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitLetClause(LetClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitJoinClause(JoinClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitJoinIntoClause(JoinIntoClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitWhereClause(WhereClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitOrderByClause(OrderByClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitOrdering(OrderingSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSelectClause(SelectClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitGroupClause(GroupClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitQueryContinuation(QueryContinuationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitIsPatternExpression(IsPatternExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitThrowExpression(ThrowExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDiscardPattern(DiscardPatternSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitVarPattern(VarPatternSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitRecursivePattern(RecursivePatternSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitPositionalPatternClause(PositionalPatternClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitGlobalStatement(GlobalStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitBlock(BlockSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitLocalFunctionStatement(LocalFunctionStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitVariableDeclaration(VariableDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitVariableDeclarator(VariableDeclaratorSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitEqualsValueClause(EqualsValueClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSingleVariableDesignation(SingleVariableDesignationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDiscardDesignation(DiscardDesignationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitExpressionStatement(ExpressionStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitEmptyStatement(EmptyStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitLabeledStatement(LabeledStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitGotoStatement(GotoStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitBreakStatement(BreakStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitContinueStatement(ContinueStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitReturnStatement(ReturnStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitThrowStatement(ThrowStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitYieldStatement(YieldStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitWhileStatement(WhileStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDoStatement(DoStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitForStatement(ForStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitForEachStatement(ForEachStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitForEachVariableStatement(ForEachVariableStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitUsingStatement(UsingStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitFixedStatement(FixedStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCheckedStatement(CheckedStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitUnsafeStatement(UnsafeStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitLockStatement(LockStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitIfStatement(IfStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitElseClause(ElseClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSwitchStatement(SwitchStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSwitchSection(SwitchSectionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSwitchExpression(SwitchExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSwitchExpressionArm(SwitchExpressionArmSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCatchClause(CatchClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCatchDeclaration(CatchDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCatchFilterClause(CatchFilterClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitFinallyClause(FinallyClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCompilationUnit(CompilationUnitSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAttributeArgumentList(AttributeArgumentListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAttributeArgument(AttributeArgumentSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitNameEquals(NameEqualsSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTypeParameterList(TypeParameterListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitMethodDeclaration(MethodDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitConstructorDeclaration(ConstructorDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitConstructorInitializer(ConstructorInitializerSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDestructorDeclaration(DestructorDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitParameterList(ParameterListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCrefParameterList(CrefParameterListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitCrefParameter(CrefParameterSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlElement(XmlElementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlElementStartTag(XmlElementStartTagSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlElementEndTag(XmlElementEndTagSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlEmptyElement(XmlEmptyElementSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlName(XmlNameSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlPrefix(XmlPrefixSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlTextAttribute(XmlTextAttributeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlCrefAttribute(XmlCrefAttributeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlNameAttribute(XmlNameAttributeSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlText(XmlTextSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlCDataSection(XmlCDataSectionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitXmlComment(XmlCommentSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual TResult VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-      }
+    }
 
-
-      internal partial class CSharpSyntaxVisitor
-      {
+    internal partial class CSharpSyntaxVisitor
+    {
         public virtual void VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitPredefinedType(PredefinedTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitArrayType(ArrayTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitPointerType(PointerTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitNullableType(NullableTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTupleType(TupleTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAwaitExpression(AwaitExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitBinaryExpression(BinaryExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAssignmentExpression(AssignmentExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitConditionalExpression(ConditionalExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitThisExpression(ThisExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitBaseExpression(BaseExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitLiteralExpression(LiteralExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitMakeRefExpression(MakeRefExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitRefTypeExpression(RefTypeExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitRefValueExpression(RefValueExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCheckedExpression(CheckedExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDefaultExpression(DefaultExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTypeOfExpression(TypeOfExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSizeOfExpression(SizeOfExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitInvocationExpression(InvocationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitElementAccessExpression(ElementAccessExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitRefExpression(RefExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitInitializerExpression(InitializerExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitArrayCreationExpression(ArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitQueryExpression(QueryExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitQueryBody(QueryBodySyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitFromClause(FromClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitLetClause(LetClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitJoinClause(JoinClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitJoinIntoClause(JoinIntoClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitWhereClause(WhereClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitOrderByClause(OrderByClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitOrdering(OrderingSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSelectClause(SelectClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitGroupClause(GroupClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitQueryContinuation(QueryContinuationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitIsPatternExpression(IsPatternExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitThrowExpression(ThrowExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitWhenClause(WhenClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDiscardPattern(DiscardPatternSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDeclarationPattern(DeclarationPatternSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitVarPattern(VarPatternSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitRecursivePattern(RecursivePatternSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitPositionalPatternClause(PositionalPatternClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitGlobalStatement(GlobalStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitBlock(BlockSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitVariableDeclaration(VariableDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitVariableDeclarator(VariableDeclaratorSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitEqualsValueClause(EqualsValueClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDiscardDesignation(DiscardDesignationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitExpressionStatement(ExpressionStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitEmptyStatement(EmptyStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitLabeledStatement(LabeledStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitGotoStatement(GotoStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitBreakStatement(BreakStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitContinueStatement(ContinueStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitReturnStatement(ReturnStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitThrowStatement(ThrowStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitYieldStatement(YieldStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitWhileStatement(WhileStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDoStatement(DoStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitForStatement(ForStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitForEachStatement(ForEachStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitForEachVariableStatement(ForEachVariableStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitUsingStatement(UsingStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitFixedStatement(FixedStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCheckedStatement(CheckedStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitUnsafeStatement(UnsafeStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitLockStatement(LockStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitIfStatement(IfStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitElseClause(ElseClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSwitchStatement(SwitchStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSwitchSection(SwitchSectionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCaseSwitchLabel(CaseSwitchLabelSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSwitchExpression(SwitchExpressionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSwitchExpressionArm(SwitchExpressionArmSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTryStatement(TryStatementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCatchClause(CatchClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCatchDeclaration(CatchDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCatchFilterClause(CatchFilterClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitFinallyClause(FinallyClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCompilationUnit(CompilationUnitSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitExternAliasDirective(ExternAliasDirectiveSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitUsingDirective(UsingDirectiveSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAttribute(AttributeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAttributeArgumentList(AttributeArgumentListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAttributeArgument(AttributeArgumentSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitNameEquals(NameEqualsSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTypeParameterList(TypeParameterListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTypeParameter(TypeParameterSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitClassDeclaration(ClassDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitStructDeclaration(StructDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitEnumDeclaration(EnumDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDelegateDeclaration(DelegateDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitBaseList(BaseListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSimpleBaseType(SimpleBaseTypeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitConstructorConstraint(ConstructorConstraintSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTypeConstraint(TypeConstraintSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitFieldDeclaration(FieldDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitMethodDeclaration(MethodDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitConstructorDeclaration(ConstructorDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitConstructorInitializer(ConstructorInitializerSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDestructorDeclaration(DestructorDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitEventDeclaration(EventDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAccessorList(AccessorListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitAccessorDeclaration(AccessorDeclarationSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitParameterList(ParameterListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitBracketedParameterList(BracketedParameterListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitParameter(ParameterSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitIncompleteMember(IncompleteMemberSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCrefParameterList(CrefParameterListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitCrefParameter(CrefParameterSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlElement(XmlElementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlElementStartTag(XmlElementStartTagSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlElementEndTag(XmlElementEndTagSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlEmptyElement(XmlEmptyElementSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlName(XmlNameSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlPrefix(XmlPrefixSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlTextAttribute(XmlTextAttributeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlCrefAttribute(XmlCrefAttributeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlNameAttribute(XmlNameAttributeSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlText(XmlTextSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlCDataSection(XmlCDataSectionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitXmlComment(XmlCommentSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-
         public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
-      }
+    }
 
       internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>
       {
