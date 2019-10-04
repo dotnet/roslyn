@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+#nullable enable
+
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Roslyn.Utilities
 {
     // Note that this is not threadsafe for concurrent reading and writing.
     internal sealed class OrderedMultiDictionary<K, V> : IEnumerable<KeyValuePair<K, SetWithInsertionOrder<V>>>
+        where K : notnull
     {
         private readonly Dictionary<K, SetWithInsertionOrder<V>> _dictionary;
         private readonly List<K> _keys;

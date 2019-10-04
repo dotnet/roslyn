@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             switch (statementNode.Kind())
             {
                 case SyntaxKind.DoStatement:
-                    //  Move caret after the do statment's closing paren.
+                    //  Move caret after the do statement's closing paren.
                     targetPosition = caret.Snapshot.GetPoint(((DoStatementSyntax)statementNode).CloseParenToken.Span.End);
                     return true;
                 case SyntaxKind.ForStatement:
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// preceding the semicolon. These delimiters are not part of the expression, but they behave like an argument
         /// list for the purposes of identifying relevant places for statement completion:</para>
         /// <list type="bullet">
-        /// <item><description>The closing delimiter is typically inserted by the Automatic Brace Compeltion feature.</description></item>
+        /// <item><description>The closing delimiter is typically inserted by the Automatic Brace Completion feature.</description></item>
         /// <item><description>It is not syntactically valid to place a semicolon <em>directly</em> within the delimiters.</description></item>
         /// </list>
         /// </remarks>

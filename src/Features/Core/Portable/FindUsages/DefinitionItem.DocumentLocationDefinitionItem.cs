@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.Navigation;
 using Roslyn.Utilities;
 
@@ -27,10 +26,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ImmutableArray<TaggedText> originationParts,
                 ImmutableArray<DocumentSpan> sourceSpans,
                 ImmutableDictionary<string, string> properties,
-                ImmutableArray<FindUsageProperty> findUsagesProperties,
+                ImmutableDictionary<string, string> displayableProperties,
                 bool displayIfNoReferences)
                 : base(tags, displayParts, nameDisplayParts, originationParts,
-                       sourceSpans, properties, findUsagesProperties, displayIfNoReferences)
+                       sourceSpans, properties, displayableProperties, displayIfNoReferences)
             {
             }
 

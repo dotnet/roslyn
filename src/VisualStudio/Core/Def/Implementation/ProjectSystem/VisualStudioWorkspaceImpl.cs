@@ -1835,7 +1835,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
                     // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
-                    // we might not find the path at all: when we recieve the file changed event, we aren't checking if the file is still
+                    // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
                     // in the workspace at that time; it's possible it might have already been removed.
                     foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
                     {

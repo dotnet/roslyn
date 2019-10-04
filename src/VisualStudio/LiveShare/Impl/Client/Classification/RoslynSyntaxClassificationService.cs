@@ -41,33 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
 
         public void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_Local))
-            {
-                using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.LexicalClassifications))
-                {
-                    _originalService.AddLexicalClassifications(text, textSpan, result, cancellationToken);
-                }
-            }
-            else if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_Remote))
-            {
-                var documentId = _remoteLanguageServiceWorkspace.GetDocumentIdInCurrentContext(text.Container);
-                var document = _remoteLanguageServiceWorkspace.CurrentSolution.GetDocument(documentId);
-                if (document == null)
-                {
-                    // It is expected that the document cannot be found (e.g. source text comes from preview workspace).
-                    // These cases are already not supported in liveshare, so for now just return.
-                    return;
-                }
-                using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.LexicalClassifications))
-                {
-                    _threadingContext.JoinableTaskFactory.Run(async () =>
-                    {
-                        await AddRemoteClassificationsAsync(LexicalClassificationsHandler.LexicalClassificationsMethodName, document.FilePath, text, textSpan, result.Add, cancellationToken).ConfigureAwait(false);
-                    });
-                }
-            }
-            else if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote) ||
-                     ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
+            if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote) ||
+                ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
             {
                 // do nothing here so that existing RoslynSyntacticTagger return nothing in this mode
                 return;
@@ -103,26 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
 
         public void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_Local))
-            {
-                using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticClassifications))
-                {
-                    _originalService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);
-                }
-            }
-            else if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_Remote))
-            {
-                using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticClassifications))
-                {
-                    _threadingContext.JoinableTaskFactory.Run(async () =>
-                    {
-                        var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        await AddRemoteClassificationsAsync(SyntaxClassificationsHandler.SyntaxClassificationsMethodName, syntaxTree.FilePath, sourceText, textSpan, result.Add, cancellationToken).ConfigureAwait(false);
-                    });
-                }
-            }
-            else if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote) ||
-                     ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
+            if (ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote) ||
+                ShouldRunExperiment(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
             {
                 // do nothing here so that existing RoslynSyntacticTagger return nothing in this mode
                 return;
@@ -175,8 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
                 return;
             }
 
-            await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
-
             var classificationParams = new ClassificationParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = lspClient.ProtocolConverter.ToProtocolUri(new Uri(filePath)) },
@@ -206,18 +161,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classificatio
                     tagAdder(new ClassifiedSpan(classification, span));
                 }
             }
-        }
-
-        public Task EnsureInitializationAsync(CancellationToken cancellationToken)
-        {
-            return EnsureInitializationAsync(_roslynLspClientServiceFactory, cancellationToken);
-        }
-
-        public static async Task EnsureInitializationAsync(AbstractLspClientServiceFactory lspClientServiceFactory, CancellationToken cancellationToken)
-        {
-            // TODO - Move to roslyn client initialization once liveshare initialization is fixed.
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/964288
-            await lspClientServiceFactory.EnsureInitializedAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

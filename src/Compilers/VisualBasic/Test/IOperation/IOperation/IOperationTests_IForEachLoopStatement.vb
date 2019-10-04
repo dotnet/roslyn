@@ -819,7 +819,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact(), WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")>
-        Public Sub IForEachLoopStatement_lamda()
+        Public Sub IForEachLoopStatement_Lambda()
             Dim source = <![CDATA[
 Option Strict On
 Option Infer On
