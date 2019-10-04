@@ -201,7 +201,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal bool TryAddSynthesizedMethod(Cci.IMethodDefinition method)
         {
             Debug.Assert(!IsFrozen);
+#nullable disable // Can 'method.Name' be null?
             return _synthesizedMethods.TryAdd(method.Name, method);
+#nullable enable
         }
 
         public override IEnumerable<Cci.IFieldDefinition> GetFields(EmitContext context)

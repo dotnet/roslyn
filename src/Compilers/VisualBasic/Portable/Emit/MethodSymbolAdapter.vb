@@ -84,12 +84,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private ReadOnly Property IMethodDefinitionName As String Implements Cci.IMethodDefinition.Name
-            Get
-                Return Me.MetadataName
-            End Get
-        End Property
-
         Private ReadOnly Property INamedEntityName As String Implements Cci.INamedEntity.Name
             Get
                 Return Me.MetadataName

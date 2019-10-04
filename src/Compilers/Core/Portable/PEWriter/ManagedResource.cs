@@ -42,7 +42,9 @@ namespace Microsoft.Cci
             {
                 try
                 {
-                    using (Stream stream = _streamProvider!())
+#nullable disable // Can '_streamProvider' be null?
+                    using (Stream stream = _streamProvider())
+#nullable enable
                     {
                         if (stream == null)
                         {

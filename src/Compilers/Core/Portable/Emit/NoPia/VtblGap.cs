@@ -181,11 +181,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             return this;
         }
 
-        string Cci.IMethodDefinition.Name
-        {
-            get { return _name; }
-        }
-
         string Cci.INamedEntity.Name
         {
             get { return _name; }

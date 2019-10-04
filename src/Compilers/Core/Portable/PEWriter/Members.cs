@@ -585,9 +585,6 @@ namespace Microsoft.Cci
         /// TODO: Ideally we would expose INamespace on INamespaceTypeDefinition. Right now we can only get the qualified namespace name.
         /// </summary>
         INamespace ContainingNamespace { get; }
-
-        /// <inheritdoc cref="INamedEntity.Name"/>
-        new string Name { get; }
     }
 
     /// <summary>
@@ -909,6 +906,10 @@ namespace Microsoft.Cci
     /// </summary>
     internal interface IGlobalMethodDefinition : IMethodDefinition
     {
+        /// <summary>
+        /// The name of the method.
+        /// </summary>
+        new string Name { get; }
     }
 
     internal static class Extensions
