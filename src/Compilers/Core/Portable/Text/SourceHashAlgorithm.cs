@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.Text
 
     internal static class SourceHashAlgorithmUtils
     {
-#pragma warning disable CA1802 // Use literals where appropriate
-        public static readonly SourceHashAlgorithm DefaultHashAlgorithm = SourceHashAlgorithm.Sha256;
-#pragma warning restore CA1802 // Use literals where appropriate
+        public const SourceHashAlgorithm DefaultContentHashAlgorithm = SourceHashAlgorithm.Sha256;
     }
 }

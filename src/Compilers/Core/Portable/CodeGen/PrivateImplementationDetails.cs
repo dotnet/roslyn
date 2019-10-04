@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal static string GenerateDataFieldName(ImmutableArray<byte> data)
         {
-            var hash = CryptographicHashProvider.ComputeHash(SourceHashAlgorithmUtils.DefaultHashAlgorithm, data);
+            var hash = CryptographicHashProvider.ComputeSourceHash(data);
             char[] c = new char[hash.Length * 2];
             int i = 0;
             foreach (var b in hash)

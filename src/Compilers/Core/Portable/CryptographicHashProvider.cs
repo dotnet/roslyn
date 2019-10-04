@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static ImmutableArray<byte> ComputeHash(SourceHashAlgorithm hashAlgorithm, ImmutableArray<byte> bytes)
+        internal static ImmutableArray<byte> ComputeSourceHash(ImmutableArray<byte> bytes, SourceHashAlgorithm hashAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm)
         {
             var algorithmName = GetAlgorithmName(hashAlgorithm);
             using (var incrementalHash = IncrementalHash.CreateHash(algorithmName))
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static ImmutableArray<byte> ComputeHash(SourceHashAlgorithm hashAlgorithm, IEnumerable<Blob> bytes)
+        internal static ImmutableArray<byte> ComputeSourceHash(IEnumerable<Blob> bytes, SourceHashAlgorithm hashAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm)
         {
             return ComputeHash(GetAlgorithmName(hashAlgorithm), bytes);
         }
