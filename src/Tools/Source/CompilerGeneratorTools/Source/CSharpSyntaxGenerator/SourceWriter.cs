@@ -437,8 +437,8 @@ namespace CSharpSyntaxGenerator
         private void WriteSetAnnotations(Node node)
         {
             WriteLine();
-            WriteLine("    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)");
-            Write("        => new {0}(this.Kind, ", node.Name);
+            WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)");
+            Write("    => new {0}(this.Kind, ", node.Name);
             for (int f = 0; f < node.Fields.Count; f++)
             {
                 var field = node.Fields[f];
