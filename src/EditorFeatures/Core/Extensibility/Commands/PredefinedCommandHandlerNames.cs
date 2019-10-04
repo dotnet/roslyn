@@ -168,6 +168,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Command handler name for Edit and Continue file save handler.
         /// </summary>
-        public const string EditAndContinueFileSave = "Edit and Continue save file handler";
+        public const string EditAndContinueFileSave = "Edit and Continue Save File Handler";
     }
 }

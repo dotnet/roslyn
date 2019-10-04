@@ -262,8 +262,8 @@ class C
 
             using var workspace = TestWorkspace.CreateCSharp(source1);
             var oldSolution = workspace.CurrentSolution;
-            var oldProject = oldSolution.Projects.First();
-            var oldDocument = oldProject.Documents.First();
+            var oldProject = oldSolution.Projects.Single();
+            var oldDocument = oldProject.Documents.Single();
             var oldText = await oldDocument.GetTextAsync();
             var oldSyntaxRoot = await oldDocument.GetSyntaxRootAsync();
             var documentId = oldDocument.Id;
@@ -318,8 +318,8 @@ class C
 
             using var workspace = TestWorkspace.CreateCSharp(source1);
             var oldSolution = workspace.CurrentSolution;
-            var oldProject = oldSolution.Projects.First();
-            var oldDocument = oldProject.Documents.First();
+            var oldProject = oldSolution.Projects.Single();
+            var oldDocument = oldProject.Documents.Single();
             var documentId = oldDocument.Id;
             var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
 
@@ -346,8 +346,8 @@ class C
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
             using var workspace = TestWorkspace.CreateCSharp(source);
-            var oldProject = workspace.CurrentSolution.Projects.First();
-            var oldDocument = oldProject.Documents.First();
+            var oldProject = workspace.CurrentSolution.Projects.Single();
+            var oldDocument = oldProject.Documents.Single();
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
             var result = await analyzer.AnalyzeDocumentAsync(oldDocument, baseActiveStatements, oldDocument, trackingServiceOpt: null, CancellationToken.None);
 

@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Active Statements - available in out-of-sync documents, as they reflect the state of the debuggee and not the base document content
 
-            Assert.Equal(1, baseActiveStatementMap.DocumentMap.Count);
+            Assert.Single(baseActiveStatementMap.DocumentMap);
 
             AssertEx.Equal(new[]
             {

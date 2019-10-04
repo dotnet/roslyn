@@ -18,26 +18,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     [Name(PredefinedCommandHandlerNames.EditAndContinueFileSave)]
     internal sealed class EditAndContinueSaveFileCommandHandler : IChainedCommandHandler<SaveCommandArgs>
     {
-        private readonly Workspace _workspace;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditAndContinueSaveFileCommandHandler(PrimaryWorkspace workspace)
+        public EditAndContinueSaveFileCommandHandler()
         {
-            _workspace = workspace.Workspace;
         }
 
         public string DisplayName => PredefinedCommandHandlerNames.EditAndContinueFileSave;
 
         void IChainedCommandHandler<SaveCommandArgs>.ExecuteCommand(SaveCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            var encService = _workspace.Services.GetService<IEditAndContinueWorkspaceService>();
-            if (encService != null)
+            var textContainer = args.SubjectBuffer.AsTextContainer();
+
+            if (Workspace.TryGetWorkspace(textContainer, out var workspace))
             {
-                var documentId = _workspace.GetDocumentIdInCurrentContext(args.SubjectBuffer.AsTextContainer());
-                if (documentId != null)
+                var encService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+                if (encService != null)
                 {
-                    encService.OnSourceFileUpdated(documentId);
+                    var documentId = workspace.GetDocumentIdInCurrentContext(textContainer);
+                    if (documentId != null)
+                    {
+                        encService.OnSourceFileUpdated(documentId);
+                    }
                 }
             }
 
