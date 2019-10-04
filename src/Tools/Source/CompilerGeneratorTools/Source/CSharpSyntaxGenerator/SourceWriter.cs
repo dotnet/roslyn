@@ -1370,7 +1370,10 @@ namespace CSharpSyntaxGenerator
                 var field = node.Fields[f];
                 var type = this.GetRedPropertyType(field);
 
-                WriteLine();
+                if (f == 0)
+                {
+                    WriteLine();
+                }
 
                 var isNew = false;
                 if (IsOverride(field))
@@ -1378,16 +1381,16 @@ namespace CSharpSyntaxGenerator
                     var baseType = GetHighestBaseTypeWithField(node, field.Name);
                     if (baseType != null)
                     {
-                        WriteLine($"    internal override {baseType.Name} With{field.Name}Core({type} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)});");
+                        WriteLine($"internal override {baseType.Name} With{field.Name}Core({type} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)});");
                         isNew = true;
                     }
                 }
 
-                WriteLine($"    public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({type} {CamelCase(field.Name)})");
-                WriteLine("    {");
+                Write(
+                    $"public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({type} {CamelCase(field.Name)})" +
+                    " => Update(");
 
                 // call update inside each setter
-                Write("        return this.Update(");
                 for (int f2 = 0; f2 < node.Fields.Count; f2++)
                 {
                     var field2 = node.Fields[f2];
@@ -1404,8 +1407,6 @@ namespace CSharpSyntaxGenerator
                     }
                 }
                 WriteLine(");");
-
-                WriteLine("    }");
             }
         }
 
