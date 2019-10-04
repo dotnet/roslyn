@@ -69,7 +69,6 @@ namespace CSharpSyntaxGenerator
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
-            WriteLine("}");
             CloseBlock();
         }
 
@@ -690,7 +689,7 @@ namespace CSharpSyntaxGenerator
             OpenBlock();
 
             // validate kind
-            if (nd.Kinds.Count > 1)
+            if (nd.Kinds.Count >= 2)
             {
                 WriteLine("switch (kind)");
                 OpenBlock();
@@ -760,10 +759,11 @@ namespace CSharpSyntaxGenerator
 
                         WriteLine("default: throw new ArgumentException(nameof({0}));", pname);
                         CloseBlock();
-                        if (IsOptional(field))
-                        {
-                            CloseBlock();
-                        }
+                    }
+
+                    if (IsOptional(field))
+                    {
+                        CloseBlock();
                     }
                 }
             }
@@ -1707,17 +1707,24 @@ namespace CSharpSyntaxGenerator
             OpenBlock();
 
             // validate kinds
-            if (nd.Kinds.Count > 1)
+            if (nd.Kinds.Count >= 2)
             {
                 WriteLine("switch (kind)");
                 OpenBlock();
-                foreach (var kind in nd.Kinds)
+                for (int i = 0; i < nd.Kinds.Count; i++)
                 {
-                    WriteLine("case SyntaxKind.{0}:", kind.Name);
+                    var kind = nd.Kinds[i];
+                    Write("case SyntaxKind.{0}:", kind.Name);
+                    if (i == nd.Kinds.Count - 1)
+                    {
+                        WriteLine(" break;");
+                    }
+                    else
+                    {
+                        WriteLine();
+                    }
                 }
-                WriteLine("    break;");
-                WriteLine("default:");
-                WriteLine("    throw new ArgumentException(nameof(kind));");
+                WriteLine("default: throw new ArgumentException(nameof(kind));");
                 CloseBlock();
             }
 
@@ -1731,26 +1738,41 @@ namespace CSharpSyntaxGenerator
                 {
                     if (field.Kinds != null && field.Kinds.Count > 0)
                     {
-                        WriteLine("switch ({0}.Kind())", pname);
-                        OpenBlock();
-                        foreach (var kind in field.Kinds)
-                        {
-                            WriteLine("case SyntaxKind.{0}:", kind.Name);
-                        }
+                        var kinds = field.Kinds.ToList();
                         if (IsOptional(field))
                         {
-                            WriteLine("case SyntaxKind.None:");
+                            kinds.Add(new Kind { Name = "None" });
                         }
-                        WriteLine("    break;");
-                        WriteLine("default:");
-                        WriteLine("throw new ArgumentException(nameof({0}));", pname);
-                        CloseBlock();
+
+                        if (kinds.Count == 1)
+                        {
+                            WriteLine($"if ({pname}.Kind() != SyntaxKind.{kinds[0].Name}) throw new ArgumentException(nameof({pname}));");
+                        }
+                        else
+                        {
+                            WriteLine("switch ({0}.Kind())", pname);
+                            OpenBlock();
+                            for (int j = 0; j < kinds.Count; j++)
+                            {
+                                var kind = kinds[j];
+                                Write("case SyntaxKind.{0}:", kind.Name);
+                                if (j == kinds.Count - 1)
+                                {
+                                    WriteLine(" break;");
+                                }
+                                else
+                                {
+                                    WriteLine("");
+                                }
+                            }
+                            WriteLine("default: throw new ArgumentException(nameof({0}));", pname);
+                            CloseBlock();
+                        }
                     }
                 }
                 else if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
-                    WriteLine("if ({0} == null)", CamelCase(field.Name));
-                    WriteLine("    throw new ArgumentNullException(nameof({0}));", CamelCase(field.Name));
+                    WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
                 }
             }
 
