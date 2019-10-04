@@ -626,22 +626,17 @@ namespace CSharpSyntaxGenerator
         {
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).ToList();
             WriteLine();
-            WriteLine("  internal partial class ContextAwareSyntax");
-            WriteLine("  {");
+            WriteLine("internal partial class ContextAwareSyntax");
+            OpenBlock();
+            WriteLine();
+            WriteLine("private SyntaxFactoryContext context;");
 
             WriteLine();
-            WriteLine("    private SyntaxFactoryContext context;");
-            WriteLine();
-
-            WriteLine();
-            WriteLine("    public ContextAwareSyntax(SyntaxFactoryContext context)");
-            WriteLine("    {");
-            WriteLine("        this.context = context;");
-            WriteLine("    }");
+            WriteLine("public ContextAwareSyntax(SyntaxFactoryContext context)");
+            WriteLine("    => this.context = context;");
 
             WriteGreenFactories(nodes, withSyntaxFactoryContext: true);
-
-            WriteLine("  }");
+            CloseBlock();
         }
 
         private void WriteStaticGreenFactories()
