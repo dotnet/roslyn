@@ -32948,6 +32948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public ContextAwareSyntax(SyntaxFactoryContext context)
             => this.context = context;
+
             public IdentifierNameSyntax IdentifierName(SyntaxToken identifier)
             {
         #if DEBUG

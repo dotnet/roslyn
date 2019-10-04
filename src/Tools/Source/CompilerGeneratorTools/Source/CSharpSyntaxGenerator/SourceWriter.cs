@@ -655,9 +655,8 @@ namespace CSharpSyntaxGenerator
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
                 var node = nodes[i];
+                WriteLine();
                 this.WriteGreenFactory((Node)node, withSyntaxFactoryContext);
-                if (i < n - 1)
-                    WriteLine();
             }
         }
 
