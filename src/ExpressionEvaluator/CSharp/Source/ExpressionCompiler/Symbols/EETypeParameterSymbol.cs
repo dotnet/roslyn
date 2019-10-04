@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly TypeParameterSymbol _sourceTypeParameter;
         private readonly int _ordinal;
         private readonly Func<TypeMap> _getTypeMap;
-        private TypeMap _lazyTypeMap;
+        private TypeMap? _lazyTypeMap;
 
         public EETypeParameterSymbol(
             Symbol container,
