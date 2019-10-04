@@ -466,15 +466,9 @@ namespace CSharpSyntaxGenerator
 
         private void WriteGreenAcceptMethods(Node node)
         {
-            //WriteLine();
-            //WriteLine("    public override TResult Accept<TArgument, TResult>(SyntaxVisitor<TArgument, TResult> visitor, TArgument argument)");
-            //WriteLine("    {");
-            //WriteLine("        return visitor.Visit{0}(this, argument);", StripPost(node.Name, "Syntax"));
-            //WriteLine("    }");
             WriteLine();
-            WriteLine("    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{0}(this);", StripPost(node.Name, "Syntax"));
-            WriteLine();
-            WriteLine("    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{0}(this);", StripPost(node.Name, "Syntax"));
+            WriteLine("public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{0}(this);", StripPost(node.Name, "Syntax"));
+            WriteLine("public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{0}(this);", StripPost(node.Name, "Syntax"));
         }
 
         private void WriteGreenVisitors()
