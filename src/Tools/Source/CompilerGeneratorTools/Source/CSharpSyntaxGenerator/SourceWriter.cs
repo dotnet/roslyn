@@ -497,7 +497,7 @@ namespace CSharpSyntaxGenerator
         private void WriteGreenUpdateMethod(Node node)
         {
             WriteLine();
-            Write("    public {0} Update(", node.Name);
+            Write("public {0} Update(", node.Name);
 
             // parameters
             for (int f = 0; f < node.Fields.Count; f++)
@@ -516,9 +516,9 @@ namespace CSharpSyntaxGenerator
                 Write("{0} {1}", type, CamelCase(field.Name));
             }
             WriteLine(")");
-            WriteLine("    {");
+            OpenBlock();
 
-            Write("        if (");
+            Write("if (");
             int nCompared = 0;
             for (int f = 0; f < node.Fields.Count; f++)
             {
@@ -534,8 +534,8 @@ namespace CSharpSyntaxGenerator
             if (nCompared > 0)
             {
                 WriteLine(")");
-                WriteLine("        {");
-                Write("            var newNode = SyntaxFactory.{0}(", StripPost(node.Name, "Syntax"));
+                OpenBlock();
+                Write("var newNode = SyntaxFactory.{0}(", StripPost(node.Name, "Syntax"));
                 if (node.Kinds.Count > 1)
                 {
                     Write("this.Kind, ");
@@ -548,19 +548,19 @@ namespace CSharpSyntaxGenerator
                     Write(CamelCase(field.Name));
                 }
                 WriteLine(");");
-                WriteLine("            var diags = this.GetDiagnostics();");
-                WriteLine("            if (diags != null && diags.Length > 0)");
-                WriteLine("               newNode = newNode.WithDiagnosticsGreen(diags);");
-                WriteLine("            var annotations = this.GetAnnotations();");
-                WriteLine("            if (annotations != null && annotations.Length > 0)");
-                WriteLine("               newNode = newNode.WithAnnotationsGreen(annotations);");
-                WriteLine("            return newNode;");
-                WriteLine("        }");
+                WriteLine("var diags = this.GetDiagnostics();");
+                WriteLine("if (diags != null && diags.Length > 0)");
+                WriteLine("    newNode = newNode.WithDiagnosticsGreen(diags);");
+                WriteLine("var annotations = this.GetAnnotations();");
+                WriteLine("if (annotations != null && annotations.Length > 0)");
+                WriteLine("    newNode = newNode.WithAnnotationsGreen(annotations);");
+                WriteLine("return newNode;");
+                CloseBlock();
             }
 
             WriteLine();
-            WriteLine("        return this;");
-            WriteLine("    }");
+            WriteLine("return this;");
+            CloseBlock();
         }
 
         private void WriteGreenRewriter()
