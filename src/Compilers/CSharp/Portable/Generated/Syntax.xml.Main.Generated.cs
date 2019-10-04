@@ -1306,1863 +1306,653 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     }
 
-      public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>
-      {
+    public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>
+    {
         public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
-        {
-          var identifier = this.VisitToken(node.Identifier);
-          return node.Update(identifier);
-        }
+            => node.Update(VisitToken(node.Identifier));
 
         public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
-        {
-          var left = (NameSyntax)this.Visit(node.Left);
-          var dotToken = this.VisitToken(node.DotToken);
-          var right = (SimpleNameSyntax)this.Visit(node.Right);
-          return node.Update(left, dotToken, right);
-        }
+            => node.Update((NameSyntax)Visit(node.Left), VisitToken(node.DotToken), (SimpleNameSyntax)Visit(node.Right));
 
         public override SyntaxNode VisitGenericName(GenericNameSyntax node)
-        {
-          var identifier = this.VisitToken(node.Identifier);
-          var typeArgumentList = (TypeArgumentListSyntax)this.Visit(node.TypeArgumentList);
-          return node.Update(identifier, typeArgumentList);
-        }
+            => node.Update(VisitToken(node.Identifier), (TypeArgumentListSyntax)Visit(node.TypeArgumentList));
 
         public override SyntaxNode VisitTypeArgumentList(TypeArgumentListSyntax node)
-        {
-          var lessThanToken = this.VisitToken(node.LessThanToken);
-          var arguments = this.VisitList(node.Arguments);
-          var greaterThanToken = this.VisitToken(node.GreaterThanToken);
-          return node.Update(lessThanToken, arguments, greaterThanToken);
-        }
+            => node.Update(VisitToken(node.LessThanToken), VisitList(node.Arguments), VisitToken(node.GreaterThanToken));
 
         public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
-        {
-          var alias = (IdentifierNameSyntax)this.Visit(node.Alias);
-          var colonColonToken = this.VisitToken(node.ColonColonToken);
-          var name = (SimpleNameSyntax)this.Visit(node.Name);
-          return node.Update(alias, colonColonToken, name);
-        }
+            => node.Update((IdentifierNameSyntax)Visit(node.Alias), VisitToken(node.ColonColonToken), (SimpleNameSyntax)Visit(node.Name));
 
         public override SyntaxNode VisitPredefinedType(PredefinedTypeSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          return node.Update(keyword);
-        }
+            => node.Update(VisitToken(node.Keyword));
 
         public override SyntaxNode VisitArrayType(ArrayTypeSyntax node)
-        {
-          var elementType = (TypeSyntax)this.Visit(node.ElementType);
-          var rankSpecifiers = this.VisitList(node.RankSpecifiers);
-          return node.Update(elementType, rankSpecifiers);
-        }
+            => node.Update((TypeSyntax)Visit(node.ElementType), VisitList(node.RankSpecifiers));
 
         public override SyntaxNode VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node)
-        {
-          var openBracketToken = this.VisitToken(node.OpenBracketToken);
-          var sizes = this.VisitList(node.Sizes);
-          var closeBracketToken = this.VisitToken(node.CloseBracketToken);
-          return node.Update(openBracketToken, sizes, closeBracketToken);
-        }
+            => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Sizes), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode VisitPointerType(PointerTypeSyntax node)
-        {
-          var elementType = (TypeSyntax)this.Visit(node.ElementType);
-          var asteriskToken = this.VisitToken(node.AsteriskToken);
-          return node.Update(elementType, asteriskToken);
-        }
+            => node.Update((TypeSyntax)Visit(node.ElementType), VisitToken(node.AsteriskToken));
 
         public override SyntaxNode VisitNullableType(NullableTypeSyntax node)
-        {
-          var elementType = (TypeSyntax)this.Visit(node.ElementType);
-          var questionToken = this.VisitToken(node.QuestionToken);
-          return node.Update(elementType, questionToken);
-        }
+            => node.Update((TypeSyntax)Visit(node.ElementType), VisitToken(node.QuestionToken));
 
         public override SyntaxNode VisitTupleType(TupleTypeSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var elements = this.VisitList(node.Elements);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(openParenToken, elements, closeParenToken);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Elements), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitTupleElement(TupleElementSyntax node)
-        {
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var identifier = this.VisitToken(node.Identifier);
-          return node.Update(type, identifier);
-        }
+            => node.Update((TypeSyntax)Visit(node.Type), VisitToken(node.Identifier));
 
         public override SyntaxNode VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node)
-        {
-          var omittedTypeArgumentToken = this.VisitToken(node.OmittedTypeArgumentToken);
-          return node.Update(omittedTypeArgumentToken);
-        }
+            => node.Update(VisitToken(node.OmittedTypeArgumentToken));
 
         public override SyntaxNode VisitRefType(RefTypeSyntax node)
-        {
-          var refKeyword = this.VisitToken(node.RefKeyword);
-          var readOnlyKeyword = this.VisitToken(node.ReadOnlyKeyword);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          return node.Update(refKeyword, readOnlyKeyword, type);
-        }
+            => node.Update(VisitToken(node.RefKeyword), VisitToken(node.ReadOnlyKeyword), (TypeSyntax)Visit(node.Type));
 
         public override SyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(openParenToken, expression, closeParenToken);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitTupleExpression(TupleExpressionSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var arguments = this.VisitList(node.Arguments);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(openParenToken, arguments, closeParenToken);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Arguments), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
-        {
-          var operatorToken = this.VisitToken(node.OperatorToken);
-          var operand = (ExpressionSyntax)this.Visit(node.Operand);
-          return node.Update(operatorToken, operand);
-        }
+            => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.Operand));
 
         public override SyntaxNode VisitAwaitExpression(AwaitExpressionSyntax node)
-        {
-          var awaitKeyword = this.VisitToken(node.AwaitKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(awaitKeyword, expression);
-        }
+            => node.Update(VisitToken(node.AwaitKeyword), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
-        {
-          var operand = (ExpressionSyntax)this.Visit(node.Operand);
-          var operatorToken = this.VisitToken(node.OperatorToken);
-          return node.Update(operand, operatorToken);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Operand), VisitToken(node.OperatorToken));
 
         public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-        {
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var operatorToken = this.VisitToken(node.OperatorToken);
-          var name = (SimpleNameSyntax)this.Visit(node.Name);
-          return node.Update(expression, operatorToken, name);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Expression), VisitToken(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name));
 
         public override SyntaxNode VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
-        {
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var operatorToken = this.VisitToken(node.OperatorToken);
-          var whenNotNull = (ExpressionSyntax)this.Visit(node.WhenNotNull);
-          return node.Update(expression, operatorToken, whenNotNull);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Expression), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.WhenNotNull));
 
         public override SyntaxNode VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
-        {
-          var operatorToken = this.VisitToken(node.OperatorToken);
-          var name = (SimpleNameSyntax)this.Visit(node.Name);
-          return node.Update(operatorToken, name);
-        }
+            => node.Update(VisitToken(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name));
 
         public override SyntaxNode VisitElementBindingExpression(ElementBindingExpressionSyntax node)
-        {
-          var argumentList = (BracketedArgumentListSyntax)this.Visit(node.ArgumentList);
-          return node.Update(argumentList);
-        }
+            => node.Update((BracketedArgumentListSyntax)Visit(node.ArgumentList));
 
         public override SyntaxNode VisitRangeExpression(RangeExpressionSyntax node)
-        {
-          var leftOperand = (ExpressionSyntax)this.Visit(node.LeftOperand);
-          var operatorToken = this.VisitToken(node.OperatorToken);
-          var rightOperand = (ExpressionSyntax)this.Visit(node.RightOperand);
-          return node.Update(leftOperand, operatorToken, rightOperand);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.LeftOperand), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.RightOperand));
 
         public override SyntaxNode VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
-        {
-          var argumentList = (BracketedArgumentListSyntax)this.Visit(node.ArgumentList);
-          return node.Update(argumentList);
-        }
+            => node.Update((BracketedArgumentListSyntax)Visit(node.ArgumentList));
 
         public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
-        {
-          var left = (ExpressionSyntax)this.Visit(node.Left);
-          var operatorToken = this.VisitToken(node.OperatorToken);
-          var right = (ExpressionSyntax)this.Visit(node.Right);
-          return node.Update(left, operatorToken, right);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Left), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.Right));
 
         public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
-        {
-          var left = (ExpressionSyntax)this.Visit(node.Left);
-          var operatorToken = this.VisitToken(node.OperatorToken);
-          var right = (ExpressionSyntax)this.Visit(node.Right);
-          return node.Update(left, operatorToken, right);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Left), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.Right));
 
         public override SyntaxNode VisitConditionalExpression(ConditionalExpressionSyntax node)
-        {
-          var condition = (ExpressionSyntax)this.Visit(node.Condition);
-          var questionToken = this.VisitToken(node.QuestionToken);
-          var whenTrue = (ExpressionSyntax)this.Visit(node.WhenTrue);
-          var colonToken = this.VisitToken(node.ColonToken);
-          var whenFalse = (ExpressionSyntax)this.Visit(node.WhenFalse);
-          return node.Update(condition, questionToken, whenTrue, colonToken, whenFalse);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Condition), VisitToken(node.QuestionToken), (ExpressionSyntax)Visit(node.WhenTrue), VisitToken(node.ColonToken), (ExpressionSyntax)Visit(node.WhenFalse));
 
         public override SyntaxNode VisitThisExpression(ThisExpressionSyntax node)
-        {
-          var token = this.VisitToken(node.Token);
-          return node.Update(token);
-        }
+            => node.Update(VisitToken(node.Token));
 
         public override SyntaxNode VisitBaseExpression(BaseExpressionSyntax node)
-        {
-          var token = this.VisitToken(node.Token);
-          return node.Update(token);
-        }
+            => node.Update(VisitToken(node.Token));
 
         public override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
-        {
-          var token = this.VisitToken(node.Token);
-          return node.Update(token);
-        }
+            => node.Update(VisitToken(node.Token));
 
         public override SyntaxNode VisitMakeRefExpression(MakeRefExpressionSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(keyword, openParenToken, expression, closeParenToken);
-        }
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitRefTypeExpression(RefTypeExpressionSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(keyword, openParenToken, expression, closeParenToken);
-        }
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitRefValueExpression(RefValueExpressionSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var comma = this.VisitToken(node.Comma);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(keyword, openParenToken, expression, comma, type, closeParenToken);
-        }
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.Comma), (TypeSyntax)Visit(node.Type), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitCheckedExpression(CheckedExpressionSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(keyword, openParenToken, expression, closeParenToken);
-        }
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitDefaultExpression(DefaultExpressionSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(keyword, openParenToken, type, closeParenToken);
-        }
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitTypeOfExpression(TypeOfExpressionSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(keyword, openParenToken, type, closeParenToken);
-        }
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitSizeOfExpression(SizeOfExpressionSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(keyword, openParenToken, type, closeParenToken);
-        }
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
-        {
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var argumentList = (ArgumentListSyntax)this.Visit(node.ArgumentList);
-          return node.Update(expression, argumentList);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Expression), (ArgumentListSyntax)Visit(node.ArgumentList));
 
         public override SyntaxNode VisitElementAccessExpression(ElementAccessExpressionSyntax node)
-        {
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var argumentList = (BracketedArgumentListSyntax)this.Visit(node.ArgumentList);
-          return node.Update(expression, argumentList);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Expression), (BracketedArgumentListSyntax)Visit(node.ArgumentList));
 
         public override SyntaxNode VisitArgumentList(ArgumentListSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var arguments = this.VisitList(node.Arguments);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(openParenToken, arguments, closeParenToken);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Arguments), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitBracketedArgumentList(BracketedArgumentListSyntax node)
-        {
-          var openBracketToken = this.VisitToken(node.OpenBracketToken);
-          var arguments = this.VisitList(node.Arguments);
-          var closeBracketToken = this.VisitToken(node.CloseBracketToken);
-          return node.Update(openBracketToken, arguments, closeBracketToken);
-        }
+            => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Arguments), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode VisitArgument(ArgumentSyntax node)
-        {
-          var nameColon = (NameColonSyntax)this.Visit(node.NameColon);
-          var refKindKeyword = this.VisitToken(node.RefKindKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(nameColon, refKindKeyword, expression);
-        }
+            => node.Update((NameColonSyntax)Visit(node.NameColon), VisitToken(node.RefKindKeyword), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitNameColon(NameColonSyntax node)
-        {
-          var name = (IdentifierNameSyntax)this.Visit(node.Name);
-          var colonToken = this.VisitToken(node.ColonToken);
-          return node.Update(name, colonToken);
-        }
+            => node.Update((IdentifierNameSyntax)Visit(node.Name), VisitToken(node.ColonToken));
 
         public override SyntaxNode VisitDeclarationExpression(DeclarationExpressionSyntax node)
-        {
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
-          return node.Update(type, designation);
-        }
+            => node.Update((TypeSyntax)Visit(node.Type), (VariableDesignationSyntax)Visit(node.Designation));
 
         public override SyntaxNode VisitCastExpression(CastExpressionSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(openParenToken, type, closeParenToken, expression);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.CloseParenToken), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-        {
-          var asyncKeyword = this.VisitToken(node.AsyncKeyword);
-          var delegateKeyword = this.VisitToken(node.DelegateKeyword);
-          var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
-          var block = (BlockSyntax)this.Visit(node.Block);
-          var expressionBody = (ExpressionSyntax)this.Visit(node.ExpressionBody);
-          return node.Update(asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
-        }
+            => node.Update(VisitToken(node.AsyncKeyword), VisitToken(node.DelegateKeyword), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
 
         public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-        {
-          var asyncKeyword = this.VisitToken(node.AsyncKeyword);
-          var parameter = (ParameterSyntax)this.Visit(node.Parameter);
-          var arrowToken = this.VisitToken(node.ArrowToken);
-          var block = (BlockSyntax)this.Visit(node.Block);
-          var expressionBody = (ExpressionSyntax)this.Visit(node.ExpressionBody);
-          return node.Update(asyncKeyword, parameter, arrowToken, block, expressionBody);
-        }
+            => node.Update(VisitToken(node.AsyncKeyword), (ParameterSyntax)Visit(node.Parameter), VisitToken(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
 
         public override SyntaxNode VisitRefExpression(RefExpressionSyntax node)
-        {
-          var refKeyword = this.VisitToken(node.RefKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(refKeyword, expression);
-        }
+            => node.Update(VisitToken(node.RefKeyword), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-        {
-          var asyncKeyword = this.VisitToken(node.AsyncKeyword);
-          var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
-          var arrowToken = this.VisitToken(node.ArrowToken);
-          var block = (BlockSyntax)this.Visit(node.Block);
-          var expressionBody = (ExpressionSyntax)this.Visit(node.ExpressionBody);
-          return node.Update(asyncKeyword, parameterList, arrowToken, block, expressionBody);
-        }
+            => node.Update(VisitToken(node.AsyncKeyword), (ParameterListSyntax)Visit(node.ParameterList), VisitToken(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
 
         public override SyntaxNode VisitInitializerExpression(InitializerExpressionSyntax node)
-        {
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var expressions = this.VisitList(node.Expressions);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          return node.Update(openBraceToken, expressions, closeBraceToken);
-        }
+            => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Expressions), VisitToken(node.CloseBraceToken));
 
         public override SyntaxNode VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
-        {
-          var newKeyword = this.VisitToken(node.NewKeyword);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var argumentList = (ArgumentListSyntax)this.Visit(node.ArgumentList);
-          var initializer = (InitializerExpressionSyntax)this.Visit(node.Initializer);
-          return node.Update(newKeyword, type, argumentList, initializer);
-        }
+            => node.Update(VisitToken(node.NewKeyword), (TypeSyntax)Visit(node.Type), (ArgumentListSyntax)Visit(node.ArgumentList), (InitializerExpressionSyntax)Visit(node.Initializer));
 
         public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
-        {
-          var nameEquals = (NameEqualsSyntax)this.Visit(node.NameEquals);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(nameEquals, expression);
-        }
+            => node.Update((NameEqualsSyntax)Visit(node.NameEquals), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
-        {
-          var newKeyword = this.VisitToken(node.NewKeyword);
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var initializers = this.VisitList(node.Initializers);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          return node.Update(newKeyword, openBraceToken, initializers, closeBraceToken);
-        }
+            => node.Update(VisitToken(node.NewKeyword), VisitToken(node.OpenBraceToken), VisitList(node.Initializers), VisitToken(node.CloseBraceToken));
 
         public override SyntaxNode VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
-        {
-          var newKeyword = this.VisitToken(node.NewKeyword);
-          var type = (ArrayTypeSyntax)this.Visit(node.Type);
-          var initializer = (InitializerExpressionSyntax)this.Visit(node.Initializer);
-          return node.Update(newKeyword, type, initializer);
-        }
+            => node.Update(VisitToken(node.NewKeyword), (ArrayTypeSyntax)Visit(node.Type), (InitializerExpressionSyntax)Visit(node.Initializer));
 
         public override SyntaxNode VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node)
-        {
-          var newKeyword = this.VisitToken(node.NewKeyword);
-          var openBracketToken = this.VisitToken(node.OpenBracketToken);
-          var commas = this.VisitList(node.Commas);
-          var closeBracketToken = this.VisitToken(node.CloseBracketToken);
-          var initializer = (InitializerExpressionSyntax)this.Visit(node.Initializer);
-          return node.Update(newKeyword, openBracketToken, commas, closeBracketToken, initializer);
-        }
+            => node.Update(VisitToken(node.NewKeyword), VisitToken(node.OpenBracketToken), VisitList(node.Commas), VisitToken(node.CloseBracketToken), (InitializerExpressionSyntax)Visit(node.Initializer));
 
         public override SyntaxNode VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node)
-        {
-          var stackAllocKeyword = this.VisitToken(node.StackAllocKeyword);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var initializer = (InitializerExpressionSyntax)this.Visit(node.Initializer);
-          return node.Update(stackAllocKeyword, type, initializer);
-        }
+            => node.Update(VisitToken(node.StackAllocKeyword), (TypeSyntax)Visit(node.Type), (InitializerExpressionSyntax)Visit(node.Initializer));
 
         public override SyntaxNode VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
-        {
-          var stackAllocKeyword = this.VisitToken(node.StackAllocKeyword);
-          var openBracketToken = this.VisitToken(node.OpenBracketToken);
-          var closeBracketToken = this.VisitToken(node.CloseBracketToken);
-          var initializer = (InitializerExpressionSyntax)this.Visit(node.Initializer);
-          return node.Update(stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
-        }
+            => node.Update(VisitToken(node.StackAllocKeyword), VisitToken(node.OpenBracketToken), VisitToken(node.CloseBracketToken), (InitializerExpressionSyntax)Visit(node.Initializer));
 
         public override SyntaxNode VisitQueryExpression(QueryExpressionSyntax node)
-        {
-          var fromClause = (FromClauseSyntax)this.Visit(node.FromClause);
-          var body = (QueryBodySyntax)this.Visit(node.Body);
-          return node.Update(fromClause, body);
-        }
+            => node.Update((FromClauseSyntax)Visit(node.FromClause), (QueryBodySyntax)Visit(node.Body));
 
         public override SyntaxNode VisitQueryBody(QueryBodySyntax node)
-        {
-          var clauses = this.VisitList(node.Clauses);
-          var selectOrGroup = (SelectOrGroupClauseSyntax)this.Visit(node.SelectOrGroup);
-          var continuation = (QueryContinuationSyntax)this.Visit(node.Continuation);
-          return node.Update(clauses, selectOrGroup, continuation);
-        }
+            => node.Update(VisitList(node.Clauses), (SelectOrGroupClauseSyntax)Visit(node.SelectOrGroup), (QueryContinuationSyntax)Visit(node.Continuation));
 
         public override SyntaxNode VisitFromClause(FromClauseSyntax node)
-        {
-          var fromKeyword = this.VisitToken(node.FromKeyword);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var identifier = this.VisitToken(node.Identifier);
-          var inKeyword = this.VisitToken(node.InKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(fromKeyword, type, identifier, inKeyword, expression);
-        }
+            => node.Update(VisitToken(node.FromKeyword), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitLetClause(LetClauseSyntax node)
-        {
-          var letKeyword = this.VisitToken(node.LetKeyword);
-          var identifier = this.VisitToken(node.Identifier);
-          var equalsToken = this.VisitToken(node.EqualsToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(letKeyword, identifier, equalsToken, expression);
-        }
+            => node.Update(VisitToken(node.LetKeyword), VisitToken(node.Identifier), VisitToken(node.EqualsToken), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitJoinClause(JoinClauseSyntax node)
-        {
-          var joinKeyword = this.VisitToken(node.JoinKeyword);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var identifier = this.VisitToken(node.Identifier);
-          var inKeyword = this.VisitToken(node.InKeyword);
-          var inExpression = (ExpressionSyntax)this.Visit(node.InExpression);
-          var onKeyword = this.VisitToken(node.OnKeyword);
-          var leftExpression = (ExpressionSyntax)this.Visit(node.LeftExpression);
-          var equalsKeyword = this.VisitToken(node.EqualsKeyword);
-          var rightExpression = (ExpressionSyntax)this.Visit(node.RightExpression);
-          var into = (JoinIntoClauseSyntax)this.Visit(node.Into);
-          return node.Update(joinKeyword, type, identifier, inKeyword, inExpression, onKeyword, leftExpression, equalsKeyword, rightExpression, into);
-        }
+            => node.Update(VisitToken(node.JoinKeyword), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.InExpression), VisitToken(node.OnKeyword), (ExpressionSyntax)Visit(node.LeftExpression), VisitToken(node.EqualsKeyword), (ExpressionSyntax)Visit(node.RightExpression), (JoinIntoClauseSyntax)Visit(node.Into));
 
         public override SyntaxNode VisitJoinIntoClause(JoinIntoClauseSyntax node)
-        {
-          var intoKeyword = this.VisitToken(node.IntoKeyword);
-          var identifier = this.VisitToken(node.Identifier);
-          return node.Update(intoKeyword, identifier);
-        }
+            => node.Update(VisitToken(node.IntoKeyword), VisitToken(node.Identifier));
 
         public override SyntaxNode VisitWhereClause(WhereClauseSyntax node)
-        {
-          var whereKeyword = this.VisitToken(node.WhereKeyword);
-          var condition = (ExpressionSyntax)this.Visit(node.Condition);
-          return node.Update(whereKeyword, condition);
-        }
+            => node.Update(VisitToken(node.WhereKeyword), (ExpressionSyntax)Visit(node.Condition));
 
         public override SyntaxNode VisitOrderByClause(OrderByClauseSyntax node)
-        {
-          var orderByKeyword = this.VisitToken(node.OrderByKeyword);
-          var orderings = this.VisitList(node.Orderings);
-          return node.Update(orderByKeyword, orderings);
-        }
+            => node.Update(VisitToken(node.OrderByKeyword), VisitList(node.Orderings));
 
         public override SyntaxNode VisitOrdering(OrderingSyntax node)
-        {
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var ascendingOrDescendingKeyword = this.VisitToken(node.AscendingOrDescendingKeyword);
-          return node.Update(expression, ascendingOrDescendingKeyword);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Expression), VisitToken(node.AscendingOrDescendingKeyword));
 
         public override SyntaxNode VisitSelectClause(SelectClauseSyntax node)
-        {
-          var selectKeyword = this.VisitToken(node.SelectKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(selectKeyword, expression);
-        }
+            => node.Update(VisitToken(node.SelectKeyword), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitGroupClause(GroupClauseSyntax node)
-        {
-          var groupKeyword = this.VisitToken(node.GroupKeyword);
-          var groupExpression = (ExpressionSyntax)this.Visit(node.GroupExpression);
-          var byKeyword = this.VisitToken(node.ByKeyword);
-          var byExpression = (ExpressionSyntax)this.Visit(node.ByExpression);
-          return node.Update(groupKeyword, groupExpression, byKeyword, byExpression);
-        }
+            => node.Update(VisitToken(node.GroupKeyword), (ExpressionSyntax)Visit(node.GroupExpression), VisitToken(node.ByKeyword), (ExpressionSyntax)Visit(node.ByExpression));
 
         public override SyntaxNode VisitQueryContinuation(QueryContinuationSyntax node)
-        {
-          var intoKeyword = this.VisitToken(node.IntoKeyword);
-          var identifier = this.VisitToken(node.Identifier);
-          var body = (QueryBodySyntax)this.Visit(node.Body);
-          return node.Update(intoKeyword, identifier, body);
-        }
+            => node.Update(VisitToken(node.IntoKeyword), VisitToken(node.Identifier), (QueryBodySyntax)Visit(node.Body));
 
         public override SyntaxNode VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node)
-        {
-          var omittedArraySizeExpressionToken = this.VisitToken(node.OmittedArraySizeExpressionToken);
-          return node.Update(omittedArraySizeExpressionToken);
-        }
+            => node.Update(VisitToken(node.OmittedArraySizeExpressionToken));
 
         public override SyntaxNode VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
-        {
-          var stringStartToken = this.VisitToken(node.StringStartToken);
-          var contents = this.VisitList(node.Contents);
-          var stringEndToken = this.VisitToken(node.StringEndToken);
-          return node.Update(stringStartToken, contents, stringEndToken);
-        }
+            => node.Update(VisitToken(node.StringStartToken), VisitList(node.Contents), VisitToken(node.StringEndToken));
 
         public override SyntaxNode VisitIsPatternExpression(IsPatternExpressionSyntax node)
-        {
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var isKeyword = this.VisitToken(node.IsKeyword);
-          var pattern = (PatternSyntax)this.Visit(node.Pattern);
-          return node.Update(expression, isKeyword, pattern);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Expression), VisitToken(node.IsKeyword), (PatternSyntax)Visit(node.Pattern));
 
         public override SyntaxNode VisitThrowExpression(ThrowExpressionSyntax node)
-        {
-          var throwKeyword = this.VisitToken(node.ThrowKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(throwKeyword, expression);
-        }
+            => node.Update(VisitToken(node.ThrowKeyword), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitWhenClause(WhenClauseSyntax node)
-        {
-          var whenKeyword = this.VisitToken(node.WhenKeyword);
-          var condition = (ExpressionSyntax)this.Visit(node.Condition);
-          return node.Update(whenKeyword, condition);
-        }
+            => node.Update(VisitToken(node.WhenKeyword), (ExpressionSyntax)Visit(node.Condition));
 
         public override SyntaxNode VisitDiscardPattern(DiscardPatternSyntax node)
-        {
-          var underscoreToken = this.VisitToken(node.UnderscoreToken);
-          return node.Update(underscoreToken);
-        }
+            => node.Update(VisitToken(node.UnderscoreToken));
 
         public override SyntaxNode VisitDeclarationPattern(DeclarationPatternSyntax node)
-        {
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
-          return node.Update(type, designation);
-        }
+            => node.Update((TypeSyntax)Visit(node.Type), (VariableDesignationSyntax)Visit(node.Designation));
 
         public override SyntaxNode VisitVarPattern(VarPatternSyntax node)
-        {
-          var varKeyword = this.VisitToken(node.VarKeyword);
-          var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
-          return node.Update(varKeyword, designation);
-        }
+            => node.Update(VisitToken(node.VarKeyword), (VariableDesignationSyntax)Visit(node.Designation));
 
         public override SyntaxNode VisitRecursivePattern(RecursivePatternSyntax node)
-        {
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var positionalPatternClause = (PositionalPatternClauseSyntax)this.Visit(node.PositionalPatternClause);
-          var propertyPatternClause = (PropertyPatternClauseSyntax)this.Visit(node.PropertyPatternClause);
-          var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
-          return node.Update(type, positionalPatternClause, propertyPatternClause, designation);
-        }
+            => node.Update((TypeSyntax)Visit(node.Type), (PositionalPatternClauseSyntax)Visit(node.PositionalPatternClause), (PropertyPatternClauseSyntax)Visit(node.PropertyPatternClause), (VariableDesignationSyntax)Visit(node.Designation));
 
         public override SyntaxNode VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var subpatterns = this.VisitList(node.Subpatterns);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(openParenToken, subpatterns, closeParenToken);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Subpatterns), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
-        {
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var subpatterns = this.VisitList(node.Subpatterns);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          return node.Update(openBraceToken, subpatterns, closeBraceToken);
-        }
+            => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Subpatterns), VisitToken(node.CloseBraceToken));
 
         public override SyntaxNode VisitSubpattern(SubpatternSyntax node)
-        {
-          var nameColon = (NameColonSyntax)this.Visit(node.NameColon);
-          var pattern = (PatternSyntax)this.Visit(node.Pattern);
-          return node.Update(nameColon, pattern);
-        }
+            => node.Update((NameColonSyntax)Visit(node.NameColon), (PatternSyntax)Visit(node.Pattern));
 
         public override SyntaxNode VisitConstantPattern(ConstantPatternSyntax node)
-        {
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(expression);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
-        {
-          var textToken = this.VisitToken(node.TextToken);
-          return node.Update(textToken);
-        }
+            => node.Update(VisitToken(node.TextToken));
 
         public override SyntaxNode VisitInterpolation(InterpolationSyntax node)
-        {
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var alignmentClause = (InterpolationAlignmentClauseSyntax)this.Visit(node.AlignmentClause);
-          var formatClause = (InterpolationFormatClauseSyntax)this.Visit(node.FormatClause);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          return node.Update(openBraceToken, expression, alignmentClause, formatClause, closeBraceToken);
-        }
+            => node.Update(VisitToken(node.OpenBraceToken), (ExpressionSyntax)Visit(node.Expression), (InterpolationAlignmentClauseSyntax)Visit(node.AlignmentClause), (InterpolationFormatClauseSyntax)Visit(node.FormatClause), VisitToken(node.CloseBraceToken));
 
         public override SyntaxNode VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node)
-        {
-          var commaToken = this.VisitToken(node.CommaToken);
-          var value = (ExpressionSyntax)this.Visit(node.Value);
-          return node.Update(commaToken, value);
-        }
+            => node.Update(VisitToken(node.CommaToken), (ExpressionSyntax)Visit(node.Value));
 
         public override SyntaxNode VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node)
-        {
-          var colonToken = this.VisitToken(node.ColonToken);
-          var formatStringToken = this.VisitToken(node.FormatStringToken);
-          return node.Update(colonToken, formatStringToken);
-        }
+            => node.Update(VisitToken(node.ColonToken), VisitToken(node.FormatStringToken));
 
         public override SyntaxNode VisitGlobalStatement(GlobalStatementSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          return node.Update(attributeLists, modifiers, statement);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (StatementSyntax)Visit(node.Statement));
 
         public override SyntaxNode VisitBlock(BlockSyntax node)
-        {
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var statements = this.VisitList(node.Statements);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          return node.Update(openBraceToken, statements, closeBraceToken);
-        }
+            => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Statements), VisitToken(node.CloseBraceToken));
 
         public override SyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
-        {
-          var modifiers = this.VisitList(node.Modifiers);
-          var returnType = (TypeSyntax)this.Visit(node.ReturnType);
-          var identifier = this.VisitToken(node.Identifier);
-          var typeParameterList = (TypeParameterListSyntax)this.Visit(node.TypeParameterList);
-          var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
-          var constraintClauses = this.VisitList(node.ConstraintClauses);
-          var body = (BlockSyntax)this.Visit(node.Body);
-          var expressionBody = (ArrowExpressionClauseSyntax)this.Visit(node.ExpressionBody);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(modifiers, returnType, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
-        }
+            => node.Update(VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), VisitList(node.ConstraintClauses), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-        {
-          var awaitKeyword = this.VisitToken(node.AwaitKeyword);
-          var usingKeyword = this.VisitToken(node.UsingKeyword);
-          var modifiers = this.VisitList(node.Modifiers);
-          var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
-        }
+            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.UsingKeyword), VisitList(node.Modifiers), (VariableDeclarationSyntax)Visit(node.Declaration), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitVariableDeclaration(VariableDeclarationSyntax node)
-        {
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var variables = this.VisitList(node.Variables);
-          return node.Update(type, variables);
-        }
+            => node.Update((TypeSyntax)Visit(node.Type), VisitList(node.Variables));
 
         public override SyntaxNode VisitVariableDeclarator(VariableDeclaratorSyntax node)
-        {
-          var identifier = this.VisitToken(node.Identifier);
-          var argumentList = (BracketedArgumentListSyntax)this.Visit(node.ArgumentList);
-          var initializer = (EqualsValueClauseSyntax)this.Visit(node.Initializer);
-          return node.Update(identifier, argumentList, initializer);
-        }
+            => node.Update(VisitToken(node.Identifier), (BracketedArgumentListSyntax)Visit(node.ArgumentList), (EqualsValueClauseSyntax)Visit(node.Initializer));
 
         public override SyntaxNode VisitEqualsValueClause(EqualsValueClauseSyntax node)
-        {
-          var equalsToken = this.VisitToken(node.EqualsToken);
-          var value = (ExpressionSyntax)this.Visit(node.Value);
-          return node.Update(equalsToken, value);
-        }
+            => node.Update(VisitToken(node.EqualsToken), (ExpressionSyntax)Visit(node.Value));
 
         public override SyntaxNode VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
-        {
-          var identifier = this.VisitToken(node.Identifier);
-          return node.Update(identifier);
-        }
+            => node.Update(VisitToken(node.Identifier));
 
         public override SyntaxNode VisitDiscardDesignation(DiscardDesignationSyntax node)
-        {
-          var underscoreToken = this.VisitToken(node.UnderscoreToken);
-          return node.Update(underscoreToken);
-        }
+            => node.Update(VisitToken(node.UnderscoreToken));
 
         public override SyntaxNode VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var variables = this.VisitList(node.Variables);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(openParenToken, variables, closeParenToken);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Variables), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
-        {
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(expression, semicolonToken);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.Expression), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitEmptyStatement(EmptyStatementSyntax node)
-        {
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(semicolonToken);
-        }
+            => node.Update(VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitLabeledStatement(LabeledStatementSyntax node)
-        {
-          var identifier = this.VisitToken(node.Identifier);
-          var colonToken = this.VisitToken(node.ColonToken);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          return node.Update(identifier, colonToken, statement);
-        }
+            => node.Update(VisitToken(node.Identifier), VisitToken(node.ColonToken), (StatementSyntax)Visit(node.Statement));
 
         public override SyntaxNode VisitGotoStatement(GotoStatementSyntax node)
-        {
-          var gotoKeyword = this.VisitToken(node.GotoKeyword);
-          var caseOrDefaultKeyword = this.VisitToken(node.CaseOrDefaultKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
-        }
+            => node.Update(VisitToken(node.GotoKeyword), VisitToken(node.CaseOrDefaultKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitBreakStatement(BreakStatementSyntax node)
-        {
-          var breakKeyword = this.VisitToken(node.BreakKeyword);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(breakKeyword, semicolonToken);
-        }
+            => node.Update(VisitToken(node.BreakKeyword), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitContinueStatement(ContinueStatementSyntax node)
-        {
-          var continueKeyword = this.VisitToken(node.ContinueKeyword);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(continueKeyword, semicolonToken);
-        }
+            => node.Update(VisitToken(node.ContinueKeyword), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitReturnStatement(ReturnStatementSyntax node)
-        {
-          var returnKeyword = this.VisitToken(node.ReturnKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(returnKeyword, expression, semicolonToken);
-        }
+            => node.Update(VisitToken(node.ReturnKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitThrowStatement(ThrowStatementSyntax node)
-        {
-          var throwKeyword = this.VisitToken(node.ThrowKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(throwKeyword, expression, semicolonToken);
-        }
+            => node.Update(VisitToken(node.ThrowKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitYieldStatement(YieldStatementSyntax node)
-        {
-          var yieldKeyword = this.VisitToken(node.YieldKeyword);
-          var returnOrBreakKeyword = this.VisitToken(node.ReturnOrBreakKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
-        }
+            => node.Update(VisitToken(node.YieldKeyword), VisitToken(node.ReturnOrBreakKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitWhileStatement(WhileStatementSyntax node)
-        {
-          var whileKeyword = this.VisitToken(node.WhileKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var condition = (ExpressionSyntax)this.Visit(node.Condition);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          return node.Update(whileKeyword, openParenToken, condition, closeParenToken, statement);
-        }
+            => node.Update(VisitToken(node.WhileKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
 
         public override SyntaxNode VisitDoStatement(DoStatementSyntax node)
-        {
-          var doKeyword = this.VisitToken(node.DoKeyword);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          var whileKeyword = this.VisitToken(node.WhileKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var condition = (ExpressionSyntax)this.Visit(node.Condition);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
-        }
+            => node.Update(VisitToken(node.DoKeyword), (StatementSyntax)Visit(node.Statement), VisitToken(node.WhileKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.CloseParenToken), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitForStatement(ForStatementSyntax node)
-        {
-          var forKeyword = this.VisitToken(node.ForKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
-          var initializers = this.VisitList(node.Initializers);
-          var firstSemicolonToken = this.VisitToken(node.FirstSemicolonToken);
-          var condition = (ExpressionSyntax)this.Visit(node.Condition);
-          var secondSemicolonToken = this.VisitToken(node.SecondSemicolonToken);
-          var incrementors = this.VisitList(node.Incrementors);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          return node.Update(forKeyword, openParenToken, declaration, initializers, firstSemicolonToken, condition, secondSemicolonToken, incrementors, closeParenToken, statement);
-        }
+            => node.Update(VisitToken(node.ForKeyword), VisitToken(node.OpenParenToken), (VariableDeclarationSyntax)Visit(node.Declaration), VisitList(node.Initializers), VisitToken(node.FirstSemicolonToken), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.SecondSemicolonToken), VisitList(node.Incrementors), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
 
         public override SyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
-        {
-          var awaitKeyword = this.VisitToken(node.AwaitKeyword);
-          var forEachKeyword = this.VisitToken(node.ForEachKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var identifier = this.VisitToken(node.Identifier);
-          var inKeyword = this.VisitToken(node.InKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          return node.Update(awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
-        }
+            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.ForEachKeyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
 
         public override SyntaxNode VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
-        {
-          var awaitKeyword = this.VisitToken(node.AwaitKeyword);
-          var forEachKeyword = this.VisitToken(node.ForEachKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var variable = (ExpressionSyntax)this.Visit(node.Variable);
-          var inKeyword = this.VisitToken(node.InKeyword);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          return node.Update(awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
-        }
+            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.ForEachKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Variable), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
 
         public override SyntaxNode VisitUsingStatement(UsingStatementSyntax node)
-        {
-          var awaitKeyword = this.VisitToken(node.AwaitKeyword);
-          var usingKeyword = this.VisitToken(node.UsingKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          return node.Update(awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
-        }
+            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.UsingKeyword), VisitToken(node.OpenParenToken), (VariableDeclarationSyntax)Visit(node.Declaration), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
 
         public override SyntaxNode VisitFixedStatement(FixedStatementSyntax node)
-        {
-          var fixedKeyword = this.VisitToken(node.FixedKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          return node.Update(fixedKeyword, openParenToken, declaration, closeParenToken, statement);
-        }
+            => node.Update(VisitToken(node.FixedKeyword), VisitToken(node.OpenParenToken), (VariableDeclarationSyntax)Visit(node.Declaration), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
 
         public override SyntaxNode VisitCheckedStatement(CheckedStatementSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var block = (BlockSyntax)this.Visit(node.Block);
-          return node.Update(keyword, block);
-        }
+            => node.Update(VisitToken(node.Keyword), (BlockSyntax)Visit(node.Block));
 
         public override SyntaxNode VisitUnsafeStatement(UnsafeStatementSyntax node)
-        {
-          var unsafeKeyword = this.VisitToken(node.UnsafeKeyword);
-          var block = (BlockSyntax)this.Visit(node.Block);
-          return node.Update(unsafeKeyword, block);
-        }
+            => node.Update(VisitToken(node.UnsafeKeyword), (BlockSyntax)Visit(node.Block));
 
         public override SyntaxNode VisitLockStatement(LockStatementSyntax node)
-        {
-          var lockKeyword = this.VisitToken(node.LockKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          return node.Update(lockKeyword, openParenToken, expression, closeParenToken, statement);
-        }
+            => node.Update(VisitToken(node.LockKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
 
         public override SyntaxNode VisitIfStatement(IfStatementSyntax node)
-        {
-          var ifKeyword = this.VisitToken(node.IfKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var condition = (ExpressionSyntax)this.Visit(node.Condition);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          var @else = (ElseClauseSyntax)this.Visit(node.Else);
-          return node.Update(ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
-        }
+            => node.Update(VisitToken(node.IfKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement), (ElseClauseSyntax)Visit(node.Else));
 
         public override SyntaxNode VisitElseClause(ElseClauseSyntax node)
-        {
-          var elseKeyword = this.VisitToken(node.ElseKeyword);
-          var statement = (StatementSyntax)this.Visit(node.Statement);
-          return node.Update(elseKeyword, statement);
-        }
+            => node.Update(VisitToken(node.ElseKeyword), (StatementSyntax)Visit(node.Statement));
 
         public override SyntaxNode VisitSwitchStatement(SwitchStatementSyntax node)
-        {
-          var switchKeyword = this.VisitToken(node.SwitchKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var sections = this.VisitList(node.Sections);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          return node.Update(switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections, closeBraceToken);
-        }
+            => node.Update(VisitToken(node.SwitchKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), VisitToken(node.OpenBraceToken), VisitList(node.Sections), VisitToken(node.CloseBraceToken));
 
         public override SyntaxNode VisitSwitchSection(SwitchSectionSyntax node)
-        {
-          var labels = this.VisitList(node.Labels);
-          var statements = this.VisitList(node.Statements);
-          return node.Update(labels, statements);
-        }
+            => node.Update(VisitList(node.Labels), VisitList(node.Statements));
 
         public override SyntaxNode VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var pattern = (PatternSyntax)this.Visit(node.Pattern);
-          var whenClause = (WhenClauseSyntax)this.Visit(node.WhenClause);
-          var colonToken = this.VisitToken(node.ColonToken);
-          return node.Update(keyword, pattern, whenClause, colonToken);
-        }
+            => node.Update(VisitToken(node.Keyword), (PatternSyntax)Visit(node.Pattern), (WhenClauseSyntax)Visit(node.WhenClause), VisitToken(node.ColonToken));
 
         public override SyntaxNode VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var value = (ExpressionSyntax)this.Visit(node.Value);
-          var colonToken = this.VisitToken(node.ColonToken);
-          return node.Update(keyword, value, colonToken);
-        }
+            => node.Update(VisitToken(node.Keyword), (ExpressionSyntax)Visit(node.Value), VisitToken(node.ColonToken));
 
         public override SyntaxNode VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node)
-        {
-          var keyword = this.VisitToken(node.Keyword);
-          var colonToken = this.VisitToken(node.ColonToken);
-          return node.Update(keyword, colonToken);
-        }
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.ColonToken));
 
         public override SyntaxNode VisitSwitchExpression(SwitchExpressionSyntax node)
-        {
-          var governingExpression = (ExpressionSyntax)this.Visit(node.GoverningExpression);
-          var switchKeyword = this.VisitToken(node.SwitchKeyword);
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var arms = this.VisitList(node.Arms);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          return node.Update(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
-        }
+            => node.Update((ExpressionSyntax)Visit(node.GoverningExpression), VisitToken(node.SwitchKeyword), VisitToken(node.OpenBraceToken), VisitList(node.Arms), VisitToken(node.CloseBraceToken));
 
         public override SyntaxNode VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
-        {
-          var pattern = (PatternSyntax)this.Visit(node.Pattern);
-          var whenClause = (WhenClauseSyntax)this.Visit(node.WhenClause);
-          var equalsGreaterThanToken = this.VisitToken(node.EqualsGreaterThanToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(pattern, whenClause, equalsGreaterThanToken, expression);
-        }
+            => node.Update((PatternSyntax)Visit(node.Pattern), (WhenClauseSyntax)Visit(node.WhenClause), VisitToken(node.EqualsGreaterThanToken), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitTryStatement(TryStatementSyntax node)
-        {
-          var tryKeyword = this.VisitToken(node.TryKeyword);
-          var block = (BlockSyntax)this.Visit(node.Block);
-          var catches = this.VisitList(node.Catches);
-          var @finally = (FinallyClauseSyntax)this.Visit(node.Finally);
-          return node.Update(tryKeyword, block, catches, @finally);
-        }
+            => node.Update(VisitToken(node.TryKeyword), (BlockSyntax)Visit(node.Block), VisitList(node.Catches), (FinallyClauseSyntax)Visit(node.Finally));
 
         public override SyntaxNode VisitCatchClause(CatchClauseSyntax node)
-        {
-          var catchKeyword = this.VisitToken(node.CatchKeyword);
-          var declaration = (CatchDeclarationSyntax)this.Visit(node.Declaration);
-          var filter = (CatchFilterClauseSyntax)this.Visit(node.Filter);
-          var block = (BlockSyntax)this.Visit(node.Block);
-          return node.Update(catchKeyword, declaration, filter, block);
-        }
+            => node.Update(VisitToken(node.CatchKeyword), (CatchDeclarationSyntax)Visit(node.Declaration), (CatchFilterClauseSyntax)Visit(node.Filter), (BlockSyntax)Visit(node.Block));
 
         public override SyntaxNode VisitCatchDeclaration(CatchDeclarationSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var identifier = this.VisitToken(node.Identifier);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(openParenToken, type, identifier, closeParenToken);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitCatchFilterClause(CatchFilterClauseSyntax node)
-        {
-          var whenKeyword = this.VisitToken(node.WhenKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var filterExpression = (ExpressionSyntax)this.Visit(node.FilterExpression);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(whenKeyword, openParenToken, filterExpression, closeParenToken);
-        }
+            => node.Update(VisitToken(node.WhenKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.FilterExpression), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitFinallyClause(FinallyClauseSyntax node)
-        {
-          var finallyKeyword = this.VisitToken(node.FinallyKeyword);
-          var block = (BlockSyntax)this.Visit(node.Block);
-          return node.Update(finallyKeyword, block);
-        }
+            => node.Update(VisitToken(node.FinallyKeyword), (BlockSyntax)Visit(node.Block));
 
         public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
-        {
-          var externs = this.VisitList(node.Externs);
-          var usings = this.VisitList(node.Usings);
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var members = this.VisitList(node.Members);
-          var endOfFileToken = this.VisitToken(node.EndOfFileToken);
-          return node.Update(externs, usings, attributeLists, members, endOfFileToken);
-        }
+            => node.Update(VisitList(node.Externs), VisitList(node.Usings), VisitList(node.AttributeLists), VisitList(node.Members), VisitToken(node.EndOfFileToken));
 
         public override SyntaxNode VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
-        {
-          var externKeyword = this.VisitToken(node.ExternKeyword);
-          var aliasKeyword = this.VisitToken(node.AliasKeyword);
-          var identifier = this.VisitToken(node.Identifier);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(externKeyword, aliasKeyword, identifier, semicolonToken);
-        }
+            => node.Update(VisitToken(node.ExternKeyword), VisitToken(node.AliasKeyword), VisitToken(node.Identifier), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node)
-        {
-          var usingKeyword = this.VisitToken(node.UsingKeyword);
-          var staticKeyword = this.VisitToken(node.StaticKeyword);
-          var alias = (NameEqualsSyntax)this.Visit(node.Alias);
-          var name = (NameSyntax)this.Visit(node.Name);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(usingKeyword, staticKeyword, alias, name, semicolonToken);
-        }
+            => node.Update(VisitToken(node.UsingKeyword), VisitToken(node.StaticKeyword), (NameEqualsSyntax)Visit(node.Alias), (NameSyntax)Visit(node.Name), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var namespaceKeyword = this.VisitToken(node.NamespaceKeyword);
-          var name = (NameSyntax)this.Visit(node.Name);
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var externs = this.VisitList(node.Externs);
-          var usings = this.VisitList(node.Usings);
-          var members = this.VisitList(node.Members);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, namespaceKeyword, name, openBraceToken, externs, usings, members, closeBraceToken, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.NamespaceKeyword), (NameSyntax)Visit(node.Name), VisitToken(node.OpenBraceToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitAttributeList(AttributeListSyntax node)
-        {
-          var openBracketToken = this.VisitToken(node.OpenBracketToken);
-          var target = (AttributeTargetSpecifierSyntax)this.Visit(node.Target);
-          var attributes = this.VisitList(node.Attributes);
-          var closeBracketToken = this.VisitToken(node.CloseBracketToken);
-          return node.Update(openBracketToken, target, attributes, closeBracketToken);
-        }
+            => node.Update(VisitToken(node.OpenBracketToken), (AttributeTargetSpecifierSyntax)Visit(node.Target), VisitList(node.Attributes), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node)
-        {
-          var identifier = this.VisitToken(node.Identifier);
-          var colonToken = this.VisitToken(node.ColonToken);
-          return node.Update(identifier, colonToken);
-        }
+            => node.Update(VisitToken(node.Identifier), VisitToken(node.ColonToken));
 
         public override SyntaxNode VisitAttribute(AttributeSyntax node)
-        {
-          var name = (NameSyntax)this.Visit(node.Name);
-          var argumentList = (AttributeArgumentListSyntax)this.Visit(node.ArgumentList);
-          return node.Update(name, argumentList);
-        }
+            => node.Update((NameSyntax)Visit(node.Name), (AttributeArgumentListSyntax)Visit(node.ArgumentList));
 
         public override SyntaxNode VisitAttributeArgumentList(AttributeArgumentListSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var arguments = this.VisitList(node.Arguments);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(openParenToken, arguments, closeParenToken);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Arguments), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitAttributeArgument(AttributeArgumentSyntax node)
-        {
-          var nameEquals = (NameEqualsSyntax)this.Visit(node.NameEquals);
-          var nameColon = (NameColonSyntax)this.Visit(node.NameColon);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(nameEquals, nameColon, expression);
-        }
+            => node.Update((NameEqualsSyntax)Visit(node.NameEquals), (NameColonSyntax)Visit(node.NameColon), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitNameEquals(NameEqualsSyntax node)
-        {
-          var name = (IdentifierNameSyntax)this.Visit(node.Name);
-          var equalsToken = this.VisitToken(node.EqualsToken);
-          return node.Update(name, equalsToken);
-        }
+            => node.Update((IdentifierNameSyntax)Visit(node.Name), VisitToken(node.EqualsToken));
 
         public override SyntaxNode VisitTypeParameterList(TypeParameterListSyntax node)
-        {
-          var lessThanToken = this.VisitToken(node.LessThanToken);
-          var parameters = this.VisitList(node.Parameters);
-          var greaterThanToken = this.VisitToken(node.GreaterThanToken);
-          return node.Update(lessThanToken, parameters, greaterThanToken);
-        }
+            => node.Update(VisitToken(node.LessThanToken), VisitList(node.Parameters), VisitToken(node.GreaterThanToken));
 
         public override SyntaxNode VisitTypeParameter(TypeParameterSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var varianceKeyword = this.VisitToken(node.VarianceKeyword);
-          var identifier = this.VisitToken(node.Identifier);
-          return node.Update(attributeLists, varianceKeyword, identifier);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitToken(node.VarianceKeyword), VisitToken(node.Identifier));
 
         public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var keyword = this.VisitToken(node.Keyword);
-          var identifier = this.VisitToken(node.Identifier);
-          var typeParameterList = (TypeParameterListSyntax)this.Visit(node.TypeParameterList);
-          var baseList = (BaseListSyntax)this.Visit(node.BaseList);
-          var constraintClauses = this.VisitList(node.ConstraintClauses);
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var members = this.VisitList(node.Members);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var keyword = this.VisitToken(node.Keyword);
-          var identifier = this.VisitToken(node.Identifier);
-          var typeParameterList = (TypeParameterListSyntax)this.Visit(node.TypeParameterList);
-          var baseList = (BaseListSyntax)this.Visit(node.BaseList);
-          var constraintClauses = this.VisitList(node.ConstraintClauses);
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var members = this.VisitList(node.Members);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var keyword = this.VisitToken(node.Keyword);
-          var identifier = this.VisitToken(node.Identifier);
-          var typeParameterList = (TypeParameterListSyntax)this.Visit(node.TypeParameterList);
-          var baseList = (BaseListSyntax)this.Visit(node.BaseList);
-          var constraintClauses = this.VisitList(node.ConstraintClauses);
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var members = this.VisitList(node.Members);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitEnumDeclaration(EnumDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var enumKeyword = this.VisitToken(node.EnumKeyword);
-          var identifier = this.VisitToken(node.Identifier);
-          var baseList = (BaseListSyntax)this.Visit(node.BaseList);
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var members = this.VisitList(node.Members);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, enumKeyword, identifier, baseList, openBraceToken, members, closeBraceToken, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EnumKeyword), VisitToken(node.Identifier), (BaseListSyntax)Visit(node.BaseList), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitDelegateDeclaration(DelegateDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var delegateKeyword = this.VisitToken(node.DelegateKeyword);
-          var returnType = (TypeSyntax)this.Visit(node.ReturnType);
-          var identifier = this.VisitToken(node.Identifier);
-          var typeParameterList = (TypeParameterListSyntax)this.Visit(node.TypeParameterList);
-          var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
-          var constraintClauses = this.VisitList(node.ConstraintClauses);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, delegateKeyword, returnType, identifier, typeParameterList, parameterList, constraintClauses, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.DelegateKeyword), (TypeSyntax)Visit(node.ReturnType), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), VisitList(node.ConstraintClauses), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var identifier = this.VisitToken(node.Identifier);
-          var equalsValue = (EqualsValueClauseSyntax)this.Visit(node.EqualsValue);
-          return node.Update(attributeLists, modifiers, identifier, equalsValue);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Identifier), (EqualsValueClauseSyntax)Visit(node.EqualsValue));
 
         public override SyntaxNode VisitBaseList(BaseListSyntax node)
-        {
-          var colonToken = this.VisitToken(node.ColonToken);
-          var types = this.VisitList(node.Types);
-          return node.Update(colonToken, types);
-        }
+            => node.Update(VisitToken(node.ColonToken), VisitList(node.Types));
 
         public override SyntaxNode VisitSimpleBaseType(SimpleBaseTypeSyntax node)
-        {
-          var type = (TypeSyntax)this.Visit(node.Type);
-          return node.Update(type);
-        }
+            => node.Update((TypeSyntax)Visit(node.Type));
 
         public override SyntaxNode VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
-        {
-          var whereKeyword = this.VisitToken(node.WhereKeyword);
-          var name = (IdentifierNameSyntax)this.Visit(node.Name);
-          var colonToken = this.VisitToken(node.ColonToken);
-          var constraints = this.VisitList(node.Constraints);
-          return node.Update(whereKeyword, name, colonToken, constraints);
-        }
+            => node.Update(VisitToken(node.WhereKeyword), (IdentifierNameSyntax)Visit(node.Name), VisitToken(node.ColonToken), VisitList(node.Constraints));
 
         public override SyntaxNode VisitConstructorConstraint(ConstructorConstraintSyntax node)
-        {
-          var newKeyword = this.VisitToken(node.NewKeyword);
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(newKeyword, openParenToken, closeParenToken);
-        }
+            => node.Update(VisitToken(node.NewKeyword), VisitToken(node.OpenParenToken), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node)
-        {
-          var classOrStructKeyword = this.VisitToken(node.ClassOrStructKeyword);
-          var questionToken = this.VisitToken(node.QuestionToken);
-          return node.Update(classOrStructKeyword, questionToken);
-        }
+            => node.Update(VisitToken(node.ClassOrStructKeyword), VisitToken(node.QuestionToken));
 
         public override SyntaxNode VisitTypeConstraint(TypeConstraintSyntax node)
-        {
-          var type = (TypeSyntax)this.Visit(node.Type);
-          return node.Update(type);
-        }
+            => node.Update((TypeSyntax)Visit(node.Type));
 
         public override SyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, declaration, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (VariableDeclarationSyntax)Visit(node.Declaration), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var eventKeyword = this.VisitToken(node.EventKeyword);
-          var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, eventKeyword, declaration, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EventKeyword), (VariableDeclarationSyntax)Visit(node.Declaration), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node)
-        {
-          var name = (NameSyntax)this.Visit(node.Name);
-          var dotToken = this.VisitToken(node.DotToken);
-          return node.Update(name, dotToken);
-        }
+            => node.Update((NameSyntax)Visit(node.Name), VisitToken(node.DotToken));
 
         public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var returnType = (TypeSyntax)this.Visit(node.ReturnType);
-          var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax)this.Visit(node.ExplicitInterfaceSpecifier);
-          var identifier = this.VisitToken(node.Identifier);
-          var typeParameterList = (TypeParameterListSyntax)this.Visit(node.TypeParameterList);
-          var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
-          var constraintClauses = this.VisitList(node.ConstraintClauses);
-          var body = (BlockSyntax)this.Visit(node.Body);
-          var expressionBody = (ArrowExpressionClauseSyntax)this.Visit(node.ExpressionBody);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), VisitList(node.ConstraintClauses), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitOperatorDeclaration(OperatorDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var returnType = (TypeSyntax)this.Visit(node.ReturnType);
-          var operatorKeyword = this.VisitToken(node.OperatorKeyword);
-          var operatorToken = this.VisitToken(node.OperatorToken);
-          var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
-          var body = (BlockSyntax)this.Visit(node.Body);
-          var expressionBody = (ArrowExpressionClauseSyntax)this.Visit(node.ExpressionBody);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, returnType, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), VisitToken(node.OperatorKeyword), VisitToken(node.OperatorToken), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var implicitOrExplicitKeyword = this.VisitToken(node.ImplicitOrExplicitKeyword);
-          var operatorKeyword = this.VisitToken(node.OperatorKeyword);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
-          var body = (BlockSyntax)this.Visit(node.Body);
-          var expressionBody = (ArrowExpressionClauseSyntax)this.Visit(node.ExpressionBody);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, implicitOrExplicitKeyword, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.ImplicitOrExplicitKeyword), VisitToken(node.OperatorKeyword), (TypeSyntax)Visit(node.Type), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var identifier = this.VisitToken(node.Identifier);
-          var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
-          var initializer = (ConstructorInitializerSyntax)this.Visit(node.Initializer);
-          var body = (BlockSyntax)this.Visit(node.Body);
-          var expressionBody = (ArrowExpressionClauseSyntax)this.Visit(node.ExpressionBody);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, identifier, parameterList, initializer, body, expressionBody, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Identifier), (ParameterListSyntax)Visit(node.ParameterList), (ConstructorInitializerSyntax)Visit(node.Initializer), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitConstructorInitializer(ConstructorInitializerSyntax node)
-        {
-          var colonToken = this.VisitToken(node.ColonToken);
-          var thisOrBaseKeyword = this.VisitToken(node.ThisOrBaseKeyword);
-          var argumentList = (ArgumentListSyntax)this.Visit(node.ArgumentList);
-          return node.Update(colonToken, thisOrBaseKeyword, argumentList);
-        }
+            => node.Update(VisitToken(node.ColonToken), VisitToken(node.ThisOrBaseKeyword), (ArgumentListSyntax)Visit(node.ArgumentList));
 
         public override SyntaxNode VisitDestructorDeclaration(DestructorDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var tildeToken = this.VisitToken(node.TildeToken);
-          var identifier = this.VisitToken(node.Identifier);
-          var parameterList = (ParameterListSyntax)this.Visit(node.ParameterList);
-          var body = (BlockSyntax)this.Visit(node.Body);
-          var expressionBody = (ArrowExpressionClauseSyntax)this.Visit(node.ExpressionBody);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, tildeToken, identifier, parameterList, body, expressionBody, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.TildeToken), VisitToken(node.Identifier), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitPropertyDeclaration(PropertyDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax)this.Visit(node.ExplicitInterfaceSpecifier);
-          var identifier = this.VisitToken(node.Identifier);
-          var accessorList = (AccessorListSyntax)this.Visit(node.AccessorList);
-          var expressionBody = (ArrowExpressionClauseSyntax)this.Visit(node.ExpressionBody);
-          var initializer = (EqualsValueClauseSyntax)this.Visit(node.Initializer);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, type, explicitInterfaceSpecifier, identifier, accessorList, expressionBody, initializer, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (AccessorListSyntax)Visit(node.AccessorList), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), (EqualsValueClauseSyntax)Visit(node.Initializer), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
-        {
-          var arrowToken = this.VisitToken(node.ArrowToken);
-          var expression = (ExpressionSyntax)this.Visit(node.Expression);
-          return node.Update(arrowToken, expression);
-        }
+            => node.Update(VisitToken(node.ArrowToken), (ExpressionSyntax)Visit(node.Expression));
 
         public override SyntaxNode VisitEventDeclaration(EventDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var eventKeyword = this.VisitToken(node.EventKeyword);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax)this.Visit(node.ExplicitInterfaceSpecifier);
-          var identifier = this.VisitToken(node.Identifier);
-          var accessorList = (AccessorListSyntax)this.Visit(node.AccessorList);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EventKeyword), (TypeSyntax)Visit(node.Type), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (AccessorListSyntax)Visit(node.AccessorList), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitIndexerDeclaration(IndexerDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var explicitInterfaceSpecifier = (ExplicitInterfaceSpecifierSyntax)this.Visit(node.ExplicitInterfaceSpecifier);
-          var thisKeyword = this.VisitToken(node.ThisKeyword);
-          var parameterList = (BracketedParameterListSyntax)this.Visit(node.ParameterList);
-          var accessorList = (AccessorListSyntax)this.Visit(node.AccessorList);
-          var expressionBody = (ArrowExpressionClauseSyntax)this.Visit(node.ExpressionBody);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, type, explicitInterfaceSpecifier, thisKeyword, parameterList, accessorList, expressionBody, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.ThisKeyword), (BracketedParameterListSyntax)Visit(node.ParameterList), (AccessorListSyntax)Visit(node.AccessorList), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitAccessorList(AccessorListSyntax node)
-        {
-          var openBraceToken = this.VisitToken(node.OpenBraceToken);
-          var accessors = this.VisitList(node.Accessors);
-          var closeBraceToken = this.VisitToken(node.CloseBraceToken);
-          return node.Update(openBraceToken, accessors, closeBraceToken);
-        }
+            => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Accessors), VisitToken(node.CloseBraceToken));
 
         public override SyntaxNode VisitAccessorDeclaration(AccessorDeclarationSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var keyword = this.VisitToken(node.Keyword);
-          var body = (BlockSyntax)this.Visit(node.Body);
-          var expressionBody = (ArrowExpressionClauseSyntax)this.Visit(node.ExpressionBody);
-          var semicolonToken = this.VisitToken(node.SemicolonToken);
-          return node.Update(attributeLists, modifiers, keyword, body, expressionBody, semicolonToken);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode VisitParameterList(ParameterListSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var parameters = this.VisitList(node.Parameters);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(openParenToken, parameters, closeParenToken);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Parameters), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitBracketedParameterList(BracketedParameterListSyntax node)
-        {
-          var openBracketToken = this.VisitToken(node.OpenBracketToken);
-          var parameters = this.VisitList(node.Parameters);
-          var closeBracketToken = this.VisitToken(node.CloseBracketToken);
-          return node.Update(openBracketToken, parameters, closeBracketToken);
-        }
+            => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Parameters), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode VisitParameter(ParameterSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var identifier = this.VisitToken(node.Identifier);
-          var @default = (EqualsValueClauseSyntax)this.Visit(node.Default);
-          return node.Update(attributeLists, modifiers, type, identifier, @default);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), (EqualsValueClauseSyntax)Visit(node.Default));
 
         public override SyntaxNode VisitIncompleteMember(IncompleteMemberSyntax node)
-        {
-          var attributeLists = this.VisitList(node.AttributeLists);
-          var modifiers = this.VisitList(node.Modifiers);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          return node.Update(attributeLists, modifiers, type);
-        }
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type));
 
         public override SyntaxNode VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node)
-        {
-          var tokens = this.VisitList(node.Tokens);
-          return node.Update(tokens);
-        }
+            => node.Update(VisitList(node.Tokens));
 
         public override SyntaxNode VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node)
-        {
-          var content = this.VisitList(node.Content);
-          var endOfComment = this.VisitToken(node.EndOfComment);
-          return node.Update(content, endOfComment);
-        }
+            => node.Update(VisitList(node.Content), VisitToken(node.EndOfComment));
 
         public override SyntaxNode VisitTypeCref(TypeCrefSyntax node)
-        {
-          var type = (TypeSyntax)this.Visit(node.Type);
-          return node.Update(type);
-        }
+            => node.Update((TypeSyntax)Visit(node.Type));
 
         public override SyntaxNode VisitQualifiedCref(QualifiedCrefSyntax node)
-        {
-          var container = (TypeSyntax)this.Visit(node.Container);
-          var dotToken = this.VisitToken(node.DotToken);
-          var member = (MemberCrefSyntax)this.Visit(node.Member);
-          return node.Update(container, dotToken, member);
-        }
+            => node.Update((TypeSyntax)Visit(node.Container), VisitToken(node.DotToken), (MemberCrefSyntax)Visit(node.Member));
 
         public override SyntaxNode VisitNameMemberCref(NameMemberCrefSyntax node)
-        {
-          var name = (TypeSyntax)this.Visit(node.Name);
-          var parameters = (CrefParameterListSyntax)this.Visit(node.Parameters);
-          return node.Update(name, parameters);
-        }
+            => node.Update((TypeSyntax)Visit(node.Name), (CrefParameterListSyntax)Visit(node.Parameters));
 
         public override SyntaxNode VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
-        {
-          var thisKeyword = this.VisitToken(node.ThisKeyword);
-          var parameters = (CrefBracketedParameterListSyntax)this.Visit(node.Parameters);
-          return node.Update(thisKeyword, parameters);
-        }
+            => node.Update(VisitToken(node.ThisKeyword), (CrefBracketedParameterListSyntax)Visit(node.Parameters));
 
         public override SyntaxNode VisitOperatorMemberCref(OperatorMemberCrefSyntax node)
-        {
-          var operatorKeyword = this.VisitToken(node.OperatorKeyword);
-          var operatorToken = this.VisitToken(node.OperatorToken);
-          var parameters = (CrefParameterListSyntax)this.Visit(node.Parameters);
-          return node.Update(operatorKeyword, operatorToken, parameters);
-        }
+            => node.Update(VisitToken(node.OperatorKeyword), VisitToken(node.OperatorToken), (CrefParameterListSyntax)Visit(node.Parameters));
 
         public override SyntaxNode VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node)
-        {
-          var implicitOrExplicitKeyword = this.VisitToken(node.ImplicitOrExplicitKeyword);
-          var operatorKeyword = this.VisitToken(node.OperatorKeyword);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          var parameters = (CrefParameterListSyntax)this.Visit(node.Parameters);
-          return node.Update(implicitOrExplicitKeyword, operatorKeyword, type, parameters);
-        }
+            => node.Update(VisitToken(node.ImplicitOrExplicitKeyword), VisitToken(node.OperatorKeyword), (TypeSyntax)Visit(node.Type), (CrefParameterListSyntax)Visit(node.Parameters));
 
         public override SyntaxNode VisitCrefParameterList(CrefParameterListSyntax node)
-        {
-          var openParenToken = this.VisitToken(node.OpenParenToken);
-          var parameters = this.VisitList(node.Parameters);
-          var closeParenToken = this.VisitToken(node.CloseParenToken);
-          return node.Update(openParenToken, parameters, closeParenToken);
-        }
+            => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Parameters), VisitToken(node.CloseParenToken));
 
         public override SyntaxNode VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node)
-        {
-          var openBracketToken = this.VisitToken(node.OpenBracketToken);
-          var parameters = this.VisitList(node.Parameters);
-          var closeBracketToken = this.VisitToken(node.CloseBracketToken);
-          return node.Update(openBracketToken, parameters, closeBracketToken);
-        }
+            => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Parameters), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode VisitCrefParameter(CrefParameterSyntax node)
-        {
-          var refKindKeyword = this.VisitToken(node.RefKindKeyword);
-          var type = (TypeSyntax)this.Visit(node.Type);
-          return node.Update(refKindKeyword, type);
-        }
+            => node.Update(VisitToken(node.RefKindKeyword), (TypeSyntax)Visit(node.Type));
 
         public override SyntaxNode VisitXmlElement(XmlElementSyntax node)
-        {
-          var startTag = (XmlElementStartTagSyntax)this.Visit(node.StartTag);
-          var content = this.VisitList(node.Content);
-          var endTag = (XmlElementEndTagSyntax)this.Visit(node.EndTag);
-          return node.Update(startTag, content, endTag);
-        }
+            => node.Update((XmlElementStartTagSyntax)Visit(node.StartTag), VisitList(node.Content), (XmlElementEndTagSyntax)Visit(node.EndTag));
 
         public override SyntaxNode VisitXmlElementStartTag(XmlElementStartTagSyntax node)
-        {
-          var lessThanToken = this.VisitToken(node.LessThanToken);
-          var name = (XmlNameSyntax)this.Visit(node.Name);
-          var attributes = this.VisitList(node.Attributes);
-          var greaterThanToken = this.VisitToken(node.GreaterThanToken);
-          return node.Update(lessThanToken, name, attributes, greaterThanToken);
-        }
+            => node.Update(VisitToken(node.LessThanToken), (XmlNameSyntax)Visit(node.Name), VisitList(node.Attributes), VisitToken(node.GreaterThanToken));
 
         public override SyntaxNode VisitXmlElementEndTag(XmlElementEndTagSyntax node)
-        {
-          var lessThanSlashToken = this.VisitToken(node.LessThanSlashToken);
-          var name = (XmlNameSyntax)this.Visit(node.Name);
-          var greaterThanToken = this.VisitToken(node.GreaterThanToken);
-          return node.Update(lessThanSlashToken, name, greaterThanToken);
-        }
+            => node.Update(VisitToken(node.LessThanSlashToken), (XmlNameSyntax)Visit(node.Name), VisitToken(node.GreaterThanToken));
 
         public override SyntaxNode VisitXmlEmptyElement(XmlEmptyElementSyntax node)
-        {
-          var lessThanToken = this.VisitToken(node.LessThanToken);
-          var name = (XmlNameSyntax)this.Visit(node.Name);
-          var attributes = this.VisitList(node.Attributes);
-          var slashGreaterThanToken = this.VisitToken(node.SlashGreaterThanToken);
-          return node.Update(lessThanToken, name, attributes, slashGreaterThanToken);
-        }
+            => node.Update(VisitToken(node.LessThanToken), (XmlNameSyntax)Visit(node.Name), VisitList(node.Attributes), VisitToken(node.SlashGreaterThanToken));
 
         public override SyntaxNode VisitXmlName(XmlNameSyntax node)
-        {
-          var prefix = (XmlPrefixSyntax)this.Visit(node.Prefix);
-          var localName = this.VisitToken(node.LocalName);
-          return node.Update(prefix, localName);
-        }
+            => node.Update((XmlPrefixSyntax)Visit(node.Prefix), VisitToken(node.LocalName));
 
         public override SyntaxNode VisitXmlPrefix(XmlPrefixSyntax node)
-        {
-          var prefix = this.VisitToken(node.Prefix);
-          var colonToken = this.VisitToken(node.ColonToken);
-          return node.Update(prefix, colonToken);
-        }
+            => node.Update(VisitToken(node.Prefix), VisitToken(node.ColonToken));
 
         public override SyntaxNode VisitXmlTextAttribute(XmlTextAttributeSyntax node)
-        {
-          var name = (XmlNameSyntax)this.Visit(node.Name);
-          var equalsToken = this.VisitToken(node.EqualsToken);
-          var startQuoteToken = this.VisitToken(node.StartQuoteToken);
-          var textTokens = this.VisitList(node.TextTokens);
-          var endQuoteToken = this.VisitToken(node.EndQuoteToken);
-          return node.Update(name, equalsToken, startQuoteToken, textTokens, endQuoteToken);
-        }
+            => node.Update((XmlNameSyntax)Visit(node.Name), VisitToken(node.EqualsToken), VisitToken(node.StartQuoteToken), VisitList(node.TextTokens), VisitToken(node.EndQuoteToken));
 
         public override SyntaxNode VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
-        {
-          var name = (XmlNameSyntax)this.Visit(node.Name);
-          var equalsToken = this.VisitToken(node.EqualsToken);
-          var startQuoteToken = this.VisitToken(node.StartQuoteToken);
-          var cref = (CrefSyntax)this.Visit(node.Cref);
-          var endQuoteToken = this.VisitToken(node.EndQuoteToken);
-          return node.Update(name, equalsToken, startQuoteToken, cref, endQuoteToken);
-        }
+            => node.Update((XmlNameSyntax)Visit(node.Name), VisitToken(node.EqualsToken), VisitToken(node.StartQuoteToken), (CrefSyntax)Visit(node.Cref), VisitToken(node.EndQuoteToken));
 
         public override SyntaxNode VisitXmlNameAttribute(XmlNameAttributeSyntax node)
-        {
-          var name = (XmlNameSyntax)this.Visit(node.Name);
-          var equalsToken = this.VisitToken(node.EqualsToken);
-          var startQuoteToken = this.VisitToken(node.StartQuoteToken);
-          var identifier = (IdentifierNameSyntax)this.Visit(node.Identifier);
-          var endQuoteToken = this.VisitToken(node.EndQuoteToken);
-          return node.Update(name, equalsToken, startQuoteToken, identifier, endQuoteToken);
-        }
+            => node.Update((XmlNameSyntax)Visit(node.Name), VisitToken(node.EqualsToken), VisitToken(node.StartQuoteToken), (IdentifierNameSyntax)Visit(node.Identifier), VisitToken(node.EndQuoteToken));
 
         public override SyntaxNode VisitXmlText(XmlTextSyntax node)
-        {
-          var textTokens = this.VisitList(node.TextTokens);
-          return node.Update(textTokens);
-        }
+            => node.Update(VisitList(node.TextTokens));
 
         public override SyntaxNode VisitXmlCDataSection(XmlCDataSectionSyntax node)
-        {
-          var startCDataToken = this.VisitToken(node.StartCDataToken);
-          var textTokens = this.VisitList(node.TextTokens);
-          var endCDataToken = this.VisitToken(node.EndCDataToken);
-          return node.Update(startCDataToken, textTokens, endCDataToken);
-        }
+            => node.Update(VisitToken(node.StartCDataToken), VisitList(node.TextTokens), VisitToken(node.EndCDataToken));
 
         public override SyntaxNode VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node)
-        {
-          var startProcessingInstructionToken = this.VisitToken(node.StartProcessingInstructionToken);
-          var name = (XmlNameSyntax)this.Visit(node.Name);
-          var textTokens = this.VisitList(node.TextTokens);
-          var endProcessingInstructionToken = this.VisitToken(node.EndProcessingInstructionToken);
-          return node.Update(startProcessingInstructionToken, name, textTokens, endProcessingInstructionToken);
-        }
+            => node.Update(VisitToken(node.StartProcessingInstructionToken), (XmlNameSyntax)Visit(node.Name), VisitList(node.TextTokens), VisitToken(node.EndProcessingInstructionToken));
 
         public override SyntaxNode VisitXmlComment(XmlCommentSyntax node)
-        {
-          var lessThanExclamationMinusMinusToken = this.VisitToken(node.LessThanExclamationMinusMinusToken);
-          var textTokens = this.VisitList(node.TextTokens);
-          var minusMinusGreaterThanToken = this.VisitToken(node.MinusMinusGreaterThanToken);
-          return node.Update(lessThanExclamationMinusMinusToken, textTokens, minusMinusGreaterThanToken);
-        }
+            => node.Update(VisitToken(node.LessThanExclamationMinusMinusToken), VisitList(node.TextTokens), VisitToken(node.MinusMinusGreaterThanToken));
 
         public override SyntaxNode VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var ifKeyword = this.VisitToken(node.IfKeyword);
-          var condition = (ExpressionSyntax)this.Visit(node.Condition);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, ifKeyword, condition, endOfDirectiveToken, node.IsActive, node.BranchTaken, node.ConditionValue);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.IfKeyword), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.EndOfDirectiveToken), node.IsActive, node.BranchTaken, node.ConditionValue);
 
         public override SyntaxNode VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var elifKeyword = this.VisitToken(node.ElifKeyword);
-          var condition = (ExpressionSyntax)this.Visit(node.Condition);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, elifKeyword, condition, endOfDirectiveToken, node.IsActive, node.BranchTaken, node.ConditionValue);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.ElifKeyword), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.EndOfDirectiveToken), node.IsActive, node.BranchTaken, node.ConditionValue);
 
         public override SyntaxNode VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var elseKeyword = this.VisitToken(node.ElseKeyword);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, elseKeyword, endOfDirectiveToken, node.IsActive, node.BranchTaken);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.ElseKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive, node.BranchTaken);
 
         public override SyntaxNode VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var endIfKeyword = this.VisitToken(node.EndIfKeyword);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, endIfKeyword, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.EndIfKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var regionKeyword = this.VisitToken(node.RegionKeyword);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, regionKeyword, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.RegionKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var endRegionKeyword = this.VisitToken(node.EndRegionKeyword);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, endRegionKeyword, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.EndRegionKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var errorKeyword = this.VisitToken(node.ErrorKeyword);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, errorKeyword, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.ErrorKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var warningKeyword = this.VisitToken(node.WarningKeyword);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, warningKeyword, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.WarningKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var identifier = this.VisitToken(node.Identifier);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, identifier, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.Identifier), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var defineKeyword = this.VisitToken(node.DefineKeyword);
-          var name = this.VisitToken(node.Name);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, defineKeyword, name, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.DefineKeyword), VisitToken(node.Name), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var undefKeyword = this.VisitToken(node.UndefKeyword);
-          var name = this.VisitToken(node.Name);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, undefKeyword, name, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.UndefKeyword), VisitToken(node.Name), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var lineKeyword = this.VisitToken(node.LineKeyword);
-          var line = this.VisitToken(node.Line);
-          var file = this.VisitToken(node.File);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, lineKeyword, line, file, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.LineKeyword), VisitToken(node.Line), VisitToken(node.File), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var pragmaKeyword = this.VisitToken(node.PragmaKeyword);
-          var warningKeyword = this.VisitToken(node.WarningKeyword);
-          var disableOrRestoreKeyword = this.VisitToken(node.DisableOrRestoreKeyword);
-          var errorCodes = this.VisitList(node.ErrorCodes);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.PragmaKeyword), VisitToken(node.WarningKeyword), VisitToken(node.DisableOrRestoreKeyword), VisitList(node.ErrorCodes), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var pragmaKeyword = this.VisitToken(node.PragmaKeyword);
-          var checksumKeyword = this.VisitToken(node.ChecksumKeyword);
-          var file = this.VisitToken(node.File);
-          var guid = this.VisitToken(node.Guid);
-          var bytes = this.VisitToken(node.Bytes);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, pragmaKeyword, checksumKeyword, file, guid, bytes, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.PragmaKeyword), VisitToken(node.ChecksumKeyword), VisitToken(node.File), VisitToken(node.Guid), VisitToken(node.Bytes), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var referenceKeyword = this.VisitToken(node.ReferenceKeyword);
-          var file = this.VisitToken(node.File);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, referenceKeyword, file, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.ReferenceKeyword), VisitToken(node.File), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var loadKeyword = this.VisitToken(node.LoadKeyword);
-          var file = this.VisitToken(node.File);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, loadKeyword, file, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.LoadKeyword), VisitToken(node.File), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var exclamationToken = this.VisitToken(node.ExclamationToken);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, exclamationToken, endOfDirectiveToken, node.IsActive);
-        }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.ExclamationToken), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
-        {
-          var hashToken = this.VisitToken(node.HashToken);
-          var nullableKeyword = this.VisitToken(node.NullableKeyword);
-          var settingToken = this.VisitToken(node.SettingToken);
-          var targetToken = this.VisitToken(node.TargetToken);
-          var endOfDirectiveToken = this.VisitToken(node.EndOfDirectiveToken);
-          return node.Update(hashToken, nullableKeyword, settingToken, targetToken, endOfDirectiveToken, node.IsActive);
-        }
-      }
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.NullableKeyword), VisitToken(node.SettingToken), VisitToken(node.TargetToken), VisitToken(node.EndOfDirectiveToken), node.IsActive);
+    }
 
       public static partial class SyntaxFactory
       {

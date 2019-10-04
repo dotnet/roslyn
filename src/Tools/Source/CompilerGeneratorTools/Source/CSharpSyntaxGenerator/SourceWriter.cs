@@ -1544,63 +1544,61 @@ namespace CSharpSyntaxGenerator
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
 
             WriteLine();
-            WriteLine("  public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>");
-            WriteLine("  {");
+            WriteLine("public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>");
+            OpenBlock();
+
             int nWritten = 0;
             for (int i = 0, n = nodes.Count; i < n; i++)
             {
                 if (nodes[i] is Node node)
                 {
-                    var nodeFields = node.Fields.Where(nd => IsNodeOrNodeList(nd.Type)).ToList();
-
                     if (nWritten > 0)
                         WriteLine();
                     nWritten++;
-                    WriteLine("    public override SyntaxNode Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name);
-                    WriteLine("    {");
-                    for (int f = 0; f < nodeFields.Count; f++)
+                    WriteLine("public override SyntaxNode Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name);
+
+                    if (node.Fields.Count == 0)
                     {
-                        var field = nodeFields[f];
-                        if (IsAnyList(field.Type))
-                        {
-                            WriteLine("      var {0} = this.VisitList(node.{1});", CamelCase(field.Name), field.Name);
-                        }
-                        else if (field.Type == "SyntaxToken")
-                        {
-                            WriteLine("      var {0} = this.VisitToken(node.{1});", CamelCase(field.Name), field.Name);
-                        }
-                        else
-                        {
-                            WriteLine("      var {0} = ({1})this.Visit(node.{2});", CamelCase(field.Name), field.Type, field.Name);
-                        }
+                        WriteLine("    => node;");
                     }
-                    if (nodeFields.Count > 0)
+                    else
                     {
-                        Write("      return node.Update(");
+                        Write("    => node.Update(");
+
                         for (int f = 0; f < node.Fields.Count; f++)
                         {
-                            var field = node.Fields[f];
                             if (f > 0)
+                            {
                                 Write(", ");
+                            }
+
+                            var field = node.Fields[f];
                             if (IsNodeOrNodeList(field.Type))
                             {
-                                Write(CamelCase(field.Name));
+                                if (IsAnyList(field.Type))
+                                {
+                                    Write("VisitList(node.{1})", CamelCase(field.Name), field.Name);
+                                }
+                                else if (field.Type == "SyntaxToken")
+                                {
+                                    Write("VisitToken(node.{1})", CamelCase(field.Name), field.Name);
+                                }
+                                else
+                                {
+                                    Write("({1})Visit(node.{2})", CamelCase(field.Name), field.Type, field.Name);
+                                }
                             }
                             else
                             {
                                 Write("node.{0}", field.Name);
                             }
                         }
+
                         WriteLine(");");
                     }
-                    else
-                    {
-                        WriteLine("      return node;");
-                    }
-                    WriteLine("    }");
                 }
             }
-            WriteLine("  }");
+            CloseBlock();
         }
 
         private void WriteRedFactories()
