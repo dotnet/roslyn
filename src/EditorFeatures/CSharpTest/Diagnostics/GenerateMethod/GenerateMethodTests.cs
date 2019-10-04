@@ -4686,6 +4686,7 @@ new TestParameters(Options.Regular));
 
         [Theory]
         [InlineData("class")]
+        [InlineData("class?")]
         [InlineData("struct")]
         [InlineData("new()")]
         [InlineData("unmanaged")]

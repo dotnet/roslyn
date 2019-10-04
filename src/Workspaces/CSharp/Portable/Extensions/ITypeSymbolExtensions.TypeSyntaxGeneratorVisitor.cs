@@ -308,7 +308,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 TypeSyntax typeSyntax =  AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
 
-                if (symbol.GetNullability() == NullableAnnotation.Annotated)
+                // Add a ? if the type parameter is annotated as nullable, and the constraints allow it. It's possible to end up with
+                // a T? where T is constrained to class? if we combined a type parameter with some flow state -- we'll ignore the ? here
+                // at this stage. We should consider moving that check earlier when we actually wrap the symbol.
+                if (symbol.GetNullability() == NullableAnnotation.Annotated &&
+                    !(symbol.HasReferenceTypeConstraint && symbol.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.Annotated))
                 {
                     typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
                 }
