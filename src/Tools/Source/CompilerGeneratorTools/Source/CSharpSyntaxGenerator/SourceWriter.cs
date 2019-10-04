@@ -37,14 +37,14 @@ namespace CSharpSyntaxGenerator
             WriteFileHeader();
 
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax");
-            WriteLine("{");
+            OpenBlock();
             WriteLine();
             this.WriteGreenTypes();
             this.WriteGreenVisitors();
             this.WriteGreenRewriter();
             this.WriteContextualGreenFactories();
             this.WriteStaticGreenFactories();
-            WriteLine("}");
+            CloseBlock();
         }
 
         private void WriteSyntax()
