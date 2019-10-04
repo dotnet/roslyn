@@ -899,9 +899,8 @@ namespace CSharpSyntaxGenerator
         private void WriteRedTypes()
         {
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
-            for (int i = 0, n = nodes.Count; i < n; i++)
+            foreach (var node in nodes)
             {
-                var node = nodes[i];
                 WriteLine();
                 this.WriteRedType(node);
             }
