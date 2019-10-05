@@ -1210,7 +1210,7 @@ namespace CSharpSyntaxGenerator
                 if (nWritten > 0)
                     WriteLine();
                 nWritten++;
-                WriteComment(string.Format("<summary>Called when the visitor visits a {0} node.</summary>", node.Name), "");
+                WriteComment(string.Format("<summary>Called when the visitor visits a {0} node.</summary>", node.Name));
                 WriteLine(
                     "public virtual " + (genericResult ? "TResult" : "void") +
                     " Visit{0}({1} node)" +
@@ -1596,7 +1596,7 @@ namespace CSharpSyntaxGenerator
             var valueFields = nd.Fields.Where(n => IsValueField(n)).ToList();
             var nodeFields = nd.Fields.Where(n => !IsValueField(n)).ToList();
 
-            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "");
+            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name));
 
             Write("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
             WriteRedFactoryParameters(nd);
@@ -1804,7 +1804,7 @@ namespace CSharpSyntaxGenerator
 
             this.WriteLine();
 
-            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "");
+            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name));
             Write("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
 
             bool hasPreviousParameter = false;
@@ -1916,7 +1916,7 @@ namespace CSharpSyntaxGenerator
 
             this.WriteLine();
 
-            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "");
+            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name));
             Write("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
 
             bool hasPreviousParameter = false;
@@ -2045,14 +2045,14 @@ namespace CSharpSyntaxGenerator
         /// Anything inside a &lt;Comment&gt; tag gets written out (escaping untouched) as the
         /// XML doc comment.  Line breaks will be preserved.
         /// </summary>
-        private void WriteComment(string comment, string indent)
+        private void WriteComment(string comment)
         {
             if (comment != null)
             {
                 var lines = comment.Split(new string[] { "\r", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
                 {
-                    WriteLine("{0}/// {1}", indent, line.TrimStart());
+                    WriteLine("{0}/// {1}", "", line.TrimStart());
                 }
             }
         }
