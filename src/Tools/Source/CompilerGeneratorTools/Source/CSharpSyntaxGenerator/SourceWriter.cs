@@ -1122,7 +1122,8 @@ namespace CSharpSyntaxGenerator
                             ? $"GetRedAtZero(ref this.{CamelCase(field.Name)})"
                             : $"GetRed(ref this.{CamelCase(field.Name)}, {index})";
 
-                        WriteLine($" => index == {index} ? {whenTrue} : null;");
+                        var suffix = IsOptional(field) ? "" : "!";
+                        WriteLine($" => index == {index} ? {whenTrue}{suffix} : null;");
                     }
                     else
                     {
@@ -1132,9 +1133,10 @@ namespace CSharpSyntaxGenerator
                         OpenBlock();
                         foreach (var (field, index) in relevantNodes)
                         {
+                            var suffix = IsOptional(field) ? "" : "!";
                             WriteLine(index == 0
-                                ? "{0} => GetRedAtZero(ref this.{1}),"
-                                : "{0} => GetRed(ref this.{1}, {0}),", index, CamelCase(field.Name));
+                                ? "{0} => GetRedAtZero(ref this.{1}){2},"
+                                : "{0} => GetRed(ref this.{1}, {0}){2},", index, CamelCase(field.Name), suffix);
                         }
                         WriteLine("_ => null,");
                         CloseBlock(";");

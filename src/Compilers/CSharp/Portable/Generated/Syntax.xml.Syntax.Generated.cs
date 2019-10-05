@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.left),
-                2 => GetRed(ref this.right, 2),
+                0 => GetRedAtZero(ref this.left)!,
+                2 => GetRed(ref this.right, 2)!,
                 _ => null,
             };
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>TypeArgumentListSyntax node representing the list of type arguments of the generic name.</summary>
         public TypeArgumentListSyntax TypeArgumentList => GetRed(ref this.typeArgumentList, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.typeArgumentList, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.typeArgumentList, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.typeArgumentList : null;
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing greater than.</summary>
         public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeArgumentListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.arguments : null;
 
@@ -232,8 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.alias),
-                2 => GetRed(ref this.name, 2),
+                0 => GetRedAtZero(ref this.alias)!,
+                2 => GetRed(ref this.name, 2)!,
                 _ => null,
             };
 
@@ -327,8 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.elementType),
-                1 => GetRed(ref this.rankSpecifiers, 1),
+                0 => GetRedAtZero(ref this.elementType)!,
+                1 => GetRed(ref this.rankSpecifiers, 1)!,
                 _ => null,
             };
 
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ArrayRankSpecifierSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.sizes, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.sizes, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.sizes : null;
 
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing the asterisk.</summary>
         public SyntaxToken AsteriskToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PointerTypeSyntax)this.Green).asteriskToken, GetChildPosition(1), GetChildIndex(1));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.elementType) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.elementType)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.elementType : null;
 
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing the question mark.</summary>
         public SyntaxToken QuestionToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NullableTypeSyntax)this.Green).questionToken, GetChildPosition(1), GetChildIndex(1));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.elementType) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.elementType)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.elementType : null;
 
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing the close parenthesis.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TupleTypeSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.elements, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.elements, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.elements : null;
 
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.type : null;
 
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public TypeSyntax Type => GetRed(ref this.type, 2)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.type : null;
 
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing the close parenthesis.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing the close parenthesis.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TupleExpressionSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.arguments : null;
 
@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>ExpressionSyntax representing the operand of the prefix unary expression.</summary>
         public ExpressionSyntax Operand => GetRed(ref this.operand, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.operand, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.operand, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.operand : null;
 
@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>ExpressionSyntax representing the operand of the "await" operator.</summary>
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing the kind of the operator of the postfix unary expression.</summary>
         public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PostfixUnaryExpressionSyntax)this.Green).operatorToken, GetChildPosition(1), GetChildIndex(1));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.operand) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.operand)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.operand : null;
 
@@ -909,8 +909,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.expression),
-                2 => GetRed(ref this.name, 2),
+                0 => GetRedAtZero(ref this.expression)!,
+                2 => GetRed(ref this.name, 2)!,
                 _ => null,
             };
 
@@ -965,8 +965,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.expression),
-                2 => GetRed(ref this.whenNotNull, 2),
+                0 => GetRedAtZero(ref this.expression)!,
+                2 => GetRed(ref this.whenNotNull, 2)!,
                 _ => null,
             };
 
@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SimpleNameSyntax node representing the member being bound to.</summary>
         public SimpleNameSyntax Name => GetRed(ref this.name, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.name : null;
 
@@ -1050,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>BracketedArgumentListSyntax node representing the list of arguments of the element binding expression.</summary>
         public BracketedArgumentListSyntax ArgumentList => GetRedAtZero(ref this.argumentList)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.argumentList) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.argumentList)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.argumentList : null;
 
@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>BracketedArgumentListSyntax node representing the list of arguments of the implicit element access expression.</summary>
         public BracketedArgumentListSyntax ArgumentList => GetRedAtZero(ref this.argumentList)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.argumentList) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.argumentList)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.argumentList : null;
 
@@ -1190,8 +1190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.left),
-                2 => GetRed(ref this.right, 2),
+                0 => GetRedAtZero(ref this.left)!,
+                2 => GetRed(ref this.right, 2)!,
                 _ => null,
             };
 
@@ -1246,8 +1246,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.left),
-                2 => GetRed(ref this.right, 2),
+                0 => GetRedAtZero(ref this.left)!,
+                2 => GetRed(ref this.right, 2)!,
                 _ => null,
             };
 
@@ -1309,9 +1309,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.condition),
-                2 => GetRed(ref this.whenTrue, 2),
-                4 => GetRed(ref this.whenFalse, 4),
+                0 => GetRedAtZero(ref this.condition)!,
+                2 => GetRed(ref this.whenTrue, 2)!,
+                4 => GetRed(ref this.whenFalse, 4)!,
                 _ => null,
             };
 
@@ -1476,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing close parenthesis.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.MakeRefExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.expression : null;
 
@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing close parenthesis.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.RefTypeExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.expression : null;
 
@@ -1580,8 +1580,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                2 => GetRed(ref this.expression, 2),
-                4 => GetRed(ref this.type, 4),
+                2 => GetRed(ref this.expression, 2)!,
+                4 => GetRed(ref this.type, 4)!,
                 _ => null,
             };
 
@@ -1638,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing close parenthesis.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CheckedExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.expression, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.expression : null;
 
@@ -1685,7 +1685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing close parenthesis.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.DefaultExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.type : null;
 
@@ -1732,7 +1732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing close parenthesis.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeOfExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.type : null;
 
@@ -1779,7 +1779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing close parenthesis.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SizeOfExpressionSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.type, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.type : null;
 
@@ -1824,8 +1824,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.expression),
-                1 => GetRed(ref this.argumentList, 1),
+                0 => GetRedAtZero(ref this.expression)!,
+                1 => GetRed(ref this.argumentList, 1)!,
                 _ => null,
             };
 
@@ -1878,8 +1878,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.expression),
-                1 => GetRed(ref this.argumentList, 1),
+                0 => GetRedAtZero(ref this.expression)!,
+                1 => GetRed(ref this.argumentList, 1)!,
                 _ => null,
             };
 
@@ -1955,7 +1955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing close parenthesis.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ArgumentListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.arguments : null;
 
@@ -2009,7 +2009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing close bracket.</summary>
         public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BracketedArgumentListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.arguments : null;
 
@@ -2068,7 +2068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 0 => GetRedAtZero(ref this.nameColon),
-                2 => GetRed(ref this.expression, 2),
+                2 => GetRed(ref this.expression, 2)!,
                 _ => null,
             };
 
@@ -2116,7 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing colon.</summary>
         public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NameColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.name : null;
 
@@ -2158,8 +2158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.type),
-                1 => GetRed(ref this.designation, 1),
+                0 => GetRedAtZero(ref this.type)!,
+                1 => GetRed(ref this.designation, 1)!,
                 _ => null,
             };
 
@@ -2216,8 +2216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.type, 1),
-                3 => GetRed(ref this.expression, 3),
+                1 => GetRed(ref this.type, 1)!,
+                3 => GetRed(ref this.expression, 3)!,
                 _ => null,
             };
 
@@ -2327,7 +2327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 2 => GetRed(ref this.parameterList, 2),
-                3 => GetRed(ref this.block, 3),
+                3 => GetRed(ref this.block, 3)!,
                 4 => GetRed(ref this.expressionBody, 4),
                 _ => null,
             };
@@ -2437,7 +2437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.parameter, 1),
+                1 => GetRed(ref this.parameter, 1)!,
                 3 => GetRed(ref this.block, 3),
                 4 => GetRed(ref this.expressionBody, 4),
                 _ => null,
@@ -2500,7 +2500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
@@ -2566,7 +2566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.parameterList, 1),
+                1 => GetRed(ref this.parameterList, 1)!,
                 3 => GetRed(ref this.block, 3),
                 4 => GetRed(ref this.expressionBody, 4),
                 _ => null,
@@ -2641,7 +2641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing the close brace.</summary>
         public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InitializerExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expressions, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expressions, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.expressions : null;
 
@@ -2694,7 +2694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.type, 1),
+                1 => GetRed(ref this.type, 1)!,
                 2 => GetRed(ref this.argumentList, 2),
                 3 => GetRed(ref this.initializer, 3),
                 _ => null,
@@ -2756,7 +2756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 0 => GetRedAtZero(ref this.nameEquals),
-                1 => GetRed(ref this.expression, 1),
+                1 => GetRed(ref this.expression, 1)!,
                 _ => null,
             };
 
@@ -2816,7 +2816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>SyntaxToken representing the close brace.</summary>
         public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AnonymousObjectCreationExpressionSyntax)this.Green).closeBraceToken, GetChildPosition(3), GetChildIndex(3));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.initializers, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.initializers, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.initializers : null;
 
@@ -2866,7 +2866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.type, 1),
+                1 => GetRed(ref this.type, 1)!,
                 2 => GetRed(ref this.initializer, 2),
                 _ => null,
             };
@@ -2933,7 +2933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>InitializerExpressionSyntax representing the initializer expression of the implicit array creation expression.</summary>
         public InitializerExpressionSyntax Initializer => GetRed(ref this.initializer, 4)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 4 ? GetRed(ref this.initializer, 4) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 4 ? GetRed(ref this.initializer, 4)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 4 ? this.initializer : null;
 
@@ -2985,7 +2985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.type, 1),
+                1 => GetRed(ref this.type, 1)!,
                 2 => GetRed(ref this.initializer, 2),
                 _ => null,
             };
@@ -3040,7 +3040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>InitializerExpressionSyntax representing the initializer expression of the implicit stackalloc array creation expression.</summary>
         public InitializerExpressionSyntax Initializer => GetRed(ref this.initializer, 3)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 3 ? GetRed(ref this.initializer, 3) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 3 ? GetRed(ref this.initializer, 3)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 3 ? this.initializer : null;
 
@@ -3100,8 +3100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.fromClause),
-                1 => GetRed(ref this.body, 1),
+                0 => GetRedAtZero(ref this.fromClause)!,
+                1 => GetRed(ref this.body, 1)!,
                 _ => null,
             };
 
@@ -3154,8 +3154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.clauses),
-                1 => GetRed(ref this.selectOrGroup, 1),
+                0 => GetRedAtZero(ref this.clauses)!,
+                1 => GetRed(ref this.selectOrGroup, 1)!,
                 2 => GetRed(ref this.continuation, 2),
                 _ => null,
             };
@@ -3216,7 +3216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 1 => GetRed(ref this.type, 1),
-                4 => GetRed(ref this.expression, 4),
+                4 => GetRed(ref this.expression, 4)!,
                 _ => null,
             };
 
@@ -3268,7 +3268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 3)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 3 ? GetRed(ref this.expression, 3) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 3 ? GetRed(ref this.expression, 3)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 3 ? this.expression : null;
 
@@ -3331,9 +3331,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 1 => GetRed(ref this.type, 1),
-                4 => GetRed(ref this.inExpression, 4),
-                6 => GetRed(ref this.leftExpression, 6),
-                8 => GetRed(ref this.rightExpression, 8),
+                4 => GetRed(ref this.inExpression, 4)!,
+                6 => GetRed(ref this.leftExpression, 6)!,
+                8 => GetRed(ref this.rightExpression, 8)!,
                 9 => GetRed(ref this.into, 9),
                 _ => null,
             };
@@ -3424,7 +3424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Condition => GetRed(ref this.condition, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.condition, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.condition, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.condition : null;
 
@@ -3467,7 +3467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.orderings, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.orderings, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.orderings : null;
 
@@ -3512,7 +3512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.expression) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.expression)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.expression : null;
 
@@ -3548,7 +3548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
@@ -3592,8 +3592,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.groupExpression, 1),
-                3 => GetRed(ref this.byExpression, 3),
+                1 => GetRed(ref this.groupExpression, 1)!,
+                3 => GetRed(ref this.byExpression, 3)!,
                 _ => null,
             };
 
@@ -3642,7 +3642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public QueryBodySyntax Body => GetRed(ref this.body, 2)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.body, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.body, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.body : null;
 
@@ -3719,7 +3719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>The closing quote of the interpolated string.</summary>
         public SyntaxToken StringEndToken => new SyntaxToken(this, ((Syntax.InternalSyntax.InterpolatedStringExpressionSyntax)this.Green).stringEndToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.contents, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.contents, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.contents : null;
 
@@ -3767,8 +3767,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.expression),
-                2 => GetRed(ref this.pattern, 2),
+                0 => GetRedAtZero(ref this.expression)!,
+                2 => GetRed(ref this.pattern, 2)!,
                 _ => null,
             };
 
@@ -3813,7 +3813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
@@ -3849,7 +3849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Condition => GetRed(ref this.condition, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.condition, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.condition, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.condition : null;
 
@@ -3928,8 +3928,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.type),
-                1 => GetRed(ref this.designation, 1),
+                0 => GetRedAtZero(ref this.type)!,
+                1 => GetRed(ref this.designation, 1)!,
                 _ => null,
             };
 
@@ -3973,7 +3973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public VariableDesignationSyntax Designation => GetRed(ref this.designation, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.designation, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.designation, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.designation : null;
 
@@ -4090,7 +4090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PositionalPatternClauseSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.subpatterns, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.subpatterns, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.subpatterns : null;
 
@@ -4138,7 +4138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PropertyPatternClauseSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.subpatterns, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.subpatterns, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.subpatterns : null;
 
@@ -4182,7 +4182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 0 => GetRedAtZero(ref this.nameColon),
-                1 => GetRed(ref this.pattern, 1),
+                1 => GetRed(ref this.pattern, 1)!,
                 _ => null,
             };
 
@@ -4225,7 +4225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>ExpressionSyntax node representing the constant expression.</summary>
         public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.expression) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.expression)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.expression : null;
 
@@ -4311,7 +4311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.expression, 1),
+                1 => GetRed(ref this.expression, 1)!,
                 2 => GetRed(ref this.alignmentClause, 2),
                 3 => GetRed(ref this.formatClause, 3),
                 _ => null,
@@ -4361,7 +4361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Value => GetRed(ref this.value, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.value, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.value, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.value : null;
 
@@ -4445,8 +4445,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                2 => GetRed(ref this.statement, 2),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                2 => GetRed(ref this.statement, 2)!,
                 _ => null,
             };
 
@@ -4509,7 +4509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BlockSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.statements, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.statements, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.statements : null;
 
@@ -4586,10 +4586,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.returnType, 1),
+                1 => GetRed(ref this.returnType, 1)!,
                 3 => GetRed(ref this.typeParameterList, 3),
-                4 => GetRed(ref this.parameterList, 4),
-                5 => GetRed(ref this.constraintClauses, 5),
+                4 => GetRed(ref this.parameterList, 4)!,
+                5 => GetRed(ref this.constraintClauses, 5)!,
                 6 => GetRed(ref this.body, 6),
                 7 => GetRed(ref this.expressionBody, 7),
                 _ => null,
@@ -4688,7 +4688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LocalDeclarationStatementSyntax)this.Green).semicolonToken, GetChildPosition(4), GetChildIndex(4));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 3 ? GetRed(ref this.declaration, 3) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 3 ? GetRed(ref this.declaration, 3)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 3 ? this.declaration : null;
 
@@ -4741,8 +4741,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.type),
-                1 => GetRed(ref this.variables, 1),
+                0 => GetRedAtZero(ref this.type)!,
+                1 => GetRed(ref this.variables, 1)!,
                 _ => null,
             };
 
@@ -4847,7 +4847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Value => GetRed(ref this.value, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.value, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.value, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.value : null;
 
@@ -4962,7 +4962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedVariableDesignationSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.variables, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.variables, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.variables : null;
 
@@ -5001,7 +5001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken SemicolonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ExpressionStatementSyntax)this.Green).semicolonToken, GetChildPosition(1), GetChildIndex(1));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.expression) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.expression)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.expression : null;
 
@@ -5073,7 +5073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public StatementSyntax Statement => GetRed(ref this.statement, 2)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.statement, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.statement, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.statement : null;
 
@@ -5372,8 +5372,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                2 => GetRed(ref this.condition, 2),
-                4 => GetRed(ref this.statement, 4),
+                2 => GetRed(ref this.condition, 2)!,
+                4 => GetRed(ref this.statement, 4)!,
                 _ => null,
             };
 
@@ -5434,8 +5434,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.statement, 1),
-                4 => GetRed(ref this.condition, 4),
+                1 => GetRed(ref this.statement, 1)!,
+                4 => GetRed(ref this.condition, 4)!,
                 _ => null,
             };
 
@@ -5522,10 +5522,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 2 => GetRed(ref this.declaration, 2),
-                3 => GetRed(ref this.initializers, 3),
+                3 => GetRed(ref this.initializers, 3)!,
                 5 => GetRed(ref this.condition, 5),
-                7 => GetRed(ref this.incrementors, 7),
-                9 => GetRed(ref this.statement, 9),
+                7 => GetRed(ref this.incrementors, 7)!,
+                9 => GetRed(ref this.statement, 9)!,
                 _ => null,
             };
 
@@ -5646,9 +5646,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                3 => GetRed(ref this.type, 3),
-                6 => GetRed(ref this.expression, 6),
-                8 => GetRed(ref this.statement, 8),
+                3 => GetRed(ref this.type, 3)!,
+                6 => GetRed(ref this.expression, 6)!,
+                8 => GetRed(ref this.statement, 8)!,
                 _ => null,
             };
 
@@ -5737,9 +5737,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                3 => GetRed(ref this.variable, 3),
-                5 => GetRed(ref this.expression, 5),
-                7 => GetRed(ref this.statement, 7),
+                3 => GetRed(ref this.variable, 3)!,
+                5 => GetRed(ref this.expression, 5)!,
+                7 => GetRed(ref this.statement, 7)!,
                 _ => null,
             };
 
@@ -5821,7 +5821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 3 => GetRed(ref this.declaration, 3),
                 4 => GetRed(ref this.expression, 4),
-                6 => GetRed(ref this.statement, 6),
+                6 => GetRed(ref this.statement, 6)!,
                 _ => null,
             };
 
@@ -5881,8 +5881,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                2 => GetRed(ref this.declaration, 2),
-                4 => GetRed(ref this.statement, 4),
+                2 => GetRed(ref this.declaration, 2)!,
+                4 => GetRed(ref this.statement, 4)!,
                 _ => null,
             };
 
@@ -5931,7 +5931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public BlockSyntax Block => GetRed(ref this.block, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.block, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.block, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.block : null;
 
@@ -5969,7 +5969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public BlockSyntax Block => GetRed(ref this.block, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.block, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.block, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.block : null;
 
@@ -6017,8 +6017,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                2 => GetRed(ref this.expression, 2),
-                4 => GetRed(ref this.statement, 4),
+                2 => GetRed(ref this.expression, 2)!,
+                4 => GetRed(ref this.statement, 4)!,
                 _ => null,
             };
 
@@ -6099,8 +6099,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                2 => GetRed(ref this.condition, 2),
-                4 => GetRed(ref this.statement, 4),
+                2 => GetRed(ref this.condition, 2)!,
+                4 => GetRed(ref this.statement, 4)!,
                 5 => GetRed(ref this.@else, 5),
                 _ => null,
             };
@@ -6154,7 +6154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public StatementSyntax Statement => GetRed(ref this.statement, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.statement, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.statement, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.statement : null;
 
@@ -6240,8 +6240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                2 => GetRed(ref this.expression, 2),
-                5 => GetRed(ref this.sections, 5),
+                2 => GetRed(ref this.expression, 2)!,
+                5 => GetRed(ref this.sections, 5)!,
                 _ => null,
             };
 
@@ -6303,8 +6303,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.labels),
-                1 => GetRed(ref this.statements, 1),
+                0 => GetRedAtZero(ref this.labels)!,
+                1 => GetRed(ref this.statements, 1)!,
                 _ => null,
             };
 
@@ -6387,7 +6387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.pattern, 1),
+                1 => GetRed(ref this.pattern, 1)!,
                 2 => GetRed(ref this.whenClause, 2),
                 _ => null,
             };
@@ -6443,7 +6443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CaseSwitchLabelSyntax)this.Green).colonToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.value, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.value, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.value : null;
 
@@ -6537,8 +6537,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.governingExpression),
-                3 => GetRed(ref this.arms, 3),
+                0 => GetRedAtZero(ref this.governingExpression)!,
+                3 => GetRed(ref this.arms, 3)!,
                 _ => null,
             };
 
@@ -6596,9 +6596,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.pattern),
+                0 => GetRedAtZero(ref this.pattern)!,
                 1 => GetRed(ref this.whenClause, 1),
-                3 => GetRed(ref this.expression, 3),
+                3 => GetRed(ref this.expression, 3)!,
                 _ => null,
             };
 
@@ -6654,8 +6654,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.block, 1),
-                2 => GetRed(ref this.catches, 2),
+                1 => GetRed(ref this.block, 1)!,
+                2 => GetRed(ref this.catches, 2)!,
                 3 => GetRed(ref this.@finally, 3),
                 _ => null,
             };
@@ -6717,7 +6717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 1 => GetRed(ref this.declaration, 1),
                 2 => GetRed(ref this.filter, 2),
-                3 => GetRed(ref this.block, 3),
+                3 => GetRed(ref this.block, 3)!,
                 _ => null,
             };
 
@@ -6777,7 +6777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CatchDeclarationSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.type, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.type, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.type : null;
 
@@ -6819,7 +6819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CatchFilterClauseSyntax)this.Green).closeParenToken, GetChildPosition(3), GetChildIndex(3));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.filterExpression, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.filterExpression, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.filterExpression : null;
 
@@ -6857,7 +6857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public BlockSyntax Block => GetRed(ref this.block, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.block, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.block, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.block : null;
 
@@ -6908,10 +6908,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.externs),
-                1 => GetRed(ref this.usings, 1),
-                2 => GetRed(ref this.attributeLists, 2),
-                3 => GetRed(ref this.members, 3),
+                0 => GetRedAtZero(ref this.externs)!,
+                1 => GetRed(ref this.usings, 1)!,
+                2 => GetRed(ref this.attributeLists, 2)!,
+                3 => GetRed(ref this.members, 3)!,
                 _ => null,
             };
 
@@ -7030,7 +7030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 2 => GetRed(ref this.alias, 2),
-                3 => GetRed(ref this.name, 3),
+                3 => GetRed(ref this.name, 3)!,
                 _ => null,
             };
 
@@ -7140,11 +7140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                3 => GetRed(ref this.name, 3),
-                5 => GetRed(ref this.externs, 5),
-                6 => GetRed(ref this.usings, 6),
-                7 => GetRed(ref this.members, 7),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                3 => GetRed(ref this.name, 3)!,
+                5 => GetRed(ref this.externs, 5)!,
+                6 => GetRed(ref this.usings, 6)!,
+                7 => GetRed(ref this.members, 7)!,
                 _ => null,
             };
 
@@ -7230,7 +7230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 1 => GetRed(ref this.target, 1),
-                2 => GetRed(ref this.attributes, 2),
+                2 => GetRed(ref this.attributes, 2)!,
                 _ => null,
             };
 
@@ -7321,7 +7321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.name),
+                0 => GetRedAtZero(ref this.name)!,
                 1 => GetRed(ref this.argumentList, 1),
                 _ => null,
             };
@@ -7385,7 +7385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the close paren token.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AttributeArgumentListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.arguments, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.arguments : null;
 
@@ -7435,7 +7435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 0 => GetRedAtZero(ref this.nameEquals),
                 1 => GetRed(ref this.nameColon, 1),
-                2 => GetRed(ref this.expression, 2),
+                2 => GetRed(ref this.expression, 2)!,
                 _ => null,
             };
 
@@ -7483,7 +7483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken EqualsToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NameEqualsSyntax)this.Green).equalsToken, GetChildPosition(1), GetChildIndex(1));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.name : null;
 
@@ -7532,7 +7532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the &gt; token.</summary>
         public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeParameterListSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
@@ -7583,7 +7583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the identifier.</summary>
         public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.TypeParameterSyntax)this.Green).identifier, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.attributeLists : null;
 
@@ -7752,11 +7752,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
+                0 => GetRedAtZero(ref this.attributeLists)!,
                 4 => GetRed(ref this.typeParameterList, 4),
                 5 => GetRed(ref this.baseList, 5),
-                6 => GetRed(ref this.constraintClauses, 6),
-                8 => GetRed(ref this.members, 8),
+                6 => GetRed(ref this.constraintClauses, 6)!,
+                8 => GetRed(ref this.members, 8)!,
                 _ => null,
             };
 
@@ -7885,11 +7885,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
+                0 => GetRedAtZero(ref this.attributeLists)!,
                 4 => GetRed(ref this.typeParameterList, 4),
                 5 => GetRed(ref this.baseList, 5),
-                6 => GetRed(ref this.constraintClauses, 6),
-                8 => GetRed(ref this.members, 8),
+                6 => GetRed(ref this.constraintClauses, 6)!,
+                8 => GetRed(ref this.members, 8)!,
                 _ => null,
             };
 
@@ -8018,11 +8018,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
+                0 => GetRedAtZero(ref this.attributeLists)!,
                 4 => GetRed(ref this.typeParameterList, 4),
                 5 => GetRed(ref this.baseList, 5),
-                6 => GetRed(ref this.constraintClauses, 6),
-                8 => GetRed(ref this.members, 8),
+                6 => GetRed(ref this.constraintClauses, 6)!,
+                8 => GetRed(ref this.members, 8)!,
                 _ => null,
             };
 
@@ -8154,9 +8154,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
+                0 => GetRedAtZero(ref this.attributeLists)!,
                 4 => GetRed(ref this.baseList, 4),
-                6 => GetRed(ref this.members, 6),
+                6 => GetRed(ref this.members, 6)!,
                 _ => null,
             };
 
@@ -8262,11 +8262,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                3 => GetRed(ref this.returnType, 3),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                3 => GetRed(ref this.returnType, 3)!,
                 5 => GetRed(ref this.typeParameterList, 5),
-                6 => GetRed(ref this.parameterList, 6),
-                7 => GetRed(ref this.constraintClauses, 7),
+                6 => GetRed(ref this.parameterList, 6)!,
+                7 => GetRed(ref this.constraintClauses, 7)!,
                 _ => null,
             };
 
@@ -8350,7 +8350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
+                0 => GetRedAtZero(ref this.attributeLists)!,
                 3 => GetRed(ref this.equalsValue, 3),
                 _ => null,
             };
@@ -8414,7 +8414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.types, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.types, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.types : null;
 
@@ -8463,7 +8463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override TypeSyntax Type => GetRedAtZero(ref this.type)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.type : null;
 
@@ -8518,8 +8518,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.name, 1),
-                3 => GetRed(ref this.constraints, 3),
+                1 => GetRed(ref this.name, 1)!,
+                3 => GetRed(ref this.constraints, 3)!,
                 _ => null,
             };
 
@@ -8661,7 +8661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the type syntax.</summary>
         public TypeSyntax Type => GetRedAtZero(ref this.type)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.type : null;
 
@@ -8737,8 +8737,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                2 => GetRed(ref this.declaration, 2),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                2 => GetRed(ref this.declaration, 2)!,
                 _ => null,
             };
 
@@ -8812,8 +8812,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                3 => GetRed(ref this.declaration, 3),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                3 => GetRed(ref this.declaration, 3)!,
                 _ => null,
             };
 
@@ -8871,7 +8871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken DotToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)this.Green).dotToken, GetChildPosition(1), GetChildIndex(1));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.name : null;
 
@@ -8994,12 +8994,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                2 => GetRed(ref this.returnType, 2),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                2 => GetRed(ref this.returnType, 2)!,
                 3 => GetRed(ref this.explicitInterfaceSpecifier, 3),
                 5 => GetRed(ref this.typeParameterList, 5),
-                6 => GetRed(ref this.parameterList, 6),
-                7 => GetRed(ref this.constraintClauses, 7),
+                6 => GetRed(ref this.parameterList, 6)!,
+                7 => GetRed(ref this.constraintClauses, 7)!,
                 8 => GetRed(ref this.body, 8),
                 9 => GetRed(ref this.expressionBody, 9),
                 _ => null,
@@ -9125,9 +9125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                2 => GetRed(ref this.returnType, 2),
-                5 => GetRed(ref this.parameterList, 5),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                2 => GetRed(ref this.returnType, 2)!,
+                5 => GetRed(ref this.parameterList, 5)!,
                 6 => GetRed(ref this.body, 6),
                 7 => GetRed(ref this.expressionBody, 7),
                 _ => null,
@@ -9242,9 +9242,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                4 => GetRed(ref this.type, 4),
-                5 => GetRed(ref this.parameterList, 5),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                4 => GetRed(ref this.type, 4)!,
+                5 => GetRed(ref this.parameterList, 5)!,
                 6 => GetRed(ref this.body, 6),
                 7 => GetRed(ref this.expressionBody, 7),
                 _ => null,
@@ -9355,8 +9355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                3 => GetRed(ref this.parameterList, 3),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                3 => GetRed(ref this.parameterList, 3)!,
                 4 => GetRed(ref this.initializer, 4),
                 5 => GetRed(ref this.body, 5),
                 6 => GetRed(ref this.expressionBody, 6),
@@ -9436,7 +9436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ArgumentListSyntax ArgumentList => GetRed(ref this.argumentList, 2)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.argumentList, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.argumentList, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.argumentList : null;
 
@@ -9511,8 +9511,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                4 => GetRed(ref this.parameterList, 4),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                4 => GetRed(ref this.parameterList, 4)!,
                 5 => GetRed(ref this.body, 5),
                 6 => GetRed(ref this.expressionBody, 6),
                 _ => null,
@@ -9655,8 +9655,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                2 => GetRed(ref this.type, 2),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                2 => GetRed(ref this.type, 2)!,
                 3 => GetRed(ref this.explicitInterfaceSpecifier, 3),
                 5 => GetRed(ref this.accessorList, 5),
                 6 => GetRed(ref this.expressionBody, 6),
@@ -9732,7 +9732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ExpressionSyntax Expression => GetRed(ref this.expression, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.expression, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.expression : null;
 
@@ -9801,8 +9801,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                3 => GetRed(ref this.type, 3),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                3 => GetRed(ref this.type, 3)!,
                 4 => GetRed(ref this.explicitInterfaceSpecifier, 4),
                 6 => GetRed(ref this.accessorList, 6),
                 _ => null,
@@ -9909,10 +9909,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
-                2 => GetRed(ref this.type, 2),
+                0 => GetRedAtZero(ref this.attributeLists)!,
+                2 => GetRed(ref this.type, 2)!,
                 3 => GetRed(ref this.explicitInterfaceSpecifier, 3),
-                5 => GetRed(ref this.parameterList, 5),
+                5 => GetRed(ref this.parameterList, 5)!,
                 6 => GetRed(ref this.accessorList, 6),
                 7 => GetRed(ref this.expressionBody, 7),
                 _ => null,
@@ -9988,7 +9988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken CloseBraceToken => new SyntaxToken(this, ((Syntax.InternalSyntax.AccessorListSyntax)this.Green).closeBraceToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.accessors, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.accessors, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.accessors : null;
 
@@ -10060,7 +10060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
+                0 => GetRedAtZero(ref this.attributeLists)!,
                 3 => GetRed(ref this.body, 3),
                 4 => GetRed(ref this.expressionBody, 4),
                 _ => null,
@@ -10148,7 +10148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the close paren token.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParameterListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
@@ -10201,7 +10201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the close bracket token.</summary>
         public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.BracketedParameterListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
@@ -10264,7 +10264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
+                0 => GetRedAtZero(ref this.attributeLists)!,
                 2 => GetRed(ref this.type, 2),
                 4 => GetRed(ref this.@default, 4),
                 _ => null,
@@ -10330,7 +10330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.attributeLists),
+                0 => GetRedAtZero(ref this.attributeLists)!,
                 2 => GetRed(ref this.type, 2),
                 _ => null,
             };
@@ -10423,7 +10423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken EndOfComment => new SyntaxToken(this, ((Syntax.InternalSyntax.DocumentationCommentTriviaSyntax)this.Green).endOfComment, GetChildPosition(1), GetChildIndex(1));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.content) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.content)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.content : null;
 
@@ -10478,7 +10478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public TypeSyntax Type => GetRedAtZero(ref this.type)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.type)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.type : null;
 
@@ -10526,8 +10526,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.container),
-                2 => GetRed(ref this.member, 2),
+                0 => GetRedAtZero(ref this.container)!,
+                2 => GetRed(ref this.member, 2)!,
                 _ => null,
             };
 
@@ -10597,7 +10597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.name),
+                0 => GetRedAtZero(ref this.name)!,
                 1 => GetRed(ref this.parameters, 1),
                 _ => null,
             };
@@ -10757,7 +10757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                2 => GetRed(ref this.type, 2),
+                2 => GetRed(ref this.type, 2)!,
                 3 => GetRed(ref this.parameters, 3),
                 _ => null,
             };
@@ -10844,7 +10844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the close paren token.</summary>
         public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CrefParameterListSyntax)this.Green).closeParenToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
@@ -10899,7 +10899,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the close bracket token.</summary>
         public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.CrefBracketedParameterListSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.parameters, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.parameters : null;
 
@@ -10952,7 +10952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public TypeSyntax Type => GetRed(ref this.type, 1)!;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.type, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.type, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.type : null;
 
@@ -11003,9 +11003,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.startTag),
-                1 => GetRed(ref this.content, 1),
-                2 => GetRed(ref this.endTag, 2),
+                0 => GetRedAtZero(ref this.startTag)!,
+                1 => GetRed(ref this.content, 1)!,
+                2 => GetRed(ref this.endTag, 2)!,
                 _ => null,
             };
 
@@ -11062,8 +11062,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.name, 1),
-                2 => GetRed(ref this.attributes, 2),
+                1 => GetRed(ref this.name, 1)!,
+                2 => GetRed(ref this.attributes, 2)!,
                 _ => null,
             };
 
@@ -11113,7 +11113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken GreaterThanToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlElementEndTagSyntax)this.Green).greaterThanToken, GetChildPosition(2), GetChildIndex(2));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.name : null;
 
@@ -11158,8 +11158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                1 => GetRed(ref this.name, 1),
-                2 => GetRed(ref this.attributes, 2),
+                1 => GetRed(ref this.name, 1)!,
+                2 => GetRed(ref this.attributes, 2)!,
                 _ => null,
             };
 
@@ -11314,7 +11314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxToken EndQuoteToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlTextAttributeSyntax)this.Green).endQuoteToken, GetChildPosition(4), GetChildIndex(4));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 0 ? this.name : null;
 
@@ -11369,8 +11369,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.name),
-                3 => GetRed(ref this.cref, 3),
+                0 => GetRedAtZero(ref this.name)!,
+                3 => GetRed(ref this.cref, 3)!,
                 _ => null,
             };
 
@@ -11431,8 +11431,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.name),
-                3 => GetRed(ref this.identifier, 3),
+                0 => GetRedAtZero(ref this.name)!,
+                3 => GetRed(ref this.identifier, 3)!,
                 _ => null,
             };
 
@@ -11580,7 +11580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public SyntaxToken EndProcessingInstructionToken => new SyntaxToken(this, ((Syntax.InternalSyntax.XmlProcessingInstructionSyntax)this.Green).endProcessingInstructionToken, GetChildPosition(3), GetChildIndex(3));
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 1 ? this.name : null;
 
@@ -11721,7 +11721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override bool ConditionValue => ((Syntax.InternalSyntax.IfDirectiveTriviaSyntax)this.Green).ConditionValue;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.condition, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.condition, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.condition : null;
 
@@ -11775,7 +11775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override bool ConditionValue => ((Syntax.InternalSyntax.ElifDirectiveTriviaSyntax)this.Green).ConditionValue;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.condition, 2) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 2 ? GetRed(ref this.condition, 2)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 2 ? this.condition : null;
 
@@ -12278,7 +12278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override bool IsActive => ((Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax)this.Green).IsActive;
 
-        internal override SyntaxNode? GetNodeSlot(int index) => index == 4 ? GetRed(ref this.errorCodes, 4) : null;
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 4 ? GetRed(ref this.errorCodes, 4)! : null;
 
         internal override SyntaxNode GetCachedSlot(int index) => index == 4 ? this.errorCodes : null;
 
