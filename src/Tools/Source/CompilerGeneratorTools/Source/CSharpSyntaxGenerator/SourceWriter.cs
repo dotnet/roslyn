@@ -1081,13 +1081,17 @@ namespace CSharpSyntaxGenerator
                         {
                             throw new InvalidOperationException("field cannot be a random SyntaxNodeOrTokenList");
                         }
-                        else if (i == 0)
-                        {
-                            WriteLine(" => GetRedAtZero(ref this.{0});", CamelCase(field.Name));
-                        }
                         else
                         {
-                            WriteLine(" => GetRed(ref this.{0}, {1});", CamelCase(field.Name), i);
+                            var suffix = IsOptional(field) ? "" : "!";
+                            if (i == 0)
+                            {
+                                WriteLine(" => GetRedAtZero(ref this.{0}){1};", CamelCase(field.Name), suffix);
+                            }
+                            else
+                            {
+                                WriteLine(" => GetRed(ref this.{0}, {1}){2};", CamelCase(field.Name), i, suffix);
+                            }
                         }
                     }
                     WriteLine();
