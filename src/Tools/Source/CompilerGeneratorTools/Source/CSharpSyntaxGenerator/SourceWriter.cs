@@ -1705,18 +1705,11 @@ namespace CSharpSyntaxGenerator
                         {
                             WriteLine("switch ({0}.Kind())", pname);
                             OpenBlock();
-                            for (int j = 0; j < kinds.Count; j++)
+                            foreach (var kind in kinds)
                             {
-                                var kind = kinds[j];
-                                Write("case SyntaxKind.{0}:", kind.Name);
-                                if (j == kinds.Count - 1)
-                                {
-                                    WriteLine(" break;");
-                                }
-                                else
-                                {
-                                    WriteLine("");
-                                }
+                                WriteLine("case SyntaxKind.{0}:{1}",
+                                    kind.Name,
+                                    kind == kinds.Last() ? " break;" : "");
                             }
                             WriteLine("default: throw new ArgumentException(nameof({0}));", pname);
                             CloseBlock();
