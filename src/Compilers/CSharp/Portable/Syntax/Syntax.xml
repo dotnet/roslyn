@@ -139,7 +139,7 @@
     </FactoryComment>
   </Node>
   <!-- Type names -->
-  <AbstractNode Name="TypeSyntax" Base="ExpressionSyntax">
+    <AbstractNode Name="TypeSyntax" Base="ExpressionSyntax">
     <TypeComment>
       <summary>Provides the base class from which the classes that represent type syntax nodes are derived. This is an abstract class.</summary>
     </TypeComment>
@@ -251,7 +251,7 @@
         <summary>SyntaxToken representing the open parenthesis.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Elements" Type="SeparatedSyntaxList&lt;TupleElementSyntax&gt;" MinCount="1"/>
+    <Field Name="Elements" Type="SeparatedSyntaxList&lt;TupleElementSyntax&gt;" MinCount="2"/>
     <Field Name="CloseParenToken" Type="SyntaxToken">
       <Kind Name="CloseParenToken"/>
       <PropertyComment>
@@ -353,7 +353,7 @@
         <summary>SyntaxToken representing the open parenthesis.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ArgumentSyntax&gt;" MinCount="1">
+    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ArgumentSyntax&gt;" MinCount="2">
       <PropertyComment>
         <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
       </PropertyComment>
@@ -2787,9 +2787,9 @@
     <Field Name="UsingKeyword" Type="SyntaxToken">
       <Kind Name="UsingKeyword"/>
     </Field>
-    <Choice>
-      <Field Name="StaticKeyword" Type="SyntaxToken" Optional="true"/>
-      <Field Name="Alias" Type="NameEqualsSyntax" Optional="true"/>
+    <Choice Optional="true">
+      <Field Name="StaticKeyword" Type="SyntaxToken"/>
+      <Field Name="Alias" Type="NameEqualsSyntax"/>
     </Choice>
     <Field Name="Name" Type="NameSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">

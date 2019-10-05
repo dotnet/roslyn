@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (parameter?.IsParams == true)
             {
-                // if the method is defined with errors: void M(params int wrongDefined), paramter.IsParams == true but paramter.Type is not an array.
+                // if the method is defined with errors: void M(params int wrongDefined), parameter.IsParams == true but parameter.Type is not an array.
                 // In such cases is better to be conservative and opt out.
                 if (!(parameter.Type is IArrayTypeSymbol parameterType))
                 {

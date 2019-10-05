@@ -37,12 +37,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Workspaces\Core\Portable\Utilities\Contract.cs" Link="Utilities\Contract.cs" />
-    <Compile Include="..\..\Workspaces\Core\Portable\Utilities\NullableHelpers\NullableAttributes.cs" Link="Utilities\NullableAttributes.cs" />
     <Compile Include="..\..\Workspaces\Core\Portable\Utilities\TaskExtensions.cs" Link="Utilities\TaskExtensions.cs" />
     <Compile Include="..\..\Workspaces\Core\Portable\Utilities\AsyncLazy`1.cs" Link="Utilities\AsyncLazy`1.cs" />
     <Compile Include="..\..\Workspaces\Core\Portable\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />
     <Compile Include="..\..\Workspaces\Core\Portable\Utilities\ValuesSources\ValueSource.cs" Link="Utilities\ValueSource.cs" />
     <Compile Include="..\..\Workspaces\Core\Portable\Utilities\ValuesSources\ConstantValueSource.cs" Link="Utilities\ConstantValueSource.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="Utilities\NullableAttributes.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Link="Utilities\PerformanceSensitiveAttribute.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs" Link="Utilities\SemaphoreSlimExtensions.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="Utilities\ExceptionUtilities.cs" />

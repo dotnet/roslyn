@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     return false;
                 }
 
-                // Temporarly map our old Dictionary<string, object> to a Dictionary<string, string>. This can go away once we either
+                // Temporarily map our old Dictionary<string, object> to a Dictionary<string, string>. This can go away once we either
                 // eliminate the legacy editorconfig support, or we change IEditorConfigStorageLocation.TryGetOption to take
                 // some interface that lets us pass both the Dictionary<string, string> we get from the new system, and the
                 // Dictionary<string, object> from the old system.

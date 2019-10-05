@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
@@ -30,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var switchStatement = context.Node;
+            if (switchStatement.ContainsDirectives)
+            {
+                return;
+            }
+
             var syntaxTree = switchStatement.SyntaxTree;
 
             if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8)
@@ -57,17 +63,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return;
             }
 
-            var nodeToGenerate = Analyzer.Analyze((SwitchStatementSyntax)switchStatement, out var shouldRemoveNextStatement);
+            var (nodeToGenerate, declaratorToRemoveOpt) =
+                Analyzer.Analyze(
+                    (SwitchStatementSyntax)switchStatement,
+                    context.SemanticModel,
+                    out var shouldRemoveNextStatement);
             if (nodeToGenerate == default)
             {
                 return;
             }
 
+            var additionalLocations = ArrayBuilder<Location>.GetInstance();
+            additionalLocations.Add(switchStatement.GetLocation());
+            additionalLocations.AddOptional(declaratorToRemoveOpt?.GetLocation());
+
             context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
                 // Report the diagnostic on the "switch" keyword.
                 location: switchStatement.GetFirstToken().GetLocation(),
                 effectiveSeverity: styleOption.Notification.Severity,
-                additionalLocations: new[] { switchStatement.GetLocation() },
+                additionalLocations: additionalLocations.ToArrayAndFree(),
                 properties: ImmutableDictionary<string, string>.Empty
                     .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))
                     .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString(CultureInfo.InvariantCulture))));

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionItemFilter> matchingFilters = null)
+            string inlineDescription = null, List<CompletionFilter> matchingFilters = null)
         {
             // We don't need to try writing comments in from of items in doc comments.
             await VerifyAtPositionAsync(
@@ -79,7 +80,7 @@ public class goo
 {
     /// $$
     public void bar() { }
-}", "see", "seealso", "![CDATA[", "!--");
+}", "inheritdoc", "see", "seealso", "![CDATA[", "!--");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -90,7 +91,7 @@ public class goo
 {
     /// <summary> $$ </summary>
     public void bar() { }
-}", "see", "seealso", "![CDATA[", "!--");
+}", "inheritdoc", "see", "seealso", "![CDATA[", "!--");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -425,7 +426,7 @@ public class goo<T>
 /// </summary>
 ";
 
-            await VerifyItemsExistAsync(text, "!--", "![CDATA[", "c", "code", "list", "para", "seealso", "see");
+            await VerifyItemsExistAsync(text, "!--", "![CDATA[", "c", "code", "inheritdoc", "list", "para", "seealso", "see");
         }
 
         [WorkItem(734825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734825")]
@@ -591,7 +592,7 @@ public class goo
 {
     /// <r$$
     public void bar() { }
-}", "!--", "![CDATA[", "completionlist", "example", "exception", "include", "permission", "remarks", "see", "seealso", "summary");
+}", "!--", "![CDATA[", "completionlist", "example", "exception", "include", "inheritdoc", "permission", "remarks", "see", "seealso", "summary");
         }
 
         [WorkItem(8322, "https://github.com/dotnet/roslyn/issues/8322")]
@@ -605,7 +606,7 @@ public class goo
     /// <r$$
     /// </summary>
     public void bar() { }
-}", "!--", "![CDATA[", "c", "code", "list", "para", "see", "seealso");
+}", "!--", "![CDATA[", "c", "code", "inheritdoc", "list", "para", "see", "seealso");
         }
 
         [WorkItem(11487, "https://github.com/dotnet/roslyn/issues/11487")]
@@ -758,6 +759,34 @@ class C
     {
     }
 }", "null", "true", "false", "await");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InheritdocAttributes1()
+        {
+            await VerifyItemsExistAsync(@"
+class C
+{
+    /// <summary>
+    /// <inheritdoc $$/>
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "cref", "path");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InheritdocAttributes2()
+        {
+            await VerifyItemsExistAsync(@"
+class C
+{
+    /// <inheritdoc $$/>
+    static void Goo()
+    {
+    }
+}", "cref", "path");
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11489")]

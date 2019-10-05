@@ -53,11 +53,29 @@ namespace IOperationGenerator
         [XmlElement(ElementName = "OperationKind", Type = typeof(OperationKind))]
         public OperationKind? OperationKind;
 
+        [XmlAttribute(AttributeName = "SkipClassGeneration")]
+        public string SkipClassGenerationText;
+        public bool SkipClassGeneration => SkipClassGenerationText == "true";
+
         public virtual bool IsAbstract => true;
     }
 
     public class Node : AbstractNode
     {
+        [XmlAttribute]
+        public string? VisitorName;
+
+        [XmlAttribute(AttributeName = "SkipInVisitor")]
+        public string? SkipInVisitorText;
+        public bool SkipInVisitor => SkipInVisitorText == "true";
+
+        [XmlAttribute(AttributeName = "SkipChildrenGeneration")]
+        public string? SkipChildrenGenerationText;
+        public bool SkipChildrenGeneration => SkipChildrenGenerationText == "true";
+
+        [XmlAttribute]
+        public string? ChildrenOrder;
+
         public override bool IsAbstract => false;
     }
 
@@ -78,6 +96,14 @@ namespace IOperationGenerator
         [XmlAttribute(AttributeName = "New")]
         public string NewText;
         public bool IsNew => NewText == "true";
+
+        [XmlAttribute(AttributeName = "Internal")]
+        public string? IsInternalText;
+        public bool IsInternal => IsInternalText == "true";
+
+        [XmlAttribute(AttributeName = "SkipGeneration")]
+        public string? SkipGenerationText;
+        public bool SkipGeneration => SkipGenerationText == "true";
 
         [XmlElement(ElementName = "Comments", Type = typeof(Comments))]
         public Comments? Comments;

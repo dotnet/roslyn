@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                c => ConvertToClassAsync(document, textSpan, c)));
+                c => ConvertToClassAsync(document, textSpan, c)),
+                anonymousObject.Span);
         }
 
         private async Task<(TAnonymousObjectCreationExpressionSyntax, INamedTypeSymbol)> TryGetAnonymousObjectAsync(

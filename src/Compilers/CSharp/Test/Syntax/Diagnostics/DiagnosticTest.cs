@@ -295,6 +295,7 @@ class X
                         case ErrorCode.WRN_NullableValueTypeMayBeNull:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                         case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
+                        case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
@@ -308,6 +309,8 @@ class X
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                        case ErrorCode.WRN_NullReferenceInitializer:
+                        case ErrorCode.WRN_ExpressionMayIntroduceNullT:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -348,6 +351,7 @@ class X
                 var nullableUnrelatedWarnings = new[]
                 {
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
+                    ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
                 };
 

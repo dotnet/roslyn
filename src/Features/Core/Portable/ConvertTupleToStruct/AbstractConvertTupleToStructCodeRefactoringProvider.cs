@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -118,10 +119,12 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 }
             }
 
-            context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
-                FeaturesResources.Convert_to_struct,
-                scopes.ToImmutableAndFree(),
-                isInlinable: false));
+            context.RegisterRefactoring(
+                new CodeAction.CodeActionWithNestedActions(
+                    FeaturesResources.Convert_to_struct,
+                    scopes.ToImmutableAndFree(),
+                    isInlinable: false),
+                tupleExprOrTypeNode.Span);
         }
 
         private CodeAction CreateAction(CodeRefactoringContext context, Scope scope)
@@ -140,33 +143,11 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         private async Task<(SyntaxNode, INamedTypeSymbol)> TryGetTupleInfoAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-
-            // Span actually has to be within the token (i.e. not in trivia around it).
-            if (!token.Span.IntersectsWith(position))
-            {
-                return default;
-            }
-
-            if (!span.IsEmpty && span != token.Span)
-            {
-                // if there is a selection, it has to be of the whole token.
-                return default;
-            }
-
-            var tupleExprNode = token.Parent as TTupleExpressionSyntax;
-            var tupleTypeNode = token.Parent as TTupleTypeSyntax;
-            if (tupleExprNode == null && tupleTypeNode == null)
-            {
-                return default;
-            }
-
-            var expressionOrType = tupleExprNode ?? (SyntaxNode)tupleTypeNode;
-
-            // The position/selection must be of the open paren for the tuple, or the entire tuple.
-            if (expressionOrType.GetFirstToken() != token)
+            // Enable refactoring either for TupleExpression or TupleType
+            var expressionOrType =
+                await document.TryGetRelevantNodeAsync<TTupleTypeSyntax>(span, cancellationToken).ConfigureAwait(false) as SyntaxNode ??
+                await document.TryGetRelevantNodeAsync<TTupleExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
+            if (expressionOrType == null)
             {
                 return default;
             }

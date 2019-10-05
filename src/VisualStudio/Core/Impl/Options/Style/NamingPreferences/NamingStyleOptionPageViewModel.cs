@@ -26,6 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
         };
 
+        public string CodeStyleMembersAutomationText => ServicesVSResources.Naming_rules;
+
         public ObservableCollection<NamingRuleViewModel> CodeStyleItems { get; set; }
         public ObservableCollection<SymbolSpecification> Specifications { get; set; }
         public ObservableCollection<MutableNamingStyle> NamingStyles { get; set; }
@@ -284,6 +286,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             {
                 return SelectedSpecification != null && SelectedStyle != null && SelectedNotificationPreference != null;
             }
+
+            // For screen readers
+            public override string ToString() => ServicesVSResources.Naming_Rule;
         }
     }
 }

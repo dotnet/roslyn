@@ -965,13 +965,13 @@ class C<T> { enum E4 : T { } }
                 );
 
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<EnumDeclarationSyntax>().ToArray();
-            Assert.Equal(decls.Length, 4);
+            Assert.Equal(4, decls.Length);
 
             foreach (var decl in decls)
             {
                 var symbol = model.GetDeclaredSymbol(decl);
                 var type = symbol.EnumUnderlyingType;
-                Assert.Equal(type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(SpecialType.System_Int32, type.SpecialType);
             }
         }
 

@@ -1110,7 +1110,7 @@ DoneWithDiagnostics:
 
             ReportUseSiteError(diagnostics, tree, convKind.Value)
 
-            ReportDiagnosticsIfObsolete(diagnostics, convKind.Value, tree)
+            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, convKind.Value, tree)
 
             Debug.Assert(convKind.Value.IsUserDefinedOperator())
             If Me.ContainingMember Is convKind.Value Then

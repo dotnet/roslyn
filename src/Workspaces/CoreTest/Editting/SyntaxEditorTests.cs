@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
         private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
-            Assert.IsAssignableFrom(typeof(TSyntax), node);
+            Assert.IsAssignableFrom<TSyntax>(node);
             var formatted = Formatter.Format(node, EmptyWorkspace);
             var actualText = formatted.ToFullString();
             Assert.Equal(expectedText, actualText);

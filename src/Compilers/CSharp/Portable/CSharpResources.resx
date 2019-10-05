@@ -4605,8 +4605,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Specify a file to log all compiler and analyzer
                               diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
 
@@ -4856,7 +4859,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Alignment value has a magnitude that may result in a large formatted string</value>
   </data>
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
-    <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
+    <value>Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.</value>
   </data>
   <data name="ERR_TupleTooFewElements" xml:space="preserve">
     <value>Tuple must contain at least two elements.</value>
@@ -5216,9 +5219,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternDynamicType" xml:space="preserve">
     <value>It is not legal to use the type 'dynamic' in a pattern.</value>
   </data>
-  <data name="ERR_BadDynamicMethodArgDefaultLiteral" xml:space="preserve">
-    <value>Cannot use a default literal as an argument to a dynamically dispatched operation.</value>
-  </data>
   <data name="ERR_BadDocumentationMode" xml:space="preserve">
     <value>Provided documentation mode is unsupported or invalid: '{0}'.</value>
   </data>
@@ -5272,9 +5272,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_AttributesOnBackingFieldsNotAvailable_Title" xml:space="preserve">
     <value>Field-targeted attributes on auto-properties are not supported in this version of the language.</value>
-  </data>
-  <data name="ERR_DefaultInSwitch" xml:space="preserve">
-    <value>A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.</value>
   </data>
   <data name="ERR_VoidInTuple" xml:space="preserve">
     <value>A tuple may not contain a value of type 'void'.</value>
@@ -5417,6 +5414,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_DefaultExpressionMayIntroduceNullT_Title" xml:space="preserve">
     <value>A default expression introduces a null value for a type parameter.</value>
   </data>
+  <data name="WRN_ExpressionMayIntroduceNullT" xml:space="preserve">
+    <value>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</value>
+  </data>
+  <data name="WRN_ExpressionMayIntroduceNullT_Title" xml:space="preserve">
+    <value>A member returning a [MaybeNull] value introduces a null value for a type parameter.</value>
+  </data>
   <data name="WRN_NullLiteralMayIntroduceNullT" xml:space="preserve">
     <value>A null literal introduces a null value when '{0}' is a non-nullable reference type.</value>
   </data>
@@ -5466,10 +5469,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment" xml:space="preserve">
-    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+    <value>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</value>
   </data>
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title" xml:space="preserve">
-    <value>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</value>
+    <value>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
@@ -5654,6 +5657,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchExpressionNoBestType" xml:space="preserve">
     <value>No best type was found for the switch expression.</value>
   </data>
+  <data name="ERR_DefaultLiteralNoTargetType" xml:space="preserve">
+    <value>There is no target type for the default literal.</value>
+  </data>
   <data name="ERR_SingleElementPositionalPatternRequiresDisambiguation" xml:space="preserve">
     <value>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</value>
   </data>
@@ -5661,10 +5667,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The syntax 'var' for a pattern is not permitted to refer to a type, but '{0}' is in scope here.</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustive" xml:space="preserve">
-    <value>The switch expression does not handle all possible inputs (it is not exhaustive).</value>
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
   </data>
   <data name="WRN_SwitchExpressionNotExhaustive_Title" xml:space="preserve">
-    <value>The switch expression does not handle all possible inputs (it is not exhaustive).</value>
+    <value>The switch expression does not handle all possible values of its input type (it is not exhaustive).</value>
   </data>
   <data name="WRN_CaseConstantNamedUnderscore" xml:space="preserve">
     <value>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</value>
@@ -5746,6 +5752,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NullableDirectiveTargetExpected" xml:space="preserve">
     <value>Expected 'warnings', 'annotations', or end of directive</value>
+  </data>
+  <data name="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode" xml:space="preserve">
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</value>
+  </data>
+  <data name="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode_Title" xml:space="preserve">
+    <value>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.</value>
+  </data>
+  <data name="WRN_NullReferenceInitializer" xml:space="preserve">
+    <value>Object or collection initializer implicitly dereferences possibly null member '{0}'.</value>
+  </data>
+  <data name="WRN_NullReferenceInitializer_Title" xml:space="preserve">
+    <value>Object or collection initializer implicitly dereferences possibly null member.</value>
   </data>
   <data name="ERR_ExpressionTreeCantContainRefStruct" xml:space="preserve">
     <value>Expression tree cannot contain value of ref struct or restricted type '{0}'.</value>
@@ -5871,10 +5889,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>obsolete on property accessor</value>
   </data>
   <data name="WRN_NullReferenceIterationVariable" xml:space="preserve">
-	<value>Possible null reference assignment to iteration variable</value>
+    <value>Possible null reference assignment to iteration variable</value>
   </data>
   <data name="WRN_NullReferenceIterationVariable_Title" xml:space="preserve">
-	<value>Possible null reference assignment to iteration variable</value>
+    <value>Possible null reference assignment to iteration variable</value>
   </data>
   <data name="WRN_UnconsumedEnumeratorCancellationAttributeUsage" xml:space="preserve">
     <value>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</value>
@@ -5883,10 +5901,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The EnumeratorCancellationAttribute will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</value>
   </data>
   <data name="WRN_UndecoratedCancellationTokenParameter" xml:space="preserve">
-    <value>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;>.GetAsyncEnumerator' will be unconsumed</value>
+    <value>Async-iterator '{0}' has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</value>
   </data>
   <data name="WRN_UndecoratedCancellationTokenParameter_Title" xml:space="preserve">
-    <value>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;>.GetAsyncEnumerator' will be unconsumed</value>
+    <value>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</value>
   </data>
   <data name="ERR_MultipleEnumeratorCancellationAttributes" xml:space="preserve">
     <value>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</value>
@@ -5923,5 +5941,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DuplicateNullSuppression" xml:space="preserve">
     <value>Duplicate null suppression operator ('!')</value>
+  </data>
+  <data name="ERR_ReAbstractionInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
+  <data name="ERR_BadSwitchValue" xml:space="preserve">
+    <value>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</value>
+  </data>
+  <data name="ERR_InternalError" xml:space="preserve">
+    <value>Internal error in the C# compiler.</value>
   </data>
 </root>

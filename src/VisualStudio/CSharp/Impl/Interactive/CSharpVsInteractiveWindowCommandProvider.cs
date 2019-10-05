@@ -20,24 +20,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
     internal sealed class CSharpVsInteractiveWindowCommandProvider : IVsInteractiveWindowOleCommandTargetProvider
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-        private readonly ICommandHandlerServiceFactory _commandHandlerServiceFactory;
         private readonly System.IServiceProvider _serviceProvider;
 
         [ImportingConstructor]
         public CSharpVsInteractiveWindowCommandProvider(
-            ICommandHandlerServiceFactory commandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             SVsServiceProvider serviceProvider)
         {
-            _commandHandlerServiceFactory = commandHandlerServiceFactory;
             _editorAdaptersFactory = editorAdaptersFactoryService;
             _serviceProvider = serviceProvider;
         }
 
         public IOleCommandTarget GetCommandTarget(IWpfTextView textView, IOleCommandTarget nextTarget)
         {
-            var target = new ScriptingOleCommandTarget(textView, _commandHandlerServiceFactory, _editorAdaptersFactory, _serviceProvider);
-            target.RefreshCommandFilters();
+            var target = new ScriptingOleCommandTarget(textView, _editorAdaptersFactory, _serviceProvider);
             target.NextCommandTarget = nextTarget;
             return target;
         }

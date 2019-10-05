@@ -2294,7 +2294,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var list = GetParameterList(declaration);
             return list != null
                 ? list.Parameters
-                : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+                : declaration is SimpleLambdaExpressionSyntax simpleLambda
+                    ? new[] { simpleLambda.Parameter }
+                    : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
         }
 
         public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
@@ -2384,8 +2386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxKind.DestructorDeclaration => ((DestructorDeclarationSyntax)declaration).ParameterList,
                 SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).ParameterList,
                 SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
-                SyntaxKind.SimpleLambdaExpression => SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(((SimpleLambdaExpressionSyntax)declaration).Parameter)),
                 SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
+                SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
                 _ => (BaseParameterListSyntax)null,
             };
 

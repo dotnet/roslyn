@@ -92,17 +92,28 @@ class C
 
         [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
-        public async Task TestMissingSelectionNotType()
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestSelectionNotType()
         {
             var code = @"
 class C
 {
     static void Main()
     {
-       int [|i|] = 0;
+        int [|i|] = 0;
     }
 }";
-            await TestMissingInRegularAndScriptAsync(code);
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        var i = 0;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
         [Fact]
@@ -241,6 +252,81 @@ class C
     static void Main()
     {
         foreach (var i in new[] { 0 }) { }
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestIntForeachLoop2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        foreach ([|int|] i in new[] { 0 }) { }
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new[] { 0 }) { }
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestIntForeachLoop3()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        foreach (int [|i|] in new[] { 0 }) { }
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new[] { 0 }) { }
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestIntForeachLoop4()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        foreach ([|object|] i in new[] { new object() }) { }
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var i in new[] { new object() }) { }
     }
 }";
 

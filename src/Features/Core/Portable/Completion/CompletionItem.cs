@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Completion
     [DebuggerDisplay("{DisplayText}")]
     public sealed class CompletionItem : IComparable<CompletionItem>
     {
+        private readonly string _filterText;
+
         /// <summary>
         /// The text that is displayed to the user.
         /// </summary>
@@ -37,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The text used to determine if the item matches the filter and is show in the list.
         /// This is often the same as <see cref="DisplayText"/> but may be different in certain circumstances.
         /// </summary>
-        public string FilterText { get; }
+        public string FilterText => _filterText ?? DisplayText;
+
+        internal bool HasDifferentFilterText => _filterText != null;
 
         /// <summary>
         /// The text used to determine the order that the item appears in the list.
@@ -50,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// be short as it will show up in the UI.  Display will present this in a way to distinguish
         /// this from the normal text (for example, by fading out and right-aligning).
         /// </summary>
-        internal string InlineDescription { get; }
+        public string InlineDescription { get; }
 
         /// <summary>
         /// The span of the syntax element associated with this item.
@@ -85,14 +89,12 @@ namespace Microsoft.CodeAnalysis.Completion
         internal string ProviderName { get; set; }
 
         /// <summary>
-        /// Indicate whether this <see cref="CompletionItem"/> is cached and reused across completion sessions. 
-        /// This might be used by completion system for things like deciding whether it can safaly cache and reuse
-        /// other data correspodning to this item.
-        ///
-        /// TODO: Revisit the approach we used for caching VS items.
-        ///       https://github.com/dotnet/roslyn/issues/35160
+        /// The automation text to use when narrating the completion item. If set to
+        /// null, narration will use the <see cref="DisplayText"/> instead.
         /// </summary>
-        internal bool IsCached { get; set; }
+        internal string AutomationText { get; set; }
+
+        internal CompletionItemFlags Flags { get; set; }
 
         private CompletionItem(
             string displayText,
@@ -109,13 +111,17 @@ namespace Microsoft.CodeAnalysis.Completion
             DisplayText = displayText ?? "";
             DisplayTextPrefix = displayTextPrefix ?? "";
             DisplayTextSuffix = displayTextSuffix ?? "";
-            FilterText = filterText ?? DisplayText;
             SortText = sortText ?? DisplayText;
             InlineDescription = inlineDescription ?? "";
             Span = span;
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             Tags = tags.NullToEmpty();
             Rules = rules ?? CompletionItemRules.Default;
+
+            if (!DisplayText.Equals(filterText, StringComparison.Ordinal))
+            {
+                _filterText = filterText;
+            }
         }
 
         // binary back compat overload
@@ -252,7 +258,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 displayTextSuffix: newDisplayTextSuffix,
                 inlineDescription: newInlineDescription)
             {
-                ProviderName = ProviderName
+                AutomationText = AutomationText,
+                ProviderName = ProviderName,
+                Flags = Flags,
             };
         }
 

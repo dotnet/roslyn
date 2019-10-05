@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -80,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         var newArguments = builder.ToImmutableAndFree();
                         tuple = new BoundConvertedTupleLiteral(
-                            tuple.Syntax, sourceTuple: null, newArguments, ImmutableArray<string>.Empty,
+                            tuple.Syntax, sourceTuple: null, wasTargetTyped: true, newArguments, ImmutableArray<string>.Empty,
                             ImmutableArray<bool>.Empty, conversion.Type, conversion.HasErrors);
                         return true;
                     }
@@ -120,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return new BoundConvertedTupleLiteral(
-                    syntax, sourceTuple: null, fieldAccessorsBuilder.ToImmutableAndFree(), ImmutableArray<string>.Empty,
+                    syntax, sourceTuple: null, wasTargetTyped: true, fieldAccessorsBuilder.ToImmutableAndFree(), ImmutableArray<string>.Empty,
                     ImmutableArray<bool>.Empty, expr.Type, expr.HasErrors);
             }
 
@@ -156,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var newArguments = builder.ToImmutableAndFree();
                     return new BoundConvertedTupleLiteral(
-                        tuple.Syntax, sourceTuple: null, newArguments, ImmutableArray<string>.Empty,
+                        tuple.Syntax, sourceTuple: null, wasTargetTyped: false, newArguments, ImmutableArray<string>.Empty,
                         ImmutableArray<bool>.Empty, tuple.Type, tuple.HasErrors);
                 }
             }
@@ -184,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case { ConstantValue: { } }:
                     return VisitExpression(expr);
-                case BoundConversion { Conversion: { Kind: ConversionKind.DefaultOrNullLiteral } conversion } bc:
+                case BoundConversion { Conversion: { Kind: ConversionKind.DefaultLiteral } }:
                     // This conversion can be performed lazily, but need not be saved.  It is treated as non-side-effecting.
                     return EvaluateSideEffectingArgumentToTemp(expr, effects, temps);
                 case BoundConversion { Conversion: { Kind: var conversionKind } conversion } bc when conversionMustBePerformedOnOriginalExpression(bc, conversionKind):
@@ -440,6 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new BoundConvertedTupleLiteral(
                             syntax: operand.Syntax,
                             sourceTuple: null,
+                            wasTargetTyped: false,
                             arguments: argumentBuilder.ToImmutableAndFree(),
                             argumentNamesOpt: ImmutableArray<string>.Empty,
                             inferredNamesOpt: ImmutableArray<bool>.Empty,

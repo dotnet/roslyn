@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
         #region General
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void EmitDebugInfoForSourceTextWithoutEncoding1()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("class A { }", encoding: null, path: "Foo.cs");
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Assert.False(result.Success);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void EmitDebugInfoForSourceTextWithoutEncoding2()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("class A { public void F() { } }", encoding: Encoding.Unicode, path: "Foo.cs");
@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         }
 
         [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        public void RelativePathForExternalSource_Sha1()
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void RelativePathForExternalSource_Sha1_Windows()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 #pragma checksum ""..\Test2.cs"" ""{406ea660-64cf-4c82-b6f0-42d48172a799}"" ""BA8CBEA9C2EFABD90D53B616FB80A081""
 
 public class C
@@ -89,7 +89,7 @@ public class C
         #line default
     }
 }
-";
+");
 
             var compilation = CreateCompilation(
                 new[] { Parse(text1, @"C:\Folder1\Folder2\Test1.cs") },
@@ -100,6 +100,50 @@ public class C
   <files>
     <file id=""1"" name=""C:\Folder1\Folder2\Test1.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""40-A6-20-02-2E-60-7D-4F-2D-A8-F4-A6-ED-2E-0E-49-8D-9F-D7-EB"" />
     <file id=""2"" name=""C:\Folder1\Test2.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""BA-8C-BE-A9-C2-EF-AB-D9-0D-53-B6-16-FB-80-A0-81"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""InitializeComponent"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""39"" endLine=""6"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""9"" endLine=""4"" endColumn=""31"" document=""2"" />
+        <entry offset=""0x8"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")]
+        [ConditionalFact(typeof(UnixLikeOnly))]
+        public void RelativePathForExternalSource_Sha1_Unix()
+        {
+            var text1 = WithWindowsLineBreaks(@"
+#pragma checksum ""../Test2.cs"" ""{406ea660-64cf-4c82-b6f0-42d48172a799}"" ""BA8CBEA9C2EFABD90D53B616FB80A081""
+
+public class C
+{
+    public void InitializeComponent() {
+        #line 4 ""../Test2.cs""
+        InitializeComponent();
+        #line default
+    }
+}
+");
+
+            var compilation = CreateCompilation(
+                new[] { Parse(text1, @"/Folder1/Folder2/Test1.cs") },
+                options: TestOptions.DebugDll.WithSourceReferenceResolver(SourceFileResolver.Default));
+
+            compilation.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""/Folder1/Folder2/Test1.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""82-08-07-BA-BA-52-02-D8-1D-1F-7C-E7-95-8A-6C-04-64-FF-50-31"" />
+    <file id=""2"" name=""/Folder1/Test2.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""BA-8C-BE-A9-C2-EF-AB-D9-0D-53-B6-16-FB-80-A0-81"" />
   </files>
   <methods>
     <method containingType=""C"" name=""InitializeComponent"">
@@ -243,7 +287,7 @@ public class C
         }
 
         [WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SuppressDynamicAndEncCDIForWinRT()
         {
             var source = @"
@@ -334,7 +378,7 @@ public class C
         }
 
         [WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SuppressTupleElementNamesCDIForWinRT()
         {
             var source =
@@ -392,7 +436,7 @@ public class C
 </symbols>", format: DebugInformationFormat.Pdb, options: PdbValidationOptions.SkipConversionValidation);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DuplicateDocuments()
         {
             var source1 = @"class C { static void F() { } }";
@@ -433,7 +477,7 @@ public class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void CustomDebugEntryPoint_DLL()
         {
             var source = @"class C { static void F() { } }";
@@ -456,7 +500,7 @@ public class C
             Assert.Equal(0, peEntryPointToken);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void CustomDebugEntryPoint_EXE()
         {
             var source = @"class M { static void Main() { } } class C { static void F<S>() { } }";
@@ -481,7 +525,7 @@ public class C
             Assert.Equal("Main", mdReader.GetString(methodDef.Name));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void CustomDebugEntryPoint_Errors()
         {
             var source1 = @"class C { static void F() { } } class D<T> { static void G<S>() {} }";
@@ -526,7 +570,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(768862, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/768862")]
         public void TestLargeLineDelta()
         {
@@ -579,7 +623,7 @@ class C {{ public static void Main() => System.Console.WriteLine(@""{verbatim}""
 ", format: DebugInformationFormat.Pdb);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(20118, "https://github.com/dotnet/roslyn/issues/20118")]
         public void TestLargeStartAndEndColumn_SameLine()
         {
@@ -614,7 +658,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(20118, "https://github.com/dotnet/roslyn/issues/20118")]
         public void TestLargeStartAndEndColumn_DifferentLine()
         {
@@ -654,10 +698,10 @@ class C
 
         #region Method Bodies
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestBasic()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Program
 {
     Program() { }
@@ -667,7 +711,7 @@ class Program
         Program p = new Program();
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Main", @"
@@ -696,10 +740,10 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestSimpleLocals()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class C 
 { 
     void Method()
@@ -722,7 +766,7 @@ class C
         }
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Method", @"
 <symbols>
@@ -772,11 +816,11 @@ class C
 </symbols>");
         }
 
+        [Fact]
         [WorkItem(7244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ConstructorsWithoutInitializers()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     C()
@@ -787,7 +831,7 @@ class C
     {
         object y = x;
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor",
 @"<symbols>
@@ -839,10 +883,10 @@ class C
         }
 
         [WorkItem(7244, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/7244")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ConstructorsWithInitializers()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"class C
 {
     static object G = 1;
@@ -855,7 +899,7 @@ class C
     {
         object y = x;
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor",
 @"<symbols>
@@ -918,10 +962,10 @@ class C
         /// It's up to the tool that consumes the debugging information, not the compiler to decide whether to ignore the info or not.
         /// BTW, the information can actually be retrieved at runtime from the PDB file via Reflection StackTrace.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void MethodsWithDebuggerAttributes()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 using System.Diagnostics;
 
@@ -948,7 +992,7 @@ class Program
         Console.WriteLine(z);
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -1022,10 +1066,10 @@ class Program
         /// offset 0 for correct stepping behavior.
         /// </summary>
         [WorkItem(804681, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/804681")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SequencePointAtOffset0()
         {
-            string source =
+            string source = WithWindowsLineBreaks(
 @"using System;
 class C
 {
@@ -1035,7 +1079,7 @@ class C
         Func<Func<object, int>, Func<object, int>> g = h => y => h(y);
         return g(f)(null);
     };
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -1123,7 +1167,7 @@ class C
         /// <summary>
         /// Leading trivia is not included in the syntax offset.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffsetInPresenceOfTrivia_Methods()
         {
             string source = @"
@@ -1182,7 +1226,7 @@ class C
         /// <summary>
         /// Leading and trailing trivia are not included in the syntax offset.
         /// </summary>
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffsetInPresenceOfTrivia_Initializers()
         {
             string source = @"
@@ -1263,10 +1307,10 @@ class C2
 
         #region ReturnStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_Method1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Program
 {
     static int Main()
@@ -1274,7 +1318,7 @@ class Program
         return 1;
     }
 }
-";
+");
 
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
@@ -1318,10 +1362,10 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_Property1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class C
 {
     static int P
@@ -1329,7 +1373,7 @@ class C
         get { return 1; }
     }
 }
-";
+");
 
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
@@ -1373,7 +1417,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_Void1()
         {
             var source = @"
@@ -1398,7 +1442,7 @@ class Program
 }", sequencePoints: "Program.Main");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_ExpressionBodied1()
         {
             var source = @"
@@ -1419,10 +1463,10 @@ class Program
 }", sequencePoints: "Program.Main");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_FromExceptionHandler1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class Program
@@ -1440,7 +1484,7 @@ class Program
         }
     }
 }
-";
+");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Main", @"
@@ -1507,10 +1551,10 @@ class Program
 
         #region IfStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void IfStatement()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class C 
 { 
     void Method()
@@ -1537,7 +1581,7 @@ class C
         }
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.Method", @"
 <symbols>
@@ -1610,7 +1654,7 @@ class C
         #region WhileStatement
 
         [WorkItem(538299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538299")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void WhileStatement()
         {
             var source = @"using System;
@@ -1714,10 +1758,10 @@ public class SeqPointForWhile
 
         #region ForStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForStatement1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class C
 {
     static bool F(int i) { return true; }
@@ -1730,7 +1774,7 @@ class C
             System.Console.WriteLine(1);
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"
 <symbols>
@@ -1768,7 +1812,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForStatement2()
         {
             var source = @"
@@ -1809,10 +1853,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForStatement3()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class C
 {
     static void M()
@@ -1823,7 +1867,7 @@ class C
             System.Console.WriteLine(i);
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M", @"<symbols>
   <files>
@@ -1861,7 +1905,7 @@ class C
 
         #region ForEachStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_String()
         {
             var source = @"
@@ -1918,10 +1962,10 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_Array()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 public class C
 {
     public static void Main()
@@ -1932,7 +1976,7 @@ public class C
         }
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -1990,7 +2034,7 @@ public class C
         }
 
         [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_MultiDimensionalArray()
         {
             var source = @"
@@ -2082,11 +2126,11 @@ public class C
 ", sequencePoints: "C.Main");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInAsyncMethod()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class Program
@@ -2100,7 +2144,7 @@ class Program
                 .WriteLine();
     }
 }
-";
+");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -2215,7 +2259,7 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalBeforeLocalFunction()
         {
@@ -2276,7 +2320,7 @@ class C
 ", sequencePoints: "C.M", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInAsyncMethodWithExplicitReturn()
         {
@@ -2361,7 +2405,7 @@ class Program
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInSimpleMethod()
         {
@@ -2409,11 +2453,11 @@ class Program
 ", sequencePoints: "Program.Test", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ElseConditionalInAsyncMethod()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class Program
@@ -2428,7 +2472,7 @@ class Program
             Console.WriteLine(""other"");
     }
 }
-";
+");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.<Test>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -2550,11 +2594,11 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ConditionalInTry()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 class Program
@@ -2571,7 +2615,7 @@ class Program
         catch { }
     }
 }
-";
+");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Program.Test", @"
@@ -2659,7 +2703,7 @@ class Program
         }
 
         [WorkItem(544937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544937")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_MultiDimensionalArrayBreakAndContinue()
         {
             var source = @"
@@ -2796,7 +2840,7 @@ class C
 ", sequencePoints: "C.Main");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_Enumerator()
         {
             var source = @"
@@ -2868,10 +2912,10 @@ public class C
         }
 
         [WorkItem(718501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718501")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachNops()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2899,7 +2943,7 @@ class Program
             }
         }
 }
-";
+");
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Main", @"<symbols>
@@ -2956,10 +3000,10 @@ class Program
 );
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ForEachStatement_Deconstruction()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 public class C
 {
     public static (int, (bool, double))[] F() => new[] { (1, (true, 2.0)) };
@@ -2972,7 +3016,7 @@ public class C
         }
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -3093,10 +3137,10 @@ public class C
 
         #region Switch
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithPattern_01()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3132,7 +3176,7 @@ class Program
 class Person { public string Name; }
 class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
-";
+");
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate",
@@ -3184,10 +3228,10 @@ class Student : Person { public double GPA; }
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithPattern_02()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3223,7 +3267,7 @@ class Program
 class Person { public string Name; }
 class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
-";
+");
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate",
@@ -3279,10 +3323,10 @@ class Student : Person { public double GPA; }
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithPatternAndLocalFunctions()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3322,7 +3366,7 @@ class Program
 class Person { public string Name; }
 class Teacher : Person { public string Subject; }
 class Student : Person { public double GPA; }
-";
+");
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("Program.Operate", @"
@@ -3380,7 +3424,7 @@ class Student : Person { public double GPA; }
         }
 
         [WorkItem(17090, "https://github.com/dotnet/roslyn/issues/17090"), WorkItem(19731, "https://github.com/dotnet/roslyn/issues/19731")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithConstantPattern()
         {
             string source = @"
@@ -3502,7 +3546,7 @@ expectedIL: @"{
         }
 
         [WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithConstantGenericPattern_01()
         {
             string source = @"
@@ -3683,7 +3727,7 @@ expectedIL: @"{
         }
 
         [WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SwitchWithConstantGenericPattern_02()
         {
             string source = @"
@@ -3763,10 +3807,11 @@ expectedIL: @"{
 
         #region DoStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DoStatement()
         {
-            var source = @"using System;
+            var source = WithWindowsLineBreaks(
+@"using System;
 
 public class SeqPointForWhile
 {
@@ -3800,7 +3845,7 @@ public class SeqPointForWhile
         field = -1;
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -3870,10 +3915,11 @@ public class SeqPointForWhile
         #region Constructor
 
         [WorkItem(538317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538317")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ConstructorSequencePoints1()
         {
-            var source = @"namespace NS
+            var source = WithWindowsLineBreaks(
+@"namespace NS
 {
     public class MyClass
     {
@@ -3903,7 +3949,7 @@ public class SeqPointForWhile
         }
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -3990,7 +4036,7 @@ public class SeqPointForWhile
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ConstructorSequencePoints2()
         {
             TestSequencePoints(
@@ -4054,7 +4100,7 @@ class D
 
         #region Destructor
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Destructors()
         {
             var source = @"
@@ -4120,17 +4166,17 @@ public class Derived : Base
 
         #region Field and Property Initializers
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestPartialClassFieldInitializers()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 public partial class C
 {
     int x = 1;
 }
-";
+");
 
-            var text2 = @"
+            var text2 = WithWindowsLineBreaks(@"
 public partial class C
 {
     int y = 1;
@@ -4140,10 +4186,10 @@ public partial class C
         C c = new C();
     }
 }
-";
-            //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
-            //loads the assembly into the ReflectionOnlyLoadFrom context.
-            //So it's probably a good idea to have a new name for each assembly.
+");
+            // Having a unique name here may be important. The infrastructure of the pdb to xml conversion
+            // loads the assembly into the ReflectionOnlyLoadFrom context.
+            // So it's probably a good idea to have a new name for each assembly.
             var compilation = CreateCompilation(new SyntaxTree[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
 
             compilation.VerifyPdb("C..ctor", @"
@@ -4166,10 +4212,10 @@ public partial class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestPartialClassFieldInitializersWithLineDirectives()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 using System;
 public partial class C
 {
@@ -4183,9 +4229,9 @@ public partial class C
 
 #pragma checksum ""mah.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d9""
 
-";
+");
 
-            var text2 = @"
+            var text2 = WithWindowsLineBreaks(@"
 using System;
 public partial class C
 {
@@ -4195,9 +4241,9 @@ public partial class C
     int z2 = Math.Abs(-3);
     int w2 = Math.Abs(4);
 }
-";
+");
 
-            var text3 = @"
+            var text3 = WithWindowsLineBreaks(@"
 using System;
 public partial class C
 {
@@ -4218,7 +4264,7 @@ public partial class C
         C c = new C();
     }
 }
-";
+");
 
             //Having a unique name here may be important. The infrastructure of the pdb to xml conversion
             //loads the assembly into the ReflectionOnlyLoadFrom context.
@@ -4270,7 +4316,7 @@ public partial class C
         }
 
         [WorkItem(543313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543313")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestFieldInitializerExpressionLambda()
         {
             var source = @"
@@ -4311,7 +4357,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FieldInitializerSequencePointSpans()
         {
             var source = @"
@@ -4347,7 +4393,7 @@ class C
         #region Auto-Property
 
         [WorkItem(820806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820806")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void BreakpointForAutoImplementedProperty()
         {
             var source = @"
@@ -4401,7 +4447,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void PropertyDeclaration()
         {
             TestSequencePoints(
@@ -4441,7 +4487,7 @@ public class C
 
         #region ReturnStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_Implicit()
         {
             var source = @"class C
@@ -4474,7 +4520,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Return_Explicit()
         {
             var source = @"class C
@@ -4510,10 +4556,11 @@ public class C
         }
 
         [WorkItem(538298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538298")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void RegressSeqPtEndOfMethodAfterReturn()
         {
-            var source = @"using System;
+            var source = WithWindowsLineBreaks(
+@"using System;
 
 public class SeqPointAfterReturn
 {
@@ -4566,7 +4613,7 @@ public class SeqPointAfterReturn
         }
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -4682,10 +4729,10 @@ public class SeqPointAfterReturn
         #region Exception Handling
 
         [WorkItem(542064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542064")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExceptionHandling()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Test
 {
     static int Main()
@@ -4711,7 +4758,7 @@ class Test
 
     }
 }
-";
+");
             // Dev12 inserts an additional sequence point on catch clause, just before 
             // the exception object is assigned to the variable. We don't place that sequence point.
             // Also the scope of he exception variable is different.
@@ -4763,10 +4810,10 @@ class Test
         }
 
         [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExceptionHandling_Filter_Debug1()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 using System.IO;
 
@@ -4793,7 +4840,7 @@ class Test
         }
     }
 }
-";
+");
             var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
 
             v.VerifyIL("Test.Main", @"
@@ -4919,10 +4966,10 @@ class Test
         }
 
         [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExceptionHandling_Filter_Debug2()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Test
 {
     static void Main()
@@ -4942,7 +4989,7 @@ class Test
         return true;
     }
 }
-";
+");
             var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
             v.VerifyIL("Test.Main", @"
 {
@@ -5011,10 +5058,10 @@ class Test
         }
 
         [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExceptionHandling_Filter_Debug3()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Test
 {
     static bool a = true;
@@ -5031,7 +5078,7 @@ class Test
         }
     }
 }
-";
+");
             var v = CompileAndVerify(CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll));
             v.VerifyIL("Test.Main", @"
 {
@@ -5100,7 +5147,7 @@ class Test
         }
 
         [WorkItem(2911, "https://github.com/dotnet/roslyn/issues/2911")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExceptionHandling_Filter_Release3()
         {
             var source = @"
@@ -5174,10 +5221,10 @@ class Test
         }
 
         [WorkItem(778655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778655")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void BranchToStartOfTry()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 
@@ -5201,7 +5248,7 @@ class Program
         }
     }
 }
-";
+");
             // Note the hidden sequence point @IL_0019.
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
@@ -5253,10 +5300,10 @@ class Program
 
         #region UsingStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_EmbeddedStatement()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 public class DisposableClass : System.IDisposable
 {
     public DisposableClass(int a) { }
@@ -5271,7 +5318,7 @@ class C
             System.Console.WriteLine(""First"");
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -5368,10 +5415,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_Block()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 public class DisposableClass : System.IDisposable
 {
     public DisposableClass(int a) { }
@@ -5388,7 +5435,7 @@ class C
         }
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -5492,7 +5539,7 @@ class C
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_EmbeddedConditional()
         {
             var source = @"
@@ -5582,7 +5629,7 @@ class C
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_EmbeddedConditional2()
         {
             var source = @"
@@ -5678,7 +5725,7 @@ class C
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_EmbeddedWhile()
         {
             var source = @"
@@ -5739,7 +5786,7 @@ class C
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingStatement_EmbeddedFor()
         {
             var source = @"
@@ -5800,7 +5847,7 @@ class C
         }
 
         [WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void LockStatement_EmbeddedIf()
         {
             var source = @"
@@ -5886,10 +5933,10 @@ class C
         #region Using Declaration
 
         [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingDeclaration_BodyBlockScope()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 using System.IO;
 class C
@@ -5900,7 +5947,7 @@ class C
         Console.WriteLine(1);
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -5915,7 +5962,7 @@ class C
                 System.IO.MemoryStream V_1) //n
   // sequence point: {
   IL_0000:  nop
-  // sequence point: MemoryStream m = new MemoryStream()
+  // sequence point: using MemoryStream m = new MemoryStream()
   IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
   IL_0006:  stloc.0
   .try
@@ -5961,49 +6008,49 @@ class C
 ");
 
             c.VerifyPdb("C.Main", @"
- <symbols>
-   <files>
-     <file id=""1"" name="""" language=""C#"" />
-   </files>
-   <methods>
-     <method containingType=""C"" name=""Main"">
-       <customDebugInfo>
-         <using>
-           <namespace usingCount=""2"" />
-         </using>
-         <encLocalSlotMap>
-           <slot kind=""0"" offset=""30"" />
-           <slot kind=""0"" offset=""54"" />
-         </encLocalSlotMap>
-       </customDebugInfo>
-       <sequencePoints>
-         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-         <entry offset=""0x1"" startLine=""8"" startColumn=""15"" endLine=""8"" endColumn=""50"" document=""1"" />
-         <entry offset=""0x7"" startLine=""8"" startColumn=""52"" endLine=""8"" endColumn=""74"" document=""1"" />
-         <entry offset=""0xd"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
-         <entry offset=""0x14"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
-         <entry offset=""0x16"" hidden=""true"" document=""1"" />
-         <entry offset=""0x20"" hidden=""true"" document=""1"" />
-         <entry offset=""0x21"" hidden=""true"" document=""1"" />
-         <entry offset=""0x2b"" hidden=""true"" document=""1"" />
-         <entry offset=""0x2c"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
-       </sequencePoints>
-       <scope startOffset=""0x0"" endOffset=""0x2d"">
-         <namespace name=""System"" />
-         <namespace name=""System.IO"" />
-         <local name=""m"" il_index=""0"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
-         <local name=""n"" il_index=""1"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
-       </scope>
-     </method>
-   </methods>
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""2"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""30"" />
+          <slot kind=""0"" offset=""54"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""50"" document=""1"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""52"" endLine=""8"" endColumn=""74"" document=""1"" />
+        <entry offset=""0xd"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x14"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x16"" hidden=""true"" document=""1"" />
+        <entry offset=""0x20"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2c"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2d"">
+        <namespace name=""System"" />
+        <namespace name=""System.IO"" />
+        <local name=""m"" il_index=""0"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
+        <local name=""n"" il_index=""1"" il_start=""0x0"" il_end=""0x2d"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
  </symbols>");
         }
 
         [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingDeclaration_BodyBlockScopeWithReturn()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 using System.IO;
 class C
@@ -6015,7 +6062,7 @@ class C
         return 1;
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -6030,7 +6077,7 @@ class C
                 int V_1)
   // sequence point: {
   IL_0000:  nop
-  // sequence point: MemoryStream m = new MemoryStream();
+  // sequence point: using MemoryStream m = new MemoryStream();
   IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
   IL_0006:  stloc.0
   .try
@@ -6079,7 +6126,7 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""15"" endLine=""8"" endColumn=""51"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""51"" document=""1"" />
         <entry offset=""0x7"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""30"" document=""1"" />
         <entry offset=""0xe"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""18"" document=""1"" />
         <entry offset=""0x12"" hidden=""true"" document=""1"" />
@@ -6097,10 +6144,10 @@ class C
         }
 
         [WorkItem(37417, "https://github.com/dotnet/roslyn/issues/37417")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UsingDeclaration_IfBodyScope()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 using System.IO;
 class C
@@ -6117,7 +6164,7 @@ class C
         Console.WriteLine(2);
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var v = CompileAndVerify(c);
 
@@ -6141,7 +6188,7 @@ class C
   IL_0008:  brfalse.s  IL_0026
   // sequence point: {
   IL_000a:  nop
-  // sequence point: var m = new MemoryStream();
+  // sequence point: using var m = new MemoryStream();
   IL_000b:  newobj     ""System.IO.MemoryStream..ctor()""
   IL_0010:  stloc.1
   .try
@@ -6175,7 +6222,7 @@ class C
 ");
 
             c.VerifyPdb("C.Main", @"
- <symbols>
+<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
@@ -6193,7 +6240,7 @@ class C
         <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""17"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
         <entry offset=""0xa"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""1"" />
-        <entry offset=""0xb"" startLine=""12"" startColumn=""19"" endLine=""12"" endColumn=""46"" document=""1"" />
+        <entry offset=""0xb"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""46"" document=""1"" />
         <entry offset=""0x11"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""34"" document=""1"" />
         <entry offset=""0x1a"" hidden=""true"" document=""1"" />
         <entry offset=""0x24"" hidden=""true"" document=""1"" />
@@ -6217,10 +6264,10 @@ class C
 
         #region Anonymous Type
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AnonymousType_Empty()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Program
 {
     static void Main(string[] args)
@@ -6228,7 +6275,7 @@ class Program
         var o = new {};
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -6258,10 +6305,10 @@ class Program
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AnonymousType_NonEmpty()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 class Program
 {
     static void Main(string[] args)
@@ -6269,7 +6316,7 @@ class Program
         var o = new { a = 1 };
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -6303,10 +6350,10 @@ class Program
 
         #region FixedStatement
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementSingleAddress()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6323,7 +6370,7 @@ unsafe class C
         Console.WriteLine(c.x);
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
@@ -6366,10 +6413,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementSingleString()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6382,7 +6429,7 @@ unsafe class C
         }
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -6420,10 +6467,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementSingleArray()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6441,7 +6488,7 @@ unsafe class C
         Console.Write(c.a[0]);
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
@@ -6493,10 +6540,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementMultipleAddresses()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6515,7 +6562,7 @@ unsafe class C
         Console.WriteLine(c.x + c.y);
     }
 }
-";
+");
             // NOTE: stop on each declarator.
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
@@ -6564,10 +6611,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementMultipleStrings()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6581,7 +6628,7 @@ unsafe class C
         }
     }
 }
-";
+");
             // NOTE: stop on each declarator.
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"
@@ -6625,10 +6672,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementMultipleArrays()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6650,7 +6697,7 @@ unsafe class C
         Console.Write(c.b[0]);
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugExe);
             c.VerifyPdb(@"
 <symbols>
@@ -6710,10 +6757,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void FixedStatementMultipleMixed()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System;
 
 unsafe class C
@@ -6732,7 +6779,7 @@ unsafe class C
         }
     }
 }
-";
+");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeDebugDll);
             c.VerifyPdb(@"<symbols>
   <files>
@@ -6795,7 +6842,7 @@ unsafe class C
 
         #region Line Directives
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void LineDirective()
         {
             var source = @"
@@ -6839,7 +6886,7 @@ unsafe class C
         }
 
         [WorkItem(544917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544917")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DisabledLineDirective()
         {
             var source = @"
@@ -6884,10 +6931,10 @@ unsafe class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestLineDirectivesHidden()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 using System;
 public class C
 {
@@ -6911,7 +6958,7 @@ public class C
         }
     }
 }
-";
+");
 
             var compilation = CreateCompilation(text1, options: TestOptions.DebugDll);
             compilation.VerifyPdb(@"
@@ -6985,7 +7032,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void HiddenMethods()
         {
             var src = @"
@@ -7046,7 +7093,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void HiddenEntryPoint()
         {
             var src = @"
@@ -7081,10 +7128,10 @@ class C
             options: PdbValidationOptions.SkipConversionValidation);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void HiddenIterator()
         {
-            var src = @"
+            var src = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 
@@ -7110,7 +7157,7 @@ class C
 
         yield return 1;
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(src, references: new[] { CSharpRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
 
             // We don't really need the debug info for kickoff method when the entire iterator method is hidden, 
@@ -7155,10 +7202,10 @@ class C
 
         #region Nested Types
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void NestedTypes()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 
 namespace N
@@ -7177,7 +7224,7 @@ namespace N
 		}
 	}
 }
-";
+");
             var c = CreateCompilation(Parse(source, filename: "file.cs"));
             c.VerifyPdb(@"
 <symbols>
@@ -7208,10 +7255,10 @@ namespace N
 
         #region Expression Bodied Members
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var source = WithWindowsLineBreaks(@"
 class C
 {
     public int P => M();
@@ -7220,6 +7267,7 @@ class C
         return 2;
     }
 }");
+            var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics();
             comp.VerifyPdb(@"
 <symbols>
@@ -7249,7 +7297,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedIndexer()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7296,7 +7344,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedMethod()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7331,7 +7379,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedOperator()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7361,7 +7409,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedConversion()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7397,7 +7445,7 @@ class C
         }
 
         [WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedConstructor()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7434,7 +7482,7 @@ class C
         }
 
         [WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedDestructor()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7467,7 +7515,7 @@ class C
         }
 
         [WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ExpressionBodiedAccessor()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -7534,10 +7582,10 @@ class C
 
         #region Synthesized Methods
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportsInLambda()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"using System.Collections.Generic;
 using System.Linq;
 class C
@@ -7551,7 +7599,7 @@ class C
         };
         f();
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<>c.<M>b__0_0",
 @"<symbols>
@@ -7580,10 +7628,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportsInIterator()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"using System.Collections.Generic;
 using System.Linq;
 class C
@@ -7596,7 +7644,7 @@ class C
             yield return i;
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<F>d__0.MoveNext",
 @"<symbols>
@@ -7638,10 +7686,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportsInAsync()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"using System.Linq;
 using System.Threading.Tasks;
 class C
@@ -7651,7 +7699,7 @@ class C
         var c = new[] { 1, 2, 3 };
         c.Select(i => i);
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<F>d__0.MoveNext",
 @"<symbols>
@@ -7688,10 +7736,10 @@ class C
         }
 
         [WorkItem(2501, "https://github.com/dotnet/roslyn/issues/2501")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ImportsInAsyncLambda()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"using System.Linq;
 class C
 {
@@ -7703,7 +7751,7 @@ class C
             c.Select(i => i);
         };
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<>c.<M>b__0_0",
 @"<symbols>
@@ -7760,7 +7808,7 @@ class C
 
         #region Patterns
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_IsPattern()
         {
             var source = @"class C { bool F(object o) => o is int i && o is 3 && o is bool; }";
@@ -7792,10 +7840,10 @@ class C
         }
 
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_SwitchStatement()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 class C
 {
     public void Deconstruct() { }
@@ -7845,7 +7893,7 @@ class Program
         };
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
@@ -8185,10 +8233,10 @@ class Program
         }
 
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_SwitchExpression()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 class C
 {
     public void Deconstruct() { }
@@ -8238,288 +8286,284 @@ class Program
         };
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
             // note no sequence points emitted within the switch expression
 
             verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
-{
-  // Code size      454 (0x1c6)
-  .maxstack  3
-  .locals init (int V_0, //a
-                int V_1, //x
-                object V_2, //y
-                object V_3, //z
-                int V_4, //p
-                int V_5, //q
-                int V_6, //p
-                int V_7, //z
-                int V_8,
-                object V_9,
-                System.Runtime.CompilerServices.ITuple V_10,
-                int V_11,
-                D V_12,
-                double V_13,
-                C V_14,
-                object V_15,
-                C V_16,
-                int V_17,
-                D V_18,
-                int V_19,
-                C V_20,
-                int V_21)
- -IL_0000:  nop
- -IL_0001:  call       ""object Program.F()""
-  IL_0006:  stloc.s    V_9
-  IL_0008:  ldloc.s    V_9
-  IL_000a:  isinst     ""int""
-  IL_000f:  brfalse.s  IL_001e
-  IL_0011:  ldloc.s    V_9
-  IL_0013:  unbox.any  ""int""
-  IL_0018:  stloc.1
-  IL_0019:  br         IL_015e
-  IL_001e:  ldloc.s    V_9
-  IL_0020:  isinst     ""bool""
-  IL_0025:  brtrue     IL_016f
-  IL_002a:  ldloc.s    V_9
-  IL_002c:  isinst     ""System.Runtime.CompilerServices.ITuple""
-  IL_0031:  stloc.s    V_10
-  IL_0033:  ldloc.s    V_10
-  IL_0035:  brfalse.s  IL_008f
-  IL_0037:  ldloc.s    V_10
-  IL_0039:  callvirt   ""int System.Runtime.CompilerServices.ITuple.Length.get""
-  IL_003e:  stloc.s    V_11
-  IL_0040:  ldloc.s    V_11
-  IL_0042:  ldc.i4.2
-  IL_0043:  bne.un.s   IL_005c
-  IL_0045:  ldloc.s    V_10
-  IL_0047:  ldc.i4.0
-  IL_0048:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
-  IL_004d:  stloc.2
-  IL_004e:  ldloc.s    V_10
-  IL_0050:  ldc.i4.1
-  IL_0051:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
-  IL_0056:  stloc.3
-  IL_0057:  br         IL_0174
-  IL_005c:  ldloc.s    V_9
-  IL_005e:  isinst     ""C""
-  IL_0063:  brtrue     IL_0180
-  IL_0068:  br.s       IL_0073
-  IL_006a:  ldloc.s    V_11
-  IL_006c:  brfalse    IL_019d
-  IL_0071:  br.s       IL_00c4
-  IL_0073:  ldloc.s    V_11
-  IL_0075:  brfalse    IL_019d
-  IL_007a:  ldloc.s    V_9
-  IL_007c:  isinst     ""D""
-  IL_0081:  stloc.s    V_12
-  IL_0083:  ldloc.s    V_12
-  IL_0085:  brtrue     IL_0116
-  IL_008a:  br         IL_01b8
-  IL_008f:  ldloc.s    V_9
-  IL_0091:  isinst     ""double""
-  IL_0096:  brfalse.s  IL_00b6
-  IL_0098:  ldloc.s    V_9
-  IL_009a:  unbox.any  ""double""
-  IL_009f:  stloc.s    V_13
-  IL_00a1:  ldloc.s    V_13
-  IL_00a3:  ldc.r8     4
-  IL_00ac:  beq        IL_017b
-  IL_00b1:  br         IL_01b8
-  IL_00b6:  ldloc.s    V_9
-  IL_00b8:  isinst     ""C""
-  IL_00bd:  brtrue     IL_018c
-  IL_00c2:  br.s       IL_0104
-  IL_00c4:  ldloc.s    V_9
-  IL_00c6:  castclass  ""C""
-  IL_00cb:  stloc.s    V_14
-  IL_00cd:  ldloc.s    V_14
-  IL_00cf:  ldloca.s   V_4
-  IL_00d1:  ldloca.s   V_15
-  IL_00d3:  callvirt   ""void C.Deconstruct(out int, out object)""
-  IL_00d8:  nop
-  IL_00d9:  ldloc.s    V_15
-  IL_00db:  isinst     ""C""
-  IL_00e0:  stloc.s    V_16
-  IL_00e2:  ldloc.s    V_16
-  IL_00e4:  brfalse.s  IL_00f5
-  IL_00e6:  ldloc.s    V_16
-  IL_00e8:  ldloca.s   V_5
-  IL_00ea:  callvirt   ""void C.Deconstruct(out int)""
-  IL_00ef:  nop
-  IL_00f0:  br         IL_01a2
-  IL_00f5:  ldloc.s    V_14
-  IL_00f7:  ldloca.s   V_6
-  IL_00f9:  callvirt   ""void C.Deconstruct(out int)""
-  IL_00fe:  nop
-  IL_00ff:  br         IL_01a9
-  IL_0104:  ldloc.s    V_9
-  IL_0106:  isinst     ""D""
-  IL_010b:  stloc.s    V_12
-  IL_010d:  ldloc.s    V_12
-  IL_010f:  brtrue.s   IL_0116
-  IL_0111:  br         IL_01b8
-  IL_0116:  ldloc.s    V_12
-  IL_0118:  callvirt   ""int D.P.get""
-  IL_011d:  stloc.s    V_17
-  IL_011f:  ldloc.s    V_17
-  IL_0121:  ldc.i4.1
-  IL_0122:  bne.un     IL_01b8
-  IL_0127:  ldloc.s    V_12
-  IL_0129:  callvirt   ""D D.Q.get""
-  IL_012e:  stloc.s    V_18
-  IL_0130:  ldloc.s    V_18
-  IL_0132:  brfalse    IL_01b8
-  IL_0137:  ldloc.s    V_18
-  IL_0139:  callvirt   ""int D.P.get""
-  IL_013e:  stloc.s    V_19
-  IL_0140:  ldloc.s    V_19
-  IL_0142:  ldc.i4.2
-  IL_0143:  bne.un.s   IL_01b8
-  IL_0145:  ldloc.s    V_12
-  IL_0147:  callvirt   ""C D.R.get""
-  IL_014c:  stloc.s    V_20
-  IL_014e:  ldloc.s    V_20
-  IL_0150:  brfalse.s  IL_01b8
-  IL_0152:  ldloc.s    V_20
-  IL_0154:  ldloca.s   V_7
-  IL_0156:  callvirt   ""void C.Deconstruct(out int)""
-  IL_015b:  nop
-  IL_015c:  br.s       IL_01b0
-  IL_015e:  ldloc.1
-  IL_015f:  call       ""int Program.G(int)""
-  IL_0164:  ldc.i4.s   10
-  IL_0166:  bgt.s      IL_016a
-  IL_0168:  br.s       IL_01b8
-  IL_016a:  ldc.i4.1
-  IL_016b:  stloc.s    V_8
-  IL_016d:  br.s       IL_01be
-  IL_016f:  ldc.i4.2
-  IL_0170:  stloc.s    V_8
-  IL_0172:  br.s       IL_01be
-  IL_0174:  br.s       IL_0176
-  IL_0176:  ldc.i4.3
-  IL_0177:  stloc.s    V_8
-  IL_0179:  br.s       IL_01be
-  IL_017b:  ldc.i4.4
-  IL_017c:  stloc.s    V_8
-  IL_017e:  br.s       IL_01be
-  IL_0180:  call       ""bool Program.B()""
-  IL_0185:  brtrue.s   IL_0198
-  IL_0187:  br         IL_006a
-  IL_018c:  call       ""bool Program.B()""
-  IL_0191:  brtrue.s   IL_0198
-  IL_0193:  br         IL_00c4
-  IL_0198:  ldc.i4.5
-  IL_0199:  stloc.s    V_8
-  IL_019b:  br.s       IL_01be
-  IL_019d:  ldc.i4.6
-  IL_019e:  stloc.s    V_8
-  IL_01a0:  br.s       IL_01be
-  IL_01a2:  br.s       IL_01a4
-  IL_01a4:  ldc.i4.7
-  IL_01a5:  stloc.s    V_8
-  IL_01a7:  br.s       IL_01be
-  IL_01a9:  br.s       IL_01ab
-  IL_01ab:  ldc.i4.8
-  IL_01ac:  stloc.s    V_8
-  IL_01ae:  br.s       IL_01be
-  IL_01b0:  br.s       IL_01b2
-  IL_01b2:  ldc.i4.s   9
-  IL_01b4:  stloc.s    V_8
-  IL_01b6:  br.s       IL_01be
-  IL_01b8:  ldc.i4.s   10
-  IL_01ba:  stloc.s    V_8
-  IL_01bc:  br.s       IL_01be
-  IL_01be:  ldloc.s    V_8
-  IL_01c0:  stloc.s    V_21
-  IL_01c2:  ldloc.s    V_21
-  IL_01c4:  stloc.0
- -IL_01c5:  ret
-}
+    {
+      // Code size      450 (0x1c2)
+      .maxstack  3
+      .locals init (int V_0, //a
+                    int V_1, //x
+                    object V_2, //y
+                    object V_3, //z
+                    int V_4, //p
+                    int V_5, //q
+                    int V_6, //p
+                    int V_7, //z
+                    int V_8,
+                    object V_9,
+                    System.Runtime.CompilerServices.ITuple V_10,
+                    int V_11,
+                    D V_12,
+                    double V_13,
+                    C V_14,
+                    object V_15,
+                    C V_16,
+                    int V_17,
+                    D V_18,
+                    int V_19,
+                    C V_20)
+     -IL_0000:  nop
+     -IL_0001:  call       ""object Program.F()""
+      IL_0006:  stloc.s    V_9
+      IL_0008:  ldloc.s    V_9
+      IL_000a:  isinst     ""int""
+      IL_000f:  brfalse.s  IL_001e
+      IL_0011:  ldloc.s    V_9
+      IL_0013:  unbox.any  ""int""
+      IL_0018:  stloc.1
+      IL_0019:  br         IL_015e
+      IL_001e:  ldloc.s    V_9
+      IL_0020:  isinst     ""bool""
+      IL_0025:  brtrue     IL_016f
+      IL_002a:  ldloc.s    V_9
+      IL_002c:  isinst     ""System.Runtime.CompilerServices.ITuple""
+      IL_0031:  stloc.s    V_10
+      IL_0033:  ldloc.s    V_10
+      IL_0035:  brfalse.s  IL_008f
+      IL_0037:  ldloc.s    V_10
+      IL_0039:  callvirt   ""int System.Runtime.CompilerServices.ITuple.Length.get""
+      IL_003e:  stloc.s    V_11
+      IL_0040:  ldloc.s    V_11
+      IL_0042:  ldc.i4.2
+      IL_0043:  bne.un.s   IL_005c
+      IL_0045:  ldloc.s    V_10
+      IL_0047:  ldc.i4.0
+      IL_0048:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
+      IL_004d:  stloc.2
+      IL_004e:  ldloc.s    V_10
+      IL_0050:  ldc.i4.1
+      IL_0051:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
+      IL_0056:  stloc.3
+      IL_0057:  br         IL_0174
+      IL_005c:  ldloc.s    V_9
+      IL_005e:  isinst     ""C""
+      IL_0063:  brtrue     IL_0180
+      IL_0068:  br.s       IL_0073
+      IL_006a:  ldloc.s    V_11
+      IL_006c:  brfalse    IL_019d
+      IL_0071:  br.s       IL_00c4
+      IL_0073:  ldloc.s    V_11
+      IL_0075:  brfalse    IL_019d
+      IL_007a:  ldloc.s    V_9
+      IL_007c:  isinst     ""D""
+      IL_0081:  stloc.s    V_12
+      IL_0083:  ldloc.s    V_12
+      IL_0085:  brtrue     IL_0116
+      IL_008a:  br         IL_01b8
+      IL_008f:  ldloc.s    V_9
+      IL_0091:  isinst     ""double""
+      IL_0096:  brfalse.s  IL_00b6
+      IL_0098:  ldloc.s    V_9
+      IL_009a:  unbox.any  ""double""
+      IL_009f:  stloc.s    V_13
+      IL_00a1:  ldloc.s    V_13
+      IL_00a3:  ldc.r8     4
+      IL_00ac:  beq        IL_017b
+      IL_00b1:  br         IL_01b8
+      IL_00b6:  ldloc.s    V_9
+      IL_00b8:  isinst     ""C""
+      IL_00bd:  brtrue     IL_018c
+      IL_00c2:  br.s       IL_0104
+      IL_00c4:  ldloc.s    V_9
+      IL_00c6:  castclass  ""C""
+      IL_00cb:  stloc.s    V_14
+      IL_00cd:  ldloc.s    V_14
+      IL_00cf:  ldloca.s   V_4
+      IL_00d1:  ldloca.s   V_15
+      IL_00d3:  callvirt   ""void C.Deconstruct(out int, out object)""
+      IL_00d8:  nop
+      IL_00d9:  ldloc.s    V_15
+      IL_00db:  isinst     ""C""
+      IL_00e0:  stloc.s    V_16
+      IL_00e2:  ldloc.s    V_16
+      IL_00e4:  brfalse.s  IL_00f5
+      IL_00e6:  ldloc.s    V_16
+      IL_00e8:  ldloca.s   V_5
+      IL_00ea:  callvirt   ""void C.Deconstruct(out int)""
+      IL_00ef:  nop
+      IL_00f0:  br         IL_01a2
+      IL_00f5:  ldloc.s    V_14
+      IL_00f7:  ldloca.s   V_6
+      IL_00f9:  callvirt   ""void C.Deconstruct(out int)""
+      IL_00fe:  nop
+      IL_00ff:  br         IL_01a9
+      IL_0104:  ldloc.s    V_9
+      IL_0106:  isinst     ""D""
+      IL_010b:  stloc.s    V_12
+      IL_010d:  ldloc.s    V_12
+      IL_010f:  brtrue.s   IL_0116
+      IL_0111:  br         IL_01b8
+      IL_0116:  ldloc.s    V_12
+      IL_0118:  callvirt   ""int D.P.get""
+      IL_011d:  stloc.s    V_17
+      IL_011f:  ldloc.s    V_17
+      IL_0121:  ldc.i4.1
+      IL_0122:  bne.un     IL_01b8
+      IL_0127:  ldloc.s    V_12
+      IL_0129:  callvirt   ""D D.Q.get""
+      IL_012e:  stloc.s    V_18
+      IL_0130:  ldloc.s    V_18
+      IL_0132:  brfalse    IL_01b8
+      IL_0137:  ldloc.s    V_18
+      IL_0139:  callvirt   ""int D.P.get""
+      IL_013e:  stloc.s    V_19
+      IL_0140:  ldloc.s    V_19
+      IL_0142:  ldc.i4.2
+      IL_0143:  bne.un.s   IL_01b8
+      IL_0145:  ldloc.s    V_12
+      IL_0147:  callvirt   ""C D.R.get""
+      IL_014c:  stloc.s    V_20
+      IL_014e:  ldloc.s    V_20
+      IL_0150:  brfalse.s  IL_01b8
+      IL_0152:  ldloc.s    V_20
+      IL_0154:  ldloca.s   V_7
+      IL_0156:  callvirt   ""void C.Deconstruct(out int)""
+      IL_015b:  nop
+      IL_015c:  br.s       IL_01b0
+      IL_015e:  ldloc.1
+      IL_015f:  call       ""int Program.G(int)""
+      IL_0164:  ldc.i4.s   10
+      IL_0166:  bgt.s      IL_016a
+      IL_0168:  br.s       IL_01b8
+      IL_016a:  ldc.i4.1
+      IL_016b:  stloc.s    V_8
+      IL_016d:  br.s       IL_01be
+      IL_016f:  ldc.i4.2
+      IL_0170:  stloc.s    V_8
+      IL_0172:  br.s       IL_01be
+      IL_0174:  br.s       IL_0176
+      IL_0176:  ldc.i4.3
+      IL_0177:  stloc.s    V_8
+      IL_0179:  br.s       IL_01be
+      IL_017b:  ldc.i4.4
+      IL_017c:  stloc.s    V_8
+      IL_017e:  br.s       IL_01be
+      IL_0180:  call       ""bool Program.B()""
+      IL_0185:  brtrue.s   IL_0198
+      IL_0187:  br         IL_006a
+      IL_018c:  call       ""bool Program.B()""
+      IL_0191:  brtrue.s   IL_0198
+      IL_0193:  br         IL_00c4
+      IL_0198:  ldc.i4.5
+      IL_0199:  stloc.s    V_8
+      IL_019b:  br.s       IL_01be
+      IL_019d:  ldc.i4.6
+      IL_019e:  stloc.s    V_8
+      IL_01a0:  br.s       IL_01be
+      IL_01a2:  br.s       IL_01a4
+      IL_01a4:  ldc.i4.7
+      IL_01a5:  stloc.s    V_8
+      IL_01a7:  br.s       IL_01be
+      IL_01a9:  br.s       IL_01ab
+      IL_01ab:  ldc.i4.8
+      IL_01ac:  stloc.s    V_8
+      IL_01ae:  br.s       IL_01be
+      IL_01b0:  br.s       IL_01b2
+      IL_01b2:  ldc.i4.s   9
+      IL_01b4:  stloc.s    V_8
+      IL_01b6:  br.s       IL_01be
+      IL_01b8:  ldc.i4.s   10
+      IL_01ba:  stloc.s    V_8
+      IL_01bc:  br.s       IL_01be
+      IL_01be:  ldloc.s    V_8
+      IL_01c0:  stloc.0
+     -IL_01c1:  ret
+    }
 ");
 
             verifier.VerifyPdb("Program.Main", @"   
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <methods>
-    <method containingType=""Program"" name=""Main"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName=""Deconstruct"" />
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""15"" />
-          <slot kind=""0"" offset=""94"" />
-          <slot kind=""0"" offset=""225"" />
-          <slot kind=""0"" offset=""228"" />
-          <slot kind=""0"" offset=""406"" />
-          <slot kind=""0"" offset=""415"" />
-          <slot kind=""0"" offset=""447"" />
-          <slot kind=""0"" offset=""539"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""23"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""24"" startColumn=""9"" endLine=""48"" endColumn=""11"" document=""1"" />
-        <entry offset=""0x1c5"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1c6"">
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1c6"" attributes=""0"" />
-        <scope startOffset=""0x1"" endOffset=""0x1c5"">
-          <local name=""x"" il_index=""1"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""y"" il_index=""2"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""z"" il_index=""3"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""p"" il_index=""4"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""q"" il_index=""5"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""p"" il_index=""6"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <local name=""z"" il_index=""7"" il_start=""0x1"" il_end=""0x1c5"" attributes=""0"" />
-          <scope startOffset=""0x15e"" endOffset=""0x16f"">
-            <local name=""x"" il_index=""1"" il_start=""0x15e"" il_end=""0x16f"" attributes=""0"" />
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""Program"" name=""Main"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName=""Deconstruct"" />
+            <encLocalSlotMap>
+              <slot kind=""0"" offset=""15"" />
+              <slot kind=""0"" offset=""94"" />
+              <slot kind=""0"" offset=""225"" />
+              <slot kind=""0"" offset=""228"" />
+              <slot kind=""0"" offset=""406"" />
+              <slot kind=""0"" offset=""415"" />
+              <slot kind=""0"" offset=""447"" />
+              <slot kind=""0"" offset=""539"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1"" startLine=""24"" startColumn=""9"" endLine=""48"" endColumn=""11"" document=""1"" />
+            <entry offset=""0x1c1"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x1c2"">
+            <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1c2"" attributes=""0"" />
+            <scope startOffset=""0x1"" endOffset=""0x1c1"">
+              <local name=""x"" il_index=""1"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""y"" il_index=""2"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""z"" il_index=""3"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""p"" il_index=""4"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""q"" il_index=""5"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""p"" il_index=""6"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <local name=""z"" il_index=""7"" il_start=""0x1"" il_end=""0x1c1"" attributes=""0"" />
+              <scope startOffset=""0x15e"" endOffset=""0x16f"">
+                <local name=""x"" il_index=""1"" il_start=""0x15e"" il_end=""0x16f"" attributes=""0"" />
+              </scope>
+              <scope startOffset=""0x174"" endOffset=""0x17b"">
+                <local name=""y"" il_index=""2"" il_start=""0x174"" il_end=""0x17b"" attributes=""0"" />
+                <local name=""z"" il_index=""3"" il_start=""0x174"" il_end=""0x17b"" attributes=""0"" />
+              </scope>
+              <scope startOffset=""0x1a2"" endOffset=""0x1a9"">
+                <local name=""p"" il_index=""4"" il_start=""0x1a2"" il_end=""0x1a9"" attributes=""0"" />
+                <local name=""q"" il_index=""5"" il_start=""0x1a2"" il_end=""0x1a9"" attributes=""0"" />
+              </scope>
+              <scope startOffset=""0x1a9"" endOffset=""0x1b0"">
+                <local name=""p"" il_index=""6"" il_start=""0x1a9"" il_end=""0x1b0"" attributes=""0"" />
+              </scope>
+              <scope startOffset=""0x1b0"" endOffset=""0x1b8"">
+                <local name=""z"" il_index=""7"" il_start=""0x1b0"" il_end=""0x1b8"" attributes=""0"" />
+              </scope>
+            </scope>
           </scope>
-          <scope startOffset=""0x174"" endOffset=""0x17b"">
-            <local name=""y"" il_index=""2"" il_start=""0x174"" il_end=""0x17b"" attributes=""0"" />
-            <local name=""z"" il_index=""3"" il_start=""0x174"" il_end=""0x17b"" attributes=""0"" />
-          </scope>
-          <scope startOffset=""0x1a2"" endOffset=""0x1a9"">
-            <local name=""p"" il_index=""4"" il_start=""0x1a2"" il_end=""0x1a9"" attributes=""0"" />
-            <local name=""q"" il_index=""5"" il_start=""0x1a2"" il_end=""0x1a9"" attributes=""0"" />
-          </scope>
-          <scope startOffset=""0x1a9"" endOffset=""0x1b0"">
-            <local name=""p"" il_index=""6"" il_start=""0x1a9"" il_end=""0x1b0"" attributes=""0"" />
-          </scope>
-          <scope startOffset=""0x1b0"" endOffset=""0x1b8"">
-            <local name=""z"" il_index=""7"" il_start=""0x1b0"" il_end=""0x1b8"" attributes=""0"" />
-          </scope>
-        </scope>
-      </scope>
-    </method>
-  </methods>
-</symbols>
+        </method>
+      </methods>
+    </symbols>
 ");
         }
 
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_IsPattern()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 class C
 {
     public void Deconstruct() { }
@@ -8566,7 +8610,7 @@ class Program
             obj is D { P: 1, Q: D { P: 2 }, R: C(int z2) };
     }
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
             var verifier = CompileAndVerify(c, verify: Verification.Skipped);
 
@@ -8759,10 +8803,10 @@ class Program
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
         [WorkItem(37232, "https://github.com/dotnet/roslyn/issues/37232")]
         [WorkItem(37237, "https://github.com/dotnet/roslyn/issues/37237")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_SwitchExpression_Closures()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 public class C
 {
@@ -8795,7 +8839,7 @@ public class C
     static object F() => null;
     static int G(Func<int> f) => 0;
 }
-";
+");
             var c = CreateCompilation(source, options: TestOptions.DebugDll);
             var verifier = CompileAndVerify(c);
 
@@ -8806,276 +8850,261 @@ public class C
             // The values of the closure offsets are incorrect.
 
             verifier.VerifyIL("C.M", sequencePoints: "C.M", expectedIL: @"
-{
-  // Code size      459 (0x1cb)
-  .maxstack  2
-  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
-                int V_1,
-                int V_2,
-                C.<>c__DisplayClass0_1 V_3, //CS$<>8__locals1
-                int V_4,
-                object V_5,
-                int V_6,
-                C V_7,
-                object V_8,
-                int V_9,
-                C.<>c__DisplayClass0_2 V_10, //CS$<>8__locals2
-                int V_11,
-                object V_12,
-                C V_13,
-                object V_14,
-                object V_15,
-                C V_16,
-                object V_17,
-                int V_18,
-                C.<>c__DisplayClass0_3 V_19, //CS$<>8__locals3
-                int V_20,
-                int V_21)
- -IL_0000:  nop
- ~IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
-  IL_0006:  stloc.0
- ~IL_0007:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
-  IL_000c:  stloc.3
-  IL_000d:  call       ""object C.F()""
-  IL_0012:  stloc.s    V_5
-  IL_0014:  ldloc.s    V_5
-  IL_0016:  isinst     ""int""
-  IL_001b:  brfalse.s  IL_003a
-  IL_001d:  ldloc.s    V_5
-  IL_001f:  unbox.any  ""int""
-  IL_0024:  stloc.s    V_6
-  IL_0026:  ldloc.s    V_6
-  IL_0028:  ldc.i4.1
-  IL_0029:  beq.s      IL_0071
-  IL_002b:  br.s       IL_002d
-  IL_002d:  ldloc.s    V_6
-  IL_002f:  ldc.i4.2
-  IL_0030:  beq        IL_010f
-  IL_0035:  br         IL_018b
-  IL_003a:  ldloc.s    V_5
-  IL_003c:  isinst     ""C""
-  IL_0041:  stloc.s    V_7
-  IL_0043:  ldloc.s    V_7
-  IL_0045:  brfalse    IL_018b
-  IL_004a:  ldloc.s    V_7
-  IL_004c:  callvirt   ""object C.Q.get""
-  IL_0051:  stloc.s    V_8
-  IL_0053:  ldloc.s    V_8
-  IL_0055:  isinst     ""int""
-  IL_005a:  brfalse    IL_018b
-  IL_005f:  ldloc.3
-  IL_0060:  ldloc.s    V_8
-  IL_0062:  unbox.any  ""int""
-  IL_0067:  stfld      ""int C.<>c__DisplayClass0_1.<s>5__3""
-  IL_006c:  br         IL_0174
- ~IL_0071:  newobj     ""C.<>c__DisplayClass0_2..ctor()""
-  IL_0076:  stloc.s    V_10
-  IL_0078:  call       ""object C.F()""
-  IL_007d:  stloc.s    V_12
-  IL_007f:  ldloc.s    V_12
-  IL_0081:  isinst     ""C""
-  IL_0086:  stloc.s    V_13
-  IL_0088:  ldloc.s    V_13
-  IL_008a:  brfalse.s  IL_00fc
-  IL_008c:  ldloc.s    V_13
-  IL_008e:  callvirt   ""object C.P.get""
-  IL_0093:  stloc.s    V_14
-  IL_0095:  ldloc.s    V_14
-  IL_0097:  isinst     ""int""
-  IL_009c:  brfalse.s  IL_00fc
-  IL_009e:  ldloc.s    V_10
-  IL_00a0:  ldloc.s    V_14
-  IL_00a2:  unbox.any  ""int""
-  IL_00a7:  stfld      ""int C.<>c__DisplayClass0_2.<p>5__4""
-  IL_00ac:  ldloc.s    V_13
-  IL_00ae:  callvirt   ""object C.Q.get""
-  IL_00b3:  stloc.s    V_15
-  IL_00b5:  ldloc.s    V_15
-  IL_00b7:  isinst     ""C""
-  IL_00bc:  stloc.s    V_16
-  IL_00be:  ldloc.s    V_16
-  IL_00c0:  brfalse.s  IL_00fc
-  IL_00c2:  ldloc.s    V_16
-  IL_00c4:  callvirt   ""object C.P.get""
-  IL_00c9:  stloc.s    V_17
-  IL_00cb:  ldloc.s    V_17
-  IL_00cd:  isinst     ""int""
-  IL_00d2:  brfalse.s  IL_00fc
-  IL_00d4:  ldloc.s    V_10
-  IL_00d6:  ldloc.s    V_17
-  IL_00d8:  unbox.any  ""int""
-  IL_00dd:  stfld      ""int C.<>c__DisplayClass0_2.<q>5__5""
-  IL_00e2:  br.s       IL_00e4
-  IL_00e4:  br.s       IL_00e6
-  IL_00e6:  ldloc.s    V_10
-  IL_00e8:  ldftn      ""int C.<>c__DisplayClass0_2.<M>b__2()""
-  IL_00ee:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_00f3:  call       ""int C.G(System.Func<int>)""
-  IL_00f8:  stloc.s    V_11
-  IL_00fa:  br.s       IL_0102
-  IL_00fc:  ldc.i4.s   10
-  IL_00fe:  stloc.s    V_11
-  IL_0100:  br.s       IL_0102
-  IL_0102:  ldloc.s    V_11
-  IL_0104:  stloc.s    V_18
-  IL_0106:  ldloc.s    V_18
-  IL_0108:  stloc.s    V_4
-  IL_010a:  br         IL_0190
- ~IL_010f:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
-  IL_0114:  stloc.s    V_19
-  IL_0116:  call       ""object C.F()""
-  IL_011b:  stloc.s    V_17
-  IL_011d:  ldloc.s    V_17
-  IL_011f:  isinst     ""C""
-  IL_0124:  stloc.s    V_16
-  IL_0126:  ldloc.s    V_16
-  IL_0128:  brfalse.s  IL_0164
-  IL_012a:  ldloc.s    V_16
-  IL_012c:  callvirt   ""object C.P.get""
-  IL_0131:  stloc.s    V_15
-  IL_0133:  ldloc.s    V_15
-  IL_0135:  isinst     ""int""
-  IL_013a:  brfalse.s  IL_0164
-  IL_013c:  ldloc.s    V_19
-  IL_013e:  ldloc.s    V_15
-  IL_0140:  unbox.any  ""int""
-  IL_0145:  stfld      ""int C.<>c__DisplayClass0_3.<r>5__6""
-  IL_014a:  br.s       IL_014c
-  IL_014c:  br.s       IL_014e
-  IL_014e:  ldloc.s    V_19
-  IL_0150:  ldftn      ""int C.<>c__DisplayClass0_3.<M>b__3()""
-  IL_0156:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_015b:  call       ""int C.G(System.Func<int>)""
-  IL_0160:  stloc.s    V_11
-  IL_0162:  br.s       IL_016a
-  IL_0164:  ldc.i4.s   20
-  IL_0166:  stloc.s    V_11
-  IL_0168:  br.s       IL_016a
-  IL_016a:  ldloc.s    V_11
-  IL_016c:  stloc.s    V_20
-  IL_016e:  ldloc.s    V_20
-  IL_0170:  stloc.s    V_4
-  IL_0172:  br.s       IL_0190
-  IL_0174:  br.s       IL_0176
-  IL_0176:  ldloc.3
-  IL_0177:  ldftn      ""int C.<>c__DisplayClass0_1.<M>b__1()""
-  IL_017d:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_0182:  call       ""int C.G(System.Func<int>)""
-  IL_0187:  stloc.s    V_4
-  IL_0189:  br.s       IL_0190
-  IL_018b:  ldc.i4.0
-  IL_018c:  stloc.s    V_4
-  IL_018e:  br.s       IL_0190
-  IL_0190:  ldloc.s    V_4
-  IL_0192:  stloc.s    V_9
-  IL_0194:  ldloc.0
-  IL_0195:  ldloc.s    V_9
-  IL_0197:  stfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
-  IL_019c:  br.s       IL_019e
-  IL_019e:  ldloc.0
-  IL_019f:  ldfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
-  IL_01a4:  ldc.i4.0
-  IL_01a5:  bgt.s      IL_01a9
-  IL_01a7:  br.s       IL_01bd
-  IL_01a9:  ldloc.0
-  IL_01aa:  ldftn      ""int C.<>c__DisplayClass0_0.<M>b__0()""
-  IL_01b0:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_01b5:  call       ""int C.G(System.Func<int>)""
-  IL_01ba:  stloc.1
-  IL_01bb:  br.s       IL_01c1
-  IL_01bd:  ldc.i4.0
-  IL_01be:  stloc.1
-  IL_01bf:  br.s       IL_01c1
-  IL_01c1:  ldloc.1
-  IL_01c2:  stloc.2
-  IL_01c3:  ldloc.2
-  IL_01c4:  stloc.s    V_21
-  IL_01c6:  br.s       IL_01c8
- -IL_01c8:  ldloc.s    V_21
-  IL_01ca:  ret
-}");
+    {
+      // Code size      437 (0x1b5)
+      .maxstack  2
+      .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                    int V_1,
+                    C.<>c__DisplayClass0_1 V_2, //CS$<>8__locals1
+                    int V_3,
+                    object V_4,
+                    int V_5,
+                    C V_6,
+                    object V_7,
+                    C.<>c__DisplayClass0_2 V_8, //CS$<>8__locals2
+                    int V_9,
+                    object V_10,
+                    C V_11,
+                    object V_12,
+                    object V_13,
+                    C V_14,
+                    object V_15,
+                    C.<>c__DisplayClass0_3 V_16, //CS$<>8__locals3
+                    int V_17)
+     -IL_0000:  nop
+     ~IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+      IL_0006:  stloc.0
+     ~IL_0007:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
+      IL_000c:  stloc.2
+      IL_000d:  call       ""object C.F()""
+      IL_0012:  stloc.s    V_4
+      IL_0014:  ldloc.s    V_4
+      IL_0016:  isinst     ""int""
+      IL_001b:  brfalse.s  IL_003a
+      IL_001d:  ldloc.s    V_4
+      IL_001f:  unbox.any  ""int""
+      IL_0024:  stloc.s    V_5
+      IL_0026:  ldloc.s    V_5
+      IL_0028:  ldc.i4.1
+      IL_0029:  beq.s      IL_0071
+      IL_002b:  br.s       IL_002d
+      IL_002d:  ldloc.s    V_5
+      IL_002f:  ldc.i4.2
+      IL_0030:  beq        IL_0107
+      IL_0035:  br         IL_017d
+      IL_003a:  ldloc.s    V_4
+      IL_003c:  isinst     ""C""
+      IL_0041:  stloc.s    V_6
+      IL_0043:  ldloc.s    V_6
+      IL_0045:  brfalse    IL_017d
+      IL_004a:  ldloc.s    V_6
+      IL_004c:  callvirt   ""object C.Q.get""
+      IL_0051:  stloc.s    V_7
+      IL_0053:  ldloc.s    V_7
+      IL_0055:  isinst     ""int""
+      IL_005a:  brfalse    IL_017d
+      IL_005f:  ldloc.2
+      IL_0060:  ldloc.s    V_7
+      IL_0062:  unbox.any  ""int""
+      IL_0067:  stfld      ""int C.<>c__DisplayClass0_1.<s>5__3""
+      IL_006c:  br         IL_0167
+     ~IL_0071:  newobj     ""C.<>c__DisplayClass0_2..ctor()""
+      IL_0076:  stloc.s    V_8
+      IL_0078:  call       ""object C.F()""
+      IL_007d:  stloc.s    V_10
+      IL_007f:  ldloc.s    V_10
+      IL_0081:  isinst     ""C""
+      IL_0086:  stloc.s    V_11
+      IL_0088:  ldloc.s    V_11
+      IL_008a:  brfalse.s  IL_00fc
+      IL_008c:  ldloc.s    V_11
+      IL_008e:  callvirt   ""object C.P.get""
+      IL_0093:  stloc.s    V_12
+      IL_0095:  ldloc.s    V_12
+      IL_0097:  isinst     ""int""
+      IL_009c:  brfalse.s  IL_00fc
+      IL_009e:  ldloc.s    V_8
+      IL_00a0:  ldloc.s    V_12
+      IL_00a2:  unbox.any  ""int""
+      IL_00a7:  stfld      ""int C.<>c__DisplayClass0_2.<p>5__4""
+      IL_00ac:  ldloc.s    V_11
+      IL_00ae:  callvirt   ""object C.Q.get""
+      IL_00b3:  stloc.s    V_13
+      IL_00b5:  ldloc.s    V_13
+      IL_00b7:  isinst     ""C""
+      IL_00bc:  stloc.s    V_14
+      IL_00be:  ldloc.s    V_14
+      IL_00c0:  brfalse.s  IL_00fc
+      IL_00c2:  ldloc.s    V_14
+      IL_00c4:  callvirt   ""object C.P.get""
+      IL_00c9:  stloc.s    V_15
+      IL_00cb:  ldloc.s    V_15
+      IL_00cd:  isinst     ""int""
+      IL_00d2:  brfalse.s  IL_00fc
+      IL_00d4:  ldloc.s    V_8
+      IL_00d6:  ldloc.s    V_15
+      IL_00d8:  unbox.any  ""int""
+      IL_00dd:  stfld      ""int C.<>c__DisplayClass0_2.<q>5__5""
+      IL_00e2:  br.s       IL_00e4
+      IL_00e4:  br.s       IL_00e6
+      IL_00e6:  ldloc.s    V_8
+      IL_00e8:  ldftn      ""int C.<>c__DisplayClass0_2.<M>b__2()""
+      IL_00ee:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_00f3:  call       ""int C.G(System.Func<int>)""
+      IL_00f8:  stloc.s    V_9
+      IL_00fa:  br.s       IL_0102
+      IL_00fc:  ldc.i4.s   10
+      IL_00fe:  stloc.s    V_9
+      IL_0100:  br.s       IL_0102
+      IL_0102:  ldloc.s    V_9
+      IL_0104:  stloc.3
+      IL_0105:  br.s       IL_0181
+     ~IL_0107:  newobj     ""C.<>c__DisplayClass0_3..ctor()""
+      IL_010c:  stloc.s    V_16
+      IL_010e:  call       ""object C.F()""
+      IL_0113:  stloc.s    V_15
+      IL_0115:  ldloc.s    V_15
+      IL_0117:  isinst     ""C""
+      IL_011c:  stloc.s    V_14
+      IL_011e:  ldloc.s    V_14
+      IL_0120:  brfalse.s  IL_015c
+      IL_0122:  ldloc.s    V_14
+      IL_0124:  callvirt   ""object C.P.get""
+      IL_0129:  stloc.s    V_13
+      IL_012b:  ldloc.s    V_13
+      IL_012d:  isinst     ""int""
+      IL_0132:  brfalse.s  IL_015c
+      IL_0134:  ldloc.s    V_16
+      IL_0136:  ldloc.s    V_13
+      IL_0138:  unbox.any  ""int""
+      IL_013d:  stfld      ""int C.<>c__DisplayClass0_3.<r>5__6""
+      IL_0142:  br.s       IL_0144
+      IL_0144:  br.s       IL_0146
+      IL_0146:  ldloc.s    V_16
+      IL_0148:  ldftn      ""int C.<>c__DisplayClass0_3.<M>b__3()""
+      IL_014e:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_0153:  call       ""int C.G(System.Func<int>)""
+      IL_0158:  stloc.s    V_9
+      IL_015a:  br.s       IL_0162
+      IL_015c:  ldc.i4.s   20
+      IL_015e:  stloc.s    V_9
+      IL_0160:  br.s       IL_0162
+      IL_0162:  ldloc.s    V_9
+      IL_0164:  stloc.3
+      IL_0165:  br.s       IL_0181
+      IL_0167:  br.s       IL_0169
+      IL_0169:  ldloc.2
+      IL_016a:  ldftn      ""int C.<>c__DisplayClass0_1.<M>b__1()""
+      IL_0170:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_0175:  call       ""int C.G(System.Func<int>)""
+      IL_017a:  stloc.3
+      IL_017b:  br.s       IL_0181
+      IL_017d:  ldc.i4.0
+      IL_017e:  stloc.3
+      IL_017f:  br.s       IL_0181
+      IL_0181:  ldloc.0
+      IL_0182:  ldloc.3
+      IL_0183:  stfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
+      IL_0188:  br.s       IL_018a
+      IL_018a:  ldloc.0
+      IL_018b:  ldfld      ""int C.<>c__DisplayClass0_0.<t>5__2""
+      IL_0190:  ldc.i4.0
+      IL_0191:  bgt.s      IL_0195
+      IL_0193:  br.s       IL_01a9
+      IL_0195:  ldloc.0
+      IL_0196:  ldftn      ""int C.<>c__DisplayClass0_0.<M>b__0()""
+      IL_019c:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+      IL_01a1:  call       ""int C.G(System.Func<int>)""
+      IL_01a6:  stloc.1
+      IL_01a7:  br.s       IL_01ad
+      IL_01a9:  ldc.i4.0
+      IL_01aa:  stloc.1
+      IL_01ab:  br.s       IL_01ad
+      IL_01ad:  ldloc.1
+      IL_01ae:  stloc.s    V_17
+      IL_01b0:  br.s       IL_01b2
+     -IL_01b2:  ldloc.s    V_17
+      IL_01b4:  ret
+    }
+");
             verifier.VerifyPdb("C.M", @"
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <methods>
-    <method containingType=""C"" name=""M"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""30"" offset=""238"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""238"" />
-          <slot kind=""30"" offset=""238"" ordinal=""1"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""238"" ordinal=""1"" />
-          <slot kind=""30"" offset=""63"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""63"" />
-          <slot kind=""30"" offset=""238"" ordinal=""2"" />
-          <slot kind=""28"" offset=""238"" ordinal=""2"" />
-          <slot kind=""21"" offset=""0"" />
-        </encLocalSlotMap>
-        <encLambdaMap>
-          <methodOrdinal>0</methodOrdinal>
-          <closure offset=""238"" />
-          <closure offset=""238"" />
-          <closure offset=""63"" />
-          <closure offset=""238"" />
-          <lambda offset=""511"" closure=""0"" />
-          <lambda offset=""407"" closure=""1"" />
-          <lambda offset=""157"" closure=""2"" />
-          <lambda offset=""313"" closure=""3"" />
-        </encLambdaMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" hidden=""true"" document=""1"" />
-        <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0x71"" hidden=""true"" document=""1"" />
-        <entry offset=""0x10f"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1c8"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1cb"">
-        <namespace name=""System"" />
-        <scope startOffset=""0x1"" endOffset=""0x1c8"">
-          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x1c8"" attributes=""0"" />
-          <scope startOffset=""0x7"" endOffset=""0x19c"">
-            <local name=""CS$&lt;&gt;8__locals1"" il_index=""3"" il_start=""0x7"" il_end=""0x19c"" attributes=""0"" />
-            <scope startOffset=""0x71"" endOffset=""0x10a"">
-              <local name=""CS$&lt;&gt;8__locals2"" il_index=""10"" il_start=""0x71"" il_end=""0x10a"" attributes=""0"" />
-            </scope>
-            <scope startOffset=""0x10f"" endOffset=""0x172"">
-              <local name=""CS$&lt;&gt;8__locals3"" il_index=""19"" il_start=""0x10f"" il_end=""0x172"" attributes=""0"" />
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""M"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""1"" />
+            </using>
+            <encLocalSlotMap>
+              <slot kind=""30"" offset=""238"" />
+              <slot kind=""temp"" />
+              <slot kind=""30"" offset=""238"" ordinal=""1"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""30"" offset=""63"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""30"" offset=""238"" ordinal=""2"" />
+              <slot kind=""21"" offset=""0"" />
+            </encLocalSlotMap>
+            <encLambdaMap>
+              <methodOrdinal>0</methodOrdinal>
+              <closure offset=""238"" />
+              <closure offset=""238"" />
+              <closure offset=""63"" />
+              <closure offset=""238"" />
+              <lambda offset=""511"" closure=""0"" />
+              <lambda offset=""407"" closure=""1"" />
+              <lambda offset=""157"" closure=""2"" />
+              <lambda offset=""313"" closure=""3"" />
+            </encLambdaMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+            <entry offset=""0x1"" hidden=""true"" document=""1"" />
+            <entry offset=""0x7"" hidden=""true"" document=""1"" />
+            <entry offset=""0x71"" hidden=""true"" document=""1"" />
+            <entry offset=""0x107"" hidden=""true"" document=""1"" />
+            <entry offset=""0x1b2"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x1b5"">
+            <namespace name=""System"" />
+            <scope startOffset=""0x1"" endOffset=""0x1b2"">
+              <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x1b2"" attributes=""0"" />
+              <scope startOffset=""0x7"" endOffset=""0x188"">
+                <local name=""CS$&lt;&gt;8__locals1"" il_index=""2"" il_start=""0x7"" il_end=""0x188"" attributes=""0"" />
+                <scope startOffset=""0x71"" endOffset=""0x105"">
+                  <local name=""CS$&lt;&gt;8__locals2"" il_index=""8"" il_start=""0x71"" il_end=""0x105"" attributes=""0"" />
+                </scope>
+                <scope startOffset=""0x107"" endOffset=""0x165"">
+                  <local name=""CS$&lt;&gt;8__locals3"" il_index=""16"" il_start=""0x107"" il_end=""0x165"" attributes=""0"" />
+                </scope>
+              </scope>
             </scope>
           </scope>
-        </scope>
-      </scope>
-    </method>
-  </methods>
-</symbols>
+        </method>
+      </methods>
+    </symbols>
 ");
         }
 
         [WorkItem(12378, "https://github.com/dotnet/roslyn/issues/12378")]
         [WorkItem(13971, "https://github.com/dotnet/roslyn/issues/13971")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_SwitchStatement_Constant()
         {
-            string source =
+            string source = WithWindowsLineBreaks(
 @"class Program
 {
     static void M(object o)
@@ -9108,7 +9137,7 @@ public class C
                 break;
         }
     }
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             CompileAndVerify(c).VerifyIL(qualifiedMethodName: "Program.M", sequencePoints: "Program.M", source: source,
 expectedIL: @"{
@@ -9269,10 +9298,10 @@ expectedIL: @"{
         }
 
         [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void Patterns_SwitchStatement_Tuple()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 public class C
 {
     static int F(int i)
@@ -9285,7 +9314,7 @@ public class C
     }
 
     static (object, object) G() => (2, 3);
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, references: s_valueTupleRefs);
             var cv = CompileAndVerify(c);
 
@@ -9384,7 +9413,7 @@ public class C
 
         #region Tuples
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_TupleDeconstruction()
         {
             var source = @"class C { int F() { (int a, (_, int c)) = (1, (2, 3)); return a + c; } }";
@@ -9421,7 +9450,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestDeconstruction()
         {
             var source = @"
@@ -9467,7 +9496,7 @@ public class C
 ", sequencePoints: "C.Main", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_TupleParenthesized()
         {
             var source = @"class C { int F() { (int, (int, int)) x = (1, (2, 3)); return x.Item1 + x.Item2.Item1 + x.Item2.Item2; } }";
@@ -9503,7 +9532,7 @@ public class C
 );
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_TupleVarDefined()
         {
             var source = @"class C { int F() { var x = (1, 2); return x.Item1 + x.Item2; } }";
@@ -9538,7 +9567,7 @@ public class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_TupleIgnoreDeconstructionIfVariableDeclared()
         {
             var source = @"class C { int F() { (int x, int y) a = (1, 2); return a.Item1 + a.Item2; } }";
@@ -9580,7 +9609,7 @@ public class C
 
         #region OutVar
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInConstructor()
         {
             var source = @"
@@ -9618,7 +9647,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "base").WithArguments("object", "1").WithLocation(13, 7));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInMethod()
         {
             var source = @"class C { int G(out int x) { int z = 1; G(out var y); G(out var w); return x = y; } }";
@@ -9662,10 +9691,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_01()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C : A
 { 
@@ -9686,7 +9715,7 @@ class A
 {
     public A(int x) {}
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -9730,10 +9759,10 @@ class A
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_02()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C : A
 { 
@@ -9753,7 +9782,7 @@ class A
 {
     public A(int x) {}
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -9791,10 +9820,10 @@ class A
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_03()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C : A
 { 
@@ -9811,7 +9840,7 @@ class A
 {
     public A(int x) {}
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -9846,10 +9875,10 @@ class A
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_04()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C
 { 
@@ -9869,7 +9898,7 @@ class C
 #line 2000
     int y1 = G(out var z) + F(() => z);
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -9927,10 +9956,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_05()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C
 { 
@@ -9946,7 +9975,7 @@ class C
 #line 2000
     int y1 { get; } = G(out var z) + F(() => z);
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -10001,10 +10030,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_06()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C
 { 
@@ -10020,7 +10049,7 @@ class C
 #line 2000
     int y1 = G(out var z) + F(() => z), y2 = G(out var u) + F(() => u);
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
@@ -10139,10 +10168,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInInitializers_07()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 class C : A
 { 
@@ -10165,7 +10194,7 @@ class A
 {
     public A(int x) {}
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -10221,10 +10250,10 @@ class A
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInQuery_01()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 using System.Linq;
 
@@ -10243,7 +10272,7 @@ class C
         throw null;
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -10307,10 +10336,10 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SyntaxOffset_OutVarInQuery_02()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 using System.Linq;
 
@@ -10334,7 +10363,7 @@ class C
         throw null;
     }
 }
-";
+");
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C..ctor", @"
@@ -10419,51 +10448,49 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        public void SyntaxOffset_OutVarInSwitchExpresison()
+        [Fact]
+        public void SyntaxOffset_OutVarInSwitchExpression()
         {
             var source = @"class C { static object G() => N(out var x) switch { null => x switch {1 =>  1, _ => 2 }, _ => 1 }; static object N(out int x) { x = 1; return null; } }";
 
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.G", @"
-<symbols>
-  <files>
-    <file id=""1"" name="""" language=""C#"" />
-  </files>
-  <methods>
-    <method containingType=""C"" name=""G"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""0"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""13"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""35"" />
-          <slot kind=""temp"" />
-          <slot kind=""28"" offset=""35"" ordinal=""1"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""1"" startColumn=""32"" endLine=""1"" endColumn=""99"" document=""1"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x33"">
-        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x33"" attributes=""0"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method containingType=""C"" name=""G"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""0"" />
+            </using>
+            <encLocalSlotMap>
+              <slot kind=""0"" offset=""13"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+              <slot kind=""temp"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""1"" startColumn=""32"" endLine=""1"" endColumn=""99"" document=""1"" />
+          </sequencePoints>
+          <scope startOffset=""0x0"" endOffset=""0x2a"">
+            <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x2a"" attributes=""0"" />
+          </scope>
+        </method>
+      </methods>
+    </symbols>
 ");
         }
 
         #endregion
 
         [WorkItem(4370, "https://github.com/dotnet/roslyn/issues/4370")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void HeadingHiddenSequencePointsPickUpDocumentFromVisibleSequencePoint()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"#line 1 ""C:\Async.cs""
 #pragma checksum ""C:\Async.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""DBEB2A067B2F0E0D678A002C587A2806056C3DCE""
 
@@ -10475,7 +10502,7 @@ public class C
     {
     }
 }
-";
+");
 
             var tree = SyntaxFactory.ParseSyntaxTree(source, encoding: Encoding.UTF8, path: "HIDDEN.cs");
             var c = CSharpCompilation.Create("Compilation", new[] { tree }, new[] { MscorlibRef_v46 }, options: TestOptions.DebugDll.WithDebugPlusMode(true));
@@ -10522,25 +10549,25 @@ public class C
         }
 
         [WorkItem(12923, "https://github.com/dotnet/roslyn/issues/12923")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SequencePointsForConstructorWithHiddenInitializer()
         {
-            string initializerSource = @"
+            string initializerSource = WithWindowsLineBreaks(@"
 #line hidden
 partial class C
 {
     int i = 42;
 }
-";
+");
 
-            string constructorSource = @"
+            string constructorSource = WithWindowsLineBreaks(@"
 partial class C
 {
     C()
     {
     }
 }
-";
+");
 
             var c = CreateCompilation(
                 new[] { Parse(initializerSource, "initializer.cs"), Parse(constructorSource, "constructor.cs") },
@@ -10571,10 +10598,10 @@ partial class C
         }
 
         [WorkItem(14437, "https://github.com/dotnet/roslyn/issues/14437")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void LocalFunctionSequencePoints()
         {
-            string source =
+            string source = WithWindowsLineBreaks(
 @"class Program
 {
     static int Main(string[] args)
@@ -10588,7 +10615,7 @@ partial class C
         }                                            // 11
         return Local1(args) + Local2(args);          // 12
     }                                                // 13
-}";
+}");
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb(
 @"<symbols>
@@ -10641,7 +10668,7 @@ partial class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void SwitchInAsyncMethod()
         {
@@ -10728,7 +10755,7 @@ class Program
 }", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void WhileInAsyncMethod()
         {
@@ -10810,7 +10837,7 @@ class Program
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ForInAsyncMethod()
         {
@@ -10901,7 +10928,7 @@ class Program
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(12564, "https://github.com/dotnet/roslyn/issues/12564")]
         public void ForWithInnerLocalsInAsyncMethod()
         {

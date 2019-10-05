@@ -1557,6 +1557,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Command-line syntax error: &apos;{0}&apos; is not a valid value for the &apos;{1}&apos; option. The value must be of the form &apos;{2}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_BadSwitchValue() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadSwitchValue", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type argument &apos;{0}&apos; does not satisfy the &apos;Class&apos; constraint for type parameter &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_BadTypeArgForRefConstraint2() As String
@@ -2440,7 +2449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
+        '''  Looks up a localized string similar to Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants..
         '''</summary>
         Friend ReadOnly Property ERR_ConstantStringTooLong() As String
             Get
@@ -2797,6 +2806,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_DefaultEventNotFound1() As String
             Get
                 Return ResourceManager.GetString("ERR_DefaultEventNotFound1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a non-abstract member. Consider setting the &apos;Embed Interop Types&apos; property to false..
+        '''</summary>
+        Friend ReadOnly Property ERR_DefaultInterfaceImplementationInNoPIAType() As String
+            Get
+                Return ResourceManager.GetString("ERR_DefaultInterfaceImplementationInNoPIAType", resourceCulture)
             End Get
         End Property
         
@@ -9585,6 +9603,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the &apos;Embed Interop Types&apos; property to false..
+        '''</summary>
+        Friend ReadOnly Property ERR_ReAbstractionInNoPIAType() As String
+            Get
+                Return ResourceManager.GetString("ERR_ReAbstractionInNoPIAType", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;ReadOnly&apos; variable cannot be the target of an assignment..
         '''</summary>
         Friend ReadOnly Property ERR_ReadOnlyAssignment() As String
@@ -9924,6 +9951,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ReturnWithoutValue() As String
             Get
                 Return ResourceManager.GetString("ERR_ReturnWithoutValue", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Target runtime doesn&apos;t support default interface implementation..
+        '''</summary>
+        Friend ReadOnly Property ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation() As String
+            Get
+                Return ResourceManager.GetString("ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Target runtime doesn&apos;t support &apos;Protected&apos;, &apos;Protected Friend&apos;, or &apos;Private Protected&apos; accessibility for a member of an interface..
+        '''</summary>
+        Friend ReadOnly Property ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember() As String
+            Get
+                Return ResourceManager.GetString("ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember", resourceCulture)
             End Get
         End Property
         

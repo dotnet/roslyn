@@ -1018,7 +1018,7 @@ namespace System
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
-        <!-- intentionally not including tuple2, shoudl still work -->
+        <!-- intentionally not including tuple2, should still work -->
         <Document>
     class Program
     {

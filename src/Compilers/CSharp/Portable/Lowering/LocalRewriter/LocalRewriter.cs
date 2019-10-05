@@ -202,7 +202,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
                     IsUnusedDeconstruction(node));
 
-            if (visited != null && visited != node)
+            if (visited != null &&
+                visited != node &&
+                node.Kind != BoundKind.ImplicitReceiver &&
+                node.Kind != BoundKind.ObjectOrCollectionValuePlaceholder)
             {
                 if (!CanBePassedByReference(node) && CanBePassedByReference(visited))
                 {
@@ -284,8 +287,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
+            return PlaceholderReplacement(node);
+        }
+
+        public override BoundNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
+        {
+            if (_inExpressionLambda)
+            {
+                // Expression trees do not include the 'this' argument for members.
+                return node;
+            }
             return PlaceholderReplacement(node);
         }
 
@@ -843,6 +861,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Intentionally ignored to let the overflow get caught in a more crucial visitor
                 }
+            }
+
+            public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+            {
+                Fail(node);
+                return null;
             }
 
             public override BoundNode VisitUsingStatement(BoundUsingStatement node)

@@ -31,6 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadDynamicQuery, fromClause.Expression.Location);
                 boundFromExpression = BadExpression(fromClause.Expression, boundFromExpression);
             }
+            else
+            {
+                boundFromExpression = BindToNaturalType(boundFromExpression, diagnostics);
+            }
 
             QueryTranslationState state = new QueryTranslationState();
             state.fromExpression = MakeMemberAccessValue(boundFromExpression, diagnostics);
@@ -225,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.Update(
                 result.ReceiverOpt, result.Method, arguments.ToImmutableAndFree(), default(ImmutableArray<string>),
                 default(ImmutableArray<RefKind>), result.IsDelegateCall, result.Expanded, result.InvokedAsExtensionMethod,
-                argsToParams.ToImmutableAndFree(), result.ResultKind, result.BinderOpt, result.Type);
+                argsToParams.ToImmutableAndFree(), result.ResultKind, result.OriginalMethodsOpt, result.BinderOpt, result.Type);
         }
 
         private void ReduceQuery(QueryTranslationState state, DiagnosticBag diagnostics)
@@ -618,9 +622,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundQueryClause(
                 syntax: syntax, value: expression,
                 definedSymbol: definedSymbol,
-                queryInvocation: queryInvocation,
+                operation: queryInvocation,
                 binder: this,
-                castInvocation: castInvocation, unoptimizedForm: unoptimizedForm,
+                cast: castInvocation, unoptimizedForm: unoptimizedForm,
                 type: TypeOrError(expression));
         }
 

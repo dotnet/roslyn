@@ -694,6 +694,23 @@ public class SomeClass : Base
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableAnnotationsIncluded()
+        {
+            var markup = @"#nullable enable
+
+public abstract class Base
+{
+    public abstract void Goo(string? s);
+}
+
+public class SomeClass : Base
+{
+    override $$
+}";
+            await VerifyItemExistsAsync(markup, "Goo(string? s)");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EscapedMethodNameInIntelliSenseList()
         {
             var markup = @"public abstract class Base
@@ -1629,6 +1646,121 @@ public class b : a
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo<T>()", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitMethodWithNullableAttributes()
+        {
+            var markupBeforeCommit = @"
+#nullable enable
+
+class C
+{
+    public virtual string? Goo(string? s) { }
+}
+
+class D : C
+{
+    override $$
+}";
+
+            var expectedCodeAfterCommit = @"
+#nullable enable
+
+class C
+{
+    public virtual string? Goo(string? s) { }
+}
+
+class D : C
+{
+    public override string? Goo(string? s)
+    {
+        return base.Goo(s);$$
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo(string? s)", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitMethodInNullableDisableContext()
+        {
+            var markupBeforeCommit = @"
+#nullable enable
+
+class C
+{
+    public virtual string? Goo(string? s) { }
+}
+
+#nullable disable
+
+class D : C
+{
+    override $$
+}";
+
+            var expectedCodeAfterCommit = @"
+#nullable enable
+
+class C
+{
+    public virtual string? Goo(string? s) { }
+}
+
+#nullable disable
+
+class D : C
+{
+    public override string Goo(string s)
+    {
+        return base.Goo(s);$$
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Goo(string? s)", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitToStringIsExplicitlyNonNullReturning()
+        {
+            var markupBeforeCommit = @"
+#nullable enable
+
+namespace System
+{
+    public class Object
+    {
+        public virtual string? ToString() { }
+    }
+}
+
+class D : System.Object
+{
+    override $$
+}";
+
+            var expectedCodeAfterCommit = @"
+#nullable enable
+
+namespace System
+{
+    public class Object
+    {
+        public virtual string? ToString() { }
+    }
+}
+
+class D : System.Object
+{
+    public override string ToString()
+    {
+        return base.ToString();$$
+    }
+}";
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "ToString()", expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

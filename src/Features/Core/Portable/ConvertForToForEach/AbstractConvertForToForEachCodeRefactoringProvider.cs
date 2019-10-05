@@ -143,10 +143,12 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Looks good.  We can convert this.
-            context.RegisterRefactoring(new MyCodeAction(GetTitle(),
-                c => ConvertForToForEachAsync(
-                    document, forStatement, iterationVariable, collectionExpression,
-                    containingType, collectionType.Type, iterationType, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(GetTitle(),
+                    c => ConvertForToForEachAsync(
+                        document, forStatement, iterationVariable, collectionExpression,
+                        containingType, collectionType.Type, iterationType, c)),
+                forStatement.Span);
 
             return;
 

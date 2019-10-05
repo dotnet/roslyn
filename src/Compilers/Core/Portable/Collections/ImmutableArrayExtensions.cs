@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="items">The sequence to convert.</param>
         /// <returns>An immutable copy of the contents of the sequence.</returns>
         /// <remarks>If the sequence is null, this will return an empty array.</remarks>
-        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this IEnumerable<T> items)
+        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this IEnumerable<T>? items)
         {
             if (items == null)
             {
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="items">The sequence to convert.</param>
         /// <returns>An immutable copy of the contents of the sequence.</returns>
         /// <remarks>If the sequence is null, this will return the default (null) array.</remarks>
-        public static ImmutableArray<T> AsImmutableOrNull<T>(this IEnumerable<T> items)
+        public static ImmutableArray<T> AsImmutableOrNull<T>(this IEnumerable<T>? items)
         {
             if (items == null)
             {
@@ -84,7 +87,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="items">The sequence to convert</param>
         /// <returns></returns>
         /// <remarks>If the sequence is null, this will return the default (null) array.</remarks>
-        public static ImmutableArray<T> AsImmutableOrNull<T>(this T[] items)
+        public static ImmutableArray<T> AsImmutableOrNull<T>(this T[]? items)
         {
             if (items == null)
             {
@@ -100,7 +103,7 @@ namespace Microsoft.CodeAnalysis
         /// <typeparam name="T"></typeparam>
         /// <param name="items">The sequence to convert</param>
         /// <returns>If the array is null, this will return an empty immutable array.</returns>
-        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this T[] items)
+        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this T[]? items)
         {
             if (items == null)
             {
@@ -262,7 +265,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!array.IsDefault);
 
-            ArrayBuilder<T> builder = null;
+            ArrayBuilder<T>? builder = null;
             bool none = true;
             bool all = true;
 
@@ -393,7 +396,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns an array of distinct elements, preserving the order in the original array.
         /// If the array has no duplicates, the original array is returned. The original array must not be null.
         /// </summary>
-        public static ImmutableArray<T> Distinct<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer = null)
+        public static ImmutableArray<T> Distinct<T>(this ImmutableArray<T> array, IEqualityComparer<T>? comparer = null)
         {
             Debug.Assert(!array.IsDefault);
 
@@ -450,7 +453,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<TValue> Flatten<TKey, TValue>(
             this Dictionary<TKey, ImmutableArray<TValue>> dictionary,
-            IComparer<TValue> comparer = null)
+            IComparer<TValue>? comparer = null)
+            where TKey : notnull
         {
             if (dictionary.Count == 0)
             {
@@ -541,14 +545,14 @@ namespace Microsoft.CodeAnalysis
         internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
             => array.DangerousGetUnderlyingArray();
 
-        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>(ref T[] array)
+        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>([MaybeNull] ref T[] array)
         {
             var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
-            array = null;
+            array = null!;
             return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
         }
 
-        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
+        internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
         {
             if (items.Length == 1)
             {

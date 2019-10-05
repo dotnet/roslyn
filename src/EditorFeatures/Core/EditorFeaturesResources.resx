@@ -724,8 +724,14 @@ Do you want to proceed?</value>
   <data name="Locating_implementations" xml:space="preserve">
     <value>Locating implementations...</value>
   </data>
+  <data name="Locating_bases" xml:space="preserve">
+    <value>Locating bases...</value>
+  </data>
   <data name="Go_To_Implementation" xml:space="preserve">
     <value>Go To Implementation</value>
+  </data>
+  <data name="Go_To_Base" xml:space="preserve">
+    <value>Go To Base</value>
   </data>
   <data name="The_symbol_has_no_implementations" xml:space="preserve">
     <value>The symbol has no implementations.</value>
@@ -886,8 +892,8 @@ Do you want to proceed?</value>
   <data name="Operator_Overloaded" xml:space="preserve">
     <value>Operator - Overloaded</value>
   </data>
-  <data name="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail" xml:space="preserve">
-    <value>Operation is not ready for "{0}" yet. See bottom left corner for more details.</value>
+  <data name="Waiting_for_background_work_to_finish" xml:space="preserve">
+    <value>Waiting for background work to finish...</value>
   </data>
   <data name="The_symbol_has_no_base" xml:space="preserve">
     <value>The symbol has no base.</value>
@@ -904,5 +910,23 @@ Do you want to proceed?</value>
   </data>
   <data name="Rename_file_name_doesnt_match" xml:space="preserve">
     <value>Rename _file (type does not match file name)</value>
+  </data>
+  <data name="Toggle_Block_Comment" xml:space="preserve">
+    <value>Toggle Block Comment</value>
+  </data>
+  <data name="Toggling_block_comment" xml:space="preserve">
+    <value>Toggling block comment...</value>
+  </data>
+  <data name="Toggle_Line_Comment" xml:space="preserve">
+    <value>Toggle Line Comment</value>
+  </data>
+  <data name="Toggling_line_comment" xml:space="preserve">
+    <value>Toggling line comment...</value>
+  </data>
+  <data name="Expander_display_text" xml:space="preserve">
+    <value>items from unimported namespaces</value>
+  </data>
+  <data name="Expander_image_element" xml:space="preserve">
+    <value>Expander</value>
   </data>
 </root>

@@ -20,24 +20,44 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
     internal sealed class DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer
         : AbstractCodeQualityDiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor s_disposeObjectsBeforeLosingScopeRule = CreateDescriptor(
-            IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId,
-            title: new LocalizableResourceString(nameof(FeaturesResources.Dispose_objects_before_losing_scope), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Disposable_object_created_by_0_is_never_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            description: new LocalizableResourceString(nameof(FeaturesResources.UseRecommendedDisposePatternDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: false);
-
-        private static readonly DiagnosticDescriptor s_useRecommendedDisposePatternRule = CreateDescriptor(
-            IDEDiagnosticIds.UseRecommendedDisposePatternDiagnosticId,
-            title: new LocalizableResourceString(nameof(FeaturesResources.Use_recommended_dispose_pattern), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            description: new LocalizableResourceString(nameof(FeaturesResources.UseRecommendedDisposePatternDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-            isUnneccessary: false);
+        private readonly DiagnosticDescriptor _disposeObjectsBeforeLosingScopeRule;
+        private readonly DiagnosticDescriptor _useRecommendedDisposePatternRule;
 
         public DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_disposeObjectsBeforeLosingScopeRule, s_useRecommendedDisposePatternRule), GeneratedCodeAnalysisFlags.None)
+           : this(isEnabledByDefault: false)
         {
         }
+
+        // internal for test purposes.
+        internal DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer(bool isEnabledByDefault)
+            : this(CreateDisposeObjectsBeforeLosingScopeRule(isEnabledByDefault), CreateUseRecommendedDisposePatternRule(isEnabledByDefault))
+        {
+        }
+
+        public DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer(DiagnosticDescriptor disposeObjectsBeforeLosingScopeRule, DiagnosticDescriptor useRecommendedDisposePatternRule)
+            : base(ImmutableArray.Create(disposeObjectsBeforeLosingScopeRule, useRecommendedDisposePatternRule), GeneratedCodeAnalysisFlags.None)
+        {
+            _disposeObjectsBeforeLosingScopeRule = disposeObjectsBeforeLosingScopeRule;
+            _useRecommendedDisposePatternRule = useRecommendedDisposePatternRule;
+        }
+
+        private static DiagnosticDescriptor CreateDisposeObjectsBeforeLosingScopeRule(bool isEnabledByDefault)
+            => CreateDescriptor(
+                IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId,
+                title: new LocalizableResourceString(nameof(FeaturesResources.Dispose_objects_before_losing_scope), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Disposable_object_created_by_0_is_never_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                description: new LocalizableResourceString(nameof(FeaturesResources.UseRecommendedDisposePatternDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                isUnneccessary: false,
+                isEnabledByDefault: isEnabledByDefault);
+
+        private static DiagnosticDescriptor CreateUseRecommendedDisposePatternRule(bool isEnabledByDefault)
+            => CreateDescriptor(
+                IDEDiagnosticIds.UseRecommendedDisposePatternDiagnosticId,
+                title: new LocalizableResourceString(nameof(FeaturesResources.Use_recommended_dispose_pattern), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                description: new LocalizableResourceString(nameof(FeaturesResources.UseRecommendedDisposePatternDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                isUnneccessary: false,
+                isEnabledByDefault: isEnabledByDefault);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
@@ -89,7 +109,9 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
 
             // Compute dispose dataflow analysis result for the operation block.
             if (disposeAnalysisHelper.TryGetOrComputeResult(operationBlockContext, containingMethod,
-                s_disposeObjectsBeforeLosingScopeRule, trackInstanceFields: false,
+                _disposeObjectsBeforeLosingScopeRule,
+                InterproceduralAnalysisKind.ContextSensitive,
+                trackInstanceFields: false,
                 out var disposeAnalysisResult, out var pointsToAnalysisResult,
                 interproceduralAnalysisPredicateOpt))
             {
@@ -98,7 +120,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                 try
                 {
                     // Compute diagnostics for undisposed objects at exit block.
-                    var exitBlock = disposeAnalysisResult.ControlFlowGraph.GetExit();
+                    var exitBlock = disposeAnalysisResult.ControlFlowGraph.ExitBlock();
                     var disposeDataAtExit = disposeAnalysisResult.ExitBlockOutput.Data;
                     ComputeDiagnostics(disposeDataAtExit, notDisposedDiagnostics, mayBeNotDisposedDiagnostics,
                         disposeAnalysisResult, pointsToAnalysisResult);
@@ -193,7 +215,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
                             continue;
                         }
 
-                        var rule = isNotDisposed ? s_disposeObjectsBeforeLosingScopeRule : s_useRecommendedDisposePatternRule;
+                        var rule = isNotDisposed ? _disposeObjectsBeforeLosingScopeRule : _useRecommendedDisposePatternRule;
 
                         // Ensure that we do not include multiple lines for the object creation expression in the diagnostic message.
                         var objectCreationText = syntax.ToString();

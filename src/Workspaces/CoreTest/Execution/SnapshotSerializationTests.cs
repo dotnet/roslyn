@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectsSyncObject = snapshot.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
             VerifySynchronizationObjectInService(snapshotService, projectsSyncObject);
 
-            Assert.Equal(solutionObject.Projects.Count, 0);
+            Assert.Equal(0, solutionObject.Projects.Count);
         }
 
         [Fact]
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectSyncObject = snapshot.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
             VerifySynchronizationObjectInService(snapshotService, projectSyncObject);
 
-            Assert.Equal(solutionObject.Projects.Count, 1);
+            Assert.Equal(1, solutionObject.Projects.Count);
             VerifySnapshotInService(snapshotService, solutionObject.Projects.ToProjectObjects(snapshotService)[0], 0, 0, 0, 0, 0);
         }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
             VerifyChecksumInService(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects);
 
-            Assert.Equal(solutionObject.Projects.Count, 1);
+            Assert.Equal(1, solutionObject.Projects.Count);
             VerifySnapshotInService(snapshotService, solutionObject.Projects.ToProjectObjects(snapshotService)[0], 1, 0, 0, 0, 0);
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
             VerifyChecksumInService(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects);
 
-            Assert.Equal(solutionObject.Projects.Count, 2);
+            Assert.Equal(2, solutionObject.Projects.Count);
 
             var projects = solutionObject.Projects.ToProjectObjects(snapshotService);
             VerifySnapshotInService(snapshotService, projects.Where(p => p.Checksum == firstProjectChecksum).First(), 1, 1, 1, 1, 1);
@@ -480,9 +480,9 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
         [Fact]
         public async Task UnknownLanguageTest()
         {
-            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NullLanguageService).Assembly));
+            var hostServices = MefHostServices.Create(MefHostServices.DefaultAssemblies.Add(typeof(NoCompilationConstants).Assembly));
 
-            var project = new AdhocWorkspace(hostServices).CurrentSolution.AddProject("Project", "Project.dll", NullLanguageService.TestLanguage);
+            var project = new AdhocWorkspace(hostServices).CurrentSolution.AddProject("Project", "Project.dll", NoCompilationConstants.LanguageName);
 
             var snapshotService = (new RemotableDataServiceFactory()).CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
@@ -697,21 +697,6 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             shadow.CopyContentFrom(typeof(object).Assembly.Location);
 
             return new AnalyzerFileReference(original, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(original, shadow.Path)));
-        }
-
-        private interface INullLanguageService : ILanguageService { }
-
-        [ExportLanguageService(typeof(INullLanguageService), TestLanguage), Shared]
-        private class NullLanguageService : INullLanguageService
-        {
-            public const string TestLanguage = nameof(TestLanguage);
-
-            [ImportingConstructor]
-            public NullLanguageService()
-            {
-            }
-
-            // do nothing
         }
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader

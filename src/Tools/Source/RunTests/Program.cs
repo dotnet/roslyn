@@ -203,7 +203,7 @@ namespace RunTests
                     var processOutput = await processInfo.Result;
 
                     // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
-                    // for succesful cases (possibly returning the count of dumps that were written).  Best 
+                    // for successful cases (possibly returning the count of dumps that were written).  Best 
                     // backup is to test for the dump file being present.
                     if (File.Exists(dumpFilePath))
                     {
@@ -300,7 +300,7 @@ namespace RunTests
                 // bottleneck.  Can adjust as we get real data.
                 if (name == "Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.dll" ||
                     name == "Microsoft.CodeAnalysis.EditorFeatures.UnitTests.dll" ||
-                    name == "Roslyn.Services.Editor.UnitTests2.dll" ||
+                    name == "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll" ||
                     name == "Microsoft.VisualStudio.LanguageServices.UnitTests.dll" ||
                     name == "Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests.dll" ||
                     name == "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests.dll")
