@@ -3885,7 +3885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new CheckedStatementSyntax instance.</summary>
-        public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, BlockSyntax block = default(BlockSyntax))
+        public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, BlockSyntax? block = default(BlockSyntax?))
             => SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Token(GetCheckedStatementKeywordKind(kind)), block ?? SyntaxFactory.Block());
 
         private static SyntaxKind GetCheckedStatementKeywordKind(SyntaxKind kind)
@@ -3905,7 +3905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new UnsafeStatementSyntax instance.</summary>
-        public static UnsafeStatementSyntax UnsafeStatement(BlockSyntax block = default(BlockSyntax))
+        public static UnsafeStatementSyntax UnsafeStatement(BlockSyntax? block = default(BlockSyntax?))
             => SyntaxFactory.UnsafeStatement(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword), block ?? SyntaxFactory.Block());
 
         /// <summary>Creates a new LockStatementSyntax instance.</summary>
@@ -4138,7 +4138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new FinallyClauseSyntax instance.</summary>
-        public static FinallyClauseSyntax FinallyClause(BlockSyntax block = default(BlockSyntax))
+        public static FinallyClauseSyntax FinallyClause(BlockSyntax? block = default(BlockSyntax?))
             => SyntaxFactory.FinallyClause(SyntaxFactory.Token(SyntaxKind.FinallyKeyword), block ?? SyntaxFactory.Block());
 
         /// <summary>Creates a new CompilationUnitSyntax instance.</summary>
@@ -4769,7 +4769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new ConstructorInitializerSyntax instance.</summary>
-        public static ConstructorInitializerSyntax ConstructorInitializer(SyntaxKind kind, ArgumentListSyntax argumentList = default(ArgumentListSyntax))
+        public static ConstructorInitializerSyntax ConstructorInitializer(SyntaxKind kind, ArgumentListSyntax? argumentList = default(ArgumentListSyntax?))
             => SyntaxFactory.ConstructorInitializer(kind, SyntaxFactory.Token(SyntaxKind.ColonToken), SyntaxFactory.Token(GetConstructorInitializerThisOrBaseKeywordKind(kind)), argumentList ?? SyntaxFactory.ArgumentList());
 
         private static SyntaxKind GetConstructorInitializerThisOrBaseKeywordKind(SyntaxKind kind)

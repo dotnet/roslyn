@@ -1996,6 +1996,11 @@ namespace CSharpSyntaxGenerator
                         if (hasPreviousParameter)
                             Write(", ");
 
+                        if (IsNode(field.Type) && !IsOptional(field) && field.Type != "SyntaxToken")
+                        {
+                            type += "?";
+                        }
+
                         Write("{0} {1} = default({0})", type, CamelCase(field.Name));
 
                         hasPreviousParameter = true;
