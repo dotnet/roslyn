@@ -1308,651 +1308,651 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual void VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node) => this.DefaultVisit(node);
     }
 
-    public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>
+    public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     {
-        public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
+        public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
             => node.Update(VisitToken(node.Identifier));
 
-        public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
-            => node.Update((NameSyntax)Visit(node.Left), VisitToken(node.DotToken), (SimpleNameSyntax)Visit(node.Right));
+        public override SyntaxNode? VisitQualifiedName(QualifiedNameSyntax node)
+            => node.Update((NameSyntax)Visit(node.Left) ?? throw new ArgumentNullException("left"), VisitToken(node.DotToken), (SimpleNameSyntax)Visit(node.Right) ?? throw new ArgumentNullException("right"));
 
-        public override SyntaxNode VisitGenericName(GenericNameSyntax node)
-            => node.Update(VisitToken(node.Identifier), (TypeArgumentListSyntax)Visit(node.TypeArgumentList));
+        public override SyntaxNode? VisitGenericName(GenericNameSyntax node)
+            => node.Update(VisitToken(node.Identifier), (TypeArgumentListSyntax)Visit(node.TypeArgumentList) ?? throw new ArgumentNullException("typeArgumentList"));
 
-        public override SyntaxNode VisitTypeArgumentList(TypeArgumentListSyntax node)
+        public override SyntaxNode? VisitTypeArgumentList(TypeArgumentListSyntax node)
             => node.Update(VisitToken(node.LessThanToken), VisitList(node.Arguments), VisitToken(node.GreaterThanToken));
 
-        public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
-            => node.Update((IdentifierNameSyntax)Visit(node.Alias), VisitToken(node.ColonColonToken), (SimpleNameSyntax)Visit(node.Name));
+        public override SyntaxNode? VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
+            => node.Update((IdentifierNameSyntax)Visit(node.Alias) ?? throw new ArgumentNullException("alias"), VisitToken(node.ColonColonToken), (SimpleNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"));
 
-        public override SyntaxNode VisitPredefinedType(PredefinedTypeSyntax node)
+        public override SyntaxNode? VisitPredefinedType(PredefinedTypeSyntax node)
             => node.Update(VisitToken(node.Keyword));
 
-        public override SyntaxNode VisitArrayType(ArrayTypeSyntax node)
-            => node.Update((TypeSyntax)Visit(node.ElementType), VisitList(node.RankSpecifiers));
+        public override SyntaxNode? VisitArrayType(ArrayTypeSyntax node)
+            => node.Update((TypeSyntax)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitList(node.RankSpecifiers));
 
-        public override SyntaxNode VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node)
+        public override SyntaxNode? VisitArrayRankSpecifier(ArrayRankSpecifierSyntax node)
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Sizes), VisitToken(node.CloseBracketToken));
 
-        public override SyntaxNode VisitPointerType(PointerTypeSyntax node)
-            => node.Update((TypeSyntax)Visit(node.ElementType), VisitToken(node.AsteriskToken));
+        public override SyntaxNode? VisitPointerType(PointerTypeSyntax node)
+            => node.Update((TypeSyntax)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.AsteriskToken));
 
-        public override SyntaxNode VisitNullableType(NullableTypeSyntax node)
-            => node.Update((TypeSyntax)Visit(node.ElementType), VisitToken(node.QuestionToken));
+        public override SyntaxNode? VisitNullableType(NullableTypeSyntax node)
+            => node.Update((TypeSyntax)Visit(node.ElementType) ?? throw new ArgumentNullException("elementType"), VisitToken(node.QuestionToken));
 
-        public override SyntaxNode VisitTupleType(TupleTypeSyntax node)
+        public override SyntaxNode? VisitTupleType(TupleTypeSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Elements), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitTupleElement(TupleElementSyntax node)
-            => node.Update((TypeSyntax)Visit(node.Type), VisitToken(node.Identifier));
+        public override SyntaxNode? VisitTupleElement(TupleElementSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.Identifier));
 
-        public override SyntaxNode VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node)
+        public override SyntaxNode? VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node)
             => node.Update(VisitToken(node.OmittedTypeArgumentToken));
 
-        public override SyntaxNode VisitRefType(RefTypeSyntax node)
-            => node.Update(VisitToken(node.RefKeyword), VisitToken(node.ReadOnlyKeyword), (TypeSyntax)Visit(node.Type));
+        public override SyntaxNode? VisitRefType(RefTypeSyntax node)
+            => node.Update(VisitToken(node.RefKeyword), VisitToken(node.ReadOnlyKeyword), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
-        public override SyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
-            => node.Update(VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken));
+        public override SyntaxNode? VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
+            => node.Update(VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitTupleExpression(TupleExpressionSyntax node)
+        public override SyntaxNode? VisitTupleExpression(TupleExpressionSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Arguments), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
-            => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.Operand));
+        public override SyntaxNode? VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
+            => node.Update(VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.Operand) ?? throw new ArgumentNullException("operand"));
 
-        public override SyntaxNode VisitAwaitExpression(AwaitExpressionSyntax node)
-            => node.Update(VisitToken(node.AwaitKeyword), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitAwaitExpression(AwaitExpressionSyntax node)
+            => node.Update(VisitToken(node.AwaitKeyword), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Operand), VisitToken(node.OperatorToken));
+        public override SyntaxNode? VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Operand) ?? throw new ArgumentNullException("operand"), VisitToken(node.OperatorToken));
 
-        public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Expression), VisitToken(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name));
+        public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"));
 
-        public override SyntaxNode VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Expression), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.WhenNotNull));
+        public override SyntaxNode? VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.WhenNotNull) ?? throw new ArgumentNullException("whenNotNull"));
 
-        public override SyntaxNode VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
-            => node.Update(VisitToken(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name));
+        public override SyntaxNode? VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
+            => node.Update(VisitToken(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"));
 
-        public override SyntaxNode VisitElementBindingExpression(ElementBindingExpressionSyntax node)
-            => node.Update((BracketedArgumentListSyntax)Visit(node.ArgumentList));
+        public override SyntaxNode? VisitElementBindingExpression(ElementBindingExpressionSyntax node)
+            => node.Update((BracketedArgumentListSyntax)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
-        public override SyntaxNode VisitRangeExpression(RangeExpressionSyntax node)
+        public override SyntaxNode? VisitRangeExpression(RangeExpressionSyntax node)
             => node.Update((ExpressionSyntax)Visit(node.LeftOperand), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.RightOperand));
 
-        public override SyntaxNode VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
-            => node.Update((BracketedArgumentListSyntax)Visit(node.ArgumentList));
+        public override SyntaxNode? VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
+            => node.Update((BracketedArgumentListSyntax)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
-        public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Left), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.Right));
+        public override SyntaxNode? VisitBinaryExpression(BinaryExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Left) ?? throw new ArgumentNullException("left"), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.Right) ?? throw new ArgumentNullException("right"));
 
-        public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Left), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.Right));
+        public override SyntaxNode? VisitAssignmentExpression(AssignmentExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Left) ?? throw new ArgumentNullException("left"), VisitToken(node.OperatorToken), (ExpressionSyntax)Visit(node.Right) ?? throw new ArgumentNullException("right"));
 
-        public override SyntaxNode VisitConditionalExpression(ConditionalExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Condition), VisitToken(node.QuestionToken), (ExpressionSyntax)Visit(node.WhenTrue), VisitToken(node.ColonToken), (ExpressionSyntax)Visit(node.WhenFalse));
+        public override SyntaxNode? VisitConditionalExpression(ConditionalExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Condition) ?? throw new ArgumentNullException("condition"), VisitToken(node.QuestionToken), (ExpressionSyntax)Visit(node.WhenTrue) ?? throw new ArgumentNullException("whenTrue"), VisitToken(node.ColonToken), (ExpressionSyntax)Visit(node.WhenFalse) ?? throw new ArgumentNullException("whenFalse"));
 
-        public override SyntaxNode VisitThisExpression(ThisExpressionSyntax node)
+        public override SyntaxNode? VisitThisExpression(ThisExpressionSyntax node)
             => node.Update(VisitToken(node.Token));
 
-        public override SyntaxNode VisitBaseExpression(BaseExpressionSyntax node)
+        public override SyntaxNode? VisitBaseExpression(BaseExpressionSyntax node)
             => node.Update(VisitToken(node.Token));
 
-        public override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
+        public override SyntaxNode? VisitLiteralExpression(LiteralExpressionSyntax node)
             => node.Update(VisitToken(node.Token));
 
-        public override SyntaxNode VisitMakeRefExpression(MakeRefExpressionSyntax node)
-            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken));
+        public override SyntaxNode? VisitMakeRefExpression(MakeRefExpressionSyntax node)
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitRefTypeExpression(RefTypeExpressionSyntax node)
-            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken));
+        public override SyntaxNode? VisitRefTypeExpression(RefTypeExpressionSyntax node)
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitRefValueExpression(RefValueExpressionSyntax node)
-            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.Comma), (TypeSyntax)Visit(node.Type), VisitToken(node.CloseParenToken));
+        public override SyntaxNode? VisitRefValueExpression(RefValueExpressionSyntax node)
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.Comma), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitCheckedExpression(CheckedExpressionSyntax node)
-            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken));
+        public override SyntaxNode? VisitCheckedExpression(CheckedExpressionSyntax node)
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitDefaultExpression(DefaultExpressionSyntax node)
-            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.CloseParenToken));
+        public override SyntaxNode? VisitDefaultExpression(DefaultExpressionSyntax node)
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitTypeOfExpression(TypeOfExpressionSyntax node)
-            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.CloseParenToken));
+        public override SyntaxNode? VisitTypeOfExpression(TypeOfExpressionSyntax node)
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitSizeOfExpression(SizeOfExpressionSyntax node)
-            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.CloseParenToken));
+        public override SyntaxNode? VisitSizeOfExpression(SizeOfExpressionSyntax node)
+            => node.Update(VisitToken(node.Keyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Expression), (ArgumentListSyntax)Visit(node.ArgumentList));
+        public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), (ArgumentListSyntax)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
-        public override SyntaxNode VisitElementAccessExpression(ElementAccessExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Expression), (BracketedArgumentListSyntax)Visit(node.ArgumentList));
+        public override SyntaxNode? VisitElementAccessExpression(ElementAccessExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), (BracketedArgumentListSyntax)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
-        public override SyntaxNode VisitArgumentList(ArgumentListSyntax node)
+        public override SyntaxNode? VisitArgumentList(ArgumentListSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Arguments), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitBracketedArgumentList(BracketedArgumentListSyntax node)
+        public override SyntaxNode? VisitBracketedArgumentList(BracketedArgumentListSyntax node)
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Arguments), VisitToken(node.CloseBracketToken));
 
-        public override SyntaxNode VisitArgument(ArgumentSyntax node)
-            => node.Update((NameColonSyntax)Visit(node.NameColon), VisitToken(node.RefKindKeyword), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitArgument(ArgumentSyntax node)
+            => node.Update((NameColonSyntax)Visit(node.NameColon), VisitToken(node.RefKindKeyword), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitNameColon(NameColonSyntax node)
-            => node.Update((IdentifierNameSyntax)Visit(node.Name), VisitToken(node.ColonToken));
+        public override SyntaxNode? VisitNameColon(NameColonSyntax node)
+            => node.Update((IdentifierNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.ColonToken));
 
-        public override SyntaxNode VisitDeclarationExpression(DeclarationExpressionSyntax node)
-            => node.Update((TypeSyntax)Visit(node.Type), (VariableDesignationSyntax)Visit(node.Designation));
+        public override SyntaxNode? VisitDeclarationExpression(DeclarationExpressionSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), (VariableDesignationSyntax)Visit(node.Designation) ?? throw new ArgumentNullException("designation"));
 
-        public override SyntaxNode VisitCastExpression(CastExpressionSyntax node)
-            => node.Update(VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.CloseParenToken), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitCastExpression(CastExpressionSyntax node)
+            => node.Update(VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.CloseParenToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-            => node.Update(VisitToken(node.AsyncKeyword), VisitToken(node.DelegateKeyword), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
+        public override SyntaxNode? VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+            => node.Update(VisitToken(node.AsyncKeyword), VisitToken(node.DelegateKeyword), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Block) ?? throw new ArgumentNullException("block"), (ExpressionSyntax)Visit(node.ExpressionBody));
 
-        public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-            => node.Update(VisitToken(node.AsyncKeyword), (ParameterSyntax)Visit(node.Parameter), VisitToken(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
+        public override SyntaxNode? VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+            => node.Update(VisitToken(node.AsyncKeyword), (ParameterSyntax)Visit(node.Parameter) ?? throw new ArgumentNullException("parameter"), VisitToken(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
 
-        public override SyntaxNode VisitRefExpression(RefExpressionSyntax node)
-            => node.Update(VisitToken(node.RefKeyword), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitRefExpression(RefExpressionSyntax node)
+            => node.Update(VisitToken(node.RefKeyword), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-            => node.Update(VisitToken(node.AsyncKeyword), (ParameterListSyntax)Visit(node.ParameterList), VisitToken(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
+        public override SyntaxNode? VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+            => node.Update(VisitToken(node.AsyncKeyword), (ParameterListSyntax)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitToken(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
 
-        public override SyntaxNode VisitInitializerExpression(InitializerExpressionSyntax node)
+        public override SyntaxNode? VisitInitializerExpression(InitializerExpressionSyntax node)
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Expressions), VisitToken(node.CloseBraceToken));
 
-        public override SyntaxNode VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
-            => node.Update(VisitToken(node.NewKeyword), (TypeSyntax)Visit(node.Type), (ArgumentListSyntax)Visit(node.ArgumentList), (InitializerExpressionSyntax)Visit(node.Initializer));
+        public override SyntaxNode? VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
+            => node.Update(VisitToken(node.NewKeyword), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ArgumentListSyntax)Visit(node.ArgumentList), (InitializerExpressionSyntax)Visit(node.Initializer));
 
-        public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
-            => node.Update((NameEqualsSyntax)Visit(node.NameEquals), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
+            => node.Update((NameEqualsSyntax)Visit(node.NameEquals), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
+        public override SyntaxNode? VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
             => node.Update(VisitToken(node.NewKeyword), VisitToken(node.OpenBraceToken), VisitList(node.Initializers), VisitToken(node.CloseBraceToken));
 
-        public override SyntaxNode VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
-            => node.Update(VisitToken(node.NewKeyword), (ArrayTypeSyntax)Visit(node.Type), (InitializerExpressionSyntax)Visit(node.Initializer));
+        public override SyntaxNode? VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
+            => node.Update(VisitToken(node.NewKeyword), (ArrayTypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), (InitializerExpressionSyntax)Visit(node.Initializer));
 
-        public override SyntaxNode VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node)
-            => node.Update(VisitToken(node.NewKeyword), VisitToken(node.OpenBracketToken), VisitList(node.Commas), VisitToken(node.CloseBracketToken), (InitializerExpressionSyntax)Visit(node.Initializer));
+        public override SyntaxNode? VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node)
+            => node.Update(VisitToken(node.NewKeyword), VisitToken(node.OpenBracketToken), VisitList(node.Commas), VisitToken(node.CloseBracketToken), (InitializerExpressionSyntax)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
 
-        public override SyntaxNode VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node)
-            => node.Update(VisitToken(node.StackAllocKeyword), (TypeSyntax)Visit(node.Type), (InitializerExpressionSyntax)Visit(node.Initializer));
+        public override SyntaxNode? VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node)
+            => node.Update(VisitToken(node.StackAllocKeyword), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), (InitializerExpressionSyntax)Visit(node.Initializer));
 
-        public override SyntaxNode VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
-            => node.Update(VisitToken(node.StackAllocKeyword), VisitToken(node.OpenBracketToken), VisitToken(node.CloseBracketToken), (InitializerExpressionSyntax)Visit(node.Initializer));
+        public override SyntaxNode? VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
+            => node.Update(VisitToken(node.StackAllocKeyword), VisitToken(node.OpenBracketToken), VisitToken(node.CloseBracketToken), (InitializerExpressionSyntax)Visit(node.Initializer) ?? throw new ArgumentNullException("initializer"));
 
-        public override SyntaxNode VisitQueryExpression(QueryExpressionSyntax node)
-            => node.Update((FromClauseSyntax)Visit(node.FromClause), (QueryBodySyntax)Visit(node.Body));
+        public override SyntaxNode? VisitQueryExpression(QueryExpressionSyntax node)
+            => node.Update((FromClauseSyntax)Visit(node.FromClause) ?? throw new ArgumentNullException("fromClause"), (QueryBodySyntax)Visit(node.Body) ?? throw new ArgumentNullException("body"));
 
-        public override SyntaxNode VisitQueryBody(QueryBodySyntax node)
-            => node.Update(VisitList(node.Clauses), (SelectOrGroupClauseSyntax)Visit(node.SelectOrGroup), (QueryContinuationSyntax)Visit(node.Continuation));
+        public override SyntaxNode? VisitQueryBody(QueryBodySyntax node)
+            => node.Update(VisitList(node.Clauses), (SelectOrGroupClauseSyntax)Visit(node.SelectOrGroup) ?? throw new ArgumentNullException("selectOrGroup"), (QueryContinuationSyntax)Visit(node.Continuation));
 
-        public override SyntaxNode VisitFromClause(FromClauseSyntax node)
-            => node.Update(VisitToken(node.FromKeyword), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitFromClause(FromClauseSyntax node)
+            => node.Update(VisitToken(node.FromKeyword), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitLetClause(LetClauseSyntax node)
-            => node.Update(VisitToken(node.LetKeyword), VisitToken(node.Identifier), VisitToken(node.EqualsToken), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitLetClause(LetClauseSyntax node)
+            => node.Update(VisitToken(node.LetKeyword), VisitToken(node.Identifier), VisitToken(node.EqualsToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitJoinClause(JoinClauseSyntax node)
-            => node.Update(VisitToken(node.JoinKeyword), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.InExpression), VisitToken(node.OnKeyword), (ExpressionSyntax)Visit(node.LeftExpression), VisitToken(node.EqualsKeyword), (ExpressionSyntax)Visit(node.RightExpression), (JoinIntoClauseSyntax)Visit(node.Into));
+        public override SyntaxNode? VisitJoinClause(JoinClauseSyntax node)
+            => node.Update(VisitToken(node.JoinKeyword), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.InExpression) ?? throw new ArgumentNullException("inExpression"), VisitToken(node.OnKeyword), (ExpressionSyntax)Visit(node.LeftExpression) ?? throw new ArgumentNullException("leftExpression"), VisitToken(node.EqualsKeyword), (ExpressionSyntax)Visit(node.RightExpression) ?? throw new ArgumentNullException("rightExpression"), (JoinIntoClauseSyntax)Visit(node.Into));
 
-        public override SyntaxNode VisitJoinIntoClause(JoinIntoClauseSyntax node)
+        public override SyntaxNode? VisitJoinIntoClause(JoinIntoClauseSyntax node)
             => node.Update(VisitToken(node.IntoKeyword), VisitToken(node.Identifier));
 
-        public override SyntaxNode VisitWhereClause(WhereClauseSyntax node)
-            => node.Update(VisitToken(node.WhereKeyword), (ExpressionSyntax)Visit(node.Condition));
+        public override SyntaxNode? VisitWhereClause(WhereClauseSyntax node)
+            => node.Update(VisitToken(node.WhereKeyword), (ExpressionSyntax)Visit(node.Condition) ?? throw new ArgumentNullException("condition"));
 
-        public override SyntaxNode VisitOrderByClause(OrderByClauseSyntax node)
+        public override SyntaxNode? VisitOrderByClause(OrderByClauseSyntax node)
             => node.Update(VisitToken(node.OrderByKeyword), VisitList(node.Orderings));
 
-        public override SyntaxNode VisitOrdering(OrderingSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Expression), VisitToken(node.AscendingOrDescendingKeyword));
+        public override SyntaxNode? VisitOrdering(OrderingSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.AscendingOrDescendingKeyword));
 
-        public override SyntaxNode VisitSelectClause(SelectClauseSyntax node)
-            => node.Update(VisitToken(node.SelectKeyword), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitSelectClause(SelectClauseSyntax node)
+            => node.Update(VisitToken(node.SelectKeyword), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitGroupClause(GroupClauseSyntax node)
-            => node.Update(VisitToken(node.GroupKeyword), (ExpressionSyntax)Visit(node.GroupExpression), VisitToken(node.ByKeyword), (ExpressionSyntax)Visit(node.ByExpression));
+        public override SyntaxNode? VisitGroupClause(GroupClauseSyntax node)
+            => node.Update(VisitToken(node.GroupKeyword), (ExpressionSyntax)Visit(node.GroupExpression) ?? throw new ArgumentNullException("groupExpression"), VisitToken(node.ByKeyword), (ExpressionSyntax)Visit(node.ByExpression) ?? throw new ArgumentNullException("byExpression"));
 
-        public override SyntaxNode VisitQueryContinuation(QueryContinuationSyntax node)
-            => node.Update(VisitToken(node.IntoKeyword), VisitToken(node.Identifier), (QueryBodySyntax)Visit(node.Body));
+        public override SyntaxNode? VisitQueryContinuation(QueryContinuationSyntax node)
+            => node.Update(VisitToken(node.IntoKeyword), VisitToken(node.Identifier), (QueryBodySyntax)Visit(node.Body) ?? throw new ArgumentNullException("body"));
 
-        public override SyntaxNode VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node)
+        public override SyntaxNode? VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node)
             => node.Update(VisitToken(node.OmittedArraySizeExpressionToken));
 
-        public override SyntaxNode VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
+        public override SyntaxNode? VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
             => node.Update(VisitToken(node.StringStartToken), VisitList(node.Contents), VisitToken(node.StringEndToken));
 
-        public override SyntaxNode VisitIsPatternExpression(IsPatternExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Expression), VisitToken(node.IsKeyword), (PatternSyntax)Visit(node.Pattern));
+        public override SyntaxNode? VisitIsPatternExpression(IsPatternExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.IsKeyword), (PatternSyntax)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
 
-        public override SyntaxNode VisitThrowExpression(ThrowExpressionSyntax node)
-            => node.Update(VisitToken(node.ThrowKeyword), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitThrowExpression(ThrowExpressionSyntax node)
+            => node.Update(VisitToken(node.ThrowKeyword), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitWhenClause(WhenClauseSyntax node)
-            => node.Update(VisitToken(node.WhenKeyword), (ExpressionSyntax)Visit(node.Condition));
+        public override SyntaxNode? VisitWhenClause(WhenClauseSyntax node)
+            => node.Update(VisitToken(node.WhenKeyword), (ExpressionSyntax)Visit(node.Condition) ?? throw new ArgumentNullException("condition"));
 
-        public override SyntaxNode VisitDiscardPattern(DiscardPatternSyntax node)
+        public override SyntaxNode? VisitDiscardPattern(DiscardPatternSyntax node)
             => node.Update(VisitToken(node.UnderscoreToken));
 
-        public override SyntaxNode VisitDeclarationPattern(DeclarationPatternSyntax node)
-            => node.Update((TypeSyntax)Visit(node.Type), (VariableDesignationSyntax)Visit(node.Designation));
+        public override SyntaxNode? VisitDeclarationPattern(DeclarationPatternSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), (VariableDesignationSyntax)Visit(node.Designation) ?? throw new ArgumentNullException("designation"));
 
-        public override SyntaxNode VisitVarPattern(VarPatternSyntax node)
-            => node.Update(VisitToken(node.VarKeyword), (VariableDesignationSyntax)Visit(node.Designation));
+        public override SyntaxNode? VisitVarPattern(VarPatternSyntax node)
+            => node.Update(VisitToken(node.VarKeyword), (VariableDesignationSyntax)Visit(node.Designation) ?? throw new ArgumentNullException("designation"));
 
-        public override SyntaxNode VisitRecursivePattern(RecursivePatternSyntax node)
+        public override SyntaxNode? VisitRecursivePattern(RecursivePatternSyntax node)
             => node.Update((TypeSyntax)Visit(node.Type), (PositionalPatternClauseSyntax)Visit(node.PositionalPatternClause), (PropertyPatternClauseSyntax)Visit(node.PropertyPatternClause), (VariableDesignationSyntax)Visit(node.Designation));
 
-        public override SyntaxNode VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
+        public override SyntaxNode? VisitPositionalPatternClause(PositionalPatternClauseSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Subpatterns), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
+        public override SyntaxNode? VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Subpatterns), VisitToken(node.CloseBraceToken));
 
-        public override SyntaxNode VisitSubpattern(SubpatternSyntax node)
-            => node.Update((NameColonSyntax)Visit(node.NameColon), (PatternSyntax)Visit(node.Pattern));
+        public override SyntaxNode? VisitSubpattern(SubpatternSyntax node)
+            => node.Update((NameColonSyntax)Visit(node.NameColon), (PatternSyntax)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
 
-        public override SyntaxNode VisitConstantPattern(ConstantPatternSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitConstantPattern(ConstantPatternSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
+        public override SyntaxNode? VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
             => node.Update(VisitToken(node.TextToken));
 
-        public override SyntaxNode VisitInterpolation(InterpolationSyntax node)
-            => node.Update(VisitToken(node.OpenBraceToken), (ExpressionSyntax)Visit(node.Expression), (InterpolationAlignmentClauseSyntax)Visit(node.AlignmentClause), (InterpolationFormatClauseSyntax)Visit(node.FormatClause), VisitToken(node.CloseBraceToken));
+        public override SyntaxNode? VisitInterpolation(InterpolationSyntax node)
+            => node.Update(VisitToken(node.OpenBraceToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), (InterpolationAlignmentClauseSyntax)Visit(node.AlignmentClause), (InterpolationFormatClauseSyntax)Visit(node.FormatClause), VisitToken(node.CloseBraceToken));
 
-        public override SyntaxNode VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node)
-            => node.Update(VisitToken(node.CommaToken), (ExpressionSyntax)Visit(node.Value));
+        public override SyntaxNode? VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node)
+            => node.Update(VisitToken(node.CommaToken), (ExpressionSyntax)Visit(node.Value) ?? throw new ArgumentNullException("value"));
 
-        public override SyntaxNode VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node)
+        public override SyntaxNode? VisitInterpolationFormatClause(InterpolationFormatClauseSyntax node)
             => node.Update(VisitToken(node.ColonToken), VisitToken(node.FormatStringToken));
 
-        public override SyntaxNode VisitGlobalStatement(GlobalStatementSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (StatementSyntax)Visit(node.Statement));
+        public override SyntaxNode? VisitGlobalStatement(GlobalStatementSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"));
 
-        public override SyntaxNode VisitBlock(BlockSyntax node)
+        public override SyntaxNode? VisitBlock(BlockSyntax node)
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Statements), VisitToken(node.CloseBraceToken));
 
-        public override SyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
-            => node.Update(VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), VisitList(node.ConstraintClauses), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+            => node.Update(VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType"), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitList(node.ConstraintClauses), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.UsingKeyword), VisitList(node.Modifiers), (VariableDeclarationSyntax)Visit(node.Declaration), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
+            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.UsingKeyword), VisitList(node.Modifiers), (VariableDeclarationSyntax)Visit(node.Declaration) ?? throw new ArgumentNullException("declaration"), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitVariableDeclaration(VariableDeclarationSyntax node)
-            => node.Update((TypeSyntax)Visit(node.Type), VisitList(node.Variables));
+        public override SyntaxNode? VisitVariableDeclaration(VariableDeclarationSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitList(node.Variables));
 
-        public override SyntaxNode VisitVariableDeclarator(VariableDeclaratorSyntax node)
+        public override SyntaxNode? VisitVariableDeclarator(VariableDeclaratorSyntax node)
             => node.Update(VisitToken(node.Identifier), (BracketedArgumentListSyntax)Visit(node.ArgumentList), (EqualsValueClauseSyntax)Visit(node.Initializer));
 
-        public override SyntaxNode VisitEqualsValueClause(EqualsValueClauseSyntax node)
-            => node.Update(VisitToken(node.EqualsToken), (ExpressionSyntax)Visit(node.Value));
+        public override SyntaxNode? VisitEqualsValueClause(EqualsValueClauseSyntax node)
+            => node.Update(VisitToken(node.EqualsToken), (ExpressionSyntax)Visit(node.Value) ?? throw new ArgumentNullException("value"));
 
-        public override SyntaxNode VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
+        public override SyntaxNode? VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
             => node.Update(VisitToken(node.Identifier));
 
-        public override SyntaxNode VisitDiscardDesignation(DiscardDesignationSyntax node)
+        public override SyntaxNode? VisitDiscardDesignation(DiscardDesignationSyntax node)
             => node.Update(VisitToken(node.UnderscoreToken));
 
-        public override SyntaxNode VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
+        public override SyntaxNode? VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Variables), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Expression), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitExpressionStatement(ExpressionStatementSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitEmptyStatement(EmptyStatementSyntax node)
+        public override SyntaxNode? VisitEmptyStatement(EmptyStatementSyntax node)
             => node.Update(VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitLabeledStatement(LabeledStatementSyntax node)
-            => node.Update(VisitToken(node.Identifier), VisitToken(node.ColonToken), (StatementSyntax)Visit(node.Statement));
+        public override SyntaxNode? VisitLabeledStatement(LabeledStatementSyntax node)
+            => node.Update(VisitToken(node.Identifier), VisitToken(node.ColonToken), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"));
 
-        public override SyntaxNode VisitGotoStatement(GotoStatementSyntax node)
+        public override SyntaxNode? VisitGotoStatement(GotoStatementSyntax node)
             => node.Update(VisitToken(node.GotoKeyword), VisitToken(node.CaseOrDefaultKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitBreakStatement(BreakStatementSyntax node)
+        public override SyntaxNode? VisitBreakStatement(BreakStatementSyntax node)
             => node.Update(VisitToken(node.BreakKeyword), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitContinueStatement(ContinueStatementSyntax node)
+        public override SyntaxNode? VisitContinueStatement(ContinueStatementSyntax node)
             => node.Update(VisitToken(node.ContinueKeyword), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitReturnStatement(ReturnStatementSyntax node)
+        public override SyntaxNode? VisitReturnStatement(ReturnStatementSyntax node)
             => node.Update(VisitToken(node.ReturnKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitThrowStatement(ThrowStatementSyntax node)
+        public override SyntaxNode? VisitThrowStatement(ThrowStatementSyntax node)
             => node.Update(VisitToken(node.ThrowKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitYieldStatement(YieldStatementSyntax node)
+        public override SyntaxNode? VisitYieldStatement(YieldStatementSyntax node)
             => node.Update(VisitToken(node.YieldKeyword), VisitToken(node.ReturnOrBreakKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitWhileStatement(WhileStatementSyntax node)
-            => node.Update(VisitToken(node.WhileKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
+        public override SyntaxNode? VisitWhileStatement(WhileStatementSyntax node)
+            => node.Update(VisitToken(node.WhileKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Condition) ?? throw new ArgumentNullException("condition"), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"));
 
-        public override SyntaxNode VisitDoStatement(DoStatementSyntax node)
-            => node.Update(VisitToken(node.DoKeyword), (StatementSyntax)Visit(node.Statement), VisitToken(node.WhileKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.CloseParenToken), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitDoStatement(DoStatementSyntax node)
+            => node.Update(VisitToken(node.DoKeyword), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"), VisitToken(node.WhileKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Condition) ?? throw new ArgumentNullException("condition"), VisitToken(node.CloseParenToken), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitForStatement(ForStatementSyntax node)
-            => node.Update(VisitToken(node.ForKeyword), VisitToken(node.OpenParenToken), (VariableDeclarationSyntax)Visit(node.Declaration), VisitList(node.Initializers), VisitToken(node.FirstSemicolonToken), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.SecondSemicolonToken), VisitList(node.Incrementors), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
+        public override SyntaxNode? VisitForStatement(ForStatementSyntax node)
+            => node.Update(VisitToken(node.ForKeyword), VisitToken(node.OpenParenToken), (VariableDeclarationSyntax)Visit(node.Declaration), VisitList(node.Initializers), VisitToken(node.FirstSemicolonToken), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.SecondSemicolonToken), VisitList(node.Incrementors), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"));
 
-        public override SyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
-            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.ForEachKeyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
+        public override SyntaxNode? VisitForEachStatement(ForEachStatementSyntax node)
+            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.ForEachKeyword), VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.Identifier), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"));
 
-        public override SyntaxNode VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
-            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.ForEachKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Variable), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
+        public override SyntaxNode? VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
+            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.ForEachKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Variable) ?? throw new ArgumentNullException("variable"), VisitToken(node.InKeyword), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"));
 
-        public override SyntaxNode VisitUsingStatement(UsingStatementSyntax node)
-            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.UsingKeyword), VisitToken(node.OpenParenToken), (VariableDeclarationSyntax)Visit(node.Declaration), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
+        public override SyntaxNode? VisitUsingStatement(UsingStatementSyntax node)
+            => node.Update(VisitToken(node.AwaitKeyword), VisitToken(node.UsingKeyword), VisitToken(node.OpenParenToken), (VariableDeclarationSyntax)Visit(node.Declaration), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"));
 
-        public override SyntaxNode VisitFixedStatement(FixedStatementSyntax node)
-            => node.Update(VisitToken(node.FixedKeyword), VisitToken(node.OpenParenToken), (VariableDeclarationSyntax)Visit(node.Declaration), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
+        public override SyntaxNode? VisitFixedStatement(FixedStatementSyntax node)
+            => node.Update(VisitToken(node.FixedKeyword), VisitToken(node.OpenParenToken), (VariableDeclarationSyntax)Visit(node.Declaration) ?? throw new ArgumentNullException("declaration"), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"));
 
-        public override SyntaxNode VisitCheckedStatement(CheckedStatementSyntax node)
-            => node.Update(VisitToken(node.Keyword), (BlockSyntax)Visit(node.Block));
+        public override SyntaxNode? VisitCheckedStatement(CheckedStatementSyntax node)
+            => node.Update(VisitToken(node.Keyword), (BlockSyntax)Visit(node.Block) ?? throw new ArgumentNullException("block"));
 
-        public override SyntaxNode VisitUnsafeStatement(UnsafeStatementSyntax node)
-            => node.Update(VisitToken(node.UnsafeKeyword), (BlockSyntax)Visit(node.Block));
+        public override SyntaxNode? VisitUnsafeStatement(UnsafeStatementSyntax node)
+            => node.Update(VisitToken(node.UnsafeKeyword), (BlockSyntax)Visit(node.Block) ?? throw new ArgumentNullException("block"));
 
-        public override SyntaxNode VisitLockStatement(LockStatementSyntax node)
-            => node.Update(VisitToken(node.LockKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement));
+        public override SyntaxNode? VisitLockStatement(LockStatementSyntax node)
+            => node.Update(VisitToken(node.LockKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"));
 
-        public override SyntaxNode VisitIfStatement(IfStatementSyntax node)
-            => node.Update(VisitToken(node.IfKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement), (ElseClauseSyntax)Visit(node.Else));
+        public override SyntaxNode? VisitIfStatement(IfStatementSyntax node)
+            => node.Update(VisitToken(node.IfKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Condition) ?? throw new ArgumentNullException("condition"), VisitToken(node.CloseParenToken), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"), (ElseClauseSyntax)Visit(node.Else));
 
-        public override SyntaxNode VisitElseClause(ElseClauseSyntax node)
-            => node.Update(VisitToken(node.ElseKeyword), (StatementSyntax)Visit(node.Statement));
+        public override SyntaxNode? VisitElseClause(ElseClauseSyntax node)
+            => node.Update(VisitToken(node.ElseKeyword), (StatementSyntax)Visit(node.Statement) ?? throw new ArgumentNullException("statement"));
 
-        public override SyntaxNode VisitSwitchStatement(SwitchStatementSyntax node)
-            => node.Update(VisitToken(node.SwitchKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), VisitToken(node.CloseParenToken), VisitToken(node.OpenBraceToken), VisitList(node.Sections), VisitToken(node.CloseBraceToken));
+        public override SyntaxNode? VisitSwitchStatement(SwitchStatementSyntax node)
+            => node.Update(VisitToken(node.SwitchKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken), VisitToken(node.OpenBraceToken), VisitList(node.Sections), VisitToken(node.CloseBraceToken));
 
-        public override SyntaxNode VisitSwitchSection(SwitchSectionSyntax node)
+        public override SyntaxNode? VisitSwitchSection(SwitchSectionSyntax node)
             => node.Update(VisitList(node.Labels), VisitList(node.Statements));
 
-        public override SyntaxNode VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
-            => node.Update(VisitToken(node.Keyword), (PatternSyntax)Visit(node.Pattern), (WhenClauseSyntax)Visit(node.WhenClause), VisitToken(node.ColonToken));
+        public override SyntaxNode? VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
+            => node.Update(VisitToken(node.Keyword), (PatternSyntax)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"), (WhenClauseSyntax)Visit(node.WhenClause), VisitToken(node.ColonToken));
 
-        public override SyntaxNode VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
-            => node.Update(VisitToken(node.Keyword), (ExpressionSyntax)Visit(node.Value), VisitToken(node.ColonToken));
+        public override SyntaxNode? VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
+            => node.Update(VisitToken(node.Keyword), (ExpressionSyntax)Visit(node.Value) ?? throw new ArgumentNullException("value"), VisitToken(node.ColonToken));
 
-        public override SyntaxNode VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node)
+        public override SyntaxNode? VisitDefaultSwitchLabel(DefaultSwitchLabelSyntax node)
             => node.Update(VisitToken(node.Keyword), VisitToken(node.ColonToken));
 
-        public override SyntaxNode VisitSwitchExpression(SwitchExpressionSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.GoverningExpression), VisitToken(node.SwitchKeyword), VisitToken(node.OpenBraceToken), VisitList(node.Arms), VisitToken(node.CloseBraceToken));
+        public override SyntaxNode? VisitSwitchExpression(SwitchExpressionSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.GoverningExpression) ?? throw new ArgumentNullException("governingExpression"), VisitToken(node.SwitchKeyword), VisitToken(node.OpenBraceToken), VisitList(node.Arms), VisitToken(node.CloseBraceToken));
 
-        public override SyntaxNode VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
-            => node.Update((PatternSyntax)Visit(node.Pattern), (WhenClauseSyntax)Visit(node.WhenClause), VisitToken(node.EqualsGreaterThanToken), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitSwitchExpressionArm(SwitchExpressionArmSyntax node)
+            => node.Update((PatternSyntax)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"), (WhenClauseSyntax)Visit(node.WhenClause), VisitToken(node.EqualsGreaterThanToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitTryStatement(TryStatementSyntax node)
-            => node.Update(VisitToken(node.TryKeyword), (BlockSyntax)Visit(node.Block), VisitList(node.Catches), (FinallyClauseSyntax)Visit(node.Finally));
+        public override SyntaxNode? VisitTryStatement(TryStatementSyntax node)
+            => node.Update(VisitToken(node.TryKeyword), (BlockSyntax)Visit(node.Block) ?? throw new ArgumentNullException("block"), VisitList(node.Catches), (FinallyClauseSyntax)Visit(node.Finally));
 
-        public override SyntaxNode VisitCatchClause(CatchClauseSyntax node)
-            => node.Update(VisitToken(node.CatchKeyword), (CatchDeclarationSyntax)Visit(node.Declaration), (CatchFilterClauseSyntax)Visit(node.Filter), (BlockSyntax)Visit(node.Block));
+        public override SyntaxNode? VisitCatchClause(CatchClauseSyntax node)
+            => node.Update(VisitToken(node.CatchKeyword), (CatchDeclarationSyntax)Visit(node.Declaration), (CatchFilterClauseSyntax)Visit(node.Filter), (BlockSyntax)Visit(node.Block) ?? throw new ArgumentNullException("block"));
 
-        public override SyntaxNode VisitCatchDeclaration(CatchDeclarationSyntax node)
-            => node.Update(VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.CloseParenToken));
+        public override SyntaxNode? VisitCatchDeclaration(CatchDeclarationSyntax node)
+            => node.Update(VisitToken(node.OpenParenToken), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), VisitToken(node.Identifier), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitCatchFilterClause(CatchFilterClauseSyntax node)
-            => node.Update(VisitToken(node.WhenKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.FilterExpression), VisitToken(node.CloseParenToken));
+        public override SyntaxNode? VisitCatchFilterClause(CatchFilterClauseSyntax node)
+            => node.Update(VisitToken(node.WhenKeyword), VisitToken(node.OpenParenToken), (ExpressionSyntax)Visit(node.FilterExpression) ?? throw new ArgumentNullException("filterExpression"), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitFinallyClause(FinallyClauseSyntax node)
-            => node.Update(VisitToken(node.FinallyKeyword), (BlockSyntax)Visit(node.Block));
+        public override SyntaxNode? VisitFinallyClause(FinallyClauseSyntax node)
+            => node.Update(VisitToken(node.FinallyKeyword), (BlockSyntax)Visit(node.Block) ?? throw new ArgumentNullException("block"));
 
-        public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
+        public override SyntaxNode? VisitCompilationUnit(CompilationUnitSyntax node)
             => node.Update(VisitList(node.Externs), VisitList(node.Usings), VisitList(node.AttributeLists), VisitList(node.Members), VisitToken(node.EndOfFileToken));
 
-        public override SyntaxNode VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
+        public override SyntaxNode? VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
             => node.Update(VisitToken(node.ExternKeyword), VisitToken(node.AliasKeyword), VisitToken(node.Identifier), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node)
-            => node.Update(VisitToken(node.UsingKeyword), VisitToken(node.StaticKeyword), (NameEqualsSyntax)Visit(node.Alias), (NameSyntax)Visit(node.Name), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitUsingDirective(UsingDirectiveSyntax node)
+            => node.Update(VisitToken(node.UsingKeyword), VisitToken(node.StaticKeyword), (NameEqualsSyntax)Visit(node.Alias), (NameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.NamespaceKeyword), (NameSyntax)Visit(node.Name), VisitToken(node.OpenBraceToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.NamespaceKeyword), (NameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.OpenBraceToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitAttributeList(AttributeListSyntax node)
+        public override SyntaxNode? VisitAttributeList(AttributeListSyntax node)
             => node.Update(VisitToken(node.OpenBracketToken), (AttributeTargetSpecifierSyntax)Visit(node.Target), VisitList(node.Attributes), VisitToken(node.CloseBracketToken));
 
-        public override SyntaxNode VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node)
+        public override SyntaxNode? VisitAttributeTargetSpecifier(AttributeTargetSpecifierSyntax node)
             => node.Update(VisitToken(node.Identifier), VisitToken(node.ColonToken));
 
-        public override SyntaxNode VisitAttribute(AttributeSyntax node)
-            => node.Update((NameSyntax)Visit(node.Name), (AttributeArgumentListSyntax)Visit(node.ArgumentList));
+        public override SyntaxNode? VisitAttribute(AttributeSyntax node)
+            => node.Update((NameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), (AttributeArgumentListSyntax)Visit(node.ArgumentList));
 
-        public override SyntaxNode VisitAttributeArgumentList(AttributeArgumentListSyntax node)
+        public override SyntaxNode? VisitAttributeArgumentList(AttributeArgumentListSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Arguments), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitAttributeArgument(AttributeArgumentSyntax node)
-            => node.Update((NameEqualsSyntax)Visit(node.NameEquals), (NameColonSyntax)Visit(node.NameColon), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitAttributeArgument(AttributeArgumentSyntax node)
+            => node.Update((NameEqualsSyntax)Visit(node.NameEquals), (NameColonSyntax)Visit(node.NameColon), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitNameEquals(NameEqualsSyntax node)
-            => node.Update((IdentifierNameSyntax)Visit(node.Name), VisitToken(node.EqualsToken));
+        public override SyntaxNode? VisitNameEquals(NameEqualsSyntax node)
+            => node.Update((IdentifierNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.EqualsToken));
 
-        public override SyntaxNode VisitTypeParameterList(TypeParameterListSyntax node)
+        public override SyntaxNode? VisitTypeParameterList(TypeParameterListSyntax node)
             => node.Update(VisitToken(node.LessThanToken), VisitList(node.Parameters), VisitToken(node.GreaterThanToken));
 
-        public override SyntaxNode VisitTypeParameter(TypeParameterSyntax node)
+        public override SyntaxNode? VisitTypeParameter(TypeParameterSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitToken(node.VarianceKeyword), VisitToken(node.Identifier));
 
-        public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
+        public override SyntaxNode? VisitClassDeclaration(ClassDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
+        public override SyntaxNode? VisitStructDeclaration(StructDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+        public override SyntaxNode? VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (BaseListSyntax)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitEnumDeclaration(EnumDeclarationSyntax node)
+        public override SyntaxNode? VisitEnumDeclaration(EnumDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EnumKeyword), VisitToken(node.Identifier), (BaseListSyntax)Visit(node.BaseList), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitDelegateDeclaration(DelegateDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.DelegateKeyword), (TypeSyntax)Visit(node.ReturnType), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), VisitList(node.ConstraintClauses), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitDelegateDeclaration(DelegateDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.DelegateKeyword), (TypeSyntax)Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType"), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitList(node.ConstraintClauses), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
+        public override SyntaxNode? VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Identifier), (EqualsValueClauseSyntax)Visit(node.EqualsValue));
 
-        public override SyntaxNode VisitBaseList(BaseListSyntax node)
+        public override SyntaxNode? VisitBaseList(BaseListSyntax node)
             => node.Update(VisitToken(node.ColonToken), VisitList(node.Types));
 
-        public override SyntaxNode VisitSimpleBaseType(SimpleBaseTypeSyntax node)
-            => node.Update((TypeSyntax)Visit(node.Type));
+        public override SyntaxNode? VisitSimpleBaseType(SimpleBaseTypeSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
-        public override SyntaxNode VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
-            => node.Update(VisitToken(node.WhereKeyword), (IdentifierNameSyntax)Visit(node.Name), VisitToken(node.ColonToken), VisitList(node.Constraints));
+        public override SyntaxNode? VisitTypeParameterConstraintClause(TypeParameterConstraintClauseSyntax node)
+            => node.Update(VisitToken(node.WhereKeyword), (IdentifierNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.ColonToken), VisitList(node.Constraints));
 
-        public override SyntaxNode VisitConstructorConstraint(ConstructorConstraintSyntax node)
+        public override SyntaxNode? VisitConstructorConstraint(ConstructorConstraintSyntax node)
             => node.Update(VisitToken(node.NewKeyword), VisitToken(node.OpenParenToken), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node)
+        public override SyntaxNode? VisitClassOrStructConstraint(ClassOrStructConstraintSyntax node)
             => node.Update(VisitToken(node.ClassOrStructKeyword), VisitToken(node.QuestionToken));
 
-        public override SyntaxNode VisitTypeConstraint(TypeConstraintSyntax node)
-            => node.Update((TypeSyntax)Visit(node.Type));
+        public override SyntaxNode? VisitTypeConstraint(TypeConstraintSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
-        public override SyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (VariableDeclarationSyntax)Visit(node.Declaration), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitFieldDeclaration(FieldDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (VariableDeclarationSyntax)Visit(node.Declaration) ?? throw new ArgumentNullException("declaration"), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EventKeyword), (VariableDeclarationSyntax)Visit(node.Declaration), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EventKeyword), (VariableDeclarationSyntax)Visit(node.Declaration) ?? throw new ArgumentNullException("declaration"), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node)
-            => node.Update((NameSyntax)Visit(node.Name), VisitToken(node.DotToken));
+        public override SyntaxNode? VisitExplicitInterfaceSpecifier(ExplicitInterfaceSpecifierSyntax node)
+            => node.Update((NameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.DotToken));
 
-        public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList), VisitList(node.ConstraintClauses), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitMethodDeclaration(MethodDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType"), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (TypeParameterListSyntax)Visit(node.TypeParameterList), (ParameterListSyntax)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitList(node.ConstraintClauses), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitOperatorDeclaration(OperatorDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), VisitToken(node.OperatorKeyword), VisitToken(node.OperatorToken), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitOperatorDeclaration(OperatorDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType"), VisitToken(node.OperatorKeyword), VisitToken(node.OperatorToken), (ParameterListSyntax)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.ImplicitOrExplicitKeyword), VisitToken(node.OperatorKeyword), (TypeSyntax)Visit(node.Type), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.ImplicitOrExplicitKeyword), VisitToken(node.OperatorKeyword), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ParameterListSyntax)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Identifier), (ParameterListSyntax)Visit(node.ParameterList), (ConstructorInitializerSyntax)Visit(node.Initializer), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Identifier), (ParameterListSyntax)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (ConstructorInitializerSyntax)Visit(node.Initializer), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitConstructorInitializer(ConstructorInitializerSyntax node)
-            => node.Update(VisitToken(node.ColonToken), VisitToken(node.ThisOrBaseKeyword), (ArgumentListSyntax)Visit(node.ArgumentList));
+        public override SyntaxNode? VisitConstructorInitializer(ConstructorInitializerSyntax node)
+            => node.Update(VisitToken(node.ColonToken), VisitToken(node.ThisOrBaseKeyword), (ArgumentListSyntax)Visit(node.ArgumentList) ?? throw new ArgumentNullException("argumentList"));
 
-        public override SyntaxNode VisitDestructorDeclaration(DestructorDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.TildeToken), VisitToken(node.Identifier), (ParameterListSyntax)Visit(node.ParameterList), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitDestructorDeclaration(DestructorDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.TildeToken), VisitToken(node.Identifier), (ParameterListSyntax)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitPropertyDeclaration(PropertyDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (AccessorListSyntax)Visit(node.AccessorList), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), (EqualsValueClauseSyntax)Visit(node.Initializer), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (AccessorListSyntax)Visit(node.AccessorList), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), (EqualsValueClauseSyntax)Visit(node.Initializer), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
-            => node.Update(VisitToken(node.ArrowToken), (ExpressionSyntax)Visit(node.Expression));
+        public override SyntaxNode? VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
+            => node.Update(VisitToken(node.ArrowToken), (ExpressionSyntax)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
-        public override SyntaxNode VisitEventDeclaration(EventDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EventKeyword), (TypeSyntax)Visit(node.Type), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (AccessorListSyntax)Visit(node.AccessorList), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitEventDeclaration(EventDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EventKeyword), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (AccessorListSyntax)Visit(node.AccessorList), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitIndexerDeclaration(IndexerDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.ThisKeyword), (BracketedParameterListSyntax)Visit(node.ParameterList), (AccessorListSyntax)Visit(node.AccessorList), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
+        public override SyntaxNode? VisitIndexerDeclaration(IndexerDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ExplicitInterfaceSpecifierSyntax)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.ThisKeyword), (BracketedParameterListSyntax)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (AccessorListSyntax)Visit(node.AccessorList), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitAccessorList(AccessorListSyntax node)
+        public override SyntaxNode? VisitAccessorList(AccessorListSyntax node)
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Accessors), VisitToken(node.CloseBraceToken));
 
-        public override SyntaxNode VisitAccessorDeclaration(AccessorDeclarationSyntax node)
+        public override SyntaxNode? VisitAccessorDeclaration(AccessorDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), (BlockSyntax)Visit(node.Body), (ArrowExpressionClauseSyntax)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
-        public override SyntaxNode VisitParameterList(ParameterListSyntax node)
+        public override SyntaxNode? VisitParameterList(ParameterListSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Parameters), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitBracketedParameterList(BracketedParameterListSyntax node)
+        public override SyntaxNode? VisitBracketedParameterList(BracketedParameterListSyntax node)
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Parameters), VisitToken(node.CloseBracketToken));
 
-        public override SyntaxNode VisitParameter(ParameterSyntax node)
+        public override SyntaxNode? VisitParameter(ParameterSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type), VisitToken(node.Identifier), (EqualsValueClauseSyntax)Visit(node.Default));
 
-        public override SyntaxNode VisitIncompleteMember(IncompleteMemberSyntax node)
+        public override SyntaxNode? VisitIncompleteMember(IncompleteMemberSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.Type));
 
-        public override SyntaxNode VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node)
+        public override SyntaxNode? VisitSkippedTokensTrivia(SkippedTokensTriviaSyntax node)
             => node.Update(VisitList(node.Tokens));
 
-        public override SyntaxNode VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node)
+        public override SyntaxNode? VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax node)
             => node.Update(VisitList(node.Content), VisitToken(node.EndOfComment));
 
-        public override SyntaxNode VisitTypeCref(TypeCrefSyntax node)
-            => node.Update((TypeSyntax)Visit(node.Type));
+        public override SyntaxNode? VisitTypeCref(TypeCrefSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
-        public override SyntaxNode VisitQualifiedCref(QualifiedCrefSyntax node)
-            => node.Update((TypeSyntax)Visit(node.Container), VisitToken(node.DotToken), (MemberCrefSyntax)Visit(node.Member));
+        public override SyntaxNode? VisitQualifiedCref(QualifiedCrefSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Container) ?? throw new ArgumentNullException("container"), VisitToken(node.DotToken), (MemberCrefSyntax)Visit(node.Member) ?? throw new ArgumentNullException("member"));
 
-        public override SyntaxNode VisitNameMemberCref(NameMemberCrefSyntax node)
-            => node.Update((TypeSyntax)Visit(node.Name), (CrefParameterListSyntax)Visit(node.Parameters));
+        public override SyntaxNode? VisitNameMemberCref(NameMemberCrefSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), (CrefParameterListSyntax)Visit(node.Parameters));
 
-        public override SyntaxNode VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
+        public override SyntaxNode? VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
             => node.Update(VisitToken(node.ThisKeyword), (CrefBracketedParameterListSyntax)Visit(node.Parameters));
 
-        public override SyntaxNode VisitOperatorMemberCref(OperatorMemberCrefSyntax node)
+        public override SyntaxNode? VisitOperatorMemberCref(OperatorMemberCrefSyntax node)
             => node.Update(VisitToken(node.OperatorKeyword), VisitToken(node.OperatorToken), (CrefParameterListSyntax)Visit(node.Parameters));
 
-        public override SyntaxNode VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node)
-            => node.Update(VisitToken(node.ImplicitOrExplicitKeyword), VisitToken(node.OperatorKeyword), (TypeSyntax)Visit(node.Type), (CrefParameterListSyntax)Visit(node.Parameters));
+        public override SyntaxNode? VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node)
+            => node.Update(VisitToken(node.ImplicitOrExplicitKeyword), VisitToken(node.OperatorKeyword), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"), (CrefParameterListSyntax)Visit(node.Parameters));
 
-        public override SyntaxNode VisitCrefParameterList(CrefParameterListSyntax node)
+        public override SyntaxNode? VisitCrefParameterList(CrefParameterListSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Parameters), VisitToken(node.CloseParenToken));
 
-        public override SyntaxNode VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node)
+        public override SyntaxNode? VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node)
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Parameters), VisitToken(node.CloseBracketToken));
 
-        public override SyntaxNode VisitCrefParameter(CrefParameterSyntax node)
-            => node.Update(VisitToken(node.RefKindKeyword), (TypeSyntax)Visit(node.Type));
+        public override SyntaxNode? VisitCrefParameter(CrefParameterSyntax node)
+            => node.Update(VisitToken(node.RefKindKeyword), (TypeSyntax)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
-        public override SyntaxNode VisitXmlElement(XmlElementSyntax node)
-            => node.Update((XmlElementStartTagSyntax)Visit(node.StartTag), VisitList(node.Content), (XmlElementEndTagSyntax)Visit(node.EndTag));
+        public override SyntaxNode? VisitXmlElement(XmlElementSyntax node)
+            => node.Update((XmlElementStartTagSyntax)Visit(node.StartTag) ?? throw new ArgumentNullException("startTag"), VisitList(node.Content), (XmlElementEndTagSyntax)Visit(node.EndTag) ?? throw new ArgumentNullException("endTag"));
 
-        public override SyntaxNode VisitXmlElementStartTag(XmlElementStartTagSyntax node)
-            => node.Update(VisitToken(node.LessThanToken), (XmlNameSyntax)Visit(node.Name), VisitList(node.Attributes), VisitToken(node.GreaterThanToken));
+        public override SyntaxNode? VisitXmlElementStartTag(XmlElementStartTagSyntax node)
+            => node.Update(VisitToken(node.LessThanToken), (XmlNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitList(node.Attributes), VisitToken(node.GreaterThanToken));
 
-        public override SyntaxNode VisitXmlElementEndTag(XmlElementEndTagSyntax node)
-            => node.Update(VisitToken(node.LessThanSlashToken), (XmlNameSyntax)Visit(node.Name), VisitToken(node.GreaterThanToken));
+        public override SyntaxNode? VisitXmlElementEndTag(XmlElementEndTagSyntax node)
+            => node.Update(VisitToken(node.LessThanSlashToken), (XmlNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.GreaterThanToken));
 
-        public override SyntaxNode VisitXmlEmptyElement(XmlEmptyElementSyntax node)
-            => node.Update(VisitToken(node.LessThanToken), (XmlNameSyntax)Visit(node.Name), VisitList(node.Attributes), VisitToken(node.SlashGreaterThanToken));
+        public override SyntaxNode? VisitXmlEmptyElement(XmlEmptyElementSyntax node)
+            => node.Update(VisitToken(node.LessThanToken), (XmlNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitList(node.Attributes), VisitToken(node.SlashGreaterThanToken));
 
-        public override SyntaxNode VisitXmlName(XmlNameSyntax node)
+        public override SyntaxNode? VisitXmlName(XmlNameSyntax node)
             => node.Update((XmlPrefixSyntax)Visit(node.Prefix), VisitToken(node.LocalName));
 
-        public override SyntaxNode VisitXmlPrefix(XmlPrefixSyntax node)
+        public override SyntaxNode? VisitXmlPrefix(XmlPrefixSyntax node)
             => node.Update(VisitToken(node.Prefix), VisitToken(node.ColonToken));
 
-        public override SyntaxNode VisitXmlTextAttribute(XmlTextAttributeSyntax node)
-            => node.Update((XmlNameSyntax)Visit(node.Name), VisitToken(node.EqualsToken), VisitToken(node.StartQuoteToken), VisitList(node.TextTokens), VisitToken(node.EndQuoteToken));
+        public override SyntaxNode? VisitXmlTextAttribute(XmlTextAttributeSyntax node)
+            => node.Update((XmlNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.EqualsToken), VisitToken(node.StartQuoteToken), VisitList(node.TextTokens), VisitToken(node.EndQuoteToken));
 
-        public override SyntaxNode VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
-            => node.Update((XmlNameSyntax)Visit(node.Name), VisitToken(node.EqualsToken), VisitToken(node.StartQuoteToken), (CrefSyntax)Visit(node.Cref), VisitToken(node.EndQuoteToken));
+        public override SyntaxNode? VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
+            => node.Update((XmlNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.EqualsToken), VisitToken(node.StartQuoteToken), (CrefSyntax)Visit(node.Cref) ?? throw new ArgumentNullException("cref"), VisitToken(node.EndQuoteToken));
 
-        public override SyntaxNode VisitXmlNameAttribute(XmlNameAttributeSyntax node)
-            => node.Update((XmlNameSyntax)Visit(node.Name), VisitToken(node.EqualsToken), VisitToken(node.StartQuoteToken), (IdentifierNameSyntax)Visit(node.Identifier), VisitToken(node.EndQuoteToken));
+        public override SyntaxNode? VisitXmlNameAttribute(XmlNameAttributeSyntax node)
+            => node.Update((XmlNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.EqualsToken), VisitToken(node.StartQuoteToken), (IdentifierNameSyntax)Visit(node.Identifier) ?? throw new ArgumentNullException("identifier"), VisitToken(node.EndQuoteToken));
 
-        public override SyntaxNode VisitXmlText(XmlTextSyntax node)
+        public override SyntaxNode? VisitXmlText(XmlTextSyntax node)
             => node.Update(VisitList(node.TextTokens));
 
-        public override SyntaxNode VisitXmlCDataSection(XmlCDataSectionSyntax node)
+        public override SyntaxNode? VisitXmlCDataSection(XmlCDataSectionSyntax node)
             => node.Update(VisitToken(node.StartCDataToken), VisitList(node.TextTokens), VisitToken(node.EndCDataToken));
 
-        public override SyntaxNode VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node)
-            => node.Update(VisitToken(node.StartProcessingInstructionToken), (XmlNameSyntax)Visit(node.Name), VisitList(node.TextTokens), VisitToken(node.EndProcessingInstructionToken));
+        public override SyntaxNode? VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node)
+            => node.Update(VisitToken(node.StartProcessingInstructionToken), (XmlNameSyntax)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitList(node.TextTokens), VisitToken(node.EndProcessingInstructionToken));
 
-        public override SyntaxNode VisitXmlComment(XmlCommentSyntax node)
+        public override SyntaxNode? VisitXmlComment(XmlCommentSyntax node)
             => node.Update(VisitToken(node.LessThanExclamationMinusMinusToken), VisitList(node.TextTokens), VisitToken(node.MinusMinusGreaterThanToken));
 
-        public override SyntaxNode VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node)
-            => node.Update(VisitToken(node.HashToken), VisitToken(node.IfKeyword), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.EndOfDirectiveToken), node.IsActive, node.BranchTaken, node.ConditionValue);
+        public override SyntaxNode? VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node)
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.IfKeyword), (ExpressionSyntax)Visit(node.Condition) ?? throw new ArgumentNullException("condition"), VisitToken(node.EndOfDirectiveToken), node.IsActive, node.BranchTaken, node.ConditionValue);
 
-        public override SyntaxNode VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node)
-            => node.Update(VisitToken(node.HashToken), VisitToken(node.ElifKeyword), (ExpressionSyntax)Visit(node.Condition), VisitToken(node.EndOfDirectiveToken), node.IsActive, node.BranchTaken, node.ConditionValue);
+        public override SyntaxNode? VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node)
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.ElifKeyword), (ExpressionSyntax)Visit(node.Condition) ?? throw new ArgumentNullException("condition"), VisitToken(node.EndOfDirectiveToken), node.IsActive, node.BranchTaken, node.ConditionValue);
 
-        public override SyntaxNode VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.ElseKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive, node.BranchTaken);
 
-        public override SyntaxNode VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.EndIfKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.RegionKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.EndRegionKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.ErrorKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.WarningKeyword), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.Identifier), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.DefineKeyword), VisitToken(node.Name), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.UndefKeyword), VisitToken(node.Name), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.LineKeyword), VisitToken(node.Line), VisitToken(node.File), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.PragmaKeyword), VisitToken(node.WarningKeyword), VisitToken(node.DisableOrRestoreKeyword), VisitList(node.ErrorCodes), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.PragmaKeyword), VisitToken(node.ChecksumKeyword), VisitToken(node.File), VisitToken(node.Guid), VisitToken(node.Bytes), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.ReferenceKeyword), VisitToken(node.File), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.LoadKeyword), VisitToken(node.File), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.ExclamationToken), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
-        public override SyntaxNode VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
+        public override SyntaxNode? VisitNullableDirectiveTrivia(NullableDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.NullableKeyword), VisitToken(node.SettingToken), VisitToken(node.TargetToken), VisitToken(node.EndOfDirectiveToken), node.IsActive);
     }
 

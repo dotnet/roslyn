@@ -1476,7 +1476,7 @@ namespace CSharpSyntaxGenerator
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode)).ToList();
 
             WriteLine();
-            WriteLine("public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>");
+            WriteLine("public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>");
             OpenBlock();
 
             int nWritten = 0;
@@ -1485,7 +1485,7 @@ namespace CSharpSyntaxGenerator
                 if (nWritten > 0)
                     WriteLine();
                 nWritten++;
-                WriteLine("public override SyntaxNode Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name);
+                WriteLine("public override SyntaxNode? Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name);
 
                 if (node.Fields.Count == 0)
                 {
@@ -1512,9 +1512,13 @@ namespace CSharpSyntaxGenerator
                             {
                                 Write("VisitToken(node.{1})", CamelCase(field.Name), field.Name);
                             }
+                            else if (IsOptional(field))
+                            {
+                                Write("({1})Visit(node.{2})", CamelCase(field.Name), GetFieldType(field, green: false), field.Name);
+                            }
                             else
                             {
-                                Write("({1})Visit(node.{2})", CamelCase(field.Name), field.Type, field.Name);
+                                Write("({1})Visit(node.{2}) ?? throw new ArgumentNullException(\"{0}\")", CamelCase(field.Name), GetFieldType(field, green: false), field.Name);
                             }
                         }
                         else
