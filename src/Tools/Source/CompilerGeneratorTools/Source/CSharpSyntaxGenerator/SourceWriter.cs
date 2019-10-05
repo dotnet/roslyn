@@ -1015,7 +1015,7 @@ namespace CSharpSyntaxGenerator
 
                 // write constructor
                 WriteLine();
-                WriteLine("internal {0}(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)", node.Name);
+                WriteLine("internal {0}(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)", node.Name);
                 WriteLine("  : base(green, parent, position)");
                 OpenBlock();
                 CloseBlock();
