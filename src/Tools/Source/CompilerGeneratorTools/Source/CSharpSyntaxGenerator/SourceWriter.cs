@@ -2001,7 +2001,7 @@ namespace CSharpSyntaxGenerator
                             type += "?";
                         }
 
-                        Write("{0} {1} = default({0})", type, CamelCase(field.Name));
+                        Write("{0} {1} = default", type, CamelCase(field.Name));
 
                         hasPreviousParameter = true;
                     }

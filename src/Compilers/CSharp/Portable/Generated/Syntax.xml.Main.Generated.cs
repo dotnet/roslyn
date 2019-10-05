@@ -2008,7 +2008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new TypeArgumentListSyntax instance.</summary>
-        public static TypeArgumentListSyntax TypeArgumentList(SeparatedSyntaxList<TypeSyntax> arguments = default(SeparatedSyntaxList<TypeSyntax>))
+        public static TypeArgumentListSyntax TypeArgumentList(SeparatedSyntaxList<TypeSyntax> arguments = default)
             => SyntaxFactory.TypeArgumentList(SyntaxFactory.Token(SyntaxKind.LessThanToken), arguments, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
         /// <summary>Creates a new AliasQualifiedNameSyntax instance.</summary>
@@ -2074,7 +2074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new ArrayRankSpecifierSyntax instance.</summary>
-        public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SeparatedSyntaxList<ExpressionSyntax> sizes = default(SeparatedSyntaxList<ExpressionSyntax>))
+        public static ArrayRankSpecifierSyntax ArrayRankSpecifier(SeparatedSyntaxList<ExpressionSyntax> sizes = default)
             => SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), sizes, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new PointerTypeSyntax instance.</summary>
@@ -2110,7 +2110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new TupleTypeSyntax instance.</summary>
-        public static TupleTypeSyntax TupleType(SeparatedSyntaxList<TupleElementSyntax> elements = default(SeparatedSyntaxList<TupleElementSyntax>))
+        public static TupleTypeSyntax TupleType(SeparatedSyntaxList<TupleElementSyntax> elements = default)
             => SyntaxFactory.TupleType(SyntaxFactory.Token(SyntaxKind.OpenParenToken), elements, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         /// <summary>Creates a new TupleElementSyntax instance.</summary>
@@ -2181,7 +2181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new TupleExpressionSyntax instance.</summary>
-        public static TupleExpressionSyntax TupleExpression(SeparatedSyntaxList<ArgumentSyntax> arguments = default(SeparatedSyntaxList<ArgumentSyntax>))
+        public static TupleExpressionSyntax TupleExpression(SeparatedSyntaxList<ArgumentSyntax> arguments = default)
             => SyntaxFactory.TupleExpression(SyntaxFactory.Token(SyntaxKind.OpenParenToken), arguments, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         /// <summary>Creates a new PrefixUnaryExpressionSyntax instance.</summary>
@@ -2764,7 +2764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new ArgumentListSyntax instance.</summary>
-        public static ArgumentListSyntax ArgumentList(SeparatedSyntaxList<ArgumentSyntax> arguments = default(SeparatedSyntaxList<ArgumentSyntax>))
+        public static ArgumentListSyntax ArgumentList(SeparatedSyntaxList<ArgumentSyntax> arguments = default)
             => SyntaxFactory.ArgumentList(SyntaxFactory.Token(SyntaxKind.OpenParenToken), arguments, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         /// <summary>Creates a new BracketedArgumentListSyntax instance.</summary>
@@ -2776,7 +2776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new BracketedArgumentListSyntax instance.</summary>
-        public static BracketedArgumentListSyntax BracketedArgumentList(SeparatedSyntaxList<ArgumentSyntax> arguments = default(SeparatedSyntaxList<ArgumentSyntax>))
+        public static BracketedArgumentListSyntax BracketedArgumentList(SeparatedSyntaxList<ArgumentSyntax> arguments = default)
             => SyntaxFactory.BracketedArgumentList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), arguments, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new ArgumentSyntax instance.</summary>
@@ -2923,7 +2923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new InitializerExpressionSyntax instance.</summary>
-        public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SeparatedSyntaxList<ExpressionSyntax> expressions = default(SeparatedSyntaxList<ExpressionSyntax>))
+        public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SeparatedSyntaxList<ExpressionSyntax> expressions = default)
             => SyntaxFactory.InitializerExpression(kind, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), expressions, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         /// <summary>Creates a new ObjectCreationExpressionSyntax instance.</summary>
@@ -2963,7 +2963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new AnonymousObjectCreationExpressionSyntax instance.</summary>
-        public static AnonymousObjectCreationExpressionSyntax AnonymousObjectCreationExpression(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers = default(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax>))
+        public static AnonymousObjectCreationExpressionSyntax AnonymousObjectCreationExpression(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers = default)
             => SyntaxFactory.AnonymousObjectCreationExpression(SyntaxFactory.Token(SyntaxKind.NewKeyword), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), initializers, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         /// <summary>Creates a new ArrayCreationExpressionSyntax instance.</summary>
@@ -3151,7 +3151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new OrderByClauseSyntax instance.</summary>
-        public static OrderByClauseSyntax OrderByClause(SeparatedSyntaxList<OrderingSyntax> orderings = default(SeparatedSyntaxList<OrderingSyntax>))
+        public static OrderByClauseSyntax OrderByClause(SeparatedSyntaxList<OrderingSyntax> orderings = default)
             => SyntaxFactory.OrderByClause(SyntaxFactory.Token(SyntaxKind.OrderByKeyword), orderings);
 
         /// <summary>Creates a new OrderingSyntax instance.</summary>
@@ -3348,7 +3348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new PositionalPatternClauseSyntax instance.</summary>
-        public static PositionalPatternClauseSyntax PositionalPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default(SeparatedSyntaxList<SubpatternSyntax>))
+        public static PositionalPatternClauseSyntax PositionalPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default)
             => SyntaxFactory.PositionalPatternClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         /// <summary>Creates a new PropertyPatternClauseSyntax instance.</summary>
@@ -3360,7 +3360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new PropertyPatternClauseSyntax instance.</summary>
-        public static PropertyPatternClauseSyntax PropertyPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default(SeparatedSyntaxList<SubpatternSyntax>))
+        public static PropertyPatternClauseSyntax PropertyPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default)
             => SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         /// <summary>Creates a new SubpatternSyntax instance.</summary>
@@ -3447,7 +3447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new BlockSyntax instance.</summary>
-        public static BlockSyntax Block(SyntaxList<StatementSyntax> statements = default(SyntaxList<StatementSyntax>))
+        public static BlockSyntax Block(SyntaxList<StatementSyntax> statements = default)
             => SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), statements, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         /// <summary>Creates a new LocalFunctionStatementSyntax instance.</summary>
@@ -3570,7 +3570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new ParenthesizedVariableDesignationSyntax instance.</summary>
-        public static ParenthesizedVariableDesignationSyntax ParenthesizedVariableDesignation(SeparatedSyntaxList<VariableDesignationSyntax> variables = default(SeparatedSyntaxList<VariableDesignationSyntax>))
+        public static ParenthesizedVariableDesignationSyntax ParenthesizedVariableDesignation(SeparatedSyntaxList<VariableDesignationSyntax> variables = default)
             => SyntaxFactory.ParenthesizedVariableDesignation(SyntaxFactory.Token(SyntaxKind.OpenParenToken), variables, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         /// <summary>Creates a new ExpressionStatementSyntax instance.</summary>
@@ -3640,7 +3640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.GotoStatement(kind, SyntaxFactory.Token(SyntaxKind.GotoKeyword), caseOrDefaultKeyword, expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new GotoStatementSyntax instance.</summary>
-        public static GotoStatementSyntax GotoStatement(SyntaxKind kind, ExpressionSyntax? expression = default(ExpressionSyntax?))
+        public static GotoStatementSyntax GotoStatement(SyntaxKind kind, ExpressionSyntax? expression = default)
             => SyntaxFactory.GotoStatement(kind, SyntaxFactory.Token(SyntaxKind.GotoKeyword), default, expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new BreakStatementSyntax instance.</summary>
@@ -3676,7 +3676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new ReturnStatementSyntax instance.</summary>
-        public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax? expression = default(ExpressionSyntax?))
+        public static ReturnStatementSyntax ReturnStatement(ExpressionSyntax? expression = default)
             => SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new ThrowStatementSyntax instance.</summary>
@@ -3688,7 +3688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new ThrowStatementSyntax instance.</summary>
-        public static ThrowStatementSyntax ThrowStatement(ExpressionSyntax? expression = default(ExpressionSyntax?))
+        public static ThrowStatementSyntax ThrowStatement(ExpressionSyntax? expression = default)
             => SyntaxFactory.ThrowStatement(SyntaxFactory.Token(SyntaxKind.ThrowKeyword), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new YieldStatementSyntax instance.</summary>
@@ -3712,7 +3712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new YieldStatementSyntax instance.</summary>
-        public static YieldStatementSyntax YieldStatement(SyntaxKind kind, ExpressionSyntax? expression = default(ExpressionSyntax?))
+        public static YieldStatementSyntax YieldStatement(SyntaxKind kind, ExpressionSyntax? expression = default)
             => SyntaxFactory.YieldStatement(kind, SyntaxFactory.Token(SyntaxKind.YieldKeyword), SyntaxFactory.Token(GetYieldStatementReturnOrBreakKeywordKind(kind)), expression, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         private static SyntaxKind GetYieldStatementReturnOrBreakKeywordKind(SyntaxKind kind)
@@ -3885,7 +3885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new CheckedStatementSyntax instance.</summary>
-        public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, BlockSyntax? block = default(BlockSyntax?))
+        public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, BlockSyntax? block = default)
             => SyntaxFactory.CheckedStatement(kind, SyntaxFactory.Token(GetCheckedStatementKeywordKind(kind)), block ?? SyntaxFactory.Block());
 
         private static SyntaxKind GetCheckedStatementKeywordKind(SyntaxKind kind)
@@ -3905,7 +3905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new UnsafeStatementSyntax instance.</summary>
-        public static UnsafeStatementSyntax UnsafeStatement(BlockSyntax? block = default(BlockSyntax?))
+        public static UnsafeStatementSyntax UnsafeStatement(BlockSyntax? block = default)
             => SyntaxFactory.UnsafeStatement(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword), block ?? SyntaxFactory.Block());
 
         /// <summary>Creates a new LockStatementSyntax instance.</summary>
@@ -4073,7 +4073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.TryStatement(SyntaxFactory.Token(SyntaxKind.TryKeyword), block, catches, @finally);
 
         /// <summary>Creates a new TryStatementSyntax instance.</summary>
-        public static TryStatementSyntax TryStatement(SyntaxList<CatchClauseSyntax> catches = default(SyntaxList<CatchClauseSyntax>))
+        public static TryStatementSyntax TryStatement(SyntaxList<CatchClauseSyntax> catches = default)
             => SyntaxFactory.TryStatement(SyntaxFactory.Token(SyntaxKind.TryKeyword), SyntaxFactory.Block(), catches, default);
 
         /// <summary>Creates a new CatchClauseSyntax instance.</summary>
@@ -4138,7 +4138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new FinallyClauseSyntax instance.</summary>
-        public static FinallyClauseSyntax FinallyClause(BlockSyntax? block = default(BlockSyntax?))
+        public static FinallyClauseSyntax FinallyClause(BlockSyntax? block = default)
             => SyntaxFactory.FinallyClause(SyntaxFactory.Token(SyntaxKind.FinallyKeyword), block ?? SyntaxFactory.Block());
 
         /// <summary>Creates a new CompilationUnitSyntax instance.</summary>
@@ -4228,7 +4228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.AttributeList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), target, attributes, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new AttributeListSyntax instance.</summary>
-        public static AttributeListSyntax AttributeList(SeparatedSyntaxList<AttributeSyntax> attributes = default(SeparatedSyntaxList<AttributeSyntax>))
+        public static AttributeListSyntax AttributeList(SeparatedSyntaxList<AttributeSyntax> attributes = default)
             => SyntaxFactory.AttributeList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), default, attributes, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new AttributeTargetSpecifierSyntax instance.</summary>
@@ -4262,7 +4262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new AttributeArgumentListSyntax instance.</summary>
-        public static AttributeArgumentListSyntax AttributeArgumentList(SeparatedSyntaxList<AttributeArgumentSyntax> arguments = default(SeparatedSyntaxList<AttributeArgumentSyntax>))
+        public static AttributeArgumentListSyntax AttributeArgumentList(SeparatedSyntaxList<AttributeArgumentSyntax> arguments = default)
             => SyntaxFactory.AttributeArgumentList(SyntaxFactory.Token(SyntaxKind.OpenParenToken), arguments, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         /// <summary>Creates a new AttributeArgumentSyntax instance.</summary>
@@ -4301,7 +4301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new TypeParameterListSyntax instance.</summary>
-        public static TypeParameterListSyntax TypeParameterList(SeparatedSyntaxList<TypeParameterSyntax> parameters = default(SeparatedSyntaxList<TypeParameterSyntax>))
+        public static TypeParameterListSyntax TypeParameterList(SeparatedSyntaxList<TypeParameterSyntax> parameters = default)
             => SyntaxFactory.TypeParameterList(SyntaxFactory.Token(SyntaxKind.LessThanToken), parameters, SyntaxFactory.Token(SyntaxKind.GreaterThanToken));
 
         /// <summary>Creates a new TypeParameterSyntax instance.</summary>
@@ -4484,7 +4484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new BaseListSyntax instance.</summary>
-        public static BaseListSyntax BaseList(SeparatedSyntaxList<BaseTypeSyntax> types = default(SeparatedSyntaxList<BaseTypeSyntax>))
+        public static BaseListSyntax BaseList(SeparatedSyntaxList<BaseTypeSyntax> types = default)
             => SyntaxFactory.BaseList(SyntaxFactory.Token(SyntaxKind.ColonToken), types);
 
         /// <summary>Creates a new SimpleBaseTypeSyntax instance.</summary>
@@ -4769,7 +4769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new ConstructorInitializerSyntax instance.</summary>
-        public static ConstructorInitializerSyntax ConstructorInitializer(SyntaxKind kind, ArgumentListSyntax? argumentList = default(ArgumentListSyntax?))
+        public static ConstructorInitializerSyntax ConstructorInitializer(SyntaxKind kind, ArgumentListSyntax? argumentList = default)
             => SyntaxFactory.ConstructorInitializer(kind, SyntaxFactory.Token(SyntaxKind.ColonToken), SyntaxFactory.Token(GetConstructorInitializerThisOrBaseKeywordKind(kind)), argumentList ?? SyntaxFactory.ArgumentList());
 
         private static SyntaxKind GetConstructorInitializerThisOrBaseKeywordKind(SyntaxKind kind)
@@ -4904,7 +4904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new AccessorListSyntax instance.</summary>
-        public static AccessorListSyntax AccessorList(SyntaxList<AccessorDeclarationSyntax> accessors = default(SyntaxList<AccessorDeclarationSyntax>))
+        public static AccessorListSyntax AccessorList(SyntaxList<AccessorDeclarationSyntax> accessors = default)
             => SyntaxFactory.AccessorList(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), accessors, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         /// <summary>Creates a new AccessorDeclarationSyntax instance.</summary>
@@ -4965,7 +4965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new ParameterListSyntax instance.</summary>
-        public static ParameterListSyntax ParameterList(SeparatedSyntaxList<ParameterSyntax> parameters = default(SeparatedSyntaxList<ParameterSyntax>))
+        public static ParameterListSyntax ParameterList(SeparatedSyntaxList<ParameterSyntax> parameters = default)
             => SyntaxFactory.ParameterList(SyntaxFactory.Token(SyntaxKind.OpenParenToken), parameters, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         /// <summary>Creates a new BracketedParameterListSyntax instance.</summary>
@@ -4977,7 +4977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new BracketedParameterListSyntax instance.</summary>
-        public static BracketedParameterListSyntax BracketedParameterList(SeparatedSyntaxList<ParameterSyntax> parameters = default(SeparatedSyntaxList<ParameterSyntax>))
+        public static BracketedParameterListSyntax BracketedParameterList(SeparatedSyntaxList<ParameterSyntax> parameters = default)
             => SyntaxFactory.BracketedParameterList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), parameters, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new ParameterSyntax instance.</summary>
@@ -5003,7 +5003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>
-        public static IncompleteMemberSyntax IncompleteMember(TypeSyntax? type = default(TypeSyntax?))
+        public static IncompleteMemberSyntax IncompleteMember(TypeSyntax? type = default)
             => SyntaxFactory.IncompleteMember(default, default(SyntaxTokenList), type);
 
         /// <summary>Creates a new SkippedTokensTriviaSyntax instance.</summary>
@@ -5030,7 +5030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new DocumentationCommentTriviaSyntax instance.</summary>
-        public static DocumentationCommentTriviaSyntax DocumentationCommentTrivia(SyntaxKind kind, SyntaxList<XmlNodeSyntax> content = default(SyntaxList<XmlNodeSyntax>))
+        public static DocumentationCommentTriviaSyntax DocumentationCommentTrivia(SyntaxKind kind, SyntaxList<XmlNodeSyntax> content = default)
             => SyntaxFactory.DocumentationCommentTrivia(kind, content, SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken));
 
         /// <summary>Creates a new TypeCrefSyntax instance.</summary>
@@ -5072,7 +5072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new IndexerMemberCrefSyntax instance.</summary>
-        public static IndexerMemberCrefSyntax IndexerMemberCref(CrefBracketedParameterListSyntax? parameters = default(CrefBracketedParameterListSyntax?))
+        public static IndexerMemberCrefSyntax IndexerMemberCref(CrefBracketedParameterListSyntax? parameters = default)
             => SyntaxFactory.IndexerMemberCref(SyntaxFactory.Token(SyntaxKind.ThisKeyword), parameters);
 
         /// <summary>Creates a new OperatorMemberCrefSyntax instance.</summary>
@@ -5147,7 +5147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new CrefParameterListSyntax instance.</summary>
-        public static CrefParameterListSyntax CrefParameterList(SeparatedSyntaxList<CrefParameterSyntax> parameters = default(SeparatedSyntaxList<CrefParameterSyntax>))
+        public static CrefParameterListSyntax CrefParameterList(SeparatedSyntaxList<CrefParameterSyntax> parameters = default)
             => SyntaxFactory.CrefParameterList(SyntaxFactory.Token(SyntaxKind.OpenParenToken), parameters, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         /// <summary>Creates a new CrefBracketedParameterListSyntax instance.</summary>
@@ -5159,7 +5159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new CrefBracketedParameterListSyntax instance.</summary>
-        public static CrefBracketedParameterListSyntax CrefBracketedParameterList(SeparatedSyntaxList<CrefParameterSyntax> parameters = default(SeparatedSyntaxList<CrefParameterSyntax>))
+        public static CrefBracketedParameterListSyntax CrefBracketedParameterList(SeparatedSyntaxList<CrefParameterSyntax> parameters = default)
             => SyntaxFactory.CrefBracketedParameterList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), parameters, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new CrefParameterSyntax instance.</summary>
@@ -5372,7 +5372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new XmlCDataSectionSyntax instance.</summary>
-        public static XmlCDataSectionSyntax XmlCDataSection(SyntaxTokenList textTokens = default(SyntaxTokenList))
+        public static XmlCDataSectionSyntax XmlCDataSection(SyntaxTokenList textTokens = default)
             => SyntaxFactory.XmlCDataSection(SyntaxFactory.Token(SyntaxKind.XmlCDataStartToken), textTokens, SyntaxFactory.Token(SyntaxKind.XmlCDataEndToken));
 
         /// <summary>Creates a new XmlProcessingInstructionSyntax instance.</summary>
@@ -5401,7 +5401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new XmlCommentSyntax instance.</summary>
-        public static XmlCommentSyntax XmlComment(SyntaxTokenList textTokens = default(SyntaxTokenList))
+        public static XmlCommentSyntax XmlComment(SyntaxTokenList textTokens = default)
             => SyntaxFactory.XmlComment(SyntaxFactory.Token(SyntaxKind.XmlCommentStartToken), textTokens, SyntaxFactory.Token(SyntaxKind.XmlCommentEndToken));
 
         /// <summary>Creates a new IfDirectiveTriviaSyntax instance.</summary>
