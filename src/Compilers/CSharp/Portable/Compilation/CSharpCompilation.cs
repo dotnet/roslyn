@@ -1823,7 +1823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // where a user can find the other.
         /// <summary>
         /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
-        /// to this compilation's programming language.
+        /// C# programming language.
         /// </summary>
         /// <param name="source">Source type of value to be converted</param>
         /// <param name="destination">Destination type of value to be converted</param>
