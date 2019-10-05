@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for type argument list.</summary>
     public sealed partial class TypeArgumentListSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode arguments;
+        private SyntaxNode? arguments;
 
         internal TypeArgumentListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ArrayRankSpecifierSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode sizes;
+        private SyntaxNode? sizes;
 
         internal ArrayRankSpecifierSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for tuple type.</summary>
     public sealed partial class TupleTypeSyntax : TypeSyntax
     {
-        private SyntaxNode elements;
+        private SyntaxNode? elements;
 
         internal TupleTypeSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for tuple expression.</summary>
     public sealed partial class TupleExpressionSyntax : ExpressionSyntax
     {
-        private SyntaxNode arguments;
+        private SyntaxNode? arguments;
 
         internal TupleExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -1932,7 +1932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for the list of arguments.</summary>
     public sealed partial class ArgumentListSyntax : BaseArgumentListSyntax
     {
-        private SyntaxNode arguments;
+        private SyntaxNode? arguments;
 
         internal ArgumentListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -1986,7 +1986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for bracketed argument list.</summary>
     public sealed partial class BracketedArgumentListSyntax : BaseArgumentListSyntax
     {
-        private SyntaxNode arguments;
+        private SyntaxNode? arguments;
 
         internal BracketedArgumentListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -2618,7 +2618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for initializer expression.</summary>
     public sealed partial class InitializerExpressionSyntax : ExpressionSyntax
     {
-        private SyntaxNode expressions;
+        private SyntaxNode? expressions;
 
         internal InitializerExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -2790,7 +2790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for anonymous object creation expression.</summary>
     public sealed partial class AnonymousObjectCreationExpressionSyntax : ExpressionSyntax
     {
-        private SyntaxNode initializers;
+        private SyntaxNode? initializers;
 
         internal AnonymousObjectCreationExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -3449,7 +3449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class OrderByClauseSyntax : QueryClauseSyntax
     {
-        private SyntaxNode orderings;
+        private SyntaxNode? orderings;
 
         internal OrderByClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -4070,7 +4070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class PositionalPatternClauseSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode subpatterns;
+        private SyntaxNode? subpatterns;
 
         internal PositionalPatternClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -4118,7 +4118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode subpatterns;
+        private SyntaxNode? subpatterns;
 
         internal PropertyPatternClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -4720,7 +4720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class VariableDeclarationSyntax : CSharpSyntaxNode
     {
         private TypeSyntax type;
-        private SyntaxNode variables;
+        private SyntaxNode? variables;
 
         internal VariableDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -4942,7 +4942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ParenthesizedVariableDesignationSyntax : VariableDesignationSyntax
     {
-        private SyntaxNode variables;
+        private SyntaxNode? variables;
 
         internal ParenthesizedVariableDesignationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -5474,9 +5474,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class ForStatementSyntax : StatementSyntax
     {
         private VariableDeclarationSyntax declaration;
-        private SyntaxNode initializers;
+        private SyntaxNode? initializers;
         private ExpressionSyntax condition;
-        private SyntaxNode incrementors;
+        private SyntaxNode? incrementors;
         private StatementSyntax statement;
 
         internal ForStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
@@ -6510,7 +6510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class SwitchExpressionSyntax : ExpressionSyntax
     {
         private ExpressionSyntax governingExpression;
-        private SyntaxNode arms;
+        private SyntaxNode? arms;
 
         internal SwitchExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -7200,7 +7200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class AttributeListSyntax : CSharpSyntaxNode
     {
         private AttributeTargetSpecifierSyntax target;
-        private SyntaxNode attributes;
+        private SyntaxNode? attributes;
 
         internal AttributeListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -7362,7 +7362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Attribute argument list syntax.</summary>
     public sealed partial class AttributeArgumentListSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode arguments;
+        private SyntaxNode? arguments;
 
         internal AttributeArgumentListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -7509,7 +7509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Type parameter list syntax.</summary>
     public sealed partial class TypeParameterListSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode parameters;
+        private SyntaxNode? parameters;
 
         internal TypeParameterListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -8102,7 +8102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         private SyntaxNode attributeLists;
         private BaseListSyntax baseList;
-        private SyntaxNode members;
+        private SyntaxNode? members;
 
         internal EnumDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -8394,7 +8394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Base list syntax.</summary>
     public sealed partial class BaseListSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode types;
+        private SyntaxNode? types;
 
         internal BaseListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -8490,7 +8490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class TypeParameterConstraintClauseSyntax : CSharpSyntaxNode
     {
         private IdentifierNameSyntax name;
-        private SyntaxNode constraints;
+        private SyntaxNode? constraints;
 
         internal TypeParameterConstraintClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -10126,7 +10126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Parameter list syntax.</summary>
     public sealed partial class ParameterListSyntax : BaseParameterListSyntax
     {
-        private SyntaxNode parameters;
+        private SyntaxNode? parameters;
 
         internal ParameterListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -10179,7 +10179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Parameter list syntax with surrounding brackets.</summary>
     public sealed partial class BracketedParameterListSyntax : BaseParameterListSyntax
     {
-        private SyntaxNode parameters;
+        private SyntaxNode? parameters;
 
         internal BracketedParameterListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -10822,7 +10822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class CrefParameterListSyntax : BaseCrefParameterListSyntax
     {
-        private SyntaxNode parameters;
+        private SyntaxNode? parameters;
 
         internal CrefParameterListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -10877,7 +10877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class CrefBracketedParameterListSyntax : BaseCrefParameterListSyntax
     {
-        private SyntaxNode parameters;
+        private SyntaxNode? parameters;
 
         internal CrefBracketedParameterListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)
@@ -12250,7 +12250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class PragmaWarningDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
-        private SyntaxNode errorCodes;
+        private SyntaxNode? errorCodes;
 
         internal PragmaWarningDirectiveTriviaSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
           : base(green, parent, position)

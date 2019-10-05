@@ -1003,7 +1003,7 @@ namespace CSharpSyntaxGenerator
                     {
                         if (IsSeparatedNodeList(field.Type) || field.Type == "SyntaxNodeOrTokenList")
                         {
-                            WriteLine("private SyntaxNode {0};", CamelCase(field.Name));
+                            WriteLine("private SyntaxNode? {0};", CamelCase(field.Name));
                         }
                         else
                         {
