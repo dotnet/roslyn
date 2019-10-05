@@ -254,7 +254,7 @@ namespace CSharpSyntaxGenerator
 
                 // GetSlot
                 WriteLine();
-                Write("internal override GreenNode GetSlot(int index)");
+                Write("internal override GreenNode? GetSlot(int index)");
 
                 if (nodeFields.Count == 0)
                 {
