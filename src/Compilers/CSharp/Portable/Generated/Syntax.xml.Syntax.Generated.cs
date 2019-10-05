@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Provides the base class from which the classes that represent name syntax nodes are derived. This is an abstract class.</summary>
     public abstract partial class NameSyntax : TypeSyntax
     {
-        internal NameSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal NameSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Provides the base class from which the classes that represent simple name syntax nodes are derived. This is an abstract class.</summary>
     public abstract partial class SimpleNameSyntax : NameSyntax
     {
-        internal SimpleNameSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal SimpleNameSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Provides the base class from which the classes that represent type syntax nodes are derived. This is an abstract class.</summary>
     public abstract partial class TypeSyntax : ExpressionSyntax
     {
-        internal TypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal TypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Provides the base class from which the classes that represent expression syntax nodes are derived. This is an abstract class.</summary>
     public abstract partial class ExpressionSyntax : CSharpSyntaxNode
     {
-        internal ExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal ExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -1349,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Provides the base class from which the classes that represent instance expression syntax nodes are derived. This is an abstract class.</summary>
     public abstract partial class InstanceExpressionSyntax : ExpressionSyntax
     {
-        internal InstanceExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal InstanceExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -1915,7 +1915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Provides the base class from which the classes that represent argument list syntax nodes are derived. This is an abstract class.</summary>
     public abstract partial class BaseArgumentListSyntax : CSharpSyntaxNode
     {
-        internal BaseArgumentListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal BaseArgumentListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -2253,7 +2253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Provides the base class from which the classes that represent anonymous function expressions are derived.</summary>
     public abstract partial class AnonymousFunctionExpressionSyntax : ExpressionSyntax
     {
-        internal AnonymousFunctionExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal AnonymousFunctionExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -2377,7 +2377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Provides the base class from which the classes that represent lambda expressions are derived.</summary>
     public abstract partial class LambdaExpressionSyntax : AnonymousFunctionExpressionSyntax
     {
-        internal LambdaExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal LambdaExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -3069,7 +3069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class QueryClauseSyntax : CSharpSyntaxNode
     {
-        internal QueryClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal QueryClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -3077,7 +3077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class SelectOrGroupClauseSyntax : CSharpSyntaxNode
     {
-        internal SelectOrGroupClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal SelectOrGroupClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -3874,7 +3874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class PatternSyntax : CSharpSyntaxNode
     {
-        internal PatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal PatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -4249,7 +4249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class InterpolatedStringContentSyntax : CSharpSyntaxNode
     {
-        internal InterpolatedStringContentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal InterpolatedStringContentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -4488,7 +4488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Represents the base class for all statements syntax classes.</summary>
     public abstract partial class StatementSyntax : CSharpSyntaxNode
     {
-        internal StatementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal StatementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -4872,7 +4872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class VariableDesignationSyntax : CSharpSyntaxNode
     {
-        internal VariableDesignationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal VariableDesignationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -5572,7 +5572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class CommonForEachStatementSyntax : StatementSyntax
     {
-        internal CommonForEachStatementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal CommonForEachStatementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -6341,7 +6341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Represents a switch label within a switch statement.</summary>
     public abstract partial class SwitchLabelSyntax : CSharpSyntaxNode
     {
-        internal SwitchLabelSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal SwitchLabelSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -7067,7 +7067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Member declaration syntax.</summary>
     public abstract partial class MemberDeclarationSyntax : CSharpSyntaxNode
     {
-        internal MemberDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal MemberDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -7612,7 +7612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Base class for type declaration syntax.</summary>
     public abstract partial class BaseTypeDeclarationSyntax : MemberDeclarationSyntax
     {
-        internal BaseTypeDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal BaseTypeDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -7656,7 +7656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Base class for type declaration syntax (class, struct, interface).</summary>
     public abstract partial class TypeDeclarationSyntax : BaseTypeDeclarationSyntax
     {
-        internal TypeDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal TypeDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -8442,7 +8442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Provides the base class from which the classes that represent base type syntax nodes are derived. This is an abstract class.</summary>
     public abstract partial class BaseTypeSyntax : CSharpSyntaxNode
     {
-        internal BaseTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal BaseTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -8557,7 +8557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Base type for type parameter constraint syntax.</summary>
     public abstract partial class TypeParameterConstraintSyntax : CSharpSyntaxNode
     {
-        internal TypeParameterConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal TypeParameterConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -8685,7 +8685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class BaseFieldDeclarationSyntax : MemberDeclarationSyntax
     {
-        internal BaseFieldDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal BaseFieldDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -8897,7 +8897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Base type for method declaration syntax.</summary>
     public abstract partial class BaseMethodDeclarationSyntax : MemberDeclarationSyntax
     {
-        internal BaseMethodDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal BaseMethodDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -9575,7 +9575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Base type for property declaration syntax.</summary>
     public abstract partial class BasePropertyDeclarationSyntax : MemberDeclarationSyntax
     {
-        internal BasePropertyDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal BasePropertyDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -10109,7 +10109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Base type for parameter list syntax.</summary>
     public abstract partial class BaseParameterListSyntax : CSharpSyntaxNode
     {
-        internal BaseParameterListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal BaseParameterListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -10454,7 +10454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public abstract partial class CrefSyntax : CSharpSyntaxNode
     {
-        internal CrefSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal CrefSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -10568,7 +10568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public abstract partial class MemberCrefSyntax : CrefSyntax
     {
-        internal MemberCrefSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal MemberCrefSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -10803,7 +10803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public abstract partial class BaseCrefParameterListSyntax : CSharpSyntaxNode
     {
-        internal BaseCrefParameterListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal BaseCrefParameterListSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -10977,7 +10977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class XmlNodeSyntax : CSharpSyntaxNode
     {
-        internal XmlNodeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal XmlNodeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -11266,7 +11266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class XmlAttributeSyntax : CSharpSyntaxNode
     {
-        internal XmlAttributeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal XmlAttributeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -11655,7 +11655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class DirectiveTriviaSyntax : StructuredTriviaSyntax
     {
-        internal DirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal DirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -11673,7 +11673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class BranchingDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
-        internal BranchingDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal BranchingDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }
@@ -11686,7 +11686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public abstract partial class ConditionalDirectiveTriviaSyntax : BranchingDirectiveTriviaSyntax
     {
-        internal ConditionalDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        internal ConditionalDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
         }

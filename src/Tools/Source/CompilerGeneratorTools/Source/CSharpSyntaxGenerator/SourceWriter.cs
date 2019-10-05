@@ -887,7 +887,7 @@ namespace CSharpSyntaxGenerator
                 var nd = (AbstractNode)node;
                 WriteLine("public abstract partial class {0} : {1}", node.Name, node.Base);
                 OpenBlock();
-                WriteLine("internal {0}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)", node.Name);
+                WriteLine("internal {0}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)", node.Name);
                 WriteLine("  : base(green, parent, position)");
                 OpenBlock();
                 CloseBlock();
