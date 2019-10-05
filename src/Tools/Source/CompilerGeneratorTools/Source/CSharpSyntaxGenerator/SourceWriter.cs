@@ -1186,9 +1186,15 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private static string GetRedFieldType(Field field)
+        private string GetRedFieldType(Field field)
         {
-            return field.Type == "SyntaxList<SyntaxToken>" ? "SyntaxTokenList" : field.Type;
+            if (field.Type == "SyntaxList<SyntaxToken>")
+                return "SyntaxTokenList";
+
+            if (IsOptional(field) && IsNode(field.Type) && field.Type != "SyntaxToken")
+                return field.Type + "?";
+
+            return field.Type;
         }
 
         private string GetChildPosition(int i)
