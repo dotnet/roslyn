@@ -1148,7 +1148,7 @@ namespace CSharpSyntaxGenerator
 
                 {
                     //GetCachedSlot returns a red node if we have it.
-                    Write("internal override SyntaxNode GetCachedSlot(int index)");
+                    Write("internal override SyntaxNode? GetCachedSlot(int index)");
 
                     var relevantNodes = nodeFields.Select((field, index) => (field, index))
                                                   .Where(t => t.field.Type != "SyntaxToken" && t.field.Type != "SyntaxList<SyntaxToken>");
