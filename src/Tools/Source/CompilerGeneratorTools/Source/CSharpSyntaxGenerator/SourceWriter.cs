@@ -1107,7 +1107,7 @@ namespace CSharpSyntaxGenerator
 
                 {
                     //GetNodeSlot forces creation of a red node.
-                    Write("internal override SyntaxNode GetNodeSlot(int index)");
+                    Write("internal override SyntaxNode? GetNodeSlot(int index)");
 
                     var relevantNodes = nodeFields.Select((field, index) => (field, index))
                                                   .Where(t => t.field.Type != "SyntaxToken" && t.field.Type != "SyntaxList<SyntaxToken>");
