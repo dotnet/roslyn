@@ -1822,8 +1822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // an expression syntax binds to.  Perhaps when we document these methods we should explain
         // where a user can find the other.
         /// <summary>
-        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
-        /// C# programming language.
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/>.
         /// </summary>
         /// <param name="source">Source type of value to be converted</param>
         /// <param name="destination">Destination type of value to be converted</param>
