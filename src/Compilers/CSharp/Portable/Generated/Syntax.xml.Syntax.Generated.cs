@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.IdentifierName(identifier);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.QualifiedName(left, dotToken, right);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.GenericName(identifier, typeArgumentList);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TypeArgumentList(lessThanToken, arguments, greaterThanToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AliasQualifiedName(alias, colonColonToken, name);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.PredefinedType(keyword);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ArrayType(elementType, rankSpecifiers);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.PointerType(elementType, asteriskToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.NullableType(elementType, questionToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TupleType(openParenToken, elements, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TupleElement(type, identifier);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.OmittedTypeArgument(omittedTypeArgumentToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, type);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ParenthesizedExpression(openParenToken, expression, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TupleExpression(openParenToken, arguments, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.PrefixUnaryExpression(this.Kind(), operatorToken, operand);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AwaitExpression(awaitKeyword, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.PostfixUnaryExpression(this.Kind(), operand, operatorToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.MemberAccessExpression(this.Kind(), expression, operatorToken, name);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ConditionalAccessExpression(expression, operatorToken, whenNotNull);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.MemberBindingExpression(operatorToken, name);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ElementBindingExpression(argumentList);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.RangeExpression(leftOperand, operatorToken, rightOperand);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1163,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ImplicitElementAccess(argumentList);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.BinaryExpression(this.Kind(), left, operatorToken, right);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1275,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AssignmentExpression(this.Kind(), left, operatorToken, right);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1340,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ConditionalExpression(condition, questionToken, whenTrue, colonToken, whenFalse);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1386,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ThisExpression(token);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.BaseExpression(token);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1452,7 +1452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.LiteralExpression(this.Kind(), token);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1496,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.MakeRefExpression(keyword, openParenToken, expression, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1543,7 +1543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.RefTypeExpression(keyword, openParenToken, expression, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1609,7 +1609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.RefValueExpression(keyword, openParenToken, expression, comma, type, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1658,7 +1658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CheckedExpression(this.Kind(), keyword, openParenToken, expression, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1705,7 +1705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DefaultExpression(keyword, openParenToken, type, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1752,7 +1752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TypeOfExpression(keyword, openParenToken, type, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1799,7 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SizeOfExpression(keyword, openParenToken, type, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.InvocationExpression(expression, argumentList);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1907,7 +1907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ElementAccessExpression(expression, argumentList);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -1975,7 +1975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ArgumentList(openParenToken, arguments, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2029,7 +2029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.BracketedArgumentList(openBracketToken, arguments, closeBracketToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2096,7 +2096,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.Argument(nameColon, refKindKeyword, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2136,7 +2136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.NameColon(name, colonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2187,7 +2187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DeclarationExpression(type, designation);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2245,7 +2245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CastExpression(openParenToken, type, closeParenToken, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2468,7 +2468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, expressionBody);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2520,7 +2520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.RefExpression(refKeyword, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2597,7 +2597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, expressionBody);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2661,7 +2661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.InitializerExpression(this.Kind(), openBraceToken, expressions, closeBraceToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2725,7 +2725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ObjectCreationExpression(newKeyword, type, argumentList, initializer);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2784,7 +2784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AnonymousObjectMemberDeclarator(nameEquals, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2836,7 +2836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AnonymousObjectCreationExpression(newKeyword, openBraceToken, initializers, closeBraceToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2895,7 +2895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ArrayCreationExpression(newKeyword, type, initializer);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -2953,7 +2953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ImplicitArrayCreationExpression(newKeyword, openBracketToken, commas, closeBracketToken, initializer);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3014,7 +3014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.StackAllocArrayCreationExpression(stackAllocKeyword, type, initializer);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3060,7 +3060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ImplicitStackAllocArrayCreationExpression(stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3129,7 +3129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.QueryExpression(fromClause, body);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3185,7 +3185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.QueryBody(clauses, selectOrGroup, continuation);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3244,7 +3244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.FromClause(fromKeyword, type, identifier, inKeyword, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3288,7 +3288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.LetClause(letKeyword, identifier, equalsToken, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3365,7 +3365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.JoinClause(joinKeyword, type, identifier, inKeyword, inExpression, onKeyword, leftExpression, equalsKeyword, rightExpression, into);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3408,7 +3408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.JoinIntoClause(intoKeyword, identifier);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3444,7 +3444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.WhereClause(whereKeyword, condition);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3487,7 +3487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.OrderByClause(orderByKeyword, orderings);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3532,7 +3532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.Ordering(this.Kind(), expression, ascendingOrDescendingKeyword);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3568,7 +3568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SelectClause(selectKeyword, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3621,7 +3621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.GroupClause(groupKeyword, groupExpression, byKeyword, byExpression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3662,7 +3662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.QueryContinuation(intoKeyword, identifier, body);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3699,7 +3699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.OmittedArraySizeExpression(omittedArraySizeExpressionToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3739,7 +3739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.InterpolatedStringExpression(stringStartToken, contents, stringEndToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3796,7 +3796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.IsPatternExpression(expression, isKeyword, pattern);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3833,7 +3833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ThrowExpression(throwKeyword, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3869,7 +3869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.WhenClause(whenKeyword, condition);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3909,7 +3909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DiscardPattern(underscoreToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3957,7 +3957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DeclarationPattern(type, designation);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -3993,7 +3993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.VarPattern(varKeyword, designation);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4052,7 +4052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.RecursivePattern(type, positionalPatternClause, propertyPatternClause, designation);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4110,7 +4110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.PositionalPatternClause(openParenToken, subpatterns, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4158,7 +4158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4210,7 +4210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.Subpattern(nameColon, pattern);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4245,7 +4245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ConstantPattern(expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4285,7 +4285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.InterpolatedStringText(textToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4342,7 +4342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.Interpolation(openBraceToken, expression, alignmentClause, formatClause, closeBraceToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4381,7 +4381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.InterpolationAlignmentClause(commaToken, value);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4416,7 +4416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.InterpolationFormatClause(colonToken, formatStringToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4474,7 +4474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.GlobalStatement(attributeLists, modifiers, statement);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4529,7 +4529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.Block(openBraceToken, statements, closeBraceToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4623,7 +4623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.LocalFunctionStatement(modifiers, returnType, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4708,7 +4708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.LocalDeclarationStatement(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4770,7 +4770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.VariableDeclaration(type, variables);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4824,7 +4824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.VariableDeclarator(identifier, argumentList, initializer);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4867,7 +4867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.EqualsValueClause(equalsToken, value);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4907,7 +4907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SingleVariableDesignation(identifier);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4938,7 +4938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DiscardDesignation(underscoreToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -4982,7 +4982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ParenthesizedVariableDesignation(openParenToken, variables, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5021,7 +5021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ExpressionStatement(expression, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5053,7 +5053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.EmptyStatement(semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5093,7 +5093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.LabeledStatement(identifier, colonToken, statement);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5156,7 +5156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.GotoStatement(this.Kind(), gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5192,7 +5192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.BreakStatement(breakKeyword, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5226,7 +5226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ContinueStatement(continueKeyword, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5264,7 +5264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ReturnStatement(returnKeyword, expression, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5303,7 +5303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ThrowStatement(throwKeyword, expression, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5344,7 +5344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.YieldStatement(this.Kind(), yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5401,7 +5401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.WhileStatement(whileKeyword, openParenToken, condition, closeParenToken, statement);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5463,7 +5463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DoStatement(doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5556,7 +5556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ForStatement(forKeyword, openParenToken, declaration, initializers, firstSemicolonToken, condition, secondSemicolonToken, incrementors, closeParenToken, statement);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5677,7 +5677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ForEachStatement(awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5768,7 +5768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ForEachVariableStatement(awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5850,7 +5850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.UsingStatement(awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5910,7 +5910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.FixedStatement(fixedKeyword, openParenToken, declaration, closeParenToken, statement);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5951,7 +5951,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CheckedStatement(this.Kind(), keyword, block);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -5989,7 +5989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.UnsafeStatement(unsafeKeyword, block);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6046,7 +6046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.LockStatement(lockKeyword, openParenToken, expression, closeParenToken, statement);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6130,7 +6130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.IfStatement(ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6174,7 +6174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ElseClause(elseKeyword, statement);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6269,7 +6269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SwitchStatement(switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections, closeBraceToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6332,7 +6332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SwitchSection(labels, statements);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6416,7 +6416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CasePatternSwitchLabel(keyword, pattern, whenClause, colonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6463,7 +6463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CaseSwitchLabel(keyword, value, colonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6502,7 +6502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DefaultSwitchLabel(keyword, colonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6566,7 +6566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6627,7 +6627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SwitchExpressionArm(pattern, whenClause, equalsGreaterThanToken, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6685,7 +6685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TryStatement(tryKeyword, block, catches, @finally);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6746,7 +6746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CatchClause(catchKeyword, declaration, filter, block);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6797,7 +6797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CatchDeclaration(openParenToken, type, identifier, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6839,7 +6839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CatchFilterClause(whenKeyword, openParenToken, filterExpression, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6877,7 +6877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.FinallyClause(finallyKeyword, block);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6941,7 +6941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CompilationUnit(externs, usings, attributeLists, members, endOfFileToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -6994,7 +6994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ExternAliasDirective(externKeyword, aliasKeyword, identifier, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7058,7 +7058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.UsingDirective(usingKeyword, staticKeyword, alias, name, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7175,7 +7175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.NamespaceDeclaration(attributeLists, modifiers, namespaceKeyword, name, openBraceToken, externs, usings, members, closeBraceToken, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7258,7 +7258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AttributeList(openBracketToken, target, attributes, closeBracketToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7299,7 +7299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AttributeTargetSpecifier(identifier, colonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7350,7 +7350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.Attribute(name, argumentList);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7405,7 +7405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AttributeArgumentList(openParenToken, arguments, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7464,7 +7464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AttributeArgument(nameEquals, nameColon, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7503,7 +7503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.NameEquals(name, equalsToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7552,7 +7552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TypeParameterList(lessThanToken, parameters, greaterThanToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7603,7 +7603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TypeParameter(attributeLists, varianceKeyword, identifier);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7787,7 +7787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ClassDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -7920,7 +7920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8053,7 +8053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.InterfaceDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8185,7 +8185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.EnumDeclaration(attributeLists, modifiers, enumKeyword, identifier, baseList, openBraceToken, members, closeBraceToken, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8297,7 +8297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DelegateDeclaration(attributeLists, modifiers, delegateKeyword, returnType, identifier, typeParameterList, parameterList, constraintClauses, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8379,7 +8379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.EnumMemberDeclaration(attributeLists, modifiers, identifier, equalsValue);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8434,7 +8434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.BaseList(colonToken, types);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8483,7 +8483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SimpleBaseType(type);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8547,7 +8547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TypeParameterConstraintClause(whereKeyword, name, colonToken, constraints);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8600,7 +8600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ConstructorConstraint(newKeyword, openParenToken, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8645,7 +8645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ClassOrStructConstraint(this.Kind(), classOrStructKeyword, questionToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8681,7 +8681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TypeConstraint(type);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8766,7 +8766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.FieldDeclaration(attributeLists, modifiers, declaration, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8841,7 +8841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.EventFieldDeclaration(attributeLists, modifiers, eventKeyword, declaration, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -8891,7 +8891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ExplicitInterfaceSpecifier(name, dotToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -9035,7 +9035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.MethodDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -9160,7 +9160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.OperatorDeclaration(attributeLists, modifiers, returnType, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -9277,7 +9277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ConversionOperatorDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -9390,7 +9390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ConstructorDeclaration(attributeLists, modifiers, identifier, parameterList, initializer, body, expressionBody, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -9456,7 +9456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ConstructorInitializer(this.Kind(), colonToken, thisOrBaseKeyword, argumentList);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -9544,7 +9544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DestructorDeclaration(attributeLists, modifiers, tildeToken, identifier, parameterList, body, expressionBody, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -9692,7 +9692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.PropertyDeclaration(attributeLists, modifiers, type, explicitInterfaceSpecifier, identifier, accessorList, expressionBody, initializer, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -9752,7 +9752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ArrowExpressionClause(arrowToken, expression);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -9834,7 +9834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -9946,7 +9946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.IndexerDeclaration(attributeLists, modifiers, type, explicitInterfaceSpecifier, thisKeyword, parameterList, accessorList, expressionBody, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10008,7 +10008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AccessorList(openBraceToken, accessors, closeBraceToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10091,7 +10091,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.AccessorDeclaration(this.Kind(), attributeLists, modifiers, keyword, body, expressionBody, semicolonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10168,7 +10168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ParameterList(openParenToken, parameters, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10221,7 +10221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.BracketedParameterList(openBracketToken, parameters, closeBracketToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10295,7 +10295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, @default);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10359,7 +10359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.IncompleteMember(attributeLists, modifiers, type);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10406,7 +10406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SkippedTokensTrivia(tokens);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10443,7 +10443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DocumentationCommentTrivia(this.Kind(), content, endOfComment);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10498,7 +10498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.TypeCref(type);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10555,7 +10555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.QualifiedCref(container, dotToken, member);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10626,7 +10626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.NameMemberCref(name, parameters);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10672,7 +10672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.IndexerMemberCref(thisKeyword, parameters);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10722,7 +10722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.OperatorMemberCref(operatorKeyword, operatorToken, parameters);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10786,7 +10786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, operatorKeyword, type, parameters);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10864,7 +10864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CrefParameterList(openParenToken, parameters, closeParenToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10919,7 +10919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CrefBracketedParameterList(openBracketToken, parameters, closeBracketToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -10972,7 +10972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.CrefParameter(refKindKeyword, type);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11034,7 +11034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlElement(startTag, content, endTag);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11091,7 +11091,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlElementStartTag(lessThanToken, name, attributes, greaterThanToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11133,7 +11133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlElementEndTag(lessThanSlashToken, name, greaterThanToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11187,7 +11187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlEmptyElement(lessThanToken, name, attributes, slashGreaterThanToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11227,7 +11227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlName(prefix, localName);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11261,7 +11261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlPrefix(prefix, colonToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11334,7 +11334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlTextAttribute(name, equalsToken, startQuoteToken, textTokens, endQuoteToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11398,7 +11398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlCrefAttribute(name, equalsToken, startQuoteToken, cref, endQuoteToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11460,7 +11460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlNameAttribute(name, equalsToken, startQuoteToken, identifier, endQuoteToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11506,7 +11506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlText(textTokens);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11550,7 +11550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlCDataSection(startCDataToken, textTokens, endCDataToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11600,7 +11600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlProcessingInstruction(startProcessingInstructionToken, name, textTokens, endProcessingInstructionToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11647,7 +11647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.XmlComment(lessThanExclamationMinusMinusToken, textTokens, minusMinusGreaterThanToken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11741,7 +11741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.IfDirectiveTrivia(hashToken, ifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11795,7 +11795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ElifDirectiveTrivia(hashToken, elifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11843,7 +11843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ElseDirectiveTrivia(hashToken, elseKeyword, endOfDirectiveToken, isActive, branchTaken);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11886,7 +11886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.EndIfDirectiveTrivia(hashToken, endIfKeyword, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11928,7 +11928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.RegionDirectiveTrivia(hashToken, regionKeyword, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -11970,7 +11970,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.EndRegionDirectiveTrivia(hashToken, endRegionKeyword, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12012,7 +12012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ErrorDirectiveTrivia(hashToken, errorKeyword, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12054,7 +12054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.WarningDirectiveTrivia(hashToken, warningKeyword, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12096,7 +12096,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.BadDirectiveTrivia(hashToken, identifier, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12140,7 +12140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.DefineDirectiveTrivia(hashToken, defineKeyword, name, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12185,7 +12185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.UndefDirectiveTrivia(hashToken, undefKeyword, name, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12239,7 +12239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.LineDirectiveTrivia(hashToken, lineKeyword, line, file, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12298,7 +12298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12353,7 +12353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.PragmaChecksumDirectiveTrivia(hashToken, pragmaKeyword, checksumKeyword, file, guid, bytes, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12401,7 +12401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ReferenceDirectiveTrivia(hashToken, referenceKeyword, file, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12446,7 +12446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.LoadDirectiveTrivia(hashToken, loadKeyword, file, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12489,7 +12489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;
@@ -12542,7 +12542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.NullableDirectiveTrivia(hashToken, nullableKeyword, settingToken, targetToken, endOfDirectiveToken, isActive);
                 var annotations = GetAnnotations();
-                return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return this;

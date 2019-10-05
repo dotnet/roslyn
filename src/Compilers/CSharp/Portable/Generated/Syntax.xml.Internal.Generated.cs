@@ -97,10 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.IdentifierName(identifier);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -206,10 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.QualifiedName(left, dotToken, right);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -313,10 +313,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.GenericName(identifier, typeArgumentList);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -435,10 +435,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TypeArgumentList(lessThanToken, arguments, greaterThanToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -555,10 +555,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AliasQualifiedName(alias, colonColonToken, name);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -667,10 +667,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.PredefinedType(keyword);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -775,10 +775,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ArrayType(elementType, rankSpecifiers);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -896,10 +896,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ArrayRankSpecifier(openBracketToken, sizes, closeBracketToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -1006,10 +1006,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.PointerType(elementType, asteriskToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -1109,10 +1109,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.NullableType(elementType, questionToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -1230,10 +1230,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TupleType(openParenToken, elements, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -1349,10 +1349,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TupleElement(type, identifier);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -1441,10 +1441,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.OmittedTypeArgument(omittedTypeArgumentToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -1557,10 +1557,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, type);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -1696,10 +1696,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ParenthesizedExpression(openParenToken, expression, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -1822,10 +1822,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TupleExpression(openParenToken, arguments, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -1932,10 +1932,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.PrefixUnaryExpression(this.Kind, operatorToken, operand);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -2035,10 +2035,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AwaitExpression(awaitKeyword, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -2138,10 +2138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.PostfixUnaryExpression(this.Kind, operand, operatorToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -2251,10 +2251,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.MemberAccessExpression(this.Kind, expression, operatorToken, name);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -2368,10 +2368,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ConditionalAccessExpression(expression, operatorToken, whenNotNull);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -2475,10 +2475,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.MemberBindingExpression(operatorToken, name);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -2564,10 +2564,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ElementBindingExpression(argumentList);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -2691,10 +2691,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.RangeExpression(leftOperand, operatorToken, rightOperand);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -2790,10 +2790,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ImplicitElementAccess(argumentList);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -2899,10 +2899,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.BinaryExpression(this.Kind, left, operatorToken, right);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -3016,10 +3016,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AssignmentExpression(this.Kind, left, operatorToken, right);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -3153,10 +3153,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ConditionalExpression(condition, questionToken, whenTrue, colonToken, whenFalse);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -3273,10 +3273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ThisExpression(token);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -3358,10 +3358,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.BaseExpression(token);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -3443,10 +3443,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.LiteralExpression(this.Kind, token);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -3562,10 +3562,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.MakeRefExpression(keyword, openParenToken, expression, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -3693,10 +3693,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.RefTypeExpression(keyword, openParenToken, expression, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -3844,10 +3844,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.RefValueExpression(keyword, openParenToken, expression, comma, type, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -3983,10 +3983,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CheckedExpression(this.Kind, keyword, openParenToken, expression, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -4114,10 +4114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DefaultExpression(keyword, openParenToken, type, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -4245,10 +4245,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TypeOfExpression(keyword, openParenToken, type, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -4376,10 +4376,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.SizeOfExpression(keyword, openParenToken, type, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -4487,10 +4487,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.InvocationExpression(expression, argumentList);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -4590,10 +4590,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ElementAccessExpression(expression, argumentList);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -4734,10 +4734,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ArgumentList(openParenToken, arguments, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -4863,10 +4863,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.BracketedArgumentList(openBracketToken, arguments, closeBracketToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -5001,10 +5001,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.Argument(nameColon, refKindKeyword, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -5114,10 +5114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.NameColon(name, colonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -5216,10 +5216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DeclarationExpression(type, designation);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -5339,10 +5339,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CastExpression(openParenToken, type, closeParenToken, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -5547,10 +5547,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AnonymousMethodExpression(asyncKeyword, delegateKeyword, parameterList, block, expressionBody);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -5756,10 +5756,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, block, expressionBody);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -5877,10 +5877,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.RefExpression(refKeyword, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -6043,10 +6043,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ParenthesizedLambdaExpression(asyncKeyword, parameterList, arrowToken, block, expressionBody);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -6186,10 +6186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.InitializerExpression(this.Kind, openBraceToken, expressions, closeBraceToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -6334,10 +6334,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ObjectCreationExpression(newKeyword, type, argumentList, initializer);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -6459,10 +6459,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AnonymousObjectMemberDeclarator(nameEquals, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -6594,10 +6594,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AnonymousObjectCreationExpression(newKeyword, openBraceToken, initializers, closeBraceToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -6727,10 +6727,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ArrayCreationExpression(newKeyword, type, initializer);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -6876,10 +6876,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ImplicitArrayCreationExpression(newKeyword, openBracketToken, commas, closeBracketToken, initializer);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -7013,10 +7013,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.StackAllocArrayCreationExpression(stackAllocKeyword, type, initializer);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -7143,10 +7143,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ImplicitStackAllocArrayCreationExpression(stackAllocKeyword, openBracketToken, closeBracketToken, initializer);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -7287,10 +7287,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.QueryExpression(fromClause, body);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -7414,10 +7414,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.QueryBody(clauses, selectOrGroup, continuation);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -7561,10 +7561,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.FromClause(fromKeyword, type, identifier, inKeyword, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -7695,10 +7695,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.LetClause(letKeyword, identifier, equalsToken, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -7894,10 +7894,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.JoinClause(joinKeyword, type, identifier, inKeyword, inExpression, onKeyword, leftExpression, equalsKeyword, rightExpression, into);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -8033,10 +8033,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.JoinIntoClause(intoKeyword, identifier);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -8133,10 +8133,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.WhereClause(whereKeyword, condition);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -8242,10 +8242,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.OrderByClause(orderByKeyword, orderings);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -8354,10 +8354,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.Ordering(this.Kind, expression, ascendingOrDescendingKeyword);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -8457,10 +8457,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.SelectClause(selectKeyword, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -8575,10 +8575,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.GroupClause(groupKeyword, groupExpression, byKeyword, byExpression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -8693,10 +8693,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.QueryContinuation(intoKeyword, identifier, body);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -8786,10 +8786,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.OmittedArraySizeExpression(omittedArraySizeExpressionToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -8903,10 +8903,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.InterpolatedStringExpression(stringStartToken, contents, stringEndToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -9022,10 +9022,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.IsPatternExpression(expression, isKeyword, pattern);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -9126,10 +9126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ThrowExpression(throwKeyword, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -9226,10 +9226,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.WhenClause(whenKeyword, condition);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -9331,10 +9331,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DiscardPattern(underscoreToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -9427,10 +9427,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DeclarationPattern(type, designation);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -9527,10 +9527,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.VarPattern(varKeyword, designation);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -9681,10 +9681,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.RecursivePattern(type, positionalPatternClause, propertyPatternClause, designation);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -9819,10 +9819,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.PositionalPatternClause(openParenToken, subpatterns, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -9944,10 +9944,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -10060,10 +10060,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.Subpattern(nameColon, pattern);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -10151,10 +10151,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ConstantPattern(expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -10253,10 +10253,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.InterpolatedStringText(textToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -10394,10 +10394,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.Interpolation(openBraceToken, expression, alignmentClause, formatClause, closeBraceToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -10512,10 +10512,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.InterpolationAlignmentClause(commaToken, value);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -10613,10 +10613,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.InterpolationFormatClause(colonToken, formatStringToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -10740,10 +10740,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.GlobalStatement(attributeLists, modifiers, statement);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -10887,10 +10887,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.Block(openBraceToken, statements, closeBraceToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -11113,10 +11113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.LocalFunctionStatement(modifiers, returnType, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -11314,10 +11314,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.LocalDeclarationStatement(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -11444,10 +11444,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.VariableDeclaration(type, variables);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -11575,10 +11575,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.VariableDeclarator(identifier, argumentList, initializer);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -11685,10 +11685,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.EqualsValueClause(equalsToken, value);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -11790,10 +11790,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.SingleVariableDesignation(identifier);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -11873,10 +11873,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DiscardDesignation(underscoreToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -11987,10 +11987,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ParenthesizedVariableDesignation(openParenToken, variables, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -12094,10 +12094,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ExpressionStatement(expression, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -12181,10 +12181,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.EmptyStatement(semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -12289,10 +12289,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.LabeledStatement(identifier, colonToken, statement);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -12444,10 +12444,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.GotoStatement(this.Kind, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -12558,10 +12558,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.BreakStatement(breakKeyword, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -12658,10 +12658,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ContinueStatement(continueKeyword, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -12776,10 +12776,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ReturnStatement(returnKeyword, expression, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -12901,10 +12901,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ThrowStatement(throwKeyword, expression, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -13035,10 +13035,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.YieldStatement(this.Kind, yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -13173,10 +13173,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.WhileStatement(whileKeyword, openParenToken, condition, closeParenToken, statement);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -13330,10 +13330,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DoStatement(doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -13558,10 +13558,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ForStatement(forKeyword, openParenToken, declaration, initializers, firstSemicolonToken, condition, secondSemicolonToken, incrementors, closeParenToken, statement);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -13807,10 +13807,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ForEachStatement(awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -14007,10 +14007,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ForEachVariableStatement(awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -14206,10 +14206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.UsingStatement(awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -14362,10 +14362,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.FixedStatement(fixedKeyword, openParenToken, declaration, closeParenToken, statement);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -14474,10 +14474,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CheckedStatement(this.Kind, keyword, block);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -14574,10 +14574,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.UnsafeStatement(unsafeKeyword, block);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -14701,10 +14701,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.LockStatement(lockKeyword, openParenToken, expression, closeParenToken, statement);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -14879,10 +14879,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.IfStatement(ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -15002,10 +15002,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ElseClause(elseKeyword, statement);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -15196,10 +15196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.SwitchStatement(switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections, closeBraceToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -15350,10 +15350,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.SwitchSection(labels, statements);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -15517,10 +15517,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CasePatternSwitchLabel(keyword, pattern, whenClause, colonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -15642,10 +15642,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CaseSwitchLabel(keyword, value, colonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -15748,10 +15748,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DefaultSwitchLabel(keyword, colonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -15884,10 +15884,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBraceToken, arms, closeBraceToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -16026,10 +16026,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.SwitchExpressionArm(pattern, whenClause, equalsGreaterThanToken, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -16173,10 +16173,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TryStatement(tryKeyword, block, catches, @finally);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -16323,10 +16323,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CatchClause(catchKeyword, declaration, filter, block);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -16464,10 +16464,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CatchDeclaration(openParenToken, type, identifier, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -16593,10 +16593,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CatchFilterClause(whenKeyword, openParenToken, filterExpression, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -16701,10 +16701,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.FinallyClause(finallyKeyword, block);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -16865,10 +16865,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CompilationUnit(externs, usings, attributeLists, members, endOfFileToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -17014,10 +17014,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ExternAliasDirective(externKeyword, aliasKeyword, identifier, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -17167,10 +17167,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.UsingDirective(usingKeyword, staticKeyword, alias, name, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -17437,10 +17437,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.NamespaceDeclaration(attributeLists, modifiers, namespaceKeyword, name, openBraceToken, externs, usings, members, closeBraceToken, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -17628,10 +17628,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AttributeList(openBracketToken, target, attributes, closeBracketToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -17745,10 +17745,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AttributeTargetSpecifier(identifier, colonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -17856,10 +17856,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.Attribute(name, argumentList);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -17981,10 +17981,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AttributeArgumentList(openParenToken, arguments, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -18117,10 +18117,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AttributeArgument(nameEquals, nameColon, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -18229,10 +18229,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.NameEquals(name, equalsToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -18351,10 +18351,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TypeParameterList(lessThanToken, parameters, greaterThanToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -18488,10 +18488,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TypeParameter(attributeLists, varianceKeyword, identifier);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -18808,10 +18808,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ClassDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -19111,10 +19111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.StructDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -19414,10 +19414,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.InterfaceDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -19683,10 +19683,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.EnumDeclaration(attributeLists, modifiers, enumKeyword, identifier, baseList, openBraceToken, members, closeBraceToken, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -19932,10 +19932,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DelegateDeclaration(attributeLists, modifiers, delegateKeyword, returnType, identifier, typeParameterList, parameterList, constraintClauses, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -20118,10 +20118,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.EnumMemberDeclaration(attributeLists, modifiers, identifier, equalsValue);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -20247,10 +20247,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.BaseList(colonToken, types);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -20358,10 +20358,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.SimpleBaseType(type);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -20485,10 +20485,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TypeParameterConstraintClause(whereKeyword, name, colonToken, constraints);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -20628,10 +20628,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ConstructorConstraint(newKeyword, openParenToken, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -20744,10 +20744,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ClassOrStructConstraint(this.Kind, classOrStructKeyword, questionToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -20836,10 +20836,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TypeConstraint(type);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -20990,10 +20990,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.FieldDeclaration(attributeLists, modifiers, declaration, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -21149,10 +21149,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.EventFieldDeclaration(attributeLists, modifiers, eventKeyword, declaration, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -21267,10 +21267,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ExplicitInterfaceSpecifier(name, dotToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -21554,10 +21554,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.MethodDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, identifier, typeParameterList, parameterList, constraintClauses, body, expressionBody, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -21827,10 +21827,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.OperatorDeclaration(attributeLists, modifiers, returnType, operatorKeyword, operatorToken, parameterList, body, expressionBody, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -22083,10 +22083,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ConversionOperatorDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, operatorKeyword, type, parameterList, body, expressionBody, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -22337,10 +22337,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ConstructorDeclaration(attributeLists, modifiers, identifier, parameterList, initializer, body, expressionBody, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -22491,10 +22491,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ConstructorInitializer(this.Kind, colonToken, thisOrBaseKeyword, argumentList);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -22698,10 +22698,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DestructorDeclaration(attributeLists, modifiers, tildeToken, identifier, parameterList, body, expressionBody, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -22991,10 +22991,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.PropertyDeclaration(attributeLists, modifiers, type, explicitInterfaceSpecifier, identifier, accessorList, expressionBody, initializer, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -23141,10 +23141,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ArrowExpressionClause(arrowToken, expression);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -23341,10 +23341,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.EventDeclaration(attributeLists, modifiers, eventKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -23598,10 +23598,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.IndexerDeclaration(attributeLists, modifiers, type, explicitInterfaceSpecifier, thisKeyword, parameterList, accessorList, expressionBody, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -23762,10 +23762,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AccessorList(openBraceToken, accessors, closeBraceToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -23956,10 +23956,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.AccessorDeclaration(this.Kind, attributeLists, modifiers, keyword, body, expressionBody, semicolonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -24130,10 +24130,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ParameterList(openParenToken, parameters, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -24258,10 +24258,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.BracketedParameterList(openBracketToken, parameters, closeBracketToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -24432,10 +24432,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, @default);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -24592,10 +24592,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.IncompleteMember(attributeLists, modifiers, type);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -24701,10 +24701,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.SkippedTokensTrivia(tokens);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -24809,10 +24809,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DocumentationCommentTrivia(this.Kind, content, endOfComment);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -24928,10 +24928,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.TypeCref(type);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -25040,10 +25040,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.QualifiedCref(container, dotToken, member);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -25184,10 +25184,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.NameMemberCref(name, parameters);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -25300,10 +25300,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.IndexerMemberCref(thisKeyword, parameters);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -25427,10 +25427,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.OperatorMemberCref(operatorKeyword, operatorToken, parameters);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -25565,10 +25565,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, operatorKeyword, type, parameters);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -25724,10 +25724,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CrefParameterList(openParenToken, parameters, closeParenToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -25854,10 +25854,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CrefBracketedParameterList(openBracketToken, parameters, closeBracketToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -25975,10 +25975,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.CrefParameter(refKindKeyword, type);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -26114,10 +26114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlElement(startTag, content, endTag);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -26248,10 +26248,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlElementStartTag(lessThanToken, name, attributes, greaterThanToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -26368,10 +26368,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlElementEndTag(lessThanSlashToken, name, greaterThanToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -26499,10 +26499,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlEmptyElement(lessThanToken, name, attributes, slashGreaterThanToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -26619,10 +26619,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlName(prefix, localName);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -26722,10 +26722,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlPrefix(prefix, colonToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -26884,10 +26884,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlTextAttribute(name, equalsToken, startQuoteToken, textTokens, endQuoteToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -27026,10 +27026,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlCrefAttribute(name, equalsToken, startQuoteToken, cref, endQuoteToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -27165,10 +27165,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlNameAttribute(name, equalsToken, startQuoteToken, identifier, endQuoteToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -27273,10 +27273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlText(textTokens);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -27390,10 +27390,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlCDataSection(startCDataToken, textTokens, endCDataToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -27524,10 +27524,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlProcessingInstruction(startProcessingInstructionToken, name, textTokens, endProcessingInstructionToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -27653,10 +27653,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.XmlComment(lessThanExclamationMinusMinusToken, textTokens, minusMinusGreaterThanToken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -27862,10 +27862,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.IfDirectiveTrivia(hashToken, ifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -28009,10 +28009,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ElifDirectiveTrivia(hashToken, elifKeyword, condition, endOfDirectiveToken, isActive, branchTaken, conditionValue);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -28142,10 +28142,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ElseDirectiveTrivia(hashToken, elseKeyword, endOfDirectiveToken, isActive, branchTaken);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -28264,10 +28264,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.EndIfDirectiveTrivia(hashToken, endIfKeyword, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -28384,10 +28384,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.RegionDirectiveTrivia(hashToken, regionKeyword, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -28504,10 +28504,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.EndRegionDirectiveTrivia(hashToken, endRegionKeyword, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -28624,10 +28624,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ErrorDirectiveTrivia(hashToken, errorKeyword, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -28744,10 +28744,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.WarningDirectiveTrivia(hashToken, warningKeyword, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -28864,10 +28864,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.BadDirectiveTrivia(hashToken, identifier, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -28993,10 +28993,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.DefineDirectiveTrivia(hashToken, defineKeyword, name, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -29126,10 +29126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.UndefDirectiveTrivia(hashToken, undefKeyword, name, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -29277,10 +29277,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.LineDirectiveTrivia(hashToken, lineKeyword, line, file, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -29444,10 +29444,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.PragmaWarningDirectiveTrivia(hashToken, pragmaKeyword, warningKeyword, disableOrRestoreKeyword, errorCodes, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -29615,10 +29615,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.PragmaChecksumDirectiveTrivia(hashToken, pragmaKeyword, checksumKeyword, file, guid, bytes, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -29760,10 +29760,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ReferenceDirectiveTrivia(hashToken, referenceKeyword, file, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -29893,10 +29893,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.LoadDirectiveTrivia(hashToken, loadKeyword, file, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -30017,10 +30017,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }
@@ -30164,10 +30164,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var newNode = SyntaxFactory.NullableDirectiveTrivia(hashToken, nullableKeyword, settingToken, targetToken, endOfDirectiveToken, isActive);
                 var diags = GetDiagnostics();
-                if (diags != null && diags.Length > 0)
+                if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
                 var annotations = GetAnnotations();
-                if (annotations != null && annotations.Length > 0)
+                if (annotations?.Length > 0)
                     newNode = newNode.WithAnnotationsGreen(annotations);
                 return newNode;
             }

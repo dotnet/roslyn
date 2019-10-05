@@ -529,10 +529,10 @@ namespace CSharpSyntaxGenerator
                 }
                 WriteLine(");");
                 WriteLine("var diags = GetDiagnostics();");
-                WriteLine("if (diags != null && diags.Length > 0)");
+                WriteLine("if (diags?.Length > 0)");
                 WriteLine("    newNode = newNode.WithDiagnosticsGreen(diags);");
                 WriteLine("var annotations = GetAnnotations();");
-                WriteLine("if (annotations != null && annotations.Length > 0)");
+                WriteLine("if (annotations?.Length > 0)");
                 WriteLine("    newNode = newNode.WithAnnotationsGreen(annotations);");
                 WriteLine("return newNode;");
                 CloseBlock();
@@ -1288,7 +1288,7 @@ namespace CSharpSyntaxGenerator
                 }
                 WriteLine(");");
                 WriteLine("var annotations = GetAnnotations();");
-                WriteLine("return annotations != null && annotations.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
+                WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
                 CloseBlock();
             }
 
