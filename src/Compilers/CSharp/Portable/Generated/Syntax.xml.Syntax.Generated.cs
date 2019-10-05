@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for qualified name.</summary>
     public sealed partial class QualifiedNameSyntax : NameSyntax
     {
-        private NameSyntax left;
-        private SimpleNameSyntax right;
+        private NameSyntax? left;
+        private SimpleNameSyntax? right;
 
         internal QualifiedNameSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for generic name.</summary>
     public sealed partial class GenericNameSyntax : SimpleNameSyntax
     {
-        private TypeArgumentListSyntax typeArgumentList;
+        private TypeArgumentListSyntax? typeArgumentList;
 
         internal GenericNameSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -219,8 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for alias qualified name.</summary>
     public sealed partial class AliasQualifiedNameSyntax : NameSyntax
     {
-        private IdentifierNameSyntax alias;
-        private SimpleNameSyntax name;
+        private IdentifierNameSyntax? alias;
+        private SimpleNameSyntax? name;
 
         internal AliasQualifiedNameSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -317,8 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for the array type.</summary>
     public sealed partial class ArrayTypeSyntax : TypeSyntax
     {
-        private TypeSyntax elementType;
-        private SyntaxNode rankSpecifiers;
+        private TypeSyntax? elementType;
+        private SyntaxNode? rankSpecifiers;
 
         internal ArrayTypeSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for pointer type.</summary>
     public sealed partial class PointerTypeSyntax : TypeSyntax
     {
-        private TypeSyntax elementType;
+        private TypeSyntax? elementType;
 
         internal PointerTypeSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for a nullable type.</summary>
     public sealed partial class NullableTypeSyntax : TypeSyntax
     {
-        private TypeSyntax elementType;
+        private TypeSyntax? elementType;
 
         internal NullableTypeSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Tuple type element.</summary>
     public sealed partial class TupleElementSyntax : CSharpSyntaxNode
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
 
         internal TupleElementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>The ref modifier of a method's return value or a local.</summary>
     public sealed partial class RefTypeSyntax : TypeSyntax
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
 
         internal RefTypeSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for parenthesized expression.</summary>
     public sealed partial class ParenthesizedExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal ParenthesizedExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for prefix unary expression.</summary>
     public sealed partial class PrefixUnaryExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax operand;
+        private ExpressionSyntax? operand;
 
         internal PrefixUnaryExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for an "await" expression.</summary>
     public sealed partial class AwaitExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal AwaitExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for postfix unary expression.</summary>
     public sealed partial class PostfixUnaryExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax operand;
+        private ExpressionSyntax? operand;
 
         internal PostfixUnaryExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -896,8 +896,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for member access expression.</summary>
     public sealed partial class MemberAccessExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
-        private SimpleNameSyntax name;
+        private ExpressionSyntax? expression;
+        private SimpleNameSyntax? name;
 
         internal MemberAccessExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -952,8 +952,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for conditional access expression.</summary>
     public sealed partial class ConditionalAccessExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
-        private ExpressionSyntax whenNotNull;
+        private ExpressionSyntax? expression;
+        private ExpressionSyntax? whenNotNull;
 
         internal ConditionalAccessExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1008,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for member binding expression.</summary>
     public sealed partial class MemberBindingExpressionSyntax : ExpressionSyntax
     {
-        private SimpleNameSyntax name;
+        private SimpleNameSyntax? name;
 
         internal MemberBindingExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for element binding expression.</summary>
     public sealed partial class ElementBindingExpressionSyntax : ExpressionSyntax
     {
-        private BracketedArgumentListSyntax argumentList;
+        private BracketedArgumentListSyntax? argumentList;
 
         internal ElementBindingExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1084,8 +1084,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for a range expression.</summary>
     public sealed partial class RangeExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax leftOperand;
-        private ExpressionSyntax rightOperand;
+        private ExpressionSyntax? leftOperand;
+        private ExpressionSyntax? rightOperand;
 
         internal RangeExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for implicit element access expression.</summary>
     public sealed partial class ImplicitElementAccessSyntax : ExpressionSyntax
     {
-        private BracketedArgumentListSyntax argumentList;
+        private BracketedArgumentListSyntax? argumentList;
 
         internal ImplicitElementAccessSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1177,8 +1177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents an expression that has a binary operator.</summary>
     public sealed partial class BinaryExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax left;
-        private ExpressionSyntax right;
+        private ExpressionSyntax? left;
+        private ExpressionSyntax? right;
 
         internal BinaryExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1233,8 +1233,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents an expression that has an assignment operator.</summary>
     public sealed partial class AssignmentExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax left;
-        private ExpressionSyntax right;
+        private ExpressionSyntax? left;
+        private ExpressionSyntax? right;
 
         internal AssignmentExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1289,9 +1289,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for conditional expression.</summary>
     public sealed partial class ConditionalExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax condition;
-        private ExpressionSyntax whenTrue;
-        private ExpressionSyntax whenFalse;
+        private ExpressionSyntax? condition;
+        private ExpressionSyntax? whenTrue;
+        private ExpressionSyntax? whenFalse;
 
         internal ConditionalExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1464,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for MakeRef expression.</summary>
     public sealed partial class MakeRefExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal MakeRefExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for RefType expression.</summary>
     public sealed partial class RefTypeExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal RefTypeExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1558,8 +1558,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for RefValue expression.</summary>
     public sealed partial class RefValueExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
-        private TypeSyntax type;
+        private ExpressionSyntax? expression;
+        private TypeSyntax? type;
 
         internal RefValueExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1626,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for Checked or Unchecked expression.</summary>
     public sealed partial class CheckedExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal CheckedExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1673,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for Default expression.</summary>
     public sealed partial class DefaultExpressionSyntax : ExpressionSyntax
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
 
         internal DefaultExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1720,7 +1720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for TypeOf expression.</summary>
     public sealed partial class TypeOfExpressionSyntax : ExpressionSyntax
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
 
         internal TypeOfExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1767,7 +1767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for SizeOf expression.</summary>
     public sealed partial class SizeOfExpressionSyntax : ExpressionSyntax
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
 
         internal SizeOfExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1814,8 +1814,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for invocation expression.</summary>
     public sealed partial class InvocationExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
-        private ArgumentListSyntax argumentList;
+        private ExpressionSyntax? expression;
+        private ArgumentListSyntax? argumentList;
 
         internal InvocationExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -1868,8 +1868,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for element access expression.</summary>
     public sealed partial class ElementAccessExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
-        private BracketedArgumentListSyntax argumentList;
+        private ExpressionSyntax? expression;
+        private BracketedArgumentListSyntax? argumentList;
 
         internal ElementAccessExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2047,8 +2047,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for argument.</summary>
     public sealed partial class ArgumentSyntax : CSharpSyntaxNode
     {
-        private NameColonSyntax nameColon;
-        private ExpressionSyntax expression;
+        private NameColonSyntax? nameColon;
+        private ExpressionSyntax? expression;
 
         internal ArgumentSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2110,7 +2110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for name colon syntax.</summary>
     public sealed partial class NameColonSyntax : CSharpSyntaxNode
     {
-        private IdentifierNameSyntax name;
+        private IdentifierNameSyntax? name;
 
         internal NameColonSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2149,8 +2149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for the variable declaration in an out var declaration or a deconstruction declaration.</summary>
     public sealed partial class DeclarationExpressionSyntax : ExpressionSyntax
     {
-        private TypeSyntax type;
-        private VariableDesignationSyntax designation;
+        private TypeSyntax? type;
+        private VariableDesignationSyntax? designation;
 
         internal DeclarationExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2200,8 +2200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for cast expression.</summary>
     public sealed partial class CastExpressionSyntax : ExpressionSyntax
     {
-        private TypeSyntax type;
-        private ExpressionSyntax expression;
+        private TypeSyntax? type;
+        private ExpressionSyntax? expression;
 
         internal CastExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2293,9 +2293,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for anonymous method expression.</summary>
     public sealed partial class AnonymousMethodExpressionSyntax : AnonymousFunctionExpressionSyntax
     {
-        private ParameterListSyntax parameterList;
-        private BlockSyntax block;
-        private ExpressionSyntax expressionBody;
+        private ParameterListSyntax? parameterList;
+        private BlockSyntax? block;
+        private ExpressionSyntax? expressionBody;
 
         internal AnonymousMethodExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2404,9 +2404,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for a simple lambda expression.</summary>
     public sealed partial class SimpleLambdaExpressionSyntax : LambdaExpressionSyntax
     {
-        private ParameterSyntax parameter;
-        private BlockSyntax block;
-        private ExpressionSyntax expressionBody;
+        private ParameterSyntax? parameter;
+        private BlockSyntax? block;
+        private ExpressionSyntax? expressionBody;
 
         internal SimpleLambdaExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2496,7 +2496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class RefExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal RefExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2533,9 +2533,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for parenthesized lambda expression.</summary>
     public sealed partial class ParenthesizedLambdaExpressionSyntax : LambdaExpressionSyntax
     {
-        private ParameterListSyntax parameterList;
-        private BlockSyntax block;
-        private ExpressionSyntax expressionBody;
+        private ParameterListSyntax? parameterList;
+        private BlockSyntax? block;
+        private ExpressionSyntax? expressionBody;
 
         internal ParenthesizedLambdaExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2677,9 +2677,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for object creation expression.</summary>
     public sealed partial class ObjectCreationExpressionSyntax : ExpressionSyntax
     {
-        private TypeSyntax type;
-        private ArgumentListSyntax argumentList;
-        private InitializerExpressionSyntax initializer;
+        private TypeSyntax? type;
+        private ArgumentListSyntax? argumentList;
+        private InitializerExpressionSyntax? initializer;
 
         internal ObjectCreationExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2745,8 +2745,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class AnonymousObjectMemberDeclaratorSyntax : CSharpSyntaxNode
     {
-        private NameEqualsSyntax nameEquals;
-        private ExpressionSyntax expression;
+        private NameEqualsSyntax? nameEquals;
+        private ExpressionSyntax? expression;
 
         internal AnonymousObjectMemberDeclaratorSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2853,8 +2853,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for array creation expression.</summary>
     public sealed partial class ArrayCreationExpressionSyntax : ExpressionSyntax
     {
-        private ArrayTypeSyntax type;
-        private InitializerExpressionSyntax initializer;
+        private ArrayTypeSyntax? type;
+        private InitializerExpressionSyntax? initializer;
 
         internal ArrayCreationExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2911,7 +2911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for implicit array creation expression.</summary>
     public sealed partial class ImplicitArrayCreationExpressionSyntax : ExpressionSyntax
     {
-        private InitializerExpressionSyntax initializer;
+        private InitializerExpressionSyntax? initializer;
 
         internal ImplicitArrayCreationExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -2972,8 +2972,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for stackalloc array creation expression.</summary>
     public sealed partial class StackAllocArrayCreationExpressionSyntax : ExpressionSyntax
     {
-        private TypeSyntax type;
-        private InitializerExpressionSyntax initializer;
+        private TypeSyntax? type;
+        private InitializerExpressionSyntax? initializer;
 
         internal StackAllocArrayCreationExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3028,7 +3028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents the syntax node for implicit stackalloc array creation expression.</summary>
     public sealed partial class ImplicitStackAllocArrayCreationExpressionSyntax : ExpressionSyntax
     {
-        private InitializerExpressionSyntax initializer;
+        private InitializerExpressionSyntax? initializer;
 
         internal ImplicitStackAllocArrayCreationExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3092,8 +3092,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class QueryExpressionSyntax : ExpressionSyntax
     {
-        private FromClauseSyntax fromClause;
-        private QueryBodySyntax body;
+        private FromClauseSyntax? fromClause;
+        private QueryBodySyntax? body;
 
         internal QueryExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3143,9 +3143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class QueryBodySyntax : CSharpSyntaxNode
     {
-        private SyntaxNode clauses;
-        private SelectOrGroupClauseSyntax selectOrGroup;
-        private QueryContinuationSyntax continuation;
+        private SyntaxNode? clauses;
+        private SelectOrGroupClauseSyntax? selectOrGroup;
+        private QueryContinuationSyntax? continuation;
 
         internal QueryBodySyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3200,8 +3200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class FromClauseSyntax : QueryClauseSyntax
     {
-        private TypeSyntax type;
-        private ExpressionSyntax expression;
+        private TypeSyntax? type;
+        private ExpressionSyntax? expression;
 
         internal FromClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3259,7 +3259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class LetClauseSyntax : QueryClauseSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal LetClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3302,11 +3302,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class JoinClauseSyntax : QueryClauseSyntax
     {
-        private TypeSyntax type;
-        private ExpressionSyntax inExpression;
-        private ExpressionSyntax leftExpression;
-        private ExpressionSyntax rightExpression;
-        private JoinIntoClauseSyntax into;
+        private TypeSyntax? type;
+        private ExpressionSyntax? inExpression;
+        private ExpressionSyntax? leftExpression;
+        private ExpressionSyntax? rightExpression;
+        private JoinIntoClauseSyntax? into;
 
         internal JoinClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3420,7 +3420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class WhereClauseSyntax : QueryClauseSyntax
     {
-        private ExpressionSyntax condition;
+        private ExpressionSyntax? condition;
 
         internal WhereClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3501,7 +3501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class OrderingSyntax : CSharpSyntaxNode
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal OrderingSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3544,7 +3544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class SelectClauseSyntax : SelectOrGroupClauseSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal SelectClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3580,8 +3580,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class GroupClauseSyntax : SelectOrGroupClauseSyntax
     {
-        private ExpressionSyntax groupExpression;
-        private ExpressionSyntax byExpression;
+        private ExpressionSyntax? groupExpression;
+        private ExpressionSyntax? byExpression;
 
         internal GroupClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3635,7 +3635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class QueryContinuationSyntax : CSharpSyntaxNode
     {
-        private QueryBodySyntax body;
+        private QueryBodySyntax? body;
 
         internal QueryContinuationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3710,7 +3710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class InterpolatedStringExpressionSyntax : ExpressionSyntax
     {
-        private SyntaxNode contents;
+        private SyntaxNode? contents;
 
         internal InterpolatedStringExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3755,8 +3755,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class which represents a simple pattern-matching expression using the "is" keyword.</summary>
     public sealed partial class IsPatternExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
-        private PatternSyntax pattern;
+        private ExpressionSyntax? expression;
+        private PatternSyntax? pattern;
 
         internal IsPatternExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3809,7 +3809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ThrowExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal ThrowExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3845,7 +3845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class WhenClauseSyntax : CSharpSyntaxNode
     {
-        private ExpressionSyntax condition;
+        private ExpressionSyntax? condition;
 
         internal WhenClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3920,8 +3920,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class DeclarationPatternSyntax : PatternSyntax
     {
-        private TypeSyntax type;
-        private VariableDesignationSyntax designation;
+        private TypeSyntax? type;
+        private VariableDesignationSyntax? designation;
 
         internal DeclarationPatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -3969,7 +3969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class VarPatternSyntax : PatternSyntax
     {
-        private VariableDesignationSyntax designation;
+        private VariableDesignationSyntax? designation;
 
         internal VarPatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4005,10 +4005,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class RecursivePatternSyntax : PatternSyntax
     {
-        private TypeSyntax type;
-        private PositionalPatternClauseSyntax positionalPatternClause;
-        private PropertyPatternClauseSyntax propertyPatternClause;
-        private VariableDesignationSyntax designation;
+        private TypeSyntax? type;
+        private PositionalPatternClauseSyntax? positionalPatternClause;
+        private PropertyPatternClauseSyntax? propertyPatternClause;
+        private VariableDesignationSyntax? designation;
 
         internal RecursivePatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4173,8 +4173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class SubpatternSyntax : CSharpSyntaxNode
     {
-        private NameColonSyntax nameColon;
-        private PatternSyntax pattern;
+        private NameColonSyntax? nameColon;
+        private PatternSyntax? pattern;
 
         internal SubpatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4222,7 +4222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ConstantPatternSyntax : PatternSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal ConstantPatternSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4296,9 +4296,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class InterpolationSyntax : InterpolatedStringContentSyntax
     {
-        private ExpressionSyntax expression;
-        private InterpolationAlignmentClauseSyntax alignmentClause;
-        private InterpolationFormatClauseSyntax formatClause;
+        private ExpressionSyntax? expression;
+        private InterpolationAlignmentClauseSyntax? alignmentClause;
+        private InterpolationFormatClauseSyntax? formatClause;
 
         internal InterpolationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4357,7 +4357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class InterpolationAlignmentClauseSyntax : CSharpSyntaxNode
     {
-        private ExpressionSyntax value;
+        private ExpressionSyntax? value;
 
         internal InterpolationAlignmentClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4428,8 +4428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class GlobalStatementSyntax : MemberDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private StatementSyntax statement;
+        private SyntaxNode? attributeLists;
+        private StatementSyntax? statement;
 
         internal GlobalStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4503,7 +4503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class BlockSyntax : StatementSyntax
     {
-        private SyntaxNode statements;
+        private SyntaxNode? statements;
 
         internal BlockSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4544,12 +4544,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class LocalFunctionStatementSyntax : StatementSyntax
     {
-        private TypeSyntax returnType;
-        private TypeParameterListSyntax typeParameterList;
-        private ParameterListSyntax parameterList;
-        private SyntaxNode constraintClauses;
-        private BlockSyntax body;
-        private ArrowExpressionClauseSyntax expressionBody;
+        private TypeSyntax? returnType;
+        private TypeParameterListSyntax? typeParameterList;
+        private ParameterListSyntax? parameterList;
+        private SyntaxNode? constraintClauses;
+        private BlockSyntax? body;
+        private ArrowExpressionClauseSyntax? expressionBody;
 
         internal LocalFunctionStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4656,7 +4656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
     {
-        private VariableDeclarationSyntax declaration;
+        private VariableDeclarationSyntax? declaration;
 
         internal LocalDeclarationStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4726,7 +4726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class VariableDeclarationSyntax : CSharpSyntaxNode
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
         private SyntaxNode? variables;
 
         internal VariableDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -4784,8 +4784,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class VariableDeclaratorSyntax : CSharpSyntaxNode
     {
-        private BracketedArgumentListSyntax argumentList;
-        private EqualsValueClauseSyntax initializer;
+        private BracketedArgumentListSyntax? argumentList;
+        private EqualsValueClauseSyntax? initializer;
 
         internal VariableDeclaratorSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4843,7 +4843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class EqualsValueClauseSyntax : CSharpSyntaxNode
     {
-        private ExpressionSyntax value;
+        private ExpressionSyntax? value;
 
         internal EqualsValueClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -4997,7 +4997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ExpressionStatementSyntax : StatementSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal ExpressionStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5065,7 +5065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Represents a labeled statement syntax.</summary>
     public sealed partial class LabeledStatementSyntax : StatementSyntax
     {
-        private StatementSyntax statement;
+        private StatementSyntax? statement;
 
         internal LabeledStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5109,7 +5109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class GotoStatementSyntax : StatementSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal GotoStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5238,7 +5238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ReturnStatementSyntax : StatementSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal ReturnStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5277,7 +5277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ThrowStatementSyntax : StatementSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal ThrowStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5316,7 +5316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class YieldStatementSyntax : StatementSyntax
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal YieldStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5358,8 +5358,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class WhileStatementSyntax : StatementSyntax
     {
-        private ExpressionSyntax condition;
-        private StatementSyntax statement;
+        private ExpressionSyntax? condition;
+        private StatementSyntax? statement;
 
         internal WhileStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5416,8 +5416,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class DoStatementSyntax : StatementSyntax
     {
-        private StatementSyntax statement;
-        private ExpressionSyntax condition;
+        private StatementSyntax? statement;
+        private ExpressionSyntax? condition;
 
         internal DoStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5480,11 +5480,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ForStatementSyntax : StatementSyntax
     {
-        private VariableDeclarationSyntax declaration;
+        private VariableDeclarationSyntax? declaration;
         private SyntaxNode? initializers;
-        private ExpressionSyntax condition;
+        private ExpressionSyntax? condition;
         private SyntaxNode? incrementors;
-        private StatementSyntax statement;
+        private StatementSyntax? statement;
 
         internal ForStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5615,9 +5615,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ForEachStatementSyntax : CommonForEachStatementSyntax
     {
-        private TypeSyntax type;
-        private ExpressionSyntax expression;
-        private StatementSyntax statement;
+        private TypeSyntax? type;
+        private ExpressionSyntax? expression;
+        private StatementSyntax? statement;
 
         internal ForEachStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5703,9 +5703,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ForEachVariableStatementSyntax : CommonForEachStatementSyntax
     {
-        private ExpressionSyntax variable;
-        private ExpressionSyntax expression;
-        private StatementSyntax statement;
+        private ExpressionSyntax? variable;
+        private ExpressionSyntax? expression;
+        private StatementSyntax? statement;
 
         internal ForEachVariableStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5793,9 +5793,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class UsingStatementSyntax : StatementSyntax
     {
-        private VariableDeclarationSyntax declaration;
-        private ExpressionSyntax expression;
-        private StatementSyntax statement;
+        private VariableDeclarationSyntax? declaration;
+        private ExpressionSyntax? expression;
+        private StatementSyntax? statement;
 
         internal UsingStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5867,8 +5867,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class FixedStatementSyntax : StatementSyntax
     {
-        private VariableDeclarationSyntax declaration;
-        private StatementSyntax statement;
+        private VariableDeclarationSyntax? declaration;
+        private StatementSyntax? statement;
 
         internal FixedStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5927,7 +5927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class CheckedStatementSyntax : StatementSyntax
     {
-        private BlockSyntax block;
+        private BlockSyntax? block;
 
         internal CheckedStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -5965,7 +5965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class UnsafeStatementSyntax : StatementSyntax
     {
-        private BlockSyntax block;
+        private BlockSyntax? block;
 
         internal UnsafeStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6003,8 +6003,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class LockStatementSyntax : StatementSyntax
     {
-        private ExpressionSyntax expression;
-        private StatementSyntax statement;
+        private ExpressionSyntax? expression;
+        private StatementSyntax? statement;
 
         internal LockStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6064,9 +6064,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class IfStatementSyntax : StatementSyntax
     {
-        private ExpressionSyntax condition;
-        private StatementSyntax statement;
-        private ElseClauseSyntax @else;
+        private ExpressionSyntax? condition;
+        private StatementSyntax? statement;
+        private ElseClauseSyntax? @else;
 
         internal IfStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6147,7 +6147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Represents an else statement syntax.</summary>
     public sealed partial class ElseClauseSyntax : CSharpSyntaxNode
     {
-        private StatementSyntax statement;
+        private StatementSyntax? statement;
 
         internal ElseClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6187,8 +6187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Represents a switch statement syntax.</summary>
     public sealed partial class SwitchStatementSyntax : StatementSyntax
     {
-        private ExpressionSyntax expression;
-        private SyntaxNode sections;
+        private ExpressionSyntax? expression;
+        private SyntaxNode? sections;
 
         internal SwitchStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6289,8 +6289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Represents a switch section syntax of a switch statement.</summary>
     public sealed partial class SwitchSectionSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode labels;
-        private SyntaxNode statements;
+        private SyntaxNode? labels;
+        private SyntaxNode? statements;
 
         internal SwitchSectionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6371,8 +6371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Represents a case label within a switch statement.</summary>
     public sealed partial class CasePatternSwitchLabelSyntax : SwitchLabelSyntax
     {
-        private PatternSyntax pattern;
-        private WhenClauseSyntax whenClause;
+        private PatternSyntax? pattern;
+        private WhenClauseSyntax? whenClause;
 
         internal CasePatternSwitchLabelSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6433,7 +6433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Represents a case label within a switch statement.</summary>
     public sealed partial class CaseSwitchLabelSyntax : SwitchLabelSyntax
     {
-        private ExpressionSyntax value;
+        private ExpressionSyntax? value;
 
         internal CaseSwitchLabelSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6516,7 +6516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class SwitchExpressionSyntax : ExpressionSyntax
     {
-        private ExpressionSyntax governingExpression;
+        private ExpressionSyntax? governingExpression;
         private SyntaxNode? arms;
 
         internal SwitchExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -6583,9 +6583,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class SwitchExpressionArmSyntax : CSharpSyntaxNode
     {
-        private PatternSyntax pattern;
-        private WhenClauseSyntax whenClause;
-        private ExpressionSyntax expression;
+        private PatternSyntax? pattern;
+        private WhenClauseSyntax? whenClause;
+        private ExpressionSyntax? expression;
 
         internal SwitchExpressionArmSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6641,9 +6641,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class TryStatementSyntax : StatementSyntax
     {
-        private BlockSyntax block;
-        private SyntaxNode catches;
-        private FinallyClauseSyntax @finally;
+        private BlockSyntax? block;
+        private SyntaxNode? catches;
+        private FinallyClauseSyntax? @finally;
 
         internal TryStatementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6702,9 +6702,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class CatchClauseSyntax : CSharpSyntaxNode
     {
-        private CatchDeclarationSyntax declaration;
-        private CatchFilterClauseSyntax filter;
-        private BlockSyntax block;
+        private CatchDeclarationSyntax? declaration;
+        private CatchFilterClauseSyntax? filter;
+        private BlockSyntax? block;
 
         internal CatchClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6762,7 +6762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class CatchDeclarationSyntax : CSharpSyntaxNode
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
 
         internal CatchDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6811,7 +6811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class CatchFilterClauseSyntax : CSharpSyntaxNode
     {
-        private ExpressionSyntax filterExpression;
+        private ExpressionSyntax? filterExpression;
 
         internal CatchFilterClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6853,7 +6853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class FinallyClauseSyntax : CSharpSyntaxNode
     {
-        private BlockSyntax block;
+        private BlockSyntax? block;
 
         internal FinallyClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -6891,10 +6891,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class CompilationUnitSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode externs;
-        private SyntaxNode usings;
-        private SyntaxNode attributeLists;
-        private SyntaxNode members;
+        private SyntaxNode? externs;
+        private SyntaxNode? usings;
+        private SyntaxNode? attributeLists;
+        private SyntaxNode? members;
 
         internal CompilationUnitSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -7008,8 +7008,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class UsingDirectiveSyntax : CSharpSyntaxNode
     {
-        private NameEqualsSyntax alias;
-        private NameSyntax name;
+        private NameEqualsSyntax? alias;
+        private NameSyntax? name;
 
         internal UsingDirectiveSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -7098,11 +7098,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class NamespaceDeclarationSyntax : MemberDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private NameSyntax name;
-        private SyntaxNode externs;
-        private SyntaxNode usings;
-        private SyntaxNode members;
+        private SyntaxNode? attributeLists;
+        private NameSyntax? name;
+        private SyntaxNode? externs;
+        private SyntaxNode? usings;
+        private SyntaxNode? members;
 
         internal NamespaceDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -7206,7 +7206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class representing one or more attributes applied to a language construct.</summary>
     public sealed partial class AttributeListSyntax : CSharpSyntaxNode
     {
-        private AttributeTargetSpecifierSyntax target;
+        private AttributeTargetSpecifierSyntax? target;
         private SyntaxNode? attributes;
 
         internal AttributeListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -7312,8 +7312,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Attribute syntax.</summary>
     public sealed partial class AttributeSyntax : CSharpSyntaxNode
     {
-        private NameSyntax name;
-        private AttributeArgumentListSyntax argumentList;
+        private NameSyntax? name;
+        private AttributeArgumentListSyntax? argumentList;
 
         internal AttributeSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -7421,9 +7421,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Attribute argument syntax.</summary>
     public sealed partial class AttributeArgumentSyntax : CSharpSyntaxNode
     {
-        private NameEqualsSyntax nameEquals;
-        private NameColonSyntax nameColon;
-        private ExpressionSyntax expression;
+        private NameEqualsSyntax? nameEquals;
+        private NameColonSyntax? nameColon;
+        private ExpressionSyntax? expression;
 
         internal AttributeArgumentSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -7478,7 +7478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class representing an identifier name followed by an equals token.</summary>
     public sealed partial class NameEqualsSyntax : CSharpSyntaxNode
     {
-        private IdentifierNameSyntax name;
+        private IdentifierNameSyntax? name;
 
         internal NameEqualsSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -7568,7 +7568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Type parameter syntax.</summary>
     public sealed partial class TypeParameterSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode attributeLists;
+        private SyntaxNode? attributeLists;
 
         internal TypeParameterSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -7708,11 +7708,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Class type declaration syntax.</summary>
     public sealed partial class ClassDeclarationSyntax : TypeDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeParameterListSyntax typeParameterList;
-        private BaseListSyntax baseList;
-        private SyntaxNode constraintClauses;
-        private SyntaxNode members;
+        private SyntaxNode? attributeLists;
+        private TypeParameterListSyntax? typeParameterList;
+        private BaseListSyntax? baseList;
+        private SyntaxNode? constraintClauses;
+        private SyntaxNode? members;
 
         internal ClassDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -7841,11 +7841,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Struct type declaration syntax.</summary>
     public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeParameterListSyntax typeParameterList;
-        private BaseListSyntax baseList;
-        private SyntaxNode constraintClauses;
-        private SyntaxNode members;
+        private SyntaxNode? attributeLists;
+        private TypeParameterListSyntax? typeParameterList;
+        private BaseListSyntax? baseList;
+        private SyntaxNode? constraintClauses;
+        private SyntaxNode? members;
 
         internal StructDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -7974,11 +7974,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Interface type declaration syntax.</summary>
     public sealed partial class InterfaceDeclarationSyntax : TypeDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeParameterListSyntax typeParameterList;
-        private BaseListSyntax baseList;
-        private SyntaxNode constraintClauses;
-        private SyntaxNode members;
+        private SyntaxNode? attributeLists;
+        private TypeParameterListSyntax? typeParameterList;
+        private BaseListSyntax? baseList;
+        private SyntaxNode? constraintClauses;
+        private SyntaxNode? members;
 
         internal InterfaceDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -8107,8 +8107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Enum type declaration syntax.</summary>
     public sealed partial class EnumDeclarationSyntax : BaseTypeDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private BaseListSyntax baseList;
+        private SyntaxNode? attributeLists;
+        private BaseListSyntax? baseList;
         private SyntaxNode? members;
 
         internal EnumDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -8224,11 +8224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Delegate declaration syntax.</summary>
     public sealed partial class DelegateDeclarationSyntax : MemberDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeSyntax returnType;
-        private TypeParameterListSyntax typeParameterList;
-        private ParameterListSyntax parameterList;
-        private SyntaxNode constraintClauses;
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? returnType;
+        private TypeParameterListSyntax? typeParameterList;
+        private ParameterListSyntax? parameterList;
+        private SyntaxNode? constraintClauses;
 
         internal DelegateDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -8330,8 +8330,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class EnumMemberDeclarationSyntax : MemberDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private EqualsValueClauseSyntax equalsValue;
+        private SyntaxNode? attributeLists;
+        private EqualsValueClauseSyntax? equalsValue;
 
         internal EnumMemberDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -8461,7 +8461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class SimpleBaseTypeSyntax : BaseTypeSyntax
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
 
         internal SimpleBaseTypeSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -8496,7 +8496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Type parameter constraint clause.</summary>
     public sealed partial class TypeParameterConstraintClauseSyntax : CSharpSyntaxNode
     {
-        private IdentifierNameSyntax name;
+        private IdentifierNameSyntax? name;
         private SyntaxNode? constraints;
 
         internal TypeParameterConstraintClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -8658,7 +8658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Type constraint syntax.</summary>
     public sealed partial class TypeConstraintSyntax : TypeParameterConstraintSyntax
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
 
         internal TypeConstraintSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -8718,8 +8718,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class FieldDeclarationSyntax : BaseFieldDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private VariableDeclarationSyntax declaration;
+        private SyntaxNode? attributeLists;
+        private VariableDeclarationSyntax? declaration;
 
         internal FieldDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -8791,8 +8791,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class EventFieldDeclarationSyntax : BaseFieldDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private VariableDeclarationSyntax declaration;
+        private SyntaxNode? attributeLists;
+        private VariableDeclarationSyntax? declaration;
 
         internal EventFieldDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -8867,7 +8867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ExplicitInterfaceSpecifierSyntax : CSharpSyntaxNode
     {
-        private NameSyntax name;
+        private NameSyntax? name;
 
         internal ExplicitInterfaceSpecifierSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -8944,14 +8944,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Method declaration syntax.</summary>
     public sealed partial class MethodDeclarationSyntax : BaseMethodDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeSyntax returnType;
-        private ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier;
-        private TypeParameterListSyntax typeParameterList;
-        private ParameterListSyntax parameterList;
-        private SyntaxNode constraintClauses;
-        private BlockSyntax body;
-        private ArrowExpressionClauseSyntax expressionBody;
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? returnType;
+        private ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier;
+        private TypeParameterListSyntax? typeParameterList;
+        private ParameterListSyntax? parameterList;
+        private SyntaxNode? constraintClauses;
+        private BlockSyntax? body;
+        private ArrowExpressionClauseSyntax? expressionBody;
 
         internal MethodDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9082,11 +9082,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Operator declaration syntax.</summary>
     public sealed partial class OperatorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeSyntax returnType;
-        private ParameterListSyntax parameterList;
-        private BlockSyntax body;
-        private ArrowExpressionClauseSyntax expressionBody;
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? returnType;
+        private ParameterListSyntax? parameterList;
+        private BlockSyntax? body;
+        private ArrowExpressionClauseSyntax? expressionBody;
 
         internal OperatorDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9199,11 +9199,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Conversion operator declaration syntax.</summary>
     public sealed partial class ConversionOperatorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeSyntax type;
-        private ParameterListSyntax parameterList;
-        private BlockSyntax body;
-        private ArrowExpressionClauseSyntax expressionBody;
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? type;
+        private ParameterListSyntax? parameterList;
+        private BlockSyntax? body;
+        private ArrowExpressionClauseSyntax? expressionBody;
 
         internal ConversionOperatorDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9316,11 +9316,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Constructor declaration syntax.</summary>
     public sealed partial class ConstructorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private ParameterListSyntax parameterList;
-        private ConstructorInitializerSyntax initializer;
-        private BlockSyntax body;
-        private ArrowExpressionClauseSyntax expressionBody;
+        private SyntaxNode? attributeLists;
+        private ParameterListSyntax? parameterList;
+        private ConstructorInitializerSyntax? initializer;
+        private BlockSyntax? body;
+        private ArrowExpressionClauseSyntax? expressionBody;
 
         internal ConstructorDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9428,7 +9428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Constructor initializer syntax.</summary>
     public sealed partial class ConstructorInitializerSyntax : CSharpSyntaxNode
     {
-        private ArgumentListSyntax argumentList;
+        private ArgumentListSyntax? argumentList;
 
         internal ConstructorInitializerSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9472,10 +9472,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Destructor declaration syntax.</summary>
     public sealed partial class DestructorDeclarationSyntax : BaseMethodDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private ParameterListSyntax parameterList;
-        private BlockSyntax body;
-        private ArrowExpressionClauseSyntax expressionBody;
+        private SyntaxNode? attributeLists;
+        private ParameterListSyntax? parameterList;
+        private BlockSyntax? body;
+        private ArrowExpressionClauseSyntax? expressionBody;
 
         internal DestructorDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9614,12 +9614,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class PropertyDeclarationSyntax : BasePropertyDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeSyntax type;
-        private ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier;
-        private AccessorListSyntax accessorList;
-        private ArrowExpressionClauseSyntax expressionBody;
-        private EqualsValueClauseSyntax initializer;
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? type;
+        private ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier;
+        private AccessorListSyntax? accessorList;
+        private ArrowExpressionClauseSyntax? expressionBody;
+        private EqualsValueClauseSyntax? initializer;
 
         internal PropertyDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9728,7 +9728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>The syntax for the expression body of an expression-bodied member.</summary>
     public sealed partial class ArrowExpressionClauseSyntax : CSharpSyntaxNode
     {
-        private ExpressionSyntax expression;
+        private ExpressionSyntax? expression;
 
         internal ArrowExpressionClauseSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9764,10 +9764,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class EventDeclarationSyntax : BasePropertyDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeSyntax type;
-        private ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier;
-        private AccessorListSyntax accessorList;
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? type;
+        private ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier;
+        private AccessorListSyntax? accessorList;
 
         internal EventDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9868,12 +9868,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class IndexerDeclarationSyntax : BasePropertyDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeSyntax type;
-        private ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier;
-        private BracketedParameterListSyntax parameterList;
-        private AccessorListSyntax accessorList;
-        private ArrowExpressionClauseSyntax expressionBody;
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? type;
+        private ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier;
+        private BracketedParameterListSyntax? parameterList;
+        private AccessorListSyntax? accessorList;
+        private ArrowExpressionClauseSyntax? expressionBody;
 
         internal IndexerDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -9982,7 +9982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class AccessorListSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode accessors;
+        private SyntaxNode? accessors;
 
         internal AccessorListSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10023,9 +10023,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class AccessorDeclarationSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode attributeLists;
-        private BlockSyntax body;
-        private ArrowExpressionClauseSyntax expressionBody;
+        private SyntaxNode? attributeLists;
+        private BlockSyntax? body;
+        private ArrowExpressionClauseSyntax? expressionBody;
 
         internal AccessorDeclarationSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10239,9 +10239,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <summary>Parameter syntax.</summary>
     public sealed partial class ParameterSyntax : CSharpSyntaxNode
     {
-        private SyntaxNode attributeLists;
-        private TypeSyntax type;
-        private EqualsValueClauseSyntax @default;
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? type;
+        private EqualsValueClauseSyntax? @default;
 
         internal ParameterSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10313,8 +10313,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class IncompleteMemberSyntax : MemberDeclarationSyntax
     {
-        private SyntaxNode attributeLists;
-        private TypeSyntax type;
+        private SyntaxNode? attributeLists;
+        private TypeSyntax? type;
 
         internal IncompleteMemberSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10419,7 +10419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class DocumentationCommentTriviaSyntax : StructuredTriviaSyntax
     {
-        private SyntaxNode content;
+        private SyntaxNode? content;
 
         internal DocumentationCommentTriviaSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10476,7 +10476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class TypeCrefSyntax : CrefSyntax
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
 
         internal TypeCrefSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10516,8 +10516,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class QualifiedCrefSyntax : CrefSyntax
     {
-        private TypeSyntax container;
-        private MemberCrefSyntax member;
+        private TypeSyntax? container;
+        private MemberCrefSyntax? member;
 
         internal QualifiedCrefSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10589,8 +10589,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class NameMemberCrefSyntax : MemberCrefSyntax
     {
-        private TypeSyntax name;
-        private CrefParameterListSyntax parameters;
+        private TypeSyntax? name;
+        private CrefParameterListSyntax? parameters;
 
         internal NameMemberCrefSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10648,7 +10648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class IndexerMemberCrefSyntax : MemberCrefSyntax
     {
-        private CrefBracketedParameterListSyntax parameters;
+        private CrefBracketedParameterListSyntax? parameters;
 
         internal IndexerMemberCrefSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10695,7 +10695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class OperatorMemberCrefSyntax : MemberCrefSyntax
     {
-        private CrefParameterListSyntax parameters;
+        private CrefParameterListSyntax? parameters;
 
         internal OperatorMemberCrefSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10745,8 +10745,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class ConversionOperatorMemberCrefSyntax : MemberCrefSyntax
     {
-        private TypeSyntax type;
-        private CrefParameterListSyntax parameters;
+        private TypeSyntax? type;
+        private CrefParameterListSyntax? parameters;
 
         internal ConversionOperatorMemberCrefSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10941,7 +10941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </summary>
     public sealed partial class CrefParameterSyntax : CSharpSyntaxNode
     {
-        private TypeSyntax type;
+        private TypeSyntax? type;
 
         internal CrefParameterSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -10992,9 +10992,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class XmlElementSyntax : XmlNodeSyntax
     {
-        private XmlElementStartTagSyntax startTag;
-        private SyntaxNode content;
-        private XmlElementEndTagSyntax endTag;
+        private XmlElementStartTagSyntax? startTag;
+        private SyntaxNode? content;
+        private XmlElementEndTagSyntax? endTag;
 
         internal XmlElementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -11050,8 +11050,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class XmlElementStartTagSyntax : CSharpSyntaxNode
     {
-        private XmlNameSyntax name;
-        private SyntaxNode attributes;
+        private XmlNameSyntax? name;
+        private SyntaxNode? attributes;
 
         internal XmlElementStartTagSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -11107,7 +11107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class XmlElementEndTagSyntax : CSharpSyntaxNode
     {
-        private XmlNameSyntax name;
+        private XmlNameSyntax? name;
 
         internal XmlElementEndTagSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -11146,8 +11146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class XmlEmptyElementSyntax : XmlNodeSyntax
     {
-        private XmlNameSyntax name;
-        private SyntaxNode attributes;
+        private XmlNameSyntax? name;
+        private SyntaxNode? attributes;
 
         internal XmlEmptyElementSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -11203,7 +11203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class XmlNameSyntax : CSharpSyntaxNode
     {
-        private XmlPrefixSyntax prefix;
+        private XmlPrefixSyntax? prefix;
 
         internal XmlNameSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -11297,7 +11297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class XmlTextAttributeSyntax : XmlAttributeSyntax
     {
-        private XmlNameSyntax name;
+        private XmlNameSyntax? name;
 
         internal XmlTextAttributeSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -11355,8 +11355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class XmlCrefAttributeSyntax : XmlAttributeSyntax
     {
-        private XmlNameSyntax name;
-        private CrefSyntax cref;
+        private XmlNameSyntax? name;
+        private CrefSyntax? cref;
 
         internal XmlCrefAttributeSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -11417,8 +11417,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class XmlNameAttributeSyntax : XmlAttributeSyntax
     {
-        private XmlNameSyntax name;
-        private IdentifierNameSyntax identifier;
+        private XmlNameSyntax? name;
+        private IdentifierNameSyntax? identifier;
 
         internal XmlNameAttributeSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -11565,7 +11565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class XmlProcessingInstructionSyntax : XmlNodeSyntax
     {
-        private XmlNameSyntax name;
+        private XmlNameSyntax? name;
 
         internal XmlProcessingInstructionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -11707,7 +11707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class IfDirectiveTriviaSyntax : ConditionalDirectiveTriviaSyntax
     {
-        private ExpressionSyntax condition;
+        private ExpressionSyntax? condition;
 
         internal IfDirectiveTriviaSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
@@ -11761,7 +11761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public sealed partial class ElifDirectiveTriviaSyntax : ConditionalDirectiveTriviaSyntax
     {
-        private ExpressionSyntax condition;
+        private ExpressionSyntax? condition;
 
         internal ElifDirectiveTriviaSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
