@@ -1821,6 +1821,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // compilation, while the other method needs a bindings object to determine what bound node
         // an expression syntax binds to.  Perhaps when we document these methods we should explain
         // where a user can find the other.
+        /// <summary>
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
+        /// to this compilation's programming language.
+        /// </summary>
+        /// <param name="source">Source type of value to be converted</param>
+        /// <param name="destination">Destination type of value to be converted</param>
+        /// <returns>A <see cref="Conversion"/> that classifies the conversion from the
+        /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public Conversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
         {
             // Note that it is possible for there to be both an implicit user-defined conversion
