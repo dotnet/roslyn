@@ -1257,8 +1257,7 @@ namespace CSharpSyntaxGenerator
             {
                 if (field != node.Fields.First())
                     Write(", ");
-                var type = field.Type == "SyntaxList<SyntaxToken>" ? "SyntaxTokenList" : field.Type;
-                Write("{0} {1}", type, CamelCase(field.Name));
+                Write("{0} {1}", GetRedPropertyType(field), CamelCase(field.Name));
             }
             WriteLine(")");
             OpenBlock();
