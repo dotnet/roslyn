@@ -1727,9 +1727,13 @@ namespace CSharpSyntaxGenerator
                 {
                     Write("{0}.Node.ToGreenList<Syntax.InternalSyntax.CSharpSyntaxNode>()", CamelCase(field.Name));
                 }
-                else
+                else if (IsOptional(field))
                 {
                     Write("{0} == null ? null : (Syntax.InternalSyntax.{1}){0}.Green", CamelCase(field.Name), field.Type);
+                }
+                else
+                {
+                    Write("(Syntax.InternalSyntax.{1}){0}.Green", CamelCase(field.Name), field.Type);
                 }
             }
 
