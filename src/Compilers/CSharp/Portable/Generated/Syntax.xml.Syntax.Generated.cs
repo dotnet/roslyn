@@ -2360,7 +2360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public new AnonymousMethodExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword) => Update(asyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
         public AnonymousMethodExpressionSyntax WithDelegateKeyword(SyntaxToken delegateKeyword) => Update(this.AsyncKeyword, delegateKeyword, this.ParameterList, this.Block, this.ExpressionBody);
         public AnonymousMethodExpressionSyntax WithParameterList(ParameterListSyntax? parameterList) => Update(this.AsyncKeyword, this.DelegateKeyword, parameterList, this.Block, this.ExpressionBody);
-        internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax block) => WithBlock(block);
+        internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax block) => WithBlock(block ?? throw new ArgumentNullException(nameof(block)));
         public new AnonymousMethodExpressionSyntax WithBlock(BlockSyntax block) => Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
         public new AnonymousMethodExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, this.Block, expressionBody);
