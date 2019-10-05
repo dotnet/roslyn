@@ -1028,7 +1028,7 @@ namespace CSharpSyntaxGenerator
                     if (field.Type == "SyntaxToken")
                     {
                         WriteComment(field.PropertyComment, "");
-                        Write("{0} {1}{2} {3}", "public", OverrideOrNewModifier(field), field.Type, field.Name);
+                        Write("{0} {1}{2} {3}", "public", OverrideOrNewModifier(field), GetRedPropertyType(field), field.Name);
                         if (IsOptional(field))
                         {
                             WriteLine();
