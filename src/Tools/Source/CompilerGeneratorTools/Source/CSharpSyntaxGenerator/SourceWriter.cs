@@ -66,7 +66,6 @@ namespace CSharpSyntaxGenerator
         {
             WriteFileHeader();
 
-            WriteLine();
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
             OpenBlock();
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");

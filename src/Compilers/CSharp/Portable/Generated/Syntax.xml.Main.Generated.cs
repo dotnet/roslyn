@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
 
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     using Microsoft.CodeAnalysis.CSharp.Syntax;
