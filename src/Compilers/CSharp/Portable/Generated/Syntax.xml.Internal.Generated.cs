@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>SyntaxToken representing the identifier of the simple name.</summary>
+        /// <summary>SyntaxToken representing the identifier of the simple name.</summary>
         public abstract SyntaxToken Identifier { get; }
     }
 
@@ -4933,7 +4933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>SeparatedSyntaxList of ArgumentSyntax nodes representing the list of arguments.</summary>
+        /// <summary>SeparatedSyntaxList of ArgumentSyntax nodes representing the list of arguments.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ArgumentSyntax> Arguments { get; }
     }
 
@@ -5729,19 +5729,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>Gets the "async" token.</summary>
+        /// <summary>Gets the "async" token.</summary>
         public abstract SyntaxToken AsyncKeyword { get; }
 
-            /// <summary>
-            /// BlockSyntax node representing the body of the anonymous function.
-            /// Only one of Block or ExpressionBody will be non-null.
-            /// </summary>
+        /// <summary>
+        /// BlockSyntax node representing the body of the anonymous function.
+        /// Only one of Block or ExpressionBody will be non-null.
+        /// </summary>
         public abstract BlockSyntax Block { get; }
 
-            /// <summary>
-            /// ExpressionSyntax node representing the body of the anonymous function.
-            /// Only one of Block or ExpressionBody will be non-null.
-            /// </summary>
+        /// <summary>
+        /// ExpressionSyntax node representing the body of the anonymous function.
+        /// Only one of Block or ExpressionBody will be non-null.
+        /// </summary>
         public abstract ExpressionSyntax ExpressionBody { get; }
     }
 
@@ -5956,7 +5956,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>SyntaxToken representing equals greater than.</summary>
+        /// <summary>SyntaxToken representing equals greater than.</summary>
         public abstract SyntaxToken ArrowToken { get; }
     }
 
@@ -16302,14 +16302,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>
-            /// Gets a SyntaxToken that represents a case or default keyword that belongs to a switch label.
-            /// </summary>
+        /// <summary>
+        /// Gets a SyntaxToken that represents a case or default keyword that belongs to a switch label.
+        /// </summary>
         public abstract SyntaxToken Keyword { get; }
 
-            /// <summary>
-            /// Gets a SyntaxToken that represents the colon that terminates the switch label.
-            /// </summary>
+        /// <summary>
+        /// Gets a SyntaxToken that represents the colon that terminates the switch label.
+        /// </summary>
         public abstract SyntaxToken ColonToken { get; }
     }
 
@@ -18239,10 +18239,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>Gets the attribute declaration list.</summary>
+        /// <summary>Gets the attribute declaration list.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get; }
 
-            /// <summary>Gets the modifier list.</summary>
+        /// <summary>Gets the modifier list.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers { get; }
     }
 
@@ -19603,19 +19603,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>Gets the identifier.</summary>
+        /// <summary>Gets the identifier.</summary>
         public abstract SyntaxToken Identifier { get; }
 
-            /// <summary>Gets the base type list.</summary>
+        /// <summary>Gets the base type list.</summary>
         public abstract BaseListSyntax BaseList { get; }
 
-            /// <summary>Gets the open brace token.</summary>
+        /// <summary>Gets the open brace token.</summary>
         public abstract SyntaxToken OpenBraceToken { get; }
 
-            /// <summary>Gets the close brace token.</summary>
+        /// <summary>Gets the close brace token.</summary>
         public abstract SyntaxToken CloseBraceToken { get; }
 
-            /// <summary>Gets the optional semicolon token.</summary>
+        /// <summary>Gets the optional semicolon token.</summary>
         public abstract SyntaxToken SemicolonToken { get; }
     }
 
@@ -19637,15 +19637,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>Gets the type keyword token ("class", "struct", "interface").</summary>
+        /// <summary>Gets the type keyword token ("class", "struct", "interface").</summary>
         public abstract SyntaxToken Keyword { get; }
 
         public abstract TypeParameterListSyntax TypeParameterList { get; }
 
-            /// <summary>Gets the type constraint list.</summary>
+        /// <summary>Gets the type constraint list.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> ConstraintClauses { get; }
 
-            /// <summary>Gets the member declarations.</summary>
+        /// <summary>Gets the member declarations.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<MemberDeclarationSyntax> Members { get; }
     }
 
@@ -22489,14 +22489,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>Gets the parameter list.</summary>
+        /// <summary>Gets the parameter list.</summary>
         public abstract ParameterListSyntax ParameterList { get; }
 
         public abstract BlockSyntax Body { get; }
 
         public abstract ArrowExpressionClauseSyntax ExpressionBody { get; }
 
-            /// <summary>Gets the optional semicolon token.</summary>
+        /// <summary>Gets the optional semicolon token.</summary>
         public abstract SyntaxToken SemicolonToken { get; }
     }
 
@@ -24016,10 +24016,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>Gets the type syntax.</summary>
+        /// <summary>Gets the type syntax.</summary>
         public abstract TypeSyntax Type { get; }
 
-            /// <summary>Gets the optional explicit interface specifier.</summary>
+        /// <summary>Gets the optional explicit interface specifier.</summary>
         public abstract ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier { get; }
 
         public abstract AccessorListSyntax AccessorList { get; }
@@ -25305,7 +25305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>Gets the parameter list.</summary>
+        /// <summary>Gets the parameter list.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ParameterSyntax> Parameters { get; }
     }
 
@@ -26948,7 +26948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
         }
 
-            /// <summary>Gets the parameter list.</summary>
+        /// <summary>Gets the parameter list.</summary>
         public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<CrefParameterSyntax> Parameters { get; }
     }
 

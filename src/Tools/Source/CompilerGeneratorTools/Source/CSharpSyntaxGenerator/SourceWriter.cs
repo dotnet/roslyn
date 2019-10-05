@@ -131,7 +131,7 @@ namespace CSharpSyntaxGenerator
                     if (IsNodeOrNodeList(field.Type))
                     {
                         WriteLine();
-                        WriteComment(field.PropertyComment, "    ");
+                        WriteComment(field.PropertyComment, "");
 
                         if (IsSeparatedNodeList(field.Type) ||
                             IsNodeList(field.Type))
@@ -150,7 +150,7 @@ namespace CSharpSyntaxGenerator
                 foreach (var field in valueFields)
                 {
                     WriteLine();
-                    WriteComment(field.PropertyComment, "    ");
+                    WriteComment(field.PropertyComment, "");
 
                     WriteLine("public abstract {0}{1} {2} {{ get; }}",
                         (IsNew(field) ? "new " : ""), field.Type, field.Name);
