@@ -11,6 +11,8 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -20,9 +22,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal sealed class DebuggingSession : IDisposable
     {
+        public readonly Workspace Workspace;
         public readonly IActiveStatementProvider ActiveStatementProvider;
         public readonly IDebuggeeModuleMetadataProvider DebugeeModuleMetadataProvider;
         public readonly ICompilationOutputsProviderService CompilationOutputsProvider;
+
+        private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
 
         /// <summary>
         /// MVIDs read from the assembly built for given project id.
@@ -78,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// or the solution which the last changes committed to the debuggee at the end of edit session were calculated from.
         /// The solution reflecting the current state of the modules loaded in the debugee.
         /// </summary>
-        internal Solution LastCommittedSolution { get; private set; }
+        internal readonly CommittedSolution LastCommittedSolution;
 
         internal DebuggingSession(
             Workspace workspace,
@@ -89,6 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(workspace != null);
             Debug.Assert(debugeeModuleMetadataProvider != null);
 
+            Workspace = workspace;
             DebugeeModuleMetadataProvider = debugeeModuleMetadataProvider;
             CompilationOutputsProvider = compilationOutputsProvider;
             _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
@@ -97,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             ActiveStatementProvider = activeStatementProvider;
 
-            LastCommittedSolution = workspace.CurrentSolution;
+            LastCommittedSolution = new CommittedSolution(this, workspace.CurrentSolution);
             NonRemappableRegions = ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
 
@@ -125,12 +131,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        internal CancellationToken CancellationToken => _cancellationSource.Token;
+        internal void Cancel() => _cancellationSource.Cancel();
+
         public void Dispose()
         {
             foreach (var reader in GetBaselineModuleReaders())
             {
                 reader.Dispose();
             }
+
+            _cancellationSource.Dispose();
         }
 
         internal void PrepareModuleForUpdate(Guid mvid)
@@ -180,7 +191,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            LastCommittedSolution = update.Solution;
+            LastCommittedSolution.CommitSolution(update.Solution, update.ChangedDocuments);
         }
 
         /// <summary>

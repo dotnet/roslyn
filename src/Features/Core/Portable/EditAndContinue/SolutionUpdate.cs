@@ -12,18 +12,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<IDisposable> ModuleReaders;
         public readonly ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> EmitBaselines;
         public readonly ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostic)> Diagnostics;
+        public readonly ImmutableArray<Document> ChangedDocuments;
 
         public SolutionUpdate(
             SolutionUpdateStatus summary,
             ImmutableArray<Deltas> deltas,
             ImmutableArray<IDisposable> moduleReaders,
             ImmutableArray<(ProjectId, EmitBaseline)> emitBaselines,
+            ImmutableArray<Document> changedDocuments,
             ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnostics)
         {
             Summary = summary;
             Deltas = deltas;
             EmitBaselines = emitBaselines;
             ModuleReaders = moduleReaders;
+            ChangedDocuments = changedDocuments;
             Diagnostics = diagnostics;
         }
 
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<Deltas>.Empty,
             ImmutableArray<IDisposable>.Empty,
             ImmutableArray<(ProjectId, EmitBaseline)>.Empty,
+            ImmutableArray<Document>.Empty,
             diagnostics);
     }
 }
