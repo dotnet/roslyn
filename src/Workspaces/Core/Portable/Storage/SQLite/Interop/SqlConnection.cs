@@ -55,10 +55,6 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // Use SQLITE_OPEN_NOMUTEX to enable multi-thread mode, where multiple connections can
             // be used provided each one is only used from a single thread at a time.
             //
-            // Use SQLITE_OPEN_NOMUTEX because we manage all locking ourselves.  So no need for the
-            // overhead of sqlite doing that.  Also, the only other option is FULLMUTEX, which would
-            // mean even reads get serialized (which we definitely don't want).
-            //
             // Use SHAREDCACHE so that we can have an in-memory DB that we dump our writes into.  We
             // need SHAREDCACHE so that all connections see that same in-memory DB.
             //
