@@ -17,6 +17,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             => new CSharpWrappingCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestNoWrappingSuggestions()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        var test = new[] [||]{ 1 };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
         public async Task TestTwoValuesWrappingCases()
         {
             await TestAllWrappingCasesAsync(
