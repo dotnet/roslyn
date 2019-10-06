@@ -10,7 +10,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly object _flushTaskGate = new object();
 
         /// <summary>
-        /// Task kicked off to actually do the work of flushing all data to the DB.
+        /// Task kicked off to actually do the work of flushing all data to the DB. If we hear about
+        /// new writes to the storage system we don't have to kick off another flush task if one is
+        /// active.
         /// </summary>
         private Task _flushTask;
 
@@ -18,6 +20,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             lock (_flushTaskGate)
             {
+                // Check if we already have a flush task in flight.  If so, no need to make another.
                 if (_flushTask == null)
                 {
                     var token = _shutdownTokenSource.Token;
@@ -32,11 +35,12 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private void FlushInMemoryDataToDisk(bool force)
         {
-            // Indicate that there is no outstanding write task.  The next request to 
-            // write will cause one to be kicked off.
             lock (this._flushTaskGate)
             {
+                // Indicate that there is no outstanding write task.  The next request to 
+                // write will cause one to be kicked off.
                 _flushTask = null;
+
                 if (!force && _shutdownTokenSource.IsCancellationRequested)
                 {
                     // Don't flush from a bg task if we've been asked to shutdown.  The shutdown
