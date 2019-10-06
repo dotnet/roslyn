@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -43,7 +44,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
-            public Checksum ReadChecksum(TKey key, CancellationToken cancellationToken)
+            // public Task StartNew(Action action, CancellationToken cancellationToken, TaskCreationOptions creationOptions, TaskScheduler scheduler)
+            public Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
+                => Storage.PerformReadAsync(() => ReadChecksum(key, cancellationToken), cancellationToken);
+
+            private Checksum ReadChecksum(TKey key, CancellationToken cancellationToken)
             {
                 using (var stream = ReadBlobColumn(key, ChecksumColumnName, checksumOpt: null, cancellationToken))
                 using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
@@ -57,7 +62,10 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            public Stream ReadStream(TKey key, Checksum checksum, CancellationToken cancellationToken)
+            public Task<Stream> ReadStreamAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
+                => Storage.PerformReadAsync(() => ReadStream(key, checksum, cancellationToken), cancellationToken);
+
+            private Stream ReadStream(TKey key, Checksum checksum, CancellationToken cancellationToken)
                 => ReadBlobColumn(key, DataColumnName, checksum, cancellationToken);
 
             private Stream ReadBlobColumn(
@@ -97,8 +105,10 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            public bool WriteStream(
-                TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
+            public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
+                => Storage.PerformWriteAsync(() => WriteStream(key, stream, checksumOpt, cancellationToken), cancellationToken);
+
+            private bool WriteStream(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
             {
                 // Note: we're technically fully synchronous.  However, we're called from several
                 // async methods.  We just return a Task<bool> here so that all our callers don't

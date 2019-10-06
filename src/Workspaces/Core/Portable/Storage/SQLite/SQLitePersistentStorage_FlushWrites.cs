@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.SQLite
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                         _ => FlushInMemoryDataToDisk(),
                         token,
                         TaskContinuationOptions.None,
-                        TaskScheduler.Default);
+                        _pair.ExclusiveScheduler);
                 }
             }
         }
@@ -37,6 +38,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 _flushTask = null;
             }
+
+            Console.WriteLine("Flushing");
 
             using var connection = GetPooledConnection();
 
