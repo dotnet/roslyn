@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,10 +34,66 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// </summary>
         private readonly ConcurrentExclusiveSchedulerPair _readerWriterLock = new ConcurrentExclusiveSchedulerPair();
 
-        private Task<T> PerformReadAsync<T>(Func<T> func, CancellationToken cancellationToken)
-            => Task.Factory.StartNew(func, cancellationToken, TaskCreationOptions.None, _readerWriterLock.ConcurrentScheduler);
+        // Inner class used so that we can generically create and pool StrongBox<TArg> instances. We
+        // use those to provide an allocation-free means of calling
+        // <c>Task.Factory.StartNew(func<object>, object, ...)</c>.
+        private static class StrongBoxes<TArg>
+            where TArg : struct
+        {
+            private static readonly Stack<StrongBox<TArg>> _boxes = new Stack<StrongBox<TArg>>();
 
-        private Task<T> PerformWriteAsync<T>(Func<T> func, CancellationToken cancellationToken)
-            => Task.Factory.StartNew(func, cancellationToken, TaskCreationOptions.None, _readerWriterLock.ExclusiveScheduler);
+            public static StrongBox<TArg> GetBox()
+            {
+                lock (_boxes)
+                {
+                    if (_boxes.Count > 0)
+                    {
+                        return _boxes.Pop();
+                    }
+
+                    return new StrongBox<TArg>();
+                }
+            }
+
+            public static void ReturnBox(StrongBox<TArg> box)
+            {
+                lock (_boxes)
+                {
+                    _boxes.Push(box);
+                }
+            }
+        }
+
+        private Task<T> PerformReadAsync<TArg, T>(Func<TArg, T> func, TArg arg, CancellationToken cancellationToken)
+            where TArg : struct
+        {
+            // Use a pooled strongbox so we don't box the provided arg.
+            var box = StrongBoxes<TArg>.GetBox();
+            box.Value = arg;
+
+            return Task.Factory.StartNew<T>(b =>
+            {
+                var innerBox = (StrongBox<TArg>)b;
+                var result = func(innerBox.Value);
+                StrongBoxes<TArg>.ReturnBox(innerBox);
+                return result;
+            }, box, cancellationToken, TaskCreationOptions.None, _readerWriterLock.ConcurrentScheduler);
+        }
+
+        public Task<bool> PerformWriteAsync<TArg>(Func<TArg, bool> func, TArg arg, CancellationToken cancellationToken)
+            where TArg : struct
+        {
+            // Use a pooled strongbox so we don't box the provided arg.
+            var box = StrongBoxes<TArg>.GetBox();
+            box.Value = arg;
+
+            return Task.Factory.StartNew(b =>
+            {
+                var innerBox = (StrongBox<TArg>)b;
+                var result = func(innerBox.Value);
+                StrongBoxes<TArg>.ReturnBox(innerBox);
+                return result;
+            }, box, cancellationToken, TaskCreationOptions.None, _readerWriterLock.ExclusiveScheduler);
+        }
     }
 }

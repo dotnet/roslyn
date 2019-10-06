@@ -45,7 +45,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
             public Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
-                => Storage.PerformReadAsync(() => ReadChecksum(key, cancellationToken), cancellationToken);
+                => Storage.PerformReadAsync(
+                    t => ReadChecksum(t.key, t.cancellationToken),
+                    (key, cancellationToken),
+                    cancellationToken);
 
             private Checksum ReadChecksum(TKey key, CancellationToken cancellationToken)
             {
@@ -62,7 +65,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             public Task<Stream> ReadStreamAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
-                => Storage.PerformReadAsync(() => ReadStream(key, checksum, cancellationToken), cancellationToken);
+                => Storage.PerformReadAsync(
+                    t => ReadStream(t.key, t.checksum, t.cancellationToken),
+                    (key, checksum, cancellationToken),
+                    cancellationToken);
 
             private Stream ReadStream(TKey key, Checksum checksum, CancellationToken cancellationToken)
                 => ReadBlobColumn(key, DataColumnName, checksum, cancellationToken);
@@ -105,7 +111,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
-                => Storage.PerformWriteAsync(() => WriteStream(key, stream, checksumOpt, cancellationToken), cancellationToken);
+                => Storage.PerformWriteAsync(
+                    t => WriteStream(t.key, t.stream, t.checksumOpt, t.cancellationToken),
+                    (key, stream, checksumOpt, cancellationToken),
+                    cancellationToken);
 
             private bool WriteStream(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
             {
