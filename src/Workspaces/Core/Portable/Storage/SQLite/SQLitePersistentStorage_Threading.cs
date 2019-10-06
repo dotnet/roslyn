@@ -65,19 +65,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
             }
 
-            // Non-allocating/capturing callback for our task scheduler to execute. uses a pooled
-            // strongbox to pass in data safely through the 'arg' parameter of StartNew.
-            private static readonly Func<object, TResult> s_callback = b =>
-            {
-                // Grab the func and arg we want to execute from the StrongBox passed in.
-                // Then return the StrongBox back to the pool as we have no more need for it.
-                var innerBox = (StrongBox<(Func<TArg, TResult> func, TArg arg)>)b;
-                var (func, arg) = innerBox.Value;
-                ReturnBox(innerBox);
-
-                return func(arg);
-            };
-
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public static Task<TResult> PerformTask(Func<TArg, TResult> func, TArg arg, TaskScheduler scheduler, CancellationToken cancellationToken)
             {
@@ -85,7 +72,20 @@ namespace Microsoft.CodeAnalysis.SQLite
                 var box = GetBox();
                 box.Value = (func, arg);
 
-                return Task.Factory.StartNew(s_callback, box, cancellationToken, TaskCreationOptions.None, scheduler);
+                return Task.Factory.StartNew(Callback, box, cancellationToken, TaskCreationOptions.None, scheduler);
+
+                // Non-allocating/capturing callback for our task scheduler to execute. uses a
+                // pooled strongbox to pass in data safely through the 'arg' parameter of StartNew.
+                static TResult Callback(object b)
+                {
+                    // Grab the func and arg we want to execute from the StrongBox passed in. Then
+                    // return the StrongBox back to the pool as we have no more need for it.
+                    var innerBox = (StrongBox<(Func<TArg, TResult> func, TArg arg)>)b;
+                    var (func, arg) = innerBox.Value;
+                    ReturnBox(innerBox);
+
+                    return func(arg);
+                };
             }
         }
 
