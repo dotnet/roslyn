@@ -15,22 +15,6 @@ namespace Microsoft.CodeAnalysis.SQLite
     /// </summary>
     internal partial class SQLitePersistentStorage : AbstractPersistentStorage
     {
-        private readonly ConcurrentExclusiveSchedulerPair _pair = new ConcurrentExclusiveSchedulerPair();
-
-        private Task<T> PerformReadAsync<T>(Func<T> func, CancellationToken cancellationToken)
-            => Task.Factory.StartNew(
-                func,
-                cancellationToken,
-                TaskCreationOptions.None,
-                _pair.ConcurrentScheduler);
-
-        private Task<T> PerformWriteAsync<T>(Func<T> func, CancellationToken cancellationToken)
-            => Task.Factory.StartNew(
-                func,
-                cancellationToken,
-                TaskCreationOptions.None,
-                _pair.ExclusiveScheduler);
-
         // Version history.
         // 1. Initial use of sqlite as the persistence layer.  Simple key->value storage tables.
         // 2. Updated to store checksums.  Tables now key->(checksum,value).  Allows for reading
