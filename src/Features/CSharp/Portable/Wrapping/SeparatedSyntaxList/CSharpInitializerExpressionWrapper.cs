@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
 {
@@ -26,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             => node switch
             {
                 InitializerExpressionSyntax initializerExpressionSyntax => initializerExpressionSyntax,
-                _ => (InitializerExpressionSyntax)null,
+                _ => null,
             };
     }
 }
