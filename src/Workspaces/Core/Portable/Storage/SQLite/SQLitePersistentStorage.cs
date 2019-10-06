@@ -229,11 +229,15 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private void CloseWorker()
         {
-            // Flush all pending writes so that all data our features wanted written
-            // are definitely persisted to the DB.
+            // Notify any outstanding async work that it should stop.
+            _shutdownTokenSource.Cancel();
+
+            // Flush all pending writes so that all data our features wanted written are definitely
+            // persisted to the DB. Force this to happen as it will otherwise bail out since we're
+            // shutdown and we want these final writes to happen.
             try
             {
-                FlushInMemoryDataToDisk();
+                FlushInMemoryDataToDisk(force: true);
             }
             catch (Exception e)
             {
@@ -243,9 +247,6 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             lock (_connectionGate)
             {
-                // Notify any outstanding async work that it should stop.
-                _shutdownTokenSource.Cancel();
-
                 // Go through all our pooled connections and close them.
                 while (_connectionsPool.Count > 0)
                 {

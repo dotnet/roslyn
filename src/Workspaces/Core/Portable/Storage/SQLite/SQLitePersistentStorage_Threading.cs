@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.SQLite
         ///
         /// To prevent this scenario, we control our access to the db explicitly with operations that
         /// can concurrently read, and operations that exclusively write.
+        /// 
+        /// All code that reads or writes from the db should go through this.
         /// </summary>
         private readonly ConcurrentExclusiveSchedulerPair _readerWriterLock = new ConcurrentExclusiveSchedulerPair();
 
