@@ -559,6 +559,32 @@ class C {
     }";
             await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
         }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselection()
+        {
+            var testText = @"
+class C {
+    public void M()
+    {
+        bool a = {|result:[|true || false || true|]|};
+    }";
+            await TestNotUnderselectedAsync<BinaryExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselection2()
+        {
+            var testText = @"
+class C {
+    public void M()
+    {
+        bool a = true || [|false || true|] || true;
+    }";
+            await TestUnderselectedAsync<BinaryExpressionSyntax>(testText);
+        }
         #endregion
 
         #region Attributes
