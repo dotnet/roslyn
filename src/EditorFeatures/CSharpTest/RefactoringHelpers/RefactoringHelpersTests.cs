@@ -513,6 +513,23 @@ class C
 
         #endregion
 
+        #region IsUnderselected
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselectionOnSemicolon()
+        {
+            var testText = @"
+class Program
+{
+    static void Main()
+    {
+        {|result:Main()|}[|;|]
+    }
+}";
+            await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
+        }
+        #endregion
+
         #region Attributes
         [Fact]
         [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
