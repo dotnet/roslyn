@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Documents;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -19,15 +22,15 @@ namespace IdeBenchmarks
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
 
-        [Params("0k", "1k", "10k", "100k")]
-        public string DataSize { get; set; }
+        //[Params("0k", "1k", "10k", "100k")]
+        //public string DataSize { get; set; }
 
-        readonly byte[] _0k = new byte[0];
-        readonly byte[] _1k = new byte[1000];
-        readonly byte[] _10k = new byte[10000];
-        readonly byte[] _100k = new byte[100000];
+        //readonly byte[] _0k = new byte[0];
+        //readonly byte[] _1k = new byte[1000];
+        //readonly byte[] _10k = new byte[10000];
+        //readonly byte[] _100k = new byte[100000];
 
-        [Params(0, 20, 40, 60, 80, 100)]
+        [Params(0, 25, 50, 75, 100)]
         public int ReadPercentage { get; set; }
 
         private TestWorkspace workspace;
@@ -105,23 +108,38 @@ namespace IdeBenchmarks
             _useExportProviderAttribute.After(null);
         }
 
-        [Benchmark(Baseline = true, Description = "Heavy Writes")]
-        public void Perf()
+        static readonly byte[] bytes = new byte[1000];
+
+        [Benchmark(Baseline = true)]
+        public Task Perf()
         {
-            var name = random.Next(0, 8).ToString();
-            if (random.Next(0, 100) < ReadPercentage)
+            var tasks = new List<Task>();
+
+            for (int i = 0; i < 1000; i++)
             {
-                storage.ReadStreamAsync(document, name).GetAwaiter().GetResult();
+                var name = random.Next(0, 4).ToString();
+                if (random.Next(0, 100) < ReadPercentage)
+                {
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        using (var stream = await storage.ReadStreamAsync(document, name))
+                        {
+                        }
+                    }));
+                }
+                else
+                {
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        using (var stream = new MemoryStream(bytes))
+                        {
+                            await storage.WriteStreamAsync(document, name, stream);
+                        }
+                    }));
+                }
             }
-            else
-            {
-                var bytes =
-                    DataSize == "0k" ? _0k :
-                    DataSize == "1k" ? _1k :
-                    DataSize == "10k" ? _10k :
-                    DataSize == "100k" ? _100k : throw new InvalidOperationException(DataSize);
-                storage.WriteStreamAsync(document, name, new MemoryStream(bytes)).GetAwaiter().GetResult();
-            }
+
+            return Task.WhenAll(tasks);
         }
     }
 }
