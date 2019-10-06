@@ -56,10 +56,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // be used provided each one is only used from a single thread at a time.
             //
             // Use SHAREDCACHE so that we can have an in-memory DB that we dump our writes into.  We
-            // need SHAREDCACHE so that all connections see that same in-memory DB.
-            //
-            // Use SQLITE_OPEN_URI because we open a uri-named memory db to share across all
-            // connections.  This is only doable with this flag.
+            // need SHAREDCACHE so that all connections see that same in-memory DB.  This also
+            // requires OPEN_URI since we need a `file::memory:` uri for them all to refer to.
             //
             // see https://sqlite.org/threadsafe.html for more detail
             var flags = OpenFlags.SQLITE_OPEN_CREATE |
