@@ -82,6 +82,7 @@ namespace IdeBenchmarks
                 throw new InvalidOperationException("We didn't properly get the sqlite storage instance.");
             }
 
+            Console.WriteLine("Storage type: " + storage.GetType());
             document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             random = new Random(0);
         }
