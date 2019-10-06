@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 stringId = connection.RunInTransaction(
+                    performsWrites: true,
                     state => InsertStringIntoDatabase_MustRunInTransaction(state.connection, state.value),
                     (connection, value));
 

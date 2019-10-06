@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     try
                     {
                         connection.RunInTransaction(
+                            performsWrites: true,
                             state =>
                             {
                                 foreach (var value in state.stringsToAdd)

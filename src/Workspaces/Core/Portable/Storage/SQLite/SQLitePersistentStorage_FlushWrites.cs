@@ -7,53 +7,59 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal partial class SQLitePersistentStorage
     {
-        private readonly object _flushTaskGate = new object();
+        private readonly object _flushGate = new object();
 
-        /// <summary>
-        /// Task kicked off to actually do the work of flushing all data to the DB.
-        /// </summary>
         private Task _flushTask;
+        private bool _flushToPrimaryDatabase;
 
         private void EnqueueFlushTask()
         {
-            lock (_flushTaskGate)
+            lock (_flushGate)
             {
-                if (_flushTask == null)
-                {
-                    var token = _shutdownTokenSource.Token;
-                    _flushTask = Task.Delay(FlushAllDelayMS, token).ContinueWith(
-                        _ => FlushInMemoryDataToDisk(),
-                        token,
-                        TaskContinuationOptions.None,
-                        TaskScheduler.Default);
-                }
+                _flushToPrimaryDatabase = true;
             }
         }
 
-        private void FlushInMemoryDataToDisk()
+        private async Task FlushInMemoryDataToDiskAsync()
         {
-            // Indicate that there is no outstanding write task.  The next request to 
-            // write will cause one to be kicked off.
-            lock (this._flushTaskGate)
+            while (!_shutdownTokenSource.IsCancellationRequested)
             {
-                _flushTask = null;
+                try
+                {
+                    await Task.Delay(500, _shutdownTokenSource.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+
+                lock (this._flushGate)
+                {
+                    if (!_flushToPrimaryDatabase)
+                    {
+                        continue;
+                    }
+
+                    _flushToPrimaryDatabase = false;
+                }
+
+                using var connection = GetPooledConnection();
+
+                Console.WriteLine("Flushing");
+
+                // Within a single transaction, bulk flush all the tables from our writecache
+                // db to the main on-disk db.  Once that is done, within the same transaction,
+                // clear the writecache tables so they can be filled by the next set of writes
+                // coming in.
+                connection.Connection.RunInTransaction(
+                    performsWrites: true,
+                    tuple =>
+                    {
+                        var connection = tuple.Connection;
+                        tuple.self._solutionAccessor.FlushInMemoryDataToDisk(connection);
+                        tuple.self._projectAccessor.FlushInMemoryDataToDisk(connection);
+                        tuple.self._documentAccessor.FlushInMemoryDataToDisk(connection);
+                    }, (self: this, connection.Connection));
             }
-
-            using var connection = GetPooledConnection();
-
-            Console.WriteLine("Flushing");
-
-            // Within a single transaction, bulk flush all the tables from our writecache
-            // db to the main on-disk db.  Once that is done, within the same transaction,
-            // clear the writecache tables so they can be filled by the next set of writes
-            // coming in.
-            connection.Connection.RunInTransaction(tuple =>
-            {
-                var connection = tuple.Connection;
-                tuple.self._solutionAccessor.FlushInMemoryDataToDisk(connection);
-                tuple.self._projectAccessor.FlushInMemoryDataToDisk(connection);
-                tuple.self._documentAccessor.FlushInMemoryDataToDisk(connection);
-            }, (self: this, connection.Connection));
         }
     }
 }

@@ -136,6 +136,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private bool SolutionSizeAboveThreshold(Solution solution)
         {
+            return true;
             var workspace = solution.Workspace;
             if (workspace.Kind == WorkspaceKind.RemoteWorkspace ||
                 workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace)

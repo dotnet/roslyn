@@ -168,19 +168,21 @@ namespace Microsoft.CodeAnalysis.SQLite
                         // passed in, we need to validate that the checksums match.  This is
                         // only safe if we are in a transaction and no-one else can race with
                         // us.
-                        return connection.RunInTransaction((tuple) =>
-                        {
-                            // If we were passed a checksum, make sure it matches what we have
-                            // stored in the table already.  If they don't match, don't read
-                            // out the data value at all.
-                            if (tuple.checksumOpt != null &&
-                                !ChecksumsMatch_MustRunInTransaction(tuple.connection, tuple.writeCacheDB, tuple.rowId, tuple.checksumOpt, cancellationToken))
+                        return connection.RunInTransaction(
+                            performsWrites: false,
+                            tuple =>
                             {
-                                return null;
-                            }
+                                // If we were passed a checksum, make sure it matches what we have
+                                // stored in the table already.  If they don't match, don't read
+                                // out the data value at all.
+                                if (tuple.checksumOpt != null &&
+                                    !ChecksumsMatch_MustRunInTransaction(tuple.connection, tuple.writeCacheDB, tuple.rowId, tuple.checksumOpt, cancellationToken))
+                                {
+                                    return null;
+                                }
 
-                            return connection.ReadBlob_MustRunInTransaction(tuple.writeCacheDB, tuple.self.DataTableName, tuple.columnName, tuple.rowId);
-                        }, (self: this, connection, writeCacheDB, columnName, checksumOpt, rowId));
+                                return connection.ReadBlob_MustRunInTransaction(tuple.writeCacheDB, tuple.self.DataTableName, tuple.columnName, tuple.rowId);
+                            }, (self: this, connection, writeCacheDB, columnName, checksumOpt, rowId));
                     }
                 }
                 catch (Exception ex)

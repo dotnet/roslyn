@@ -47,18 +47,21 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         /// </summary>
         public bool IsInTransaction { get; private set; }
 
-        public static SqlConnection Create(IPersistentStorageFaultInjector faultInjector, string databasePath)
+        public static SqlConnection Create(
+            IPersistentStorageFaultInjector faultInjector, string databasePath, bool deleteOnClose)
         {
             faultInjector?.OnNewConnection();
 
-            // Use SQLITE_OPEN_NOMUTEX to enable multi-thread mode, where multiple connections can be used provided each
-            // one is only used from a single thread at a time.
-            // see https://sqlite.org/threadsafe.html for more detail
             var flags = OpenFlags.SQLITE_OPEN_CREATE |
                 OpenFlags.SQLITE_OPEN_READWRITE |
                 OpenFlags.SQLITE_OPEN_NOMUTEX |
-                OpenFlags.SQLITE_OPEN_SHAREDCACHE |
                 OpenFlags.SQLITE_OPEN_URI;
+
+            if (deleteOnClose)
+            {
+                flags |= OpenFlags.SQLITE_OPEN_DELETEONCLOSE;
+            }
+
             var result = (Result)raw.sqlite3_open_v2(databasePath, out var handle, (int)flags, vfs: null);
 
             if (result != Result.OK)
@@ -77,16 +80,6 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         {
             _faultInjector = faultInjector;
             _handle = handle;
-
-            // Look for the in-memory write cache and attach to this connection.
-            // If it's not there, then create it and attach it.
-            //
-            // From: https://www.sqlite.org/sharedcache.html
-            // Enabling shared-cache for an in-memory database allows two or more database 
-            // connections in the same process to have access to the same in-memory database.
-            // An in-memory database in shared cache is automatically deleted and memory is
-            // reclaimed when the last connection to that database closes.
-            this.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {SQLitePersistentStorage.WriteCacheDBName};");
         }
 
         ~SqlConnection()
@@ -141,9 +134,11 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return new ResettableSqlStatement(statement);
         }
 
-        public void RunInTransaction<TState>(Action<TState> action, TState state)
+        public void RunInTransaction<TState>(
+            bool performsWrites, Action<TState> action, TState state)
         {
             RunInTransaction(
+                performsWrites,
                 state =>
                 {
                     state.action(state.state);
@@ -152,7 +147,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
                 (action, state));
         }
 
-        public TResult RunInTransaction<TState, TResult>(Func<TState, TResult> action, TState state)
+        public TResult RunInTransaction<TState, TResult>(
+            bool performsWrites, Func<TState, TResult> action, TState state)
         {
             try
             {
@@ -163,7 +159,24 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
                 IsInTransaction = true;
 
-                ExecuteCommand("begin transaction");
+                // If we're performing any writes begin an immediate transaction so we can
+                // immediately try to obtain the transaction lock.  This prevents a deadlock in the
+                // following scenario:
+                //
+                // The scenario is as follows. Transaction A starts as a reader, and later attempts
+                // to perform a write. Transaction B is a writer (either started that way, or
+                // started as a reader and promoted to a writer first). B holds a RESERVED lock,
+                // waiting for readers to clear so it can start writing. A holds a SHARED lock (it's
+                // a reader) and tries to acquire RESERVED lock (so it can start writing
+
+                if (performsWrites)
+                {
+                    ExecuteCommand("begin immediate transaction");
+                }
+                else
+                {
+                    ExecuteCommand("begin transaction");
+                }
                 var result = action(state);
                 ExecuteCommand("commit transaction");
                 return result;

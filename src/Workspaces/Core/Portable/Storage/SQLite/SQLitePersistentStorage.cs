@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -21,6 +23,8 @@ namespace Microsoft.CodeAnalysis.SQLite
         //    memory.
         // 3. Use an in-memory DB to cache writes before flushing to disk.
         private const string Version = "3";
+
+        // private readonly ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
         /// <summary>
         /// Inside the DB we have a table dedicated to storing strings that also provides a unique 
@@ -111,6 +115,9 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
+        private readonly string _temporaryDatabaseFile;
+        private SqlConnection _temporaryDatabaseConnection;
+
         private readonly IDisposable _dbOwnershipLock;
         private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
 
@@ -144,6 +151,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             IPersistentStorageFaultInjector faultInjectorOpt)
             : base(workingFolderPath, solutionFilePath, databaseFile)
         {
+            _temporaryDatabaseFile = Path.Combine(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()), Path.GetFileName(this.DatabaseFile));
+
             _dbOwnershipLock = dbOwnershipLock;
             _faultInjectorOpt = faultInjectorOpt;
 
@@ -168,7 +177,15 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Otherwise create a new connection.
-            return SqlConnection.Create(_faultInjectorOpt, DatabaseFile);
+            var connection = SqlConnection.Create(_faultInjectorOpt, DatabaseFile, deleteOnClose: false);
+
+            var uri = new Uri(_temporaryDatabaseFile);
+
+            // Attach the temporary database as well so we can manipulate it and the main DB from
+            // this connection.
+            connection.ExecuteCommand($"attach database '{uri.AbsoluteUri}' as {SQLitePersistentStorage.WriteCacheDBName};");
+
+            return connection;
         }
 
         private void ReleaseConnection(SqlConnection connection)
@@ -204,11 +221,14 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private void CloseWorker()
         {
+            // Notify any outstanding async work that it should stop.
+            _shutdownTokenSource.Cancel();
+
             // Flush all pending writes so that all data our features wanted written
             // are definitely persisted to the DB.
             try
             {
-                FlushInMemoryDataToDisk();
+                _flushTask.Wait();
             }
             catch (Exception e)
             {
@@ -218,15 +238,22 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             lock (_connectionGate)
             {
-                // Notify any outstanding async work that it should stop.
-                _shutdownTokenSource.Cancel();
-
                 // Go through all our pooled connections and close them.
                 while (_connectionsPool.Count > 0)
                 {
                     var connection = _connectionsPool.Pop();
                     connection.Close_OnlyForUseBySqlPersistentStorage();
                 }
+
+                // Now, release the temp db too.  This should ensure that it gets deleted.
+                _temporaryDatabaseConnection.Close_OnlyForUseBySqlPersistentStorage();
+
+                IOUtilities.PerformIO(() =>
+                {
+                    // try to delete the temp db folder as well to leave as little behind as
+                    // possible.
+                    Directory.Delete(Path.GetDirectoryName(_temporaryDatabaseFile), recursive: true);
+                });
             }
         }
 
@@ -243,9 +270,15 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         public void Initialize(Solution solution)
         {
+            InitializeTemporaryDatabase();
+            InitializeMainDatabase(solution);
+            _flushTask = FlushInMemoryDataToDiskAsync();
+        }
+
+        private void InitializeMainDatabase(Solution solution)
+        {
             // Create a connection to the DB and ensure it has tables for the types we care about. 
             using var pooledConnection = GetPooledConnection();
-
             var connection = pooledConnection.Connection;
 
             // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
@@ -277,8 +310,7 @@ $@"create table if not exists {StringInfoTableName}(
 $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on {StringInfoTableName}(""{DataColumnName}"")");
 
             // Now make sure we have the individual tables for the solution/project/document info.
-            EnsureTables(connection, MainDBName);
-            EnsureTables(connection, WriteCacheDBName);
+            EnsureTables(connection);
 
             // Also get the known set of string-to-id mappings we already have in the DB.
             // Do this in one batch if possible.
@@ -291,29 +323,48 @@ $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" 
             // Try to bulk populate all the IDs we'll need for strings/projects/documents.
             // Bulk population is much faster than trying to do everything individually.
             BulkPopulateIds(connection, solution, fetchStringTable);
+        }
 
-            return;
+        private void InitializeTemporaryDatabase()
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_temporaryDatabaseFile));
+            _temporaryDatabaseConnection = SqlConnection.Create(
+                _faultInjectorOpt, _temporaryDatabaseFile, deleteOnClose: true);
 
-            static void EnsureTables(SqlConnection connection, string dbName)
-            {
-                connection.ExecuteCommand(
-$@"create table if not exists {dbName}.{SolutionDataTableName}(
+            // Because this is just a temporary database, and will be deleted on shutdown we don't
+            // have to worry about it's state getting corrupted across sessions of VS (since we'll
+            // just use a different temp db for the next session).
+
+            // Set journal mode to 'memory' for fastest performance.
+            _temporaryDatabaseConnection.ExecuteCommand("pragma journal_mode=memory", throwOnError: false);
+
+            // Set "synchronous" mode to "off" instead of default "full" to reduce the amount of
+            // buffer flushing syscalls, significantly reducing both the blocked time and the amount
+            // of context switches.
+            _temporaryDatabaseConnection.ExecuteCommand("pragma synchronous=off", throwOnError: false);
+
+            EnsureTables(_temporaryDatabaseConnection);
+        }
+
+        private static void EnsureTables(SqlConnection connection)
+        {
+            connection.ExecuteCommand(
+$@"create table if not exists {SolutionDataTableName}(
     ""{DataIdColumnName}"" varchar primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
-                connection.ExecuteCommand(
-$@"create table if not exists {dbName}.{ProjectDataTableName}(
+            connection.ExecuteCommand(
+$@"create table if not exists {ProjectDataTableName}(
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
 
-                connection.ExecuteCommand(
-$@"create table if not exists {dbName}.{DocumentDataTableName}(
+            connection.ExecuteCommand(
+$@"create table if not exists {DocumentDataTableName}(
     ""{DataIdColumnName}"" integer primary key not null,
     ""{ChecksumColumnName}"" blob,
     ""{DataColumnName}"" blob)");
-            }
         }
     }
 }
