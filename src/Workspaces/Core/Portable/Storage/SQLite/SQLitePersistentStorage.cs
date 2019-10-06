@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
@@ -278,6 +277,8 @@ $@"create table if not exists {StringInfoTableName}(
 $@"create unique index if not exists ""{StringInfoTableName}_{DataColumnName}"" on {StringInfoTableName}(""{DataColumnName}"")");
 
             // Now make sure we have the individual tables for the solution/project/document info.
+            // We put this in both our persistent table and our in-memory table so that they have
+            // the same shape.
             EnsureTables(connection, MainDBName);
             EnsureTables(connection, WriteCacheDBName);
 

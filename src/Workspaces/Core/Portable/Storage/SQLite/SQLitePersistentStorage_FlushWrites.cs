@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                 _flushTask = null;
             }
 
-            Console.WriteLine("Flushing");
-
             using var connection = GetPooledConnection();
 
             // Within a single transaction, bulk flush all the tables from our writecache
