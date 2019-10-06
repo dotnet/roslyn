@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.SQLite
         // Inner class used so that we can generically create and pool StrongBox<TArg> instances. We
         // use those to provide an allocation-free means of calling
         // <c>Task.Factory.StartNew(func<object>, object, ...)</c>.
-        private static class StrongBoxes<TArg, TResult>
+        private static class Threading<TArg, TResult>
             where TArg : struct
         {
             private static readonly Stack<StrongBox<(Func<TArg, TResult> func, TArg arg)>> _boxes =
                  new Stack<StrongBox<(Func<TArg, TResult> func, TArg arg)>>();
 
-            public static StrongBox<(Func<TArg, TResult> func, TArg arg)> GetBox()
+            private static StrongBox<(Func<TArg, TResult> func, TArg arg)> GetBox()
             {
                 lock (_boxes)
                 {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
             }
 
-            public static void ReturnBox(StrongBox<(Func<TArg, TResult> func, TArg arg)> box)
+            private static void ReturnBox(StrongBox<(Func<TArg, TResult> func, TArg arg)> box)
             {
                 lock (_boxes)
                 {
@@ -65,43 +65,33 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
             }
 
-            public static readonly Func<object, TResult> ReadCallback = b =>
+            private static readonly Func<object, TResult> Callback = b =>
             {
                 var innerBox = (StrongBox<(Func<TArg, TResult> func, TArg arg)>)b;
-                var result = innerBox.Value.func(innerBox.Value.arg);
+                var (func, arg) = innerBox.Value;
                 ReturnBox(innerBox);
-                return result;
+                return func(arg);
             };
 
-            public static readonly Func<object, TResult> WriteCallback = box =>
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
+            public static Task<TResult> PerformTask(Func<TArg, TResult> func, TArg arg, TaskScheduler scheduler, CancellationToken cancellationToken)
             {
-                var innerBox = (StrongBox<(Func<TArg, TResult> func, TArg arg)>)box;
-                var result = innerBox.Value.func(innerBox.Value.arg);
-                ReturnBox(innerBox);
-                return result;
-            };
+                // Use a pooled strongbox so we don't box the provided arg.
+                var box = GetBox();
+                box.Value = (func, arg);
+
+                return Task.Factory.StartNew(Callback, box, cancellationToken, TaskCreationOptions.None, scheduler);
+            }
         }
 
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        private Task<TResult> PerformReadAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken)
-            where TArg : struct
-        {
-            // Use a pooled strongbox so we don't box the provided arg.
-            var box = StrongBoxes<TArg, TResult>.GetBox();
-            box.Value = (func, arg);
+        // Read tasks go to the concurrent-scheduler where they can run concurrently with other read
+        // tasks.
+        private Task<TResult> PerformReadAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
+            => Threading<TArg, TResult>.PerformTask(func, arg, _readerWriterLock.ConcurrentScheduler, cancellationToken);
 
-            return Task.Factory.StartNew(StrongBoxes<TArg, TResult>.ReadCallback, box, cancellationToken, TaskCreationOptions.None, _readerWriterLock.ConcurrentScheduler);
-        }
-
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-        public Task<bool> PerformWriteAsync<TArg>(Func<TArg, bool> func, TArg arg, CancellationToken cancellationToken)
-            where TArg : struct
-        {
-            // Use a pooled strongbox so we don't box the provided arg.
-            var box = StrongBoxes<TArg, bool>.GetBox();
-            box.Value = (func, arg);
-
-            return Task.Factory.StartNew(StrongBoxes<TArg, bool>.WriteCallback, box, cancellationToken, TaskCreationOptions.None, _readerWriterLock.ExclusiveScheduler);
-        }
+        // Write tasks go to the exclusive-scheduler so they run exclusively of all other threading
+        // tasks we need to do.
+        public Task<bool> PerformWriteAsync<TArg>(Func<TArg, bool> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
+            => Threading<TArg, bool>.PerformTask(func, arg, _readerWriterLock.ExclusiveScheduler, cancellationToken);
     }
 }
