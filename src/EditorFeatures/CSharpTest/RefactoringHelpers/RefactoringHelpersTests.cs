@@ -528,6 +528,37 @@ class Program
 }";
             await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
         }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselectionBug1()
+        {
+            var testText = @"
+class Program
+{
+    public static void Method()
+    {
+        //[|>
+        var str = {|result:"" <|] aaa""|};
+    }
+}";
+            await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselectionBug2()
+        {
+            var testText = @"
+class C {
+    public void M()
+    {
+        Console.WriteLine(""Hello world"");[|
+        {|result:Console.WriteLine(new |]C())|};
+        }
+    }";
+            await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
+        }
         #endregion
 
         #region Attributes
