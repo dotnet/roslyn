@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                         _ => FlushInMemoryDataToDisk(),
                         token,
                         TaskContinuationOptions.None,
-                        _pair.ExclusiveScheduler);
+                        _readerWriterLock.ExclusiveScheduler);
                 }
             }
         }
