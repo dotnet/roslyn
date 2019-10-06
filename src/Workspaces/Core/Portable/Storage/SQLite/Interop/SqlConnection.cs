@@ -84,8 +84,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             _faultInjector = faultInjector;
             _handle = handle;
 
-            // Look for the in-memory write cache and attach to this connection. If it's not there,
-            // then create it and attach it.
+            // Attach (creating if necessary) a singleton in-memory write cache to this connection.
             //
             // From: https://www.sqlite.org/sharedcache.html Enabling shared-cache for an in-memory
             // database allows two or more database connections in the same process to have access
