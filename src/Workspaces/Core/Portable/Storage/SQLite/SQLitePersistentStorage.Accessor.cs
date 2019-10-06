@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
-            // public Task StartNew(Action action, CancellationToken cancellationToken, TaskCreationOptions creationOptions, TaskScheduler scheduler)
             public Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(() => ReadChecksum(key, cancellationToken), cancellationToken);
 

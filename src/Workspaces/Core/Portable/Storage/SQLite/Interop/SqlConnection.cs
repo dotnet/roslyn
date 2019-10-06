@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
@@ -89,14 +90,14 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             _faultInjector = faultInjector;
             _handle = handle;
 
-            // Look for the in-memory write cache and attach to this connection.
-            // If it's not there, then create it and attach it.
+            // Look for the in-memory write cache and attach to this connection. If it's not there,
+            // then create it and attach it.
             //
-            // From: https://www.sqlite.org/sharedcache.html
-            // Enabling shared-cache for an in-memory database allows two or more database 
-            // connections in the same process to have access to the same in-memory database.
-            // An in-memory database in shared cache is automatically deleted and memory is
-            // reclaimed when the last connection to that database closes.
+            // From: https://www.sqlite.org/sharedcache.html Enabling shared-cache for an in-memory
+            // database allows two or more database connections in the same process to have access
+            // to the same in-memory database. An in-memory database in shared cache is
+            // automatically deleted and memory is reclaimed when the last connection to that
+            // database closes.
             this.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {SQLitePersistentStorage.WriteCacheDBName};");
         }
 
