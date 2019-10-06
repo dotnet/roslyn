@@ -35,9 +35,9 @@ class C
             // Using a different method as the parent is an accurate enough simulation for these tests of equality.
             var m2 = (Symbol)model.GetDeclaredSymbol(root.DescendantNodes().OfType<MethodDeclarationSyntax>().ElementAt(1));
 
-            var wrappedLocal1 = new UpdatedContainingSymbolAndNullableAnnotationLocal(local1, m2, TypeWithAnnotations.Create(local1.Type, NullableAnnotation.Annotated));
-            var wrappedLocal1a = new UpdatedContainingSymbolAndNullableAnnotationLocal(local1, m2, TypeWithAnnotations.Create(local1.Type, NullableAnnotation.Annotated));
-            var wrappedLocal2 = new UpdatedContainingSymbolAndNullableAnnotationLocal(local2, m2, TypeWithAnnotations.Create(local1.Type, NullableAnnotation.NotAnnotated));
+            var wrappedLocal1 = UpdatedContainingSymbolAndNullableAnnotationLocal.CreateForTest(local1, m2, TypeWithAnnotations.Create(local1.Type, NullableAnnotation.Annotated));
+            var wrappedLocal1a = UpdatedContainingSymbolAndNullableAnnotationLocal.CreateForTest(local1, m2, TypeWithAnnotations.Create(local1.Type, NullableAnnotation.Annotated));
+            var wrappedLocal2 = UpdatedContainingSymbolAndNullableAnnotationLocal.CreateForTest(local2, m2, TypeWithAnnotations.Create(local1.Type, NullableAnnotation.NotAnnotated));
 
             assertEquality(local1, local1, nullableIgnored: true, considerEverything: true);
             assertEquality(local1, wrappedLocal1, nullableIgnored: true, considerEverything: false);

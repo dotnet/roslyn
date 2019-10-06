@@ -9,14 +9,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class UpdatedContainingSymbolAndNullableAnnotationLocal : LocalSymbol
     {
-        internal UpdatedContainingSymbolAndNullableAnnotationLocal(SourceLocalSymbol underlyingLocal, Symbol updatedContainingSymbol, TypeWithAnnotations updatedType)
+        /// <summary>
+        /// Creates a new <see cref="UpdatedContainingSymbolAndNullableAnnotationLocal"/> for testing purposes,
+        /// which does not verify that the containing symbol matches the original containing symbol.
+        /// </summary>
+        internal static UpdatedContainingSymbolAndNullableAnnotationLocal CreateForTest(SourceLocalSymbol underlyingLocal, Symbol updatedContainingSymbol, TypeWithAnnotations updatedType)
+        {
+            return new UpdatedContainingSymbolAndNullableAnnotationLocal(underlyingLocal, updatedContainingSymbol, updatedType, assertContaining: false);
+        }
+
+        private UpdatedContainingSymbolAndNullableAnnotationLocal(SourceLocalSymbol underlyingLocal, Symbol updatedContainingSymbol, TypeWithAnnotations updatedType, bool assertContaining)
         {
             Debug.Assert(underlyingLocal is object);
             Debug.Assert(updatedContainingSymbol is object);
-            Debug.Assert(updatedContainingSymbol.Equals(underlyingLocal.ContainingSymbol, TypeCompareKind.AllNullableIgnoreOptions));
-            _underlyingLocal = underlyingLocal;
+            Debug.Assert(!assertContaining || updatedContainingSymbol.Equals(underlyingLocal.ContainingSymbol, TypeCompareKind.AllNullableIgnoreOptions));
             ContainingSymbol = updatedContainingSymbol;
             TypeWithAnnotations = updatedType;
+            _underlyingLocal = underlyingLocal;
+        }
+
+        internal UpdatedContainingSymbolAndNullableAnnotationLocal(SourceLocalSymbol underlyingLocal, Symbol updatedContainingSymbol, TypeWithAnnotations updatedType)
+            : this(underlyingLocal, updatedContainingSymbol, updatedType, assertContaining: true)
+        {
         }
 
         private readonly SourceLocalSymbol _underlyingLocal;
