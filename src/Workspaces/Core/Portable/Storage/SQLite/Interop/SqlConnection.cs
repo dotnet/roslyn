@@ -91,6 +91,12 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // to the same in-memory database. An in-memory database in shared cache is
             // automatically deleted and memory is reclaimed when the last connection to that
             // database closes.
+            //
+            // Using `as writecache` at the end ensures all connections see the same db.  Using
+            // `cache=shared` means that all connections will see the same data when reading and
+            // writing.  i.e. if one connection writes data to this, another connection will see
+            // that data when reading.  Without this, all connections would get their own private
+            // memory db independent of all other connections.
             this.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {SQLitePersistentStorage.WriteCacheDBName};");
         }
 
