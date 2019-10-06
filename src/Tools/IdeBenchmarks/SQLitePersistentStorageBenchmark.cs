@@ -19,6 +19,7 @@ namespace IdeBenchmarks
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
 
+<<<<<<< HEAD
         [Params(0, 1, 2, 3)]
         public int DataSize { get; set; }
 
@@ -29,6 +30,15 @@ namespace IdeBenchmarks
             new byte[10000],
             new byte[100000],
         };
+=======
+        [Params("0k", "1k", "10k", "100k")]
+        public string DataSize { get; set; }
+
+        readonly byte[] _0k = new byte[0];
+        readonly byte[] _1k = new byte[1000];
+        readonly byte[] _10k = new byte[10000];
+        readonly byte[] _100k = new byte[100000];
+>>>>>>> sqliteBenchmark
 
         [Params(0, 20, 40, 60, 80, 100)]
         public int ReadPercentage { get; set; }
@@ -85,6 +95,8 @@ namespace IdeBenchmarks
                 throw new InvalidOperationException("We didn't properly get the sqlite storage instance.");
             }
 
+            Console.WriteLine("Storage type: " + storage.GetType());
+
             document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             random = new Random(0);
         }
@@ -117,7 +129,15 @@ namespace IdeBenchmarks
             }
             else
             {
+<<<<<<< HEAD
                 var bytes = arrays[DataSize];
+=======
+                var bytes =
+                    DataSize == "0k" ? _0k :
+                    DataSize == "1k" ? _1k :
+                    DataSize == "10k" ? _10k :
+                    DataSize == "100k" ? _100k : throw new InvalidOperationException(DataSize);
+>>>>>>> sqliteBenchmark
                 storage.WriteStreamAsync(document, name, new MemoryStream(bytes)).GetAwaiter().GetResult();
             }
         }
