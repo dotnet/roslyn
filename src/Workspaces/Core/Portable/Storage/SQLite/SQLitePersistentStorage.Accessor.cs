@@ -316,6 +316,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     statement.Statement.Step();
                 }
 
+                // Now, just delete all the data from the write cache.
                 using (var statement = connection.GetResettableStatement(_delete_from_writecache_0))
                 {
                     statement.Statement.Step();
