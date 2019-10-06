@@ -1,27 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using BenchmarkDotNet.Attributes;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.SQLite;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 
 namespace IdeBenchmarks
 {
@@ -29,13 +19,25 @@ namespace IdeBenchmarks
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
 
-        [Params(0, 1000, 10000, 100000)]
-        public int DataLength { get; set; }
+        [Params(0, 1, 2, 3)]
+        public int DataSize { get; set; }
+
+        public byte[][] arrays = new byte[][]
+        {
+            new byte[0],
+            new byte[1000],
+            new byte[10000],
+            new byte[100000],
+        };
+
+        [Params(0, 20, 40, 60, 80, 100)]
+        public int ReadPercentage { get; set; }
 
         private TestWorkspace workspace;
         private SQLitePersistentStorageService storageService;
         private IChecksummedPersistentStorage storage;
         private Document document;
+        private Random random;
 
         private class SolutionSizeTracker : ISolutionSizeTracker
         {
@@ -84,6 +86,7 @@ namespace IdeBenchmarks
             }
 
             document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            random = new Random(0);
         }
 
         [GlobalCleanup]
@@ -105,10 +108,18 @@ namespace IdeBenchmarks
         }
 
         [Benchmark(Baseline = true, Description = "Heavy Writes")]
-        public void AllWrites()
+        public void Perf()
         {
-            var bytes = new byte[DataLength];
-            storage.WriteStreamAsync(document, "", new MemoryStream(bytes)).GetAwaiter().GetResult();
+            var name = random.Next(0, 8).ToString();
+            if (random.Next(0, 100) < ReadPercentage)
+            {
+                storage.ReadStreamAsync(document, name).GetAwaiter().GetResult();
+            }
+            else
+            {
+                var bytes = arrays[DataSize];
+                storage.WriteStreamAsync(document, name, new MemoryStream(bytes)).GetAwaiter().GetResult();
+            }
         }
     }
 }
