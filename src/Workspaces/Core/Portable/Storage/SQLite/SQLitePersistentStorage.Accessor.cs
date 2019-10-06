@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,10 +43,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
-                    t => ReadChecksum(t.key, t.cancellationToken),
-                    (key, cancellationToken),
+                    t => t.self.ReadChecksum(t.key, t.cancellationToken),
+                    (self: this, key, cancellationToken),
                     cancellationToken);
 
             private Checksum ReadChecksum(TKey key, CancellationToken cancellationToken)
@@ -64,12 +64,14 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<Stream> ReadStreamAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
                 => Storage.PerformReadAsync(
-                    t => ReadStream(t.key, t.checksum, t.cancellationToken),
-                    (key, checksum, cancellationToken),
+                    t => t.self.ReadStream(t.key, t.checksum, t.cancellationToken),
+                    (self: this, key, checksum, cancellationToken),
                     cancellationToken);
 
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             private Stream ReadStream(TKey key, Checksum checksum, CancellationToken cancellationToken)
                 => ReadBlobColumn(key, DataColumnName, checksum, cancellationToken);
 
@@ -112,8 +114,8 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
                 => Storage.PerformWriteAsync(
-                    t => WriteStream(t.key, t.stream, t.checksumOpt, t.cancellationToken),
-                    (key, stream, checksumOpt, cancellationToken),
+                    t => t.self.WriteStream(t.key, t.stream, t.checksumOpt, t.cancellationToken),
+                    (self: this, key, stream, checksumOpt, cancellationToken),
                     cancellationToken);
 
             private bool WriteStream(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
