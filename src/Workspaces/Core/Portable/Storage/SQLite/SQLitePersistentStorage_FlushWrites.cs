@@ -57,18 +57,17 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // db to the main on-disk db.  Once that is done, within the same transaction,
                 // clear the writecache tables so they can be filled by the next set of writes
                 // coming in.
-                connection.Connection.RunInTransaction(
-                    FlushInMemoryDataToDisk,
-                    (self: this, connection.Connection));
+                connection.Connection.RunInTransaction(s_flushInMemoryDataToDisk, (self: this, connection.Connection));
             }
+        }
 
-            static void FlushInMemoryDataToDisk((SQLitePersistentStorage self, SqlConnection connection) tuple)
+        private static readonly Action<(SQLitePersistentStorage self, SqlConnection connection)> s_flushInMemoryDataToDisk =
+            t =>
             {
-                var (self, connection) = tuple;
+                var (self, connection) = t;
                 self._solutionAccessor.FlushInMemoryDataToDisk(connection);
                 self._projectAccessor.FlushInMemoryDataToDisk(connection);
                 self._documentAccessor.FlushInMemoryDataToDisk(connection);
-            }
-        }
+            };
     }
 }

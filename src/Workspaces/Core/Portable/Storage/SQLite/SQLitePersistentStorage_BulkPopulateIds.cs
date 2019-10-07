@@ -128,9 +128,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     using var idToString = s_dictionaryPool.GetPooledObject();
                     try
                     {
-                        connection.RunInTransaction(
-                            InsertAllStrings,
-                            (this, stringsToAdd, connection, idToString.Object));
+                        connection.RunInTransaction(s_insertAllStrings, (this, stringsToAdd, connection, idToString.Object));
                     }
                     catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
                     {
@@ -155,15 +153,6 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
 
                 return true;
-
-                static void InsertAllStrings((SQLitePersistentStorage self, HashSet<string> stringsToAdd, SqlConnection connection, Dictionary<int, string> idToString) state)
-                {
-                    foreach (var value in state.stringsToAdd)
-                    {
-                        var id = state.self.InsertStringIntoDatabase_MustRunInTransaction(state.connection, value);
-                        state.idToString.Add(id, value);
-                    }
-                }
             }
 
             bool AddDocumentIds()
@@ -234,5 +223,15 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
             }
         }
+
+        private static readonly Action<(SQLitePersistentStorage self, HashSet<string> stringsToAdd, SqlConnection connection, Dictionary<int, string> idToString)> s_insertAllStrings =
+            t =>
+            {
+                foreach (var value in t.stringsToAdd)
+                {
+                    var id = t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, value);
+                    t.idToString.Add(id, value);
+                }
+            };
     }
 }

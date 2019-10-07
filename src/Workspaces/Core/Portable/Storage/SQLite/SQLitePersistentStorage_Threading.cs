@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.SQLite
         private static class Threading<TArg, TResult>
             where TArg : struct
         {
-            private static readonly Stack<StrongBox<(Func<TArg, TResult> func, TArg arg)>> _boxes =
+            private static readonly Stack<StrongBox<(Func<TArg, TResult> func, TArg arg)>> s_boxes =
                  new Stack<StrongBox<(Func<TArg, TResult> func, TArg arg)>>();
 
             private static StrongBox<(Func<TArg, TResult> func, TArg arg)> GetBox()
             {
-                lock (_boxes)
+                lock (s_boxes)
                 {
-                    if (_boxes.Count > 0)
+                    if (s_boxes.Count > 0)
                     {
-                        return _boxes.Pop();
+                        return s_boxes.Pop();
                     }
 
                     return new StrongBox<(Func<TArg, TResult> func, TArg arg)>();
@@ -59,9 +59,9 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             private static void ReturnBox(StrongBox<(Func<TArg, TResult> func, TArg arg)> box)
             {
-                lock (_boxes)
+                lock (s_boxes)
                 {
-                    _boxes.Push(box);
+                    s_boxes.Push(box);
                 }
             }
 

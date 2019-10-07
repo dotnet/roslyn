@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<Checksum> ReadChecksumAsync(TKey key, CancellationToken cancellationToken)
-                => Storage.PerformReadAsync(
-                    t => t.self.ReadChecksum(t.key, t.cancellationToken),
-                    (self: this, key, cancellationToken),
-                    cancellationToken);
+                => Storage.PerformReadAsync(s_readChecksum, (self: this, key, cancellationToken), cancellationToken);
+
+            private static readonly Func<(Accessor<TKey, TWriteQueueKey, TDatabaseId> self, TKey key, CancellationToken cancellationToken), Checksum> s_readChecksum =
+                t => t.self.ReadChecksum(t.key, t.cancellationToken);
 
             private Checksum ReadChecksum(TKey key, CancellationToken cancellationToken)
             {
@@ -76,10 +76,10 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<Stream> ReadStreamAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
-                => Storage.PerformReadAsync(
-                    t => t.self.ReadStream(t.key, t.checksum, t.cancellationToken),
-                    (self: this, key, checksum, cancellationToken),
-                    cancellationToken);
+                => Storage.PerformReadAsync(s_readStream, (self: this, key, checksum, cancellationToken), cancellationToken);
+
+            private static readonly Func<(Accessor<TKey, TWriteQueueKey, TDatabaseId> self, TKey key, Checksum checksum, CancellationToken cancellationToken), Stream> s_readStream =
+                t => t.self.ReadStream(t.key, t.checksum, t.cancellationToken);
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             private Stream ReadStream(TKey key, Checksum checksum, CancellationToken cancellationToken)
@@ -108,10 +108,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
-                => Storage.PerformWriteAsync(
-                    t => t.self.WriteStream(t.key, t.stream, t.checksumOpt, t.cancellationToken),
-                    (self: this, key, stream, checksumOpt, cancellationToken),
-                    cancellationToken);
+                => Storage.PerformWriteAsync(s_writeStream, (self: this, key, stream, checksumOpt, cancellationToken), cancellationToken);
+
+            private static readonly Func<(Accessor<TKey, TWriteQueueKey, TDatabaseId> self, TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken), bool> s_writeStream =
+                t => t.self.WriteStream(t.key, t.stream, t.checksumOpt, t.cancellationToken);
 
             private bool WriteStream(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
             {
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                         // only safe if we are in a transaction and no-one else can race with
                         // us.
                         return connection.RunInTransaction(
-                            ValidateChecksumAndReadBlob,
+                            s_validateChecksumAndReadBlock,
                             (self: this, connection, writeCacheDB, columnName, checksumOpt, rowId, cancellationToken));
                     }
                 }
@@ -183,10 +183,11 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
 
                 return null;
+            }
 
-                static Stream ValidateChecksumAndReadBlob(
-                    (Accessor<TKey, TWriteQueueKey, TDatabaseId> self, SqlConnection connection, bool writeCacheDB,
-                     string columnName, Checksum checksumOpt, long rowId, CancellationToken cancellationToken) t)
+            private static readonly Func<(Accessor<TKey, TWriteQueueKey, TDatabaseId> self, SqlConnection connection, bool writeCacheDB,
+                 string columnName, Checksum checksumOpt, long rowId, CancellationToken cancellationToken), Stream> s_validateChecksumAndReadBlock =
+                t =>
                 {
                     // If we were passed a checksum, make sure it matches what we have
                     // stored in the table already.  If they don't match, don't read
@@ -202,8 +203,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     }
 
                     return t.connection.ReadBlob_MustRunInTransaction(t.writeCacheDB, t.self.DataTableName, t.columnName, t.rowId);
-                }
-            }
+                };
 
             private bool ChecksumsMatch_MustRunInTransaction(
                 SqlConnection connection, bool writeCacheDB, long rowId, Checksum checksum, CancellationToken cancellationToken)

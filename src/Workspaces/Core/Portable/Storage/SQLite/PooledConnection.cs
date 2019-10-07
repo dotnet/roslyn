@@ -10,18 +10,18 @@ namespace Microsoft.CodeAnalysis.SQLite
     {
         private struct PooledConnection : IDisposable
         {
-            private readonly SQLitePersistentStorage sqlitePersistentStorage;
+            private readonly SQLitePersistentStorage _storage;
             public readonly SqlConnection Connection;
 
             public PooledConnection(SQLitePersistentStorage sqlitePersistentStorage, SqlConnection sqlConnection)
             {
-                this.sqlitePersistentStorage = sqlitePersistentStorage;
+                this._storage = sqlitePersistentStorage;
                 Connection = sqlConnection;
             }
 
             public void Dispose()
             {
-                sqlitePersistentStorage.ReleaseConnection(Connection);
+                _storage.ReleaseConnection(Connection);
             }
         }
     }
