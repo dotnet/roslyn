@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -22,14 +21,7 @@ namespace IdeBenchmarks
     {
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
 
-        //[Params("0k", "1k", "10k", "100k")]
-        //public string DataSize { get; set; }
-
-        //readonly byte[] _0k = new byte[0];
-        //readonly byte[] _1k = new byte[1000];
-        //readonly byte[] _10k = new byte[10000];
-        //readonly byte[] _100k = new byte[100000];
-
+        // Run the test with different ratios of reads/writes.
         [Params(0, 25, 50, 75, 100)]
         public int ReadPercentage { get; set; }
 
@@ -38,28 +30,6 @@ namespace IdeBenchmarks
         private IChecksummedPersistentStorage storage;
         private Document document;
         private Random random;
-
-        private class SolutionSizeTracker : ISolutionSizeTracker
-        {
-            public long GetSolutionSize(Workspace workspace, SolutionId solutionId)
-            {
-                return 0;
-            }
-        }
-
-        private class LocationService : IPersistentStorageLocationService
-        {
-            public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
-
-            public bool IsSupported(Workspace workspace) => true;
-            public string TryGetStorageLocation(SolutionId solutionId)
-            {
-                var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Console.WriteLine("Creating: " + tempDir);
-                Directory.CreateDirectory(tempDir);
-                return tempDir;
-            }
-        }
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -71,7 +41,16 @@ namespace IdeBenchmarks
                 throw new InvalidOperationException();
             }
 
-            workspace = TestWorkspace.CreateCSharp("");
+            workspace = TestWorkspace.Create(
+@"<Workspace>
+    <Project Language=""NoCompilation"" CommonReferences=""false"">
+        <Document>
+            // a no-compilation document
+        </Document>
+    </Project>
+</Workspace>");
+
+            // Ensure we always use the storage service, no matter what the size of the solution.
             workspace.Options = workspace.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1);
 
             storageService = new SQLitePersistentStorageService(
@@ -140,6 +119,26 @@ namespace IdeBenchmarks
             }
 
             return Task.WhenAll(tasks);
+        }
+
+        private class SolutionSizeTracker : ISolutionSizeTracker
+        {
+            public long GetSolutionSize(Workspace workspace, SolutionId solutionId) => 0;
+        }
+
+        private class LocationService : IPersistentStorageLocationService
+        {
+            public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging { add { } remove { } }
+
+            public bool IsSupported(Workspace workspace) => true;
+            public string TryGetStorageLocation(SolutionId solutionId)
+            {
+                // Store the db in a different random temp dir.
+                var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                Console.WriteLine("Creating: " + tempDir);
+                Directory.CreateDirectory(tempDir);
+                return tempDir;
+            }
         }
     }
 }
