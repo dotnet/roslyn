@@ -10836,37 +10836,6 @@ tryAgain:
             return _syntaxFactory.StackAllocArrayCreationExpression(@stackalloc, elementType, initializer);
         }
 
-        private SyntaxList<SyntaxToken> ParseAnonymousFunctionModifiers()
-        {
-            var modifiers = _pool.Allocate();
-
-            while (true)
-            {
-                if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
-                {
-                    var staticKeyword = this.EatToken(SyntaxKind.StaticKeyword);
-                    staticKeyword = CheckFeatureAvailability(staticKeyword, MessageID.IDS_FeatureStaticAnonymousFunction);
-                    modifiers.Add(staticKeyword);
-                    continue;
-                }
-
-                if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
-                    this.PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
-                {
-                    var asyncToken = this.EatContextualToken(SyntaxKind.AsyncKeyword);
-                    asyncToken = CheckFeatureAvailability(asyncToken, MessageID.IDS_FeatureAsync);
-                    modifiers.Add(asyncToken);
-                    continue;
-                }
-
-                break;
-            }
-
-            var result = modifiers.ToList();
-            _pool.Free(modifiers);
-            return result;
-        }
-
         private AnonymousMethodExpressionSyntax ParseAnonymousMethodExpression()
         {
             var parentScopeIsInAsync = this.IsInAsync;
@@ -10915,6 +10884,37 @@ tryAgain:
                 return _syntaxFactory.AnonymousMethodExpression(
                     modifiers, @delegate, parameterList, body, expressionBody: null);
             }
+        }
+
+        private SyntaxList<SyntaxToken> ParseAnonymousFunctionModifiers()
+        {
+            var modifiers = _pool.Allocate();
+
+            while (true)
+            {
+                if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
+                {
+                    var staticKeyword = this.EatToken(SyntaxKind.StaticKeyword);
+                    staticKeyword = CheckFeatureAvailability(staticKeyword, MessageID.IDS_FeatureStaticAnonymousFunction);
+                    modifiers.Add(staticKeyword);
+                    continue;
+                }
+
+                if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
+                    this.PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
+                {
+                    var asyncToken = this.EatContextualToken(SyntaxKind.AsyncKeyword);
+                    asyncToken = CheckFeatureAvailability(asyncToken, MessageID.IDS_FeatureAsync);
+                    modifiers.Add(asyncToken);
+                    continue;
+                }
+
+                break;
+            }
+
+            var result = modifiers.ToList();
+            _pool.Free(modifiers);
+            return result;
         }
 
         private LambdaExpressionSyntax ParseLambdaExpression()
