@@ -229,15 +229,32 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private void CloseWorker()
         {
-            // Notify any outstanding async work that it should stop.
-            _shutdownTokenSource.Cancel();
-
             // Flush all pending writes so that all data our features wanted written are definitely
-            // persisted to the DB. Force this to happen as it will otherwise bail out since we're
-            // shutdown and we want these final writes to happen.
+            // persisted to the DB.
             try
             {
-                FlushInMemoryDataToDisk(force: true);
+                lock (_flushGate)
+                {
+                    using var connection = GetPooledConnection();
+                    FlushInMemoryDataToDisk_MustRunUnderLock(connection);
+
+                    // Now that we've done this, definitely cancel any further work. From this point
+                    // on, it is now invalid for any codepaths to try to acquire a db connection for
+                    // any purpose (beyond us disposing things below).
+                    //
+                    // This will also ensure that if we have a bg flush task still pending, when it
+                    // wakes up it will see that we're shutdown and not proceed (and importantly
+                    // won't acquire a connection). Because both the bg task and us run under this
+                    // lock, there is no way for it to miss this token cancellation.  If it runs
+                    // after us, then it sees this.  If it runs before us, then we just block until
+                    // it finishes.
+                    //
+                    // We don't have to worry about reads/writes getting connections either.  
+                    // The only way we can get disposed in the first place is if every user of this
+                    // storage instance has released their ref on us. In that case, it would be an
+                    // error on their part to ever try to read/write after releasing us.
+                    _shutdownTokenSource.Cancel();
+                }
             }
             catch (Exception e)
             {
@@ -269,6 +286,16 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         public void Initialize(Solution solution)
         {
+            if (_shutdownTokenSource.IsCancellationRequested)
+            {
+                // Someone tried to get a connection *after* a call to Dispose the storage system
+                // happened.  That should never happen.  We only Dispose when the last ref to the
+                // storage system goes away.  Once that happens, it's an error for there to be any
+                // future or existing consumers of the storage service.  So nothing should be doing
+                // anything that wants to get an connection.
+                throw new InvalidOperationException();
+            }
+
             // Create a connection to the DB and ensure it has tables for the types we care about. 
             using var pooledConnection = GetPooledConnection();
 
