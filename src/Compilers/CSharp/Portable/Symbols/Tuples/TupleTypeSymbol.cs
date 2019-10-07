@@ -1456,8 +1456,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             var mergedUnderlying = (NamedTypeSymbol)this.TupleUnderlyingType.MergeEquivalentTypes(other.TupleUnderlyingType, variance);
 
-            ImmutableArray<string> names1 = this._elementNames;
-            ImmutableArray<string> names2 = ((TupleTypeSymbol)other)._elementNames;
+            ImmutableArray<string> names1 = TupleElementNames;
+            ImmutableArray<string> names2 = ((TupleTypeSymbol)other).TupleElementNames;
             ImmutableArray<string> mergedNames;
             if (names1.IsDefault || names2.IsDefault)
             {
@@ -1474,8 +1474,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            bool namesUnchanged = mergedNames.IsDefault ? this._elementNames.IsDefault : mergedNames.SequenceEqual(this._elementNames);
-            return (mergedUnderlying.Equals(this._underlyingType, TypeCompareKind.ConsiderEverything) && namesUnchanged)
+            bool namesUnchanged = mergedNames.IsDefault ? TupleElementNames.IsDefault : mergedNames.SequenceEqual(TupleElementNames);
+            return (mergedUnderlying.Equals(TupleUnderlyingType, TypeCompareKind.ConsiderEverything) && namesUnchanged)
                 ? this
                 : Create(mergedUnderlying, mergedNames, this._errorPositions, locationOpt: this.Locations.FirstOrDefault(), this._elementLocations);
         }

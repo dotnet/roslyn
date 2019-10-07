@@ -696,7 +696,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
         /// <summary>
-        /// Merges features of the type with an otherwise identical type. The features to be merged are
+        /// Merges features of the type with annother type where there is an identity conversion between them.
+        /// The features to be merged are
         /// object vs dynamic (dynamic wins), tuple names (dropped in case of conflict), and nullable
         /// annotations (e.g. in type arguments).
         /// </summary>

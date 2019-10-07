@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithAnnotations AsNotNullableReferenceType() => _extensions.AsNotNullableReferenceType(this);
 
         /// <summary>
-        /// Merges top-level and nested nullability from an otherwise identical type.
+        /// Merges top-level and nested nullability, dynamic/object, and tuple names from an otherwise equivalent type.
         /// </summary>
         internal TypeWithAnnotations MergeEquivalentTypes(TypeWithAnnotations other, VarianceKind variance)
         {
