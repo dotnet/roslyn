@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Represents a <see cref="CSharpSyntaxVisitor{TResult}"/> which descends an entire <see cref="CSharpSyntaxNode"/> graph and
     /// may replace or remove visited SyntaxNodes in depth-first order.
     /// </summary>
-    public abstract partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode>
+#nullable enable
+    public abstract partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
+#nullable restore
     {
         private readonly bool _visitIntoStructuredTrivia;
 
