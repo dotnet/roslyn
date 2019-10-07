@@ -92,10 +92,8 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    using var pooledConnection = Storage.GetPooledConnection();
-
-                    var connection = pooledConnection.Connection;
-                    if (TryGetDatabaseId(pooledConnection.Connection, key, out var dataId))
+                    using var _ = Storage.GetPooledConnection(out var connection);
+                    if (TryGetDatabaseId(connection, key, out var dataId))
                     {
                         try
                         {
@@ -126,11 +124,10 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    using var pooledConnection = Storage.GetPooledConnection();
-                    var connection = pooledConnection.Connection;
+                    using var _ = Storage.GetPooledConnection(out var connection);
 
                     // Determine the appropriate data-id to store this stream at.
-                    if (TryGetDatabaseId(pooledConnection.Connection, key, out var dataId))
+                    if (TryGetDatabaseId(connection, key, out var dataId))
                     {
                         var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksumOpt, cancellationToken);
                         var (dataBytes, dataLength, dataPooled) = GetBytes(stream);

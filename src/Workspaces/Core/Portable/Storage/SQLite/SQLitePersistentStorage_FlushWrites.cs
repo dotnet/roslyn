@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private static readonly Action<Task, object> s_flushInMemoryDataToDiskIfNotShutdown = (Task _, object self) =>
+        private static readonly Action<Task, object> s_flushInMemoryDataToDiskIfNotShutdown = (Task _1, object self) =>
         {
             var storage = (SQLitePersistentStorage)self;
 
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
 
                 // Haven't been shutdown.  Actually go and move any outstanding data to the real DB.
-                using var connection = storage.GetPooledConnection();
-                storage.FlushInMemoryDataToDisk_MustRunUnderLock(connection.Connection);
+                using var _ = storage.GetPooledConnection(out var connection);
+                storage.FlushInMemoryDataToDisk_MustRunUnderLock(connection);
             }
         };
 

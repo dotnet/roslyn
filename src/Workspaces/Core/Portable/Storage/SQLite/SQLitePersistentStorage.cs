@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 lock (_flushGate)
                 {
-                    using var connection = GetPooledConnection();
-                    FlushInMemoryDataToDisk_MustRunUnderLock(connection.Connection);
+                    using var _ = GetPooledConnection(out var connection);
+                    FlushInMemoryDataToDisk_MustRunUnderLock(connection);
 
                     // Now that we've done this, definitely cancel any further work. From this point
                     // on, it is now invalid for any codepaths to try to acquire a db connection for
@@ -281,8 +281,12 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// longer in use. In particular, make sure to avoid letting a connection lease cross an <see langword="await"/>
         /// boundary, as it will prevent code in the asynchronous operation from using the existing connection.
         /// </remarks>
-        private PooledConnection GetPooledConnection()
-            => new PooledConnection(this, GetConnection());
+        private PooledConnection GetPooledConnection(out SqlConnection connection)
+        {
+            var result = new PooledConnection(this, GetConnection());
+            connection = result.Connection;
+            return result;
+        }
 
         public void Initialize(Solution solution)
         {
@@ -297,9 +301,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Create a connection to the DB and ensure it has tables for the types we care about. 
-            using var pooledConnection = GetPooledConnection();
-
-            var connection = pooledConnection.Connection;
+            using var _ = GetPooledConnection(out var connection);
 
             // Enable write-ahead logging to increase write performance by reducing amount of disk writes,
             // by combining writes at checkpoint, salong with using sequential-only writes to populate the log.
