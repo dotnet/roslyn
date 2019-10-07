@@ -32,29 +32,6 @@ namespace IdeBenchmarks
         private Document document;
         private Random random;
 
-        private class SolutionSizeTracker : ISolutionSizeTracker
-        {
-            public long GetSolutionSize(Workspace workspace, SolutionId solutionId)
-            {
-                return 0;
-            }
-        }
-
-        private class LocationService : IPersistentStorageLocationService
-        {
-            public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging;
-
-            public bool IsSupported(Workspace workspace) => true;
-            public string TryGetStorageLocation(SolutionId solutionId)
-            {
-                // Store the db in a different random temp dir.
-                var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                Console.WriteLine("Creating: " + tempDir);
-                Directory.CreateDirectory(tempDir);
-                return tempDir;
-            }
-        }
-
         [GlobalSetup]
         public void GlobalSetup()
         {
@@ -65,7 +42,14 @@ namespace IdeBenchmarks
                 throw new InvalidOperationException();
             }
 
-            workspace = TestWorkspace.CreateCSharp("");
+            workspace = TestWorkspace.Create(
+@"<Workspace>
+    <Project Language=""NoCompilation"" CommonReferences=""false"">
+        <Document>
+            // a no-compilation document
+        </Document>
+    </Project>
+</Workspace>");
 
             // Ensure we always use the storage service, no matter what the size of the solution.
             workspace.Options = workspace.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1);
@@ -136,6 +120,26 @@ namespace IdeBenchmarks
             }
 
             return Task.WhenAll(tasks);
+        }
+
+        private class SolutionSizeTracker : ISolutionSizeTracker
+        {
+            public long GetSolutionSize(Workspace workspace, SolutionId solutionId) => 0;
+        }
+
+        private class LocationService : IPersistentStorageLocationService
+        {
+            public event EventHandler<PersistentStorageLocationChangingEventArgs> StorageLocationChanging { add { } remove { } }
+
+            public bool IsSupported(Workspace workspace) => true;
+            public string TryGetStorageLocation(SolutionId solutionId)
+            {
+                // Store the db in a different random temp dir.
+                var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                Console.WriteLine("Creating: " + tempDir);
+                Directory.CreateDirectory(tempDir);
+                return tempDir;
+            }
         }
     }
 }
