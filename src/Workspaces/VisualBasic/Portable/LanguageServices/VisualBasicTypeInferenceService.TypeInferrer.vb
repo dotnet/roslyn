@@ -862,7 +862,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '
                     '      await goo.ConfigureAwait()
                     '
-                    ' then we can figure out what 'goo' should be based on teh await
+                    ' then we can figure out what 'goo' should be based on the await
                     ' context.
                     If expressionOpt Is memberAccessExpression.Expression Then
                         Return InferTypeForExpressionOfMemberAccessExpression(memberAccessExpression)

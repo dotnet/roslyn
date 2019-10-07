@@ -134,7 +134,7 @@ End Class
 
 
         Public Sub New()
-            ' The following two libraries are shrinked code pulled from
+            ' The following two libraries are shrunk code pulled from
             ' corresponding files in the csharp5 legacy tests
             Dim eventLibSrc =
                 <compilation><file name="EventLibrary.vb">
