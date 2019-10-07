@@ -79,7 +79,52 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;</source>
-        <target state="needs-review-translation">閉じているファイルの診断結果を表示する; 正規表現を色付けする; カーソルの下の関連コンポーネントを強調表示する; 無効な正規表現を報告する; 完全なソリューション分析を有効にする; エディター機能分析を外部処理で実行する; 逆コンパイルされたソースへのナビゲーションを有効にする; ディレクティブを使用する; using の並べ替えのとき、最初に System ディレクティブを配置する; ディレクティブ グループを使用して分離します; 参照アセンブリの型に using を提案する; NuGet パッケージの型に using を提案する; 強調表示する; カーソルの下のシンボルへの参照wを強調表示する; カーソルの下の関連キーワードを強調表示する; アウトライン; ファイルを開くときにアウトライン モードに入る; プロシージャ行の区切り記号を表示する; 宣言レベルのコンストラクトのアウトラインを表示する; コード レベルのコンストラクトのアウトラインを表示する; コメントとプリプロセッサ領域のアウトラインを表示する; 定義を折りたたむときに領域を折りたたむ; フェード; 未使用の using をフェードアウトします; 到達できないコードをフェードアウトします; ブロック構造のガイド; 宣言レベルのコンストラクトのガイドを表示する; コード レベルのコンストラクトのガイドを表示する; エディターのヘルプ; /// に対する XML ドキュメントを生成する; /* */ コメントを作成するときに新しい行の先頭に * を挿入する; Enter で文字列リテラルを分割する; string.Format 呼び出しで無効なプレースホルダーをレポートします; メソッドの抽出; カスタム構造体に ref または out を設定しない; インターフェイスまたは抽象クラスの実装; プロパティ、イベント、メソッドを挿入するときに、それらを配置する; 同じ種類の他のメンバー; 末尾; プロパティを生成するとき; スロー プロパティを優先する; 自動プロパティを優先する;</target>
+        <target state="translated">閉じているファイルの診断結果を表示する;
+正規表現をカラー化する;
+カーソルの下にある関連コンポーネントをハイライトする;
+無効な正規表現を報告する;
+完全ソリューション解析を有効にする;
+外部プロセスでエディター機能解析を実行する;
+逆コンパイルされたソースへのナビゲーションを有効にする;
+ディレクティブを使用する;
+using を並べ替える際に、system ディレクティブを先頭に配置する;
+ディレクティブ グループを使用して分離する;
+参照アセンブリの型に using を提案する;
+NuGet パッケージの型に using を提案する;
+強調表示;
+カーソルの下にあるシンボルへの参照をハイライトする;
+カーソルの下にあるキーワードの関連キーワードをハイライトする;
+アウトライン;
+ファイルを開くときにアウトライン モードに入る;
+プロシージャ行の区切り記号を表示する;
+宣言レベルのコンストラクトのアウトラインを表示する;
+コード レベルのコンストラクトのアウトラインを表示する;
+コメントとプリプロセッサ領域のアウトラインを表示する;
+定義を折りたたむときに regions を折りたたむ;
+フェード;
+未使用の using をフェードアウトする;
+到達できないコードをフェードアウトする;
+ブロック構造のガイド;
+宣言レベルのコンストラクトのガイドを表示する;
+コード レベルのコンストラクトのガイドを表示する;
+エディターのヘルプ;
+/// が入力されたとき、XML ドキュメント コメントを生成する;
+/* */ コメントを記述する際、新しい行の先頭に * を挿入する;
+名前変更追跡のプレビューを表示する;
+Enter で文字列リテラルを分割する;
+string.Format の呼び出しで無効なプレースホルダーをレポートする;
+メソッドを抽出する;
+カスタム構造体に ref または out を設定しない;
+インターフェイスまたは抽象クラスを実装する;
+プロパティ、イベント、メソッドを挿入する際には、次の場所に挿入する;
+同じ種類の他のメンバーと共に;
+末尾;
+プロパティの生成時;
+スロー プロパティを優先する;
+自動プロパティを優先する;
+正規表現;
+正規表現;
+拡張された色を使用する;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -88,11 +133,11 @@ Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
-        <target state="translated">入力時にオートフォーマットする; 
-; でステートメントをオートフォーマットする; 
-閉じかっこでブロックをオートフォーマットする; 
-Return でオートフォーマットする;  
-貼り付け時にオート フォーマットする;</target>
+        <target state="translated">入力時にオートフォーマットする;
+セミコロンでステートメントをオートフォーマットする;
+終わり中かっこでブロックをオートフォーマットする;
+戻り時にオートフォーマットする;
+貼り付け時にオートフォーマットする;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -105,14 +150,14 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">ブロックの内容をインデントする; 
-始めと終わりの中かっこをインデントする; 
-case の内容をインデントする; 
-case の内容をインデントします (ブロックする場合); 
-case ラベルをインデントする; 
-ラベル インデント; 
-goto ラベルを左端の列に配置する; 
-ラベルを標準にインデント; 
+        <target state="translated">ブロックの内容をインデントする;
+始めと終わりの中かっこをインデントする;
+case の内容をインデントする;
+case の内容をインデントする (ブロックする場合);
+case ラベルをインデントする;
+ラベル インデント;
+goto ラベルを左端の列に配置する;
+ラベルを標準にインデントする;
 goto ラベルを現在より 1 インデントだけ下げて配置する;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
@@ -134,22 +179,22 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="translated">中かっこの改行書式オプション;キーワードの改行書式オプション;中かっこの改行オプション; 
-新しい行に型の始めかっこを配置する; 
-新しい行にメソッドとローカル関数の始めかっこを配置する; 
-プロパティ、インデクサー、イベントの新しい行に始めかっこを配置します; 
-プロパティ、インデクサー、イベント アクセサーの新しい行に始めかっこを配置します; 
-新しい行に匿名メソッドの始めかっこを配置する; 
-新しい行に制御ブロックの始めかっこを配置する; 
-新しい行に匿名型の始めかっこを配置する; 
-新しい行にオブジェクト、コレクション、および配列初期化子の始めかっこを配置する; 
-キーワードの改行オプション; 
-新しい行に else を配置する; 
-新しい行に catch を配置する; 
-新しい行に finally を配置する; 
-式の改行オプション; 
-新しい行にオブジェクト初期化子のメンバーを配置する; 
-新しい行に匿名型のメンバーを配置する; 
+        <target state="translated">中かっこの改行書式オプション;キーワードの改行オプション;中かっこの改行オプション;
+型の新しい行に始めかっこを配置する;
+メソッドとローカル関数の新しい行に始めかっこを配置する;
+プロパティ、インデクサー、イベントの新しい行に始めかっこを配置する;
+プロパティ、インデクサー、イベント アクセサーの新しい行に始めかっこを配置する;
+匿名メソッドの新しい行に始めかっこを配置する;
+コントロール ブロックの新しい行に始めかっこを配置する;
+匿名型の新しい行に始めかっこを配置する;
+オブジェクト、コレクション、および配列初期化子の新しい行に始めかっこを配置する;
+キーワードの改行オプション;
+新しい行に else を配置する;
+新しい行に catch を配置する;
+新しい行に finally を配置する;
+式の改行オプション;
+新しい行にオブジェクト初期化子のメンバーを配置する;
+新しい行に匿名型のメンバーを配置する;
 新しい行にクエリ式の句を配置する;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
@@ -187,32 +232,33 @@ Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
         <target state="translated">メソッド宣言子のスペースを設定する;
 メソッド名と始めかっこの間にスペースを挿入する;
-パラメーター リストのかっこ内に空白を挿入する;
-空のパラメーター リストのかっこ内に空白を挿入する;
+パラメーター リストのかっこ内にスペースを挿入する;
+空のパラメーター リストのかっこ内にスペースを挿入する;
 メソッドの呼び出しのスペースを設定する;
 引数リストのかっこ内にスペースを挿入する;
 空の引数リストのかっこ内にスペースを挿入する;
 その他のスペース オプションを設定する;
 制御フロー ステートメント内のキーワードの後にスペースを挿入する;
-式のかっこ内に空白を挿入する;
+式のかっこ内にスペースを挿入する;
 型キャストのかっこ内にスペースを挿入する;
-制御フロー ステートメントのかっこ内にスペースを挿入する;キャストの後にスペースを挿入する;
+制御フロー ステートメントのかっこ内にスペースを挿入する;
+キャストの後にスペースを挿入する;
 宣言ステートメント内のスペースを無視する;
-大かっこのスペースを設定する; 
+角かっこのスペースを設定する;
 始め角かっこの前にスペースを挿入する;
 空の角かっこ内にスペースを挿入する;
 角かっこ内にスペースを挿入する;
 区切り記号のスペースを設定する;
-型宣言で、基本またはインターフェースのコロンの後にスペースを挿入する;
+型宣言で、基本またはインターフェイス用のコロンの後にスペースを配置する;
 コンマの後にスペースを追加する;
-ピリオドの後にスペースを挿入する;
-for ステートメントでセミコロンの後にスペースを挿入する;
-型宣言で、基本またはインターフェースのコロンの前にスペースを挿入する;
+ピリオドの後にスペースを追加する;
+for ステートメントで、セミコロンの後にスペースを挿入する;
+型宣言で、基本またはインターフェイス用のコロンの前にスペースを挿入する;
 コンマの前にスペースを挿入する;
 ピリオドの前にスペースを挿入する;
-for ステートメントでセミコロンの前にスペースを挿入する;
+for ステートメントで、セミコロンの前にスペースを挿入する;
 演算子のスペースを設定する;
-バイナリ演算子の周囲のスペースを無視する;
+バイナリ演算子の前後のスペースを無視する;
 バイナリ演算子の前後のスペースを削除する;
 バイナリ演算子の前後にスペースを挿入する;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
@@ -237,20 +283,20 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="translated">入力候補一覧の設定を変更します; 最近使用メンバーをあらかじめ選択する; 入力候補一覧;
-文字入力後に入力候補一覧を表示する; 
-文字が削除された後に入力候補一覧を表示する; 
-入力候補一覧の項目の一致している部分を強調表示する; 
-入力候補の項目フィルターを表示する; 
-スニペットの動作; 
-スニペットを含めない; 
-常にスニペットを含める; 
-識別子の後に ? Tab を入力したときにスニペットを含める; 
-Enter キー入力時動作; 
-Enter キーで新しい行を追加しない; 
-単語を完全に入力した後 Enter キーで確定時に新しい行を追加する; 
-Enter キーで常に新しい行を追加する; 
-名前の候補を表示する;</target>
+        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
+文字が入力された後に入力候補一覧を表示する;
+文字が削除された後に入力候補一覧を表示する;
+入力候補一覧の項目の一致している部分を強調表示する;
+入力候補の項目フィルターを表示する;
+スニペットの動作;
+スニペットを含めない;
+常にスニペットを含める;
+識別子の後に ? Tab を入力したときにスニペットを含める;
+Enter キー入力時動作;
+Enter キーで新しい行を追加しない;
+単語を完全に入力した後のみ、Enter キーで新しい行を追加する;
+Enter キーで常に新しい行を追加する;
+名前の提案を表示する;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -284,13 +330,13 @@ Enter キーで常に新しい行を追加する;
         <note />
       </trans-unit>
       <trans-unit id="2358">
-        <source>CSharp Editor</source>
-        <target state="translated">CSharp エディター</target>
+        <source>C# Editor</source>
+        <target state="translated">C# エディター</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
-        <source>CSharp Editor with Encoding</source>
-        <target state="translated">Encoding 付き CSharp エディター</target>
+        <source>C# Editor with Encoding</source>
+        <target state="translated">エンコード付き C# エディター</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -310,7 +356,7 @@ Enter キーで常に新しい行を追加する;
       </trans-unit>
       <trans-unit id="115">
         <source>Naming</source>
-        <target state="translated">名前付け</target>
+        <target state="translated">名前指定</target>
         <note />
       </trans-unit>
       <trans-unit id="314">
@@ -330,12 +376,12 @@ Enter キーで常に新しい行を追加する;
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">空の C# スクリプト ファイルです。</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Visual C# スクリプト</target>
         <note />
       </trans-unit>
     </body>

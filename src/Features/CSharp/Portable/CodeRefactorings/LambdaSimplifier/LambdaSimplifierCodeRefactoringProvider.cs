@@ -14,15 +14,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 {
+    // Disabled due to: https://github.com/dotnet/roslyn/issues/5835 & https://github.com/dotnet/roslyn/pull/6642
     // [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SimplifyLambda)]
     internal partial class LambdaSimplifierCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var textSpan = context.Span;
-            var cancellationToken = context.CancellationToken;
-
+            var (document, textSpan, cancellationToken) = context;
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
@@ -35,9 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var lambda = semanticDocument.Root.FindToken(textSpan.Start).GetAncestor(n =>
-                n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax);
-            if (lambda == null || !lambda.Span.IntersectsWith(textSpan.Start))
+            var lambda = await context.TryGetRelevantNodeAsync<LambdaExpressionSyntax>().ConfigureAwait(false);
+            if (lambda == null)
             {
                 return;
             }
@@ -51,12 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Simplify_lambda_expression,
-                    c => SimplifyLambdaAsync(document, lambda, c)));
+                    c => SimplifyLambdaAsync(document, lambda, c)),
+                lambda.Span);
 
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Simplify_all_occurrences,
-                    c => SimplifyAllLambdasAsync(document, c)));
+                    c => SimplifyAllLambdasAsync(document, c)),
+                lambda.Span);
         }
 
         private async Task<Document> SimplifyLambdaAsync(
@@ -153,10 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 // Don't offer this if there are any errors or ambiguities.
                 return false;
             }
-
-            var lambdaMethod = lambdaSemanticInfo.Symbol as IMethodSymbol;
-            var invocationMethod = invocationSemanticInfo.Symbol as IMethodSymbol;
-            if (lambdaMethod == null || invocationMethod == null)
+            if (!(lambdaSemanticInfo.Symbol is IMethodSymbol lambdaMethod) || !(invocationSemanticInfo.Symbol is IMethodSymbol invocationMethod))
             {
                 return false;
             }
@@ -197,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             }
 
             // Parameter types have to be contravariant.
-            for (int i = 0; i < lambdaMethod.Parameters.Length; i++)
+            for (var i = 0; i < lambdaMethod.Parameters.Length; i++)
             {
                 var conversion = document.SemanticModel.Compilation.ClassifyConversion(
                     lambdaMethod.Parameters[i].Type, invocationMethod.Parameters[i].Type);
@@ -284,8 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

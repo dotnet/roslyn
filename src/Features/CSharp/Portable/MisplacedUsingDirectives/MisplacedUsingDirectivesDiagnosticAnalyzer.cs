@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
@@ -9,12 +10,12 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableResourceString s_localizableTitle = new LocalizableResourceString(
            nameof(CSharpFeaturesResources.Misplaced_using_directive), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
@@ -32,9 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId, s_localizableTitle, s_localizableInsideMessage);
 
         public MisplacedUsingDirectivesDiagnosticAnalyzer()
-           : base(new[] { s_outsideDiagnosticDescriptor, s_insideDiagnosticDescriptor }.AsImmutable())
+           : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
+                    .Add(s_outsideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement)
+                    .Add(s_insideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement),
+                 LanguageNames.CSharp)
         {
         }
+
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
         {

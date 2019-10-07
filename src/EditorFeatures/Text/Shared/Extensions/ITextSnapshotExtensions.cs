@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
                 return null;
             }
 
-            int end = snapshot.GetLineFromLineNumber(lineNumber).Start.Position + columnIndex;
+            var end = snapshot.GetLineFromLineNumber(lineNumber).Start.Position + columnIndex;
             if (end < 0 || end > snapshot.Length)
             {
                 return null;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
 
         public static bool TryGetPosition(this ITextSnapshot snapshot, int lineNumber, int columnIndex, out SnapshotPoint position)
         {
-            int result = 0;
+            var result = 0;
             position = new SnapshotPoint();
 
             if (lineNumber < 0 || lineNumber >= snapshot.LineCount)

@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             var serialized = option.ToXElement();
             var deserialized = CodeStyleOption<bool>.FromXElement(serialized);
 
-            Assert.Equal(false, deserialized.Value);
+            Assert.False(deserialized.Value);
 
             option = new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent);
             serialized = option.ToXElement();
             deserialized = CodeStyleOption<bool>.FromXElement(serialized);
 
-            Assert.Equal(true, deserialized.Value);
+            Assert.True(deserialized.Value);
 
             // This new values can't actually translate back to a bool.  So we'll just get the default
             // value for this option.
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             serialized = option.ToXElement();
             deserialized = CodeStyleOption<bool>.FromXElement(serialized);
 
-            Assert.Equal(default(bool), deserialized.Value);
+            Assert.Equal(default, deserialized.Value);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]

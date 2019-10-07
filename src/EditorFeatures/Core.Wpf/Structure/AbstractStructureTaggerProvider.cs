@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         AsynchronousTaggerProvider<TRegionTag>
         where TRegionTag : class, ITag
     {
-        private static IComparer<BlockSpan> s_blockSpanComparer =
+        private static readonly IComparer<BlockSpan> s_blockSpanComparer =
             Comparer<BlockSpan>.Create((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
         protected readonly ITextEditorFactoryService TextEditorFactoryService;
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
             catch (TypeLoadException)
             {
-                // We're targetting a version of the BlockTagging infrastructure in 
+                // We're targeting a version of the BlockTagging infrastructure in 
                 // VS that may not match the version that the user is currently
                 // developing against.  Be resilient to this until everything moves
                 // forward to the right VS version.

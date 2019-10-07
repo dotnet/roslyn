@@ -1,11 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     <UseExportProvider>
@@ -8239,7 +8241,7 @@ End Class
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter, CompletionItemFilter.TargetTypedFilter})
+                matchingFilters:=New List(Of CompletionFilter) From {FilterSet.FieldFilter, FilterSet.TargetTypedFilter})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
@@ -8254,7 +8256,7 @@ End Class"
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "intField",
-                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.FieldFilter})
+                matchingFilters:=New List(Of CompletionFilter) From {FilterSet.FieldFilter})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
@@ -8269,7 +8271,7 @@ End Class"
 End Class"
             Await VerifyItemExistsAsync(
                 markup, "GetHashCode",
-                matchingFilters:=New List(Of CompletionItemFilter) From {CompletionItemFilter.MethodFilter})
+                matchingFilters:=New List(Of CompletionFilter) From {FilterSet.MethodFilter})
         End Function
     End Class
 End Namespace

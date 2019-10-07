@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 {
     internal class NamingStyleViewModel : AbstractNotifyPropertyChanged, INamingStylesInfoDialogViewModel
     {
-        private MutableNamingStyle _style;
+        private readonly MutableNamingStyle _style;
         private readonly INotificationService _notificationService;
 
         public NamingStyleViewModel(MutableNamingStyle style, bool canBeDeleted, INotificationService notificationService)
@@ -148,6 +148,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             _style.Name = ItemName;
             return _style;
         }
+
+        // For screen readers
+        public override string ToString() => ItemName;
 
         public class CapitalizationDisplay
         {

@@ -171,7 +171,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                 // 3. The user text (xml fragments)
                 // 4. Current element end tag
 
-                int initialCount = count;
+                var initialCount = count;
 
                 // <root>
                 _position += EncodeAndAdvance(s_rootStart, _position, buffer, ref index, ref count);
@@ -202,7 +202,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                     return 0;
                 }
 
-                int charCount = Math.Min(src.Length - srcIndex, destCount);
+                var charCount = Math.Min(src.Length - srcIndex, destCount);
                 Debug.Assert(charCount > 0);
                 src.CopyTo(srcIndex, dest, destIndex, charCount);
 

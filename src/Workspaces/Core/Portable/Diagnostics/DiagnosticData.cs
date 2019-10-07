@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Create a host/VS specific diagnostic with the given descriptor and message arguments for the given project.
         /// Note that diagnostic created through this API cannot be suppressed with in-source suppression due to performance reasons (see the PERF remark below for details).
         /// </summary>
-        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData, CancellationToken cancellationToken = default)
+        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData)
         {
             diagnosticData = null;
             var project = workspace.CurrentSolution.GetProject(projectId);
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Get the effective severity of the diagnostic from the compilation options.
                 // PERF: We do not check if the diagnostic was suppressed by a source suppression, as this requires us to force complete the assembly attributes, which is very expensive.
-                ReportDiagnostic reportDiagnostic = descriptor.GetEffectiveSeverity(project.CompilationOptions);
+                var reportDiagnostic = descriptor.GetEffectiveSeverity(project.CompilationOptions);
                 if (reportDiagnostic == ReportDiagnostic.Suppress)
                 {
                     // Rule is disabled by compilation options.

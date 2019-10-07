@@ -2,10 +2,6 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Interface IIntelliSenseTestState
-
-        Property CurrentCompletionPresenterSession As TestCompletionPresenterSession
-
         Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
-
     End Interface
 End Namespace

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeParameter = (TypeParameterSymbol)type;
             // https://github.com/dotnet/roslyn/issues/30056: Test `where T : unmanaged`. See
             // UninitializedNonNullableFieldTests.TypeParameterConstraints for instance.
-            return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullableIfReferenceType == true);
+            return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullable == true);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool IsPossiblyNullableReferenceTypeTypeParameter(this TypeSymbol type)
         {
-            return type is TypeParameterSymbol { IsValueType: false, IsNotNullableIfReferenceType: false };
+            return type is TypeParameterSymbol { IsValueType: false, IsNotNullable: false };
         }
 
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)
@@ -667,13 +667,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 switch (current.TypeKind)
                 {
-                    case TypeKind.Error:
                     case TypeKind.Dynamic:
                     case TypeKind.TypeParameter:
                     case TypeKind.Submission:
                     case TypeKind.Enum:
                         return null;
 
+                    case TypeKind.Error:
                     case TypeKind.Class:
                     case TypeKind.Struct:
                     case TypeKind.Interface:
@@ -1180,6 +1180,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static int ComputeHashCode(this NamedTypeSymbol type)
         {
+            Debug.Assert(!type.Equals(type.OriginalDefinition, TypeCompareKind.AllIgnoreOptions) || wasConstructedForAnnotations(type));
+
+            if (wasConstructedForAnnotations(type))
+            {
+                // A type that uses its own type parameters as type arguments was constructed only for the purpose of adding annotations.
+                // In that case we'll use the hash from the definition.
+
+                return type.OriginalDefinition.GetHashCode();
+            }
+
             int code = type.OriginalDefinition.GetHashCode();
             code = Hash.Combine(type.ContainingType, code);
 
@@ -1209,6 +1219,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 code++;
             }
             return code;
+
+            static bool wasConstructedForAnnotations(NamedTypeSymbol type)
+            {
+                do
+                {
+                    var typeArguments = type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                    var typeParameters = type.OriginalDefinition.TypeParameters;
+
+                    for (int i = 0; i < typeArguments.Length; i++)
+                    {
+                        if (!typeParameters[i].Equals(
+                                 typeArguments[i].Type.OriginalDefinition,
+                                 SymbolEqualityComparer.ConsiderEverything.CompareKind))
+                        {
+                            return false;
+                        }
+                    }
+
+                    type = type.ContainingType;
+                }
+                while (type is object && !type.IsDefinition);
+
+                return true;
+            }
         }
 
         /// <summary>
@@ -1665,8 +1699,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Cci.ITypeReference typeRef)
         {
             var builder = ArrayBuilder<Cci.ICustomAttribute>.GetInstance();
-
             var compilation = declaringSymbol.DeclaringCompilation;
+
             if (compilation != null)
             {
                 if (type.Type.ContainsTupleNames())
@@ -1678,16 +1712,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (compilation.ShouldEmitNullableAttributes(declaringSymbol) &&
-                    type.NeedsNullableAttribute())
+                if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
                 {
-                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(declaringSymbol, type);
+                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
                     if (attr != null)
                     {
                         builder.Add(attr);
                     }
                 }
             }
+
 
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }

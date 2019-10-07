@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         // ToolExe delegates back to ToolName if the override is not
         // set.  So, if ToolExe == ToolName, we know ToolExe is not
-        // explicitly overriden.  So, if both ToolPath is unset and
+        // explicitly overridden.  So, if both ToolPath is unset and
         // ToolExe == ToolName, we know nothing is overridden, and
         // we can use our own csc.
         private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);

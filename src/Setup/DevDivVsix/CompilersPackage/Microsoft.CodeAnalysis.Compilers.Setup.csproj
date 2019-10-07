@@ -30,7 +30,7 @@
           DependsOnTargets="InitializeDesktopCompilerArtifacts">
 
     <ItemGroup>
-      <DesktopCompilerArtifact Condition="'%(DesktopCompilerArtifact.OverwriteNgenOptimizationData)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
+      <DesktopCompilerArtifact Condition="'%(DesktopCompilerArtifact.OverwriteNgenOptimizationData)' == 'true' and '$(EnableNgenOptimization)' == 'true' and '$(ApplyNgenOptimization)' != ''">
         <_OptimizeAssembly>$(IntermediateOutputPath)optimized\$([System.IO.Path]::GetFileName(%(DesktopCompilerArtifact.Identity)))</_OptimizeAssembly>
       </DesktopCompilerArtifact>
 
@@ -45,7 +45,7 @@
           DependsOnTargets="_CalculateDesktopCompilerArtifactsToOptimize"
           Inputs="@(DesktopCompilerArtifact)"
           Outputs="@(DesktopCompilerArtifact->'%(_OptimizeAssembly)')"
-          Condition="'$(Configuration)' == 'Release' and '$(ContinuousIntegrationBuild)' == 'true' and '$(ApplyPartialNgenOptimization)' == 'true'">
+          Condition="'$(EnableNgenOptimization)' == 'true' and '$(ApplyNgenOptimization)' != ''">
 
     <Copy SourceFiles="%(DesktopCompilerArtifact.Identity)" DestinationFiles="%(DesktopCompilerArtifact._OptimizeAssembly)" Condition="'%(DesktopCompilerArtifact._OptimizeAssembly)' != ''">
       <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
@@ -56,7 +56,8 @@
           AfterTargets="Build"
           BeforeTargets="SwixBuild"
           DependsOnTargets="_SetSwrFilePath;InitializeDesktopCompilerArtifacts;_PrepareDesktopCompilerArtifactsForOptimization;ApplyOptimizations"
-          Outputs="$(_SwrFilePath)">
+          Outputs="$(_SwrFilePath)"
+          Condition="'$(DotNetBuildFromSource)' != 'true'">
 
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)">

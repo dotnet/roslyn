@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -43,15 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return new SemanticEditDescription(kind, symbolProvider, null, preserveLocalVariables);
         }
 
-        private static SyntaxTree ParseSource(string source, ParseOptions options = null)
-        {
-            return SyntaxFactory.ParseSyntaxTree(ActiveStatementsDescription.ClearTags(source), options: options);
-        }
+        private static SyntaxTree ParseSource(string source)
+            => CSharpEditAndContinueTestHelpers.Instance.ParseText(ActiveStatementsDescription.ClearTags(source));
 
-        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, ParseOptions options = null)
+        internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2)
         {
-            var tree1 = ParseSource(src1, options: options);
-            var tree2 = ParseSource(src2, options: options);
+            var tree1 = ParseSource(src1);
+            var tree2 = ParseSource(src2);
 
             tree1.GetDiagnostics().Verify();
             tree2.GetDiagnostics().Verify();
@@ -63,20 +62,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         /// <summary>
         /// Gets method edits on the current level of the source hierarchy. This means that edits on lower labeled levels of the hierarchy are not expected to be returned.
         /// </summary>
-        internal static EditScript<SyntaxNode> GetMethodEdits(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
+        internal static EditScript<SyntaxNode> GetMethodEdits(string src1, string src2, MethodKind kind = MethodKind.Regular)
         {
-            var match = GetMethodMatch(src1, src2, options, kind);
+            var match = GetMethodMatch(src1, src2, kind);
             return match.GetTreeEdits();
         }
 
-        internal static Match<SyntaxNode> GetMethodMatch(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
+        internal static Match<SyntaxNode> GetMethodMatch(string src1, string src2, MethodKind kind = MethodKind.Regular)
         {
-            var m1 = MakeMethodBody(src1, options, kind);
-            var m2 = MakeMethodBody(src2, options, kind);
+            var m1 = MakeMethodBody(src1, kind);
+            var m2 = MakeMethodBody(src2, kind);
 
             var diagnostics = new List<RudeEditDiagnostic>();
             var match = Analyzer.GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
-            bool needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
+            var needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
 
             Assert.Equal(kind != MethodKind.Regular && kind != MethodKind.ConstructorWithParameters, needsSyntaxMap);
 
@@ -88,9 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return match;
         }
 
-        internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, ParseOptions options = null, MethodKind kind = MethodKind.Regular)
+        internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, MethodKind kind = MethodKind.Regular)
         {
-            var methodMatch = GetMethodMatch(src1, src2, options, kind);
+            var methodMatch = GetMethodMatch(src1, src2, kind);
             return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch);
         }
 
@@ -106,30 +105,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static BlockSyntax MakeMethodBody(
             string bodySource,
-            ParseOptions options = null,
             MethodKind kind = MethodKind.Regular)
         {
-            string source;
-            switch (kind)
+            var source = kind switch
             {
-                case MethodKind.Iterator:
-                    source = "class C { IEnumerable<int> F() { " + bodySource + " } }";
-                    break;
+                MethodKind.Iterator => "class C { IEnumerable<int> F() { " + bodySource + " } }",
+                MethodKind.Async => "class C { async Task<int> F() { " + bodySource + " } }",
+                MethodKind.ConstructorWithParameters => "class C { C" + bodySource + " }",
+                _ => "class C { void F() { " + bodySource + " } }",
+            };
 
-                case MethodKind.Async:
-                    source = "class C { async Task<int> F() { " + bodySource + " } }";
-                    break;
-
-                case MethodKind.ConstructorWithParameters:
-                    source = "class C { C" + bodySource + " }";
-                    break;
-
-                default:
-                    source = "class C { void F() { " + bodySource + " } }";
-                    break;
-            }
-
-            var tree = ParseSource(source, options: options);
+            var tree = ParseSource(source);
             var root = tree.GetRoot();
 
             tree.GetDiagnostics().Verify();
@@ -166,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var diagnostics = new List<RudeEditDiagnostic>();
             var match = Analyzer.GetTestAccessor().ComputeBodyMatch(body1, body2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
-            bool needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
+            var needsSyntaxMap = oldHasStateMachineSuspensionPoint && newHasStateMachineSuspensionPoint;
 
             // Active methods are detected to preserve local variables for variable mapping and
             // edited async/iterator methods are considered active.

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification
     [Shared]
     internal class EditorNotificationServiceFactory : IWorkspaceServiceFactory
     {
-        private static object s_gate = new object();
+        private static readonly object s_gate = new object();
 
         private static EditorDialogService s_singleton;
 
@@ -80,24 +80,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification
             }
 
             private static MessageBoxImage SeverityToImage(NotificationSeverity severity)
-            {
-                MessageBoxImage result;
-                switch (severity)
+                => severity switch
                 {
-                    case NotificationSeverity.Information:
-                        result = MessageBoxImage.Information;
-                        break;
-                    case NotificationSeverity.Warning:
-                        result = MessageBoxImage.Warning;
-                        break;
-                    default:
-                        // Error
-                        result = MessageBoxImage.Error;
-                        break;
-                }
-
-                return result;
-            }
+                    NotificationSeverity.Information => MessageBoxImage.Information,
+                    NotificationSeverity.Warning => MessageBoxImage.Warning,
+                    _ => MessageBoxImage.Error,
+                };
         }
     }
 }

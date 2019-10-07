@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            BoundExpression expression = BindRValueWithoutTargetType(node.Expression, diagnostics);
             bool hasErrors = IsOperandErrors(node, ref expression, diagnostics);
             TypeSymbol expressionType = expression.Type;
             if ((object)expressionType == null || expressionType.IsVoidType())
@@ -155,10 +155,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
-            if (!convertedExpression.HasErrors && constantValueOpt == null)
+            if (!convertedExpression.HasErrors && !hasErrors)
             {
-                diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
-                hasErrors = true;
+                if (constantValueOpt == null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
+                    hasErrors = true;
+                }
+                else if (inputType.IsPointerType() == true && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+                {
+                    // before C# 8 we did not permit `pointer is null`
+                    diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, patternExpression.Location);
+                    hasErrors = true;
+                }
             }
 
             if (convertedExpression.Type is null && constantValueOpt != ConstantValue.Null)
@@ -820,7 +829,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundPattern BindVarPattern(VarPatternSyntax node, TypeSymbol inputType, uint inputValEscape, bool hasErrors, DiagnosticBag diagnostics)
         {
-            if (inputType.IsPointerType() && node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation)
+            if (inputType.IsPointerType() &&
+                (node.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation ||
+                 // before C# 8 we did not permit `pointer is var x`
+                 Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion()))
             {
                 diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, node.Location);
                 hasErrors = true;
@@ -908,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
                             if (!hasErrors)
-                                hasErrors = outPlaceholders.IsDefaultOrEmpty || tupleDesignation.Variables.Count != outPlaceholders.Length;
+                                hasErrors = outPlaceholders.IsDefault || tupleDesignation.Variables.Count != outPlaceholders.Length;
 
                             for (int i = 0; i < tupleDesignation.Variables.Count; i++)
                             {

@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // See https://github.com/dotnet/roslyn/blob/master/docs/features/nullable-metadata.md
         internal bool ConstraintsNeedNullableAttribute()
         {
-            if (!DeclaringCompilation.ShouldEmitNullableAttributes(ContainingSymbol))
+            if (!DeclaringCompilation.ShouldEmitNullableAttributes(this))
             {
                 return false;
             }
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return !this.HasReferenceTypeConstraint &&
                 !this.HasValueTypeConstraint &&
                 this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty &&
-                this.IsNotNullableIfReferenceType == false;
+                this.IsNotNullable == false;
         }
 
         private NamedTypeSymbol GetDefaultBaseType()
@@ -381,24 +381,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var compilation = DeclaringCompilation;
-            if (compilation.ShouldEmitNullableAttributes(ContainingSymbol))
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                byte nullableAttributeValue = GetSynthesizedNullableAttributeValue();
-                if (nullableAttributeValue != NullableAnnotationExtensions.ObliviousAttributeValue)
-                {
-                    NamedTypeSymbol byteType = compilation.GetSpecialType(SpecialType.System_Byte);
-                    Debug.Assert((object)byteType != null);
-
-                    AddSynthesizedAttribute(
-                        ref attributes,
-                        moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
-                                                                  ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
-                                                                                                          nullableAttributeValue))));
-                }
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    moduleBuilder.SynthesizeNullableAttributeIfNecessary(GetNullableContextValue(), GetSynthesizedNullableAttributeValue()));
             }
         }
 
-        private byte GetSynthesizedNullableAttributeValue()
+        internal byte GetSynthesizedNullableAttributeValue()
         {
             if (this.HasReferenceTypeConstraint)
             {
@@ -414,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
             }
-            else if (!this.HasValueTypeConstraint && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullableIfReferenceType == false)
+            else if (!this.HasValueTypeConstraint && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullable == false)
             {
                 return NullableAnnotationExtensions.AnnotatedAttributeValue;
             }
@@ -531,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        internal override bool? IsNotNullable
         {
             get
             {
@@ -540,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return CalculateIsNotNullableIfReferenceType();
+                return CalculateIsNotNullable();
             }
         }
 
@@ -652,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        internal override bool? IsNotNullable
         {
             get
             {
@@ -661,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return CalculateIsNotNullableIfReferenceType();
+                return CalculateIsNotNullable();
             }
         }
 
@@ -892,11 +883,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        internal override bool? IsNotNullable
         {
             get
             {
-                return this.OverriddenTypeParameter?.IsNotNullableIfReferenceType;
+                return this.OverriddenTypeParameter?.IsNotNullable;
             }
         }
 

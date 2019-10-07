@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string qualifiedMethodName,
             string expectedIL,
             Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null,
-            MethodDefinitionHandle methodToken = default(MethodDefinitionHandle),
+            MethodDefinitionHandle methodToken = default,
             [CallerFilePath]string callerPath = null,
             [CallerLineNumber]int callerLine = 0)
         {
@@ -89,6 +90,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), new[] { MetadataTokens.GetToken(methodToken) });
                 sequencePointMarkers = ILValidation.GetSequencePointMarkers(actualPdb);
+
+                Assert.True(sequencePointMarkers.Count > 0, $"No sequence points found in:{Environment.NewLine}{actualPdb}");
             }
 
             string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);

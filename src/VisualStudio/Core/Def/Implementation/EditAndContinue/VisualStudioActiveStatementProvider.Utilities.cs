@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 const DkmActiveStatementFlags instructionFlagsMask = DkmActiveStatementFlags.MethodUpToDate | DkmActiveStatementFlags.NonUser;
                 var instructionFlags = (ActiveStatementFlags)(dkmStatement.Flags & instructionFlagsMask);
 
-                bool isLeaf = (dkmStatement.Flags & DkmActiveStatementFlags.Leaf) != 0;
+                var isLeaf = (dkmStatement.Flags & DkmActiveStatementFlags.Leaf) != 0;
 
                 // MidStatement is set differently for leaf frames and non-leaf frames.
                 // We aggregate it so that if any frame has MidStatement the ActiveStatement is considered partially executed.

@@ -8,18 +8,18 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Editor stránky kódu Microsoft Visual Basic</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="translated">Visual Basic Editor s kódováním</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Microsoft Visual Basic Editor</target>
+        <source>Visual Basic Editor</source>
+        <target state="translated">Visual Basic Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">Automatické vložení konce konstrukce; Změnit nastavení přehledného výpisu; Změnit režim odsazení; Automatické vložení členů rozhraní a MustOverride; Zobrazit nebo skrýt oddělovače řádků procedur; Zapnout nebo vypnout návrhy oprav; Zapnout nebo vypnout zvýrazňování odkazů a klíčových slov</target>
+        <target state="translated">Automatické vložení koncových konstruktorů;Změnit nastavení přehledného výpisu;Změnit režim sbalení;Automatické vkládání členů Interface a MustOverride;Zobrazit nebo skrýt oddělovače řádků procedur;Zapnout nebo vypnout návrhy oprav;Zapnout nebo vypnout zvýrazňování odkazů a klíčových slov;Regex;Obarvit regulární výrazy;Zvýrazňovat související komponenty pod kurzorem;Nahlásit neplatné regulární výrazy;reg. výr.;regulární výraz;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="new">An empty Visual Basic script file.</target>
+        <target state="translated">Prázdný soubor skriptu Visual Basicu</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">
         <source>Visual Basic Script</source>
-        <target state="new">Visual Basic Script</target>
+        <target state="translated">Skript Visual Basicu</target>
         <note />
       </trans-unit>
     </body>

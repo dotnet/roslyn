@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _lazyIsVarArg;
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
-        private TypeWithAnnotations _lazyReturnType;
+        private TypeWithAnnotations.Boxed _lazyReturnType;
         private TypeWithAnnotations.Boxed _lazyIteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
-                DeclarationModifiers.Static |
                 syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
 
             this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
@@ -128,6 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
             => _declarationDiagnostics.AddRange(diagnostics);
 
+        public override bool RequiresInstanceReceiver => false;
+
         public override bool IsVararg
         {
             get
@@ -201,17 +202,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 ComputeReturnType();
-                return _lazyReturnType;
+                return _lazyReturnType.Value;
             }
         }
 
-        public override FlowAnalysisAnnotations ReturnTypeAnnotationAttributes => FlowAnalysisAnnotations.None;
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
         public override RefKind RefKind => _refKind;
 
         internal void ComputeReturnType()
         {
-            if (!_lazyReturnType.IsDefault)
+            if (_lazyReturnType is object)
             {
                 return;
             }
@@ -224,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Skip some diagnostics when the local function is not associated with a compilation
             // (specifically, local functions nested in expressions in the EE).
-            if (!(compilation is null))
+            if (compilation is object)
             {
                 if (this.IsAsync)
                 {
@@ -265,14 +270,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if (!_lazyReturnType.IsDefault)
+                if (_lazyReturnType is object)
                 {
                     diagnostics.Free();
                     return;
                 }
 
                 _declarationDiagnostics.AddRangeAndFree(diagnostics);
-                _lazyReturnType = returnType;
+                Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
             }
         }
 
@@ -296,9 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
             }
         }
-
-        // Replace with IsStatic after fixing https://github.com/dotnet/roslyn/issues/27719.
-        internal bool IsStaticLocalFunction => _syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
 
         internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
         {
@@ -497,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _syntax.GetHashCode();
         }
 
-        public sealed override bool Equals(object symbol)
+        public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
         {
             if ((object)this == symbol) return true;
 

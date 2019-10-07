@@ -260,7 +260,7 @@ class C
             Assert.Equal("x", mem.Name);
             Assert.True(mem.IsConst);
             Assert.False(mem.HasConstantValue);
-            Assert.Equal(null, mem.ConstantValue);
+            Assert.Null(mem.ConstantValue);
         }
 
         [WorkItem(543538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543538")]
@@ -526,6 +526,32 @@ unsafe struct S
             var goo = s.GetMember<FieldSymbol>("goo");
 
             Assert.False(goo.IsFixedSizeBuffer);
+        }
+
+        [Fact]
+        public void StaticFieldDoesNotRequireInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public static int F = 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var field = compilation.GetMember<FieldSymbol>("C.F");
+            Assert.False(field.RequiresInstanceReceiver);
+        }
+
+        [Fact]
+        public void InstanceFieldRequiresInstanceReceiver()
+        {
+            var source = @"
+class C
+{
+    public int F = 42;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var field = compilation.GetMember<FieldSymbol>("C.F");
+            Assert.True(field.RequiresInstanceReceiver);
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -18,7 +19,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.SigningTestHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -839,8 +839,8 @@ public class C
                 AssertEx.NotEqual(image1, image2, message: $"Expecting difference for includePrivateMembers={includePrivateMembers} case, but they matched.");
             }
 
-            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image1.DangerousGetUnderlyingArray()));
-            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image2.DangerousGetUnderlyingArray()));
+            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new ImmutableMemoryStream(image1));
+            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new ImmutableMemoryStream(image2));
 
             if (!includePrivateMembers)
             {
@@ -5162,6 +5162,96 @@ public class DerivingClass<T> : BaseClass<T>
                 Assert.False(a.IsErrorType());
                 Assert.Equal("refMod.netmodule", a.ContainingModule.Name);
             });
+        }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorDoesNotEmit_GeneralDiagnosticOption()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            TestWarnAsErrorDoesNotEmitCore(options);
+        }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorDoesNotEmit_SpecificDiagnosticOption()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0169", ReportDiagnostic.Error);
+            TestWarnAsErrorDoesNotEmitCore(options);
+        }
+
+        private void TestWarnAsErrorDoesNotEmitCore(CSharpCompilationOptions options)
+        {
+            string source = @"
+class X
+{
+    int _f;
+}";
+            var compilation = CreateCompilation(source, options: options);
+
+            using var output = new MemoryStream();
+            using var pdbStream = new MemoryStream();
+            using var xmlDocumentationStream = new MemoryStream();
+            using var win32ResourcesStream = compilation.CreateDefaultWin32Resources(versionResource: true, noManifest: false, manifestContents: null, iconInIcoFormat: null);
+
+            var emitResult = compilation.Emit(output, pdbStream, xmlDocumentationStream, win32ResourcesStream);
+            Assert.False(emitResult.Success);
+
+            Assert.Equal(0, output.Length);
+            Assert.Equal(0, pdbStream.Length);
+
+            // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting the below behavior.
+            Assert.True(xmlDocumentationStream.Length > 0);
+
+            emitResult.Diagnostics.Verify(
+                // (4,9): error CS0169: The field 'X._f' is never used
+                //     int _f;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "_f").WithArguments("X._f").WithLocation(4, 9).WithWarningAsError(true));
+        }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorWithMetadataOnlyImageDoesEmit_GeneralDiagnosticOption()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
+        }
+
+        [Fact]
+        [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
+        public void WarnAsErrorWithMetadataOnlyImageDoesEmit_SpecificDiagnosticOptions()
+        {
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0612", ReportDiagnostic.Error);
+            TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
+        }
+
+        private void TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(CSharpCompilationOptions options)
+        {
+            string source = @"
+public class X
+{
+    public void M(Y y)
+    {
+    }
+}
+
+[System.Obsolete]
+public class Y { }
+";
+            var compilation = CreateCompilation(source, options: options);
+
+            using var output = new MemoryStream();
+            var emitOptions = new EmitOptions(metadataOnly: true);
+
+            var emitResult = compilation.Emit(output, options: emitOptions);
+            Assert.True(emitResult.Success);
+
+            Assert.True(output.Length > 0);
+
+            emitResult.Diagnostics.Verify(
+                // (4,19): error CS0612: 'Y' is obsolete
+                //     public void M(Y y)
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Y").WithArguments("Y").WithLocation(4, 19).WithWarningAsError(true));
         }
     }
 }

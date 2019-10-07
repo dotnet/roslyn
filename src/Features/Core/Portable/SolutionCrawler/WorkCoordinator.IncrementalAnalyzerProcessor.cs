@@ -43,8 +43,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 public IncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
                     IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
+                    bool initializeLazily,
                     Registration registration,
-                    int highBackOffTimeSpanInMs, int normalBackOffTimeSpanInMs, int lowBackOffTimeSpanInMs, CancellationToken shutdownToken)
+                    int highBackOffTimeSpanInMs,
+                    int normalBackOffTimeSpanInMs,
+                    int lowBackOffTimeSpanInMs,
+                    CancellationToken shutdownToken)
                 {
                     _logAggregator = new LogAggregator();
 
@@ -59,6 +63,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // create analyzers lazily.
                     var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: true));
                     var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: false));
+
+                    if (!initializeLazily)
+                    {
+                        // realize all analyzer right away
+                        _ = lazyActiveFileAnalyzers.Value;
+                        _ = lazyAllAnalyzers.Value;
+                    }
 
                     // event and worker queues
                     _documentTracker = _registration.GetService<IDocumentTrackingService>();
@@ -92,6 +103,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _highPriorityProcessor.Enqueue(item);
                     _normalPriorityProcessor.Enqueue(item);
                     _lowPriorityProcessor.Enqueue(item);
+
+                    ReportPendingWorkItemCount();
                 }
 
                 public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
@@ -144,6 +157,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _logAggregator = new LogAggregator();
                 }
 
+                private void ReportPendingWorkItemCount()
+                {
+                    var pendingItemCount = _highPriorityProcessor.WorkItemCount + _normalPriorityProcessor.WorkItemCount + _lowPriorityProcessor.WorkItemCount;
+                    _registration.ProgressReporter.UpdatePendingItemCount(pendingItemCount);
+                }
+
                 private async Task ProcessDocumentAnalyzersAsync(
                     Document document, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                 {
@@ -171,12 +190,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     Func<IIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync,
                     CancellationToken cancellationToken)
                 {
-                    // this is a best effort progress report. since we don't clear up
-                    // reported progress when work is done or cancelled. it is possible
-                    // that last reported work is left in report even if it is already processed.
-                    // but when everything is finished, report should get cleared
-                    _ = _registration.ProgressReporter.Update(GetFilePath(value));
+                    using var evaluating = _registration.ProgressReporter.GetEvaluatingScope();
 
+                    ReportPendingWorkItemCount();
                     foreach (var analyzer in analyzers)
                     {
                         if (cancellationToken.IsCancellationRequested)
@@ -230,26 +246,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
-                }
-
-                private static string GetFilePath(object value)
-                {
-                    if (value is Document document)
-                    {
-                        return document.FilePath;
-                    }
-
-                    if (value is Project project)
-                    {
-                        return project.FilePath;
-                    }
-
-                    if (value is Solution solution)
-                    {
-                        return solution.FilePath;
-                    }
-
-                    throw ExceptionUtilities.UnexpectedValue(value);
                 }
 
                 private static async Task<TResult> GetOrDefaultAsync<TData, TResult>(TData value, Func<TData, CancellationToken, Task<TResult>> funcAsync, CancellationToken cancellationToken)

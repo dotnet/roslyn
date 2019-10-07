@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             editor.ReplaceNode(
                 ifOperation.Syntax,
-                this.WrapWithBlockIfAppropriate(ifStatement, expressionStatement));
+                WrapWithBlockIfAppropriate(ifStatement, expressionStatement));
         }
 
         private bool TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
@@ -150,8 +150,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             // If so, see if that local was declared immediately above the if-statement.
-            var parentBlock = ifOperation.Parent as IBlockOperation;
-            if (parentBlock == null)
+            if (!(ifOperation.Parent is IBlockOperation parentBlock))
             {
                 return false;
             }

@@ -35,24 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return s_instance;
         }
 
-        protected override AbstractIndenter GetIndenter(
-            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
-        {
-            return new Indenter(
-                syntaxFacts, syntaxTree, formattingRules,
-                optionSet, lineToBeIndented, cancellationToken);
-        }
-
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
             IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root,
             TextLine line,
             OptionSet optionSet,
-            CancellationToken cancellationToken)
+            out SyntaxToken token)
         {
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(root);
 
+            token = default;
             if (!optionSet.GetOption(FormattingOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
             {
                 return false;
@@ -69,7 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return false;
             }
 
-            var token = root.FindToken(firstNonWhitespacePosition.Value);
+            token = root.FindToken(firstNonWhitespacePosition.Value);
+            if (IsInvalidToken(token))
+            {
+                return false;
+            }
+
             if (token.IsKind(SyntaxKind.None) ||
                 token.SpanStart != firstNonWhitespacePosition)
             {
@@ -95,6 +93,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             // We're pressing enter between two tokens, have the formatter figure out hte appropriate
             // indentation.
             return true;
+        }
+
+        private static bool IsInvalidToken(SyntaxToken token)
+        {
+            // invalid token to be formatted
+            return token.IsKind(SyntaxKind.None) ||
+                   token.IsKind(SyntaxKind.EndOfDirectiveToken) ||
+                   token.IsKind(SyntaxKind.EndOfFileToken);
         }
 
         private class FormattingRule : AbstractFormattingRule
@@ -163,8 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
-                var section = node as SwitchSectionSyntax;
-                if (section == null || section.Statements.Count == 0)
+                if (!(node is SwitchSectionSyntax section) || section.Statements.Count == 0)
                 {
                     return;
                 }
@@ -172,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 var startToken = section.Statements.First().GetFirstToken(includeZeroWidth: true);
                 var endToken = section.Statements.Last().GetLastToken(includeZeroWidth: true);
 
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     var operation = list[i];
                     if (operation.StartToken == startToken && operation.EndToken == endToken)

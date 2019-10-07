@@ -97,6 +97,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.AnonymousTypes, expectedClassifications);
         }
 
+        protected Action<QuickInfoItem> NullabilityAnalysis(
+            string expectedText,
+            FormattedClassification[] expectedClassifications = null)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.NullabilityAnalysis, expectedClassifications);
+        }
+
         protected Action<QuickInfoItem> NoTypeParameterMap
         {
             get

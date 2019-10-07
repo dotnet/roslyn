@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -9,13 +8,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
     internal partial class Controller
     {
-        VSCommanding.CommandState IChainedCommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        CommandState IChainedCommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
 
@@ -132,8 +130,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             AssertIsForeground();
 
-            var matchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
-            var unmatchedProviders = ArrayBuilder<ISignatureHelpProvider>.GetInstance();
+            using var matchedProvidersDisposer = ArrayBuilder<ISignatureHelpProvider>.GetInstance(out var matchedProviders);
+            using var unmatchedProvidersDisposer = ArrayBuilder<ISignatureHelpProvider>.GetInstance(out var unmatchedProviders);
             foreach (var provider in providers)
             {
                 if (provider.IsTriggerCharacter(ch))
@@ -146,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
             }
 
-            return (matchedProviders.ToImmutableAndFree(), unmatchedProviders.ToImmutableAndFree());
+            return (matchedProviders.ToImmutable(), unmatchedProviders.ToImmutable());
         }
     }
 }

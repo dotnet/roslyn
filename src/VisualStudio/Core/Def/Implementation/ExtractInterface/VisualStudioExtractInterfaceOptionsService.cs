@@ -6,7 +6,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -58,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
             if (result.HasValue && result.Value)
             {
-                var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.MemberSymbol);
+                var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol);
 
                 return new ExtractInterfaceOptionsResult(
                     isCancelled: false,

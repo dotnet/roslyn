@@ -62,11 +62,9 @@ However, the said XmlResolver property no longer exists in .NET portable framewo
 So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
         private XDocument GetXDocument(CancellationToken cancellationToken)
         {
-            using (var stream = GetSourceStream(cancellationToken))
-            using (var xmlReader = XmlReader.Create(stream, s_xmlSettings))
-            {
-                return XDocument.Load(xmlReader);
-            }
+            using var stream = GetSourceStream(cancellationToken);
+            using var xmlReader = XmlReader.Create(stream, s_xmlSettings);
+            return XDocument.Load(xmlReader);
         }
 
         protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
@@ -79,16 +77,14 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                     {
                         _docComments = new Dictionary<string, string>();
 
-                        XDocument doc = GetXDocument(cancellationToken);
+                        var doc = GetXDocument(cancellationToken);
                         foreach (var e in doc.Descendants("member"))
                         {
                             if (e.Attribute("name") != null)
                             {
-                                using (var reader = e.CreateReader())
-                                {
-                                    reader.MoveToContent();
-                                    _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
-                                }
+                                using var reader = e.CreateReader();
+                                reader.MoveToContent();
+                                _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
                             }
                         }
                     }
@@ -142,7 +138,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                     return false;
                 }
 
-                for (int i = 0; i < _xmlDocCommentBytes.Length; i++)
+                for (var i = 0; i < _xmlDocCommentBytes.Length; i++)
                 {
                     if (_xmlDocCommentBytes[i] != other._xmlDocCommentBytes[i])
                     {
@@ -193,7 +189,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
         /// </summary>
         private sealed class NullXmlDocumentationProvider : XmlDocumentationProvider
         {
-            protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
+            protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
             {
                 return "";
             }

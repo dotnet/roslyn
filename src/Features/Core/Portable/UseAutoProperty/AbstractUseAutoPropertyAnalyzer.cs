@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
         protected AbstractUseAutoPropertyAnalyzer()
-            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, s_title, s_title)
+            : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, CodeStyleOptions.PreferAutoProperties, s_title, s_title)
         {
         }
 
@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
 
-            var property = semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) as IPropertySymbol;
-            if (property == null)
+            if (!(semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is IPropertySymbol property))
             {
                 return;
             }
@@ -200,8 +199,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             var fieldReference = getterField.DeclaringSyntaxReferences[0];
-            var variableDeclarator = fieldReference.GetSyntax(cancellationToken) as TVariableDeclarator;
-            if (variableDeclarator == null)
+            if (!(fieldReference.GetSyntax(cancellationToken) is TVariableDeclarator variableDeclarator))
             {
                 return;
             }
@@ -212,8 +210,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            var fieldDeclaration = variableDeclarator?.Parent?.Parent as TFieldDeclaration;
-            if (fieldDeclaration == null)
+            if (!(variableDeclarator?.Parent?.Parent is TFieldDeclaration fieldDeclaration))
             {
                 return;
             }

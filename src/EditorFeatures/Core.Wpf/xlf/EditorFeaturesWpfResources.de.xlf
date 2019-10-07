@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../EditorFeaturesWpfResources.resx">
     <body>
+      <trans-unit id="Configure_or_Suppress_issues">
+        <source>Configure or Suppress issues</source>
+        <target state="translated">Issues konfigurieren oder unterdrücken</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Downloading_index_failed">
         <source>Downloading index failed</source>
         <target state="translated">Fehler beim Herunterladen des Index.</target>

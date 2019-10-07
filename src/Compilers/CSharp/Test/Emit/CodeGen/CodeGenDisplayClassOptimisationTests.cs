@@ -3552,7 +3552,7 @@ public static class Program
         }
 
         [Fact]
-        public void ForWithVariableDeclaredInConditionAndNoneInIntializerCorrectDisplayClassesAreCreated()
+        public void ForWithVariableDeclaredInConditionAndNoneInInitializerCorrectDisplayClassesAreCreated()
         {
             var source =
                 @"using System;

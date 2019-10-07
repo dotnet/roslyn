@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         internal Task Execute(IInteractiveWindow interactiveWindow, string title)
         {
-            if (GetProjectProperties(out var references, out var referenceSearchPaths, out var sourceSearchPaths, out var projectNamespaces, out var projectDirectory, out bool? is64Bit))
+            if (GetProjectProperties(out var references, out var referenceSearchPaths, out var sourceSearchPaths, out var projectNamespaces, out var projectDirectory, out var is64Bit))
             {
                 // Now, we're going to do a bunch of async operations.  So create a wait
                 // indicator so the user knows something is happening, and also so they cancel.
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             // Project's default namespace might be different from namespace used within project.
             // Filter out namespace imports that do not exist in interactive compilation.
-            IEnumerable<string> namespacesToImport = await GetNamespacesToImportAsync(projectNamespaces, interactiveWindow).ConfigureAwait(true);
+            var namespacesToImport = await GetNamespacesToImportAsync(projectNamespaces, interactiveWindow).ConfigureAwait(true);
             var importNamespacesCommand = namespacesToImport.Select(_createImport).Join(editorOptions.GetNewLineCharacter());
 
             if (!string.IsNullOrWhiteSpace(importNamespacesCommand))

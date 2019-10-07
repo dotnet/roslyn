@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // This is not awesome, but its factored. 
-            // In the future it might be better to have a seperate shared type that we add the info to, and have the callers create the appropriate bound nodes from it
+            // In the future it might be better to have a separate shared type that we add the info to, and have the callers create the appropriate bound nodes from it
             if (isUsingDeclaration)
             {
                 return new BoundUsingLocalDeclarations(syntax, disposeMethodOpt, iDisposableConversion, awaitOpt, declarationsOpt, hasErrors);
@@ -189,14 +189,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If this is a ref struct, or we're in a valid asynchronous using, try binding via pattern.
                 // We won't need to try and bind a second time if it fails, as async dispose can't be pattern based (ref structs are not allowed in async methods)
-                if (!(type is null) && (type.IsRefLikeType || hasAwait))
+                if (type is object && (type.IsRefLikeType || hasAwait))
                 {
                     BoundExpression receiver = fromExpression
                                                ? expressionOpt
                                                : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
                     disposeMethodOpt = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, diagnostics);
-                    if (!(disposeMethodOpt is null))
+                    if (disposeMethodOpt is object)
                     {
                         if (hasAwait)
                         {

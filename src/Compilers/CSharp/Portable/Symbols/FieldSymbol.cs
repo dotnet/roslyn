@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
+
         /// <summary>
         /// Gets the type of this field.
         /// </summary>
@@ -81,6 +83,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if this field was declared as "volatile". 
         /// </summary>
         public abstract bool IsVolatile { get; }
+
+        /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit receiver. This is false if the symbol is static.
+        /// </summary>
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
 
         /// <summary>
         /// Returns true if this field was declared as "fixed".
@@ -460,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        CodeAnalysis.NullableAnnotation IFieldSymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
+        CodeAnalysis.NullableAnnotation IFieldSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
 
         ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
         {

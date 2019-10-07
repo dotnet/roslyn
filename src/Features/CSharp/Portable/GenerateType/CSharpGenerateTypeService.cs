@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -415,14 +414,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 {
                     foreach (var expression in objectCreationExpressionOpt.Initializer.Expressions)
                     {
-                        var simpleAssignmentExpression = expression as AssignmentExpressionSyntax;
-                        if (simpleAssignmentExpression == null)
+                        if (!(expression is AssignmentExpressionSyntax simpleAssignmentExpression))
                         {
                             continue;
                         }
 
-                        var name = simpleAssignmentExpression.Left as SimpleNameSyntax;
-                        if (name == null)
+                        if (!(simpleAssignmentExpression.Left is SimpleNameSyntax name))
                         {
                             continue;
                         }
@@ -649,13 +646,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         private NamespaceDeclarationSyntax GetDeclaringNamespace(List<string> containers, int indexDone, SyntaxNode localRoot)
         {
-            var namespaceDecl = localRoot as NamespaceDeclarationSyntax;
-            if (namespaceDecl == null || namespaceDecl.Name is AliasQualifiedNameSyntax)
+            if (!(localRoot is NamespaceDeclarationSyntax namespaceDecl) || namespaceDecl.Name is AliasQualifiedNameSyntax)
             {
                 return null;
             }
 
-            List<string> namespaceContainers = new List<string>();
+            var namespaceContainers = new List<string>();
             GetNamespaceContainers(namespaceDecl.Name, namespaceContainers);
 
             if (namespaceContainers.Count + indexDone > containers.Count ||
@@ -664,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return null;
             }
 
-            indexDone = indexDone + namespaceContainers.Count;
+            indexDone += namespaceContainers.Count;
             if (indexDone == containers.Count)
             {
                 return namespaceDecl;
@@ -684,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
         private bool IdentifierMatches(int indexDone, List<string> namespaceContainers, List<string> containers)
         {
-            for (int i = 0; i < namespaceContainers.Count; ++i)
+            for (var i = 0; i < namespaceContainers.Count; ++i)
             {
                 if (namespaceContainers[i] != containers[indexDone + i])
                 {
@@ -819,20 +815,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         internal override bool IsGenericName(SimpleNameSyntax simpleName)
-        {
-            if (simpleName == null)
-            {
-                return false;
-            }
-
-            var genericName = simpleName as GenericNameSyntax;
-            return genericName != null;
-        }
+            => simpleName is GenericNameSyntax;
 
         internal override bool IsSimpleName(ExpressionSyntax expression)
-        {
-            return expression is SimpleNameSyntax;
-        }
+            => expression is SimpleNameSyntax;
 
         internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken)
         {

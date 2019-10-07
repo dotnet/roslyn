@@ -21,8 +21,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
         protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticTableItem>
@@ -32,8 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
-            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
-                base(workspace)
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier)
+                : base(workspace)
             {
                 _workspace = workspace;
                 _identifier = identifier;
@@ -113,8 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return GetItemKey(data);
                 }
 
-                var liveArgsId = args.Id as LiveDiagnosticUpdateArgsId;
-                if (liveArgsId == null)
+                if (!(args.Id is LiveDiagnosticUpdateArgsId liveArgsId))
                 {
                     return GetItemKey(data);
                 }
@@ -334,8 +331,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             var guids = item.ProjectGuids;
                             content = guids;
                             return guids.Length > 0;
-                        case SuppressionStateColumnDefinition.ColumnName:
-                            content = data.IsSuppressed ? ServicesVSResources.Suppressed : ServicesVSResources.Active;
+                        case StandardTableKeyNames.SuppressionState:
+                            content = data.IsSuppressed ? SuppressionState.Suppressed : SuppressionState.Active;
                             return true;
                         default:
                             content = null;

@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 { FunctionId.Snippet_OnAfterInsertion, new List<CodeMarkerId>() { CodeMarkerEvent.perfVBInsertSnippetEnd } }
             };
 
-        private static Func<CodeMarkerId, CodeMarkerId> s_getter = i => i;
+        private static readonly Func<CodeMarkerId, CodeMarkerId> s_getter = i => i;
         private static Func<Tuple<CodeMarkerId, CodeMarkerId>, CodeMarkerId> s_startGetter => t => t.Item1;
         private static Func<Tuple<CodeMarkerId, CodeMarkerId>, CodeMarkerId> s_endGetter => t => t.Item2;
 
@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 return;
             }
 
-            for (int i = 0; i < items.Count; i++)
+            for (var i = 0; i < items.Count; i++)
             {
                 var marker = getter(items[i]);
                 Microsoft.Internal.Performance.CodeMarkers.Instance.CodeMarker(marker);

@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var packageSources = ImmutableArray<PackageSource>.Empty;
             var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
-            // We only need to recieve 2 results back per diagnostic to determine that the fix is ambiguous.
+            // We only need to receive 2 results back per diagnostic to determine that the fix is ambiguous.
             var getFixesForDiagnosticsTasks = diagnostics
                 .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
                 .Select(diagnosticsForSourceSpan => addImportService
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 foreach (var fixesForDiagnostic in fixesForDiagnostics)
                 {
                     // When there is more than one potential fix for a missing import diagnostic,
-                    // which is possible when the same class name is present in mutliple namespaces,
+                    // which is possible when the same class name is present in multiple namespaces,
                     // we do not want to choose for the user and be wrong. We will not attempt to
                     // fix this diagnostic and instead leave it for the user to resolve since they
                     // will have more context for determining the proper fix.
@@ -258,8 +258,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 // Since we know the general shape of these new import statements, we simply look for where
                 // tokens are not on the same line and force them to only be separated by a single newline.
 
-                _text.GetLineAndOffset(previousToken.Span.Start, out int previousLine, out _);
-                _text.GetLineAndOffset(currentToken.Span.Start, out int currentLine, out _);
+                _text.GetLineAndOffset(previousToken.Span.Start, out var previousLine, out _);
+                _text.GetLineAndOffset(currentToken.Span.Start, out var currentLine, out _);
 
                 if (previousLine != currentLine)
                 {

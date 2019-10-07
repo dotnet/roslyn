@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             // Leaves are labeled statements that don't have a labeled child.
             // We also return true for non-labeled statements.
-            Label label = Classify(node.Kind(), out var isLeaf);
+            var label = Classify(node.Kind(), out var isLeaf);
 
             // ignored should always be reported as leaves
             Debug.Assert(label != Label.Ignored || isLeaf);
@@ -387,8 +387,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override bool TryComputeWeightedDistance(SyntaxNode leftNode, SyntaxNode rightNode, out double distance)
         {
-            SyntaxNodeOrToken? leftName = TryGetName(leftNode);
-            SyntaxNodeOrToken? rightName = TryGetName(rightNode);
+            var leftName = TryGetName(leftNode);
+            var rightName = TryGetName(rightNode);
             Debug.Assert(rightName.HasValue == leftName.HasValue);
 
             if (leftName.HasValue)

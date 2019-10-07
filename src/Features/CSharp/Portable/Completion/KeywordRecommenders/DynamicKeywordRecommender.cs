@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsObjectCreationTypeContext ||
                 context.IsGenericTypeArgumentContext ||
                 context.IsIsOrAsTypeContext ||
-                syntaxTree.IsDefaultExpressionContext(position, context.LeftToken, cancellationToken) ||
+                syntaxTree.IsDefaultExpressionContext(position, context.LeftToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
                 IsAfterRefTypeContext(context) ||
                 context.IsLocalVariableDeclarationContext ||

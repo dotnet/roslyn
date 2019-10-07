@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             private readonly ISemanticChangeNotificationService _notificationService;
 
-            public SemanticChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay, ISemanticChangeNotificationService notificationService) :
-                base(subjectBuffer, delay)
+            public SemanticChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay, ISemanticChangeNotificationService notificationService)
+                : base(subjectBuffer, delay)
             {
                 _notificationService = notificationService;
             }

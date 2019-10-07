@@ -2,10 +2,7 @@
 
 using System.Threading.Tasks;
 using System.Threading;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
@@ -13,8 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
     {
         private class AddNewKeywordAction : CodeActions.CodeAction
         {
-            private Document _document;
-            private SyntaxNode _node;
+            private readonly Document _document;
+            private readonly SyntaxNode _node;
 
             public override string Title => CSharpFeaturesResources.Hide_base_member;
 
@@ -28,13 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
             {
                 var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var newNode = GetNewNode(_document, _node, cancellationToken);
+                var newNode = GetNewNode(_node);
                 var newRoot = root.ReplaceNode(_node, newNode);
 
                 return _document.WithSyntaxRoot(newRoot);
             }
 
-            private SyntaxNode GetNewNode(Document document, SyntaxNode node, CancellationToken cancellationToken)
+            private SyntaxNode GetNewNode(SyntaxNode node)
             {
                 var generator = SyntaxGenerator.GetGenerator(_document);
                 return generator.WithModifiers(node, generator.GetModifiers(node).WithIsNew(true));

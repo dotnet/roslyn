@@ -627,7 +627,7 @@ namespace Root
 
             foreach (var pair in builtInTypeMap)
             {
-                int position = content.IndexOf(@"[||]", StringComparison.Ordinal);
+                var position = content.IndexOf(@"[||]", StringComparison.Ordinal);
                 var newContent = content.Replace(@"[||]", pair.Key);
                 var expected = content.Replace(@"[||]", pair.Value);
                 await TestWithPredefinedTypeOptionsAsync(newContent, expected);
@@ -3961,6 +3961,22 @@ class C
         }
     }
 }", new TestParameters(options: PreferImplicitTypeWithSilent));
+        }
+
+        [Fact, WorkItem(31849, "https://github.com/dotnet/roslyn/issues/31849")]
+        public async Task NoSuggestionOnNestedNullabilityRequired()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+using System.Threading.Tasks;
+
+class C
+{
+    Task<string?> FooAsync()
+    {
+        return Task.FromResult<[|string?|]>(""something"");
+    }
+}");
         }
 
         [Theory]

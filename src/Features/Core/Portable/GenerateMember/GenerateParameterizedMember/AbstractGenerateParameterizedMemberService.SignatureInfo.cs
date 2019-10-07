@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 SemanticDocument document,
                 State state)
             {
-                this.Document = document;
-                this.State = state;
+                Document = document;
+                State = state;
             }
 
             public ImmutableArray<ITypeParameterSymbol> DetermineTypeParameters(CancellationToken cancellationToken)
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     type: DetermineReturnType(cancellationToken),
                     refKind: DetermineRefKind(cancellationToken),
                     explicitInterfaceImplementations: default,
-                    name: this.State.IdentifierToken.ValueText,
+                    name: State.IdentifierToken.ValueText,
                     parameters: DetermineParameters(cancellationToken),
                     getMethod: getMethod,
                     setMethod: setMethod);
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     returnType: returnType,
                     refKind: DetermineRefKind(cancellationToken),
                     explicitInterfaceImplementations: default,
-                    name: this.State.IdentifierToken.ValueText,
+                    name: State.IdentifierToken.ValueText,
                     typeParameters: DetermineTypeParameters(cancellationToken),
                     parameters: parameters,
                     statements: GenerateStatements(factory, isAbstract, cancellationToken),
@@ -117,11 +117,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     methodKind: State.MethodKind);
 
                 // Ensure no conflicts between type parameter names and parameter names.
-                var languageServiceProvider = this.Document.Project.Solution.Workspace.Services.GetLanguageServices(this.State.TypeToGenerateIn.Language);
+                var languageServiceProvider = Document.Project.Solution.Workspace.Services.GetLanguageServices(State.TypeToGenerateIn.Language);
                 var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
 
                 var equalityComparer = syntaxFacts.StringComparer;
-                var reservedParameterNames = this.DetermineParameterNames(cancellationToken)
+                var reservedParameterNames = DetermineParameterNames(cancellationToken)
                                                  .Select(p => p.BestNameForParameter)
                                                  .ToSet(equalityComparer);
                 var newTypeParameterNames = NameGenerator.EnsureUniqueness(
@@ -136,16 +136,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             {
                 // A type can't refer to a type parameter that isn't available in the type we're
                 // eventually generating into.
-                var availableMethodTypeParameters = this.DetermineTypeParameters(cancellationToken);
-                var availableTypeParameters = this.State.TypeToGenerateIn.GetAllTypeParameters();
+                var availableMethodTypeParameters = DetermineTypeParameters(cancellationToken);
+                var availableTypeParameters = State.TypeToGenerateIn.GetAllTypeParameters();
 
-                var compilation = this.Document.SemanticModel.Compilation;
+                var compilation = Document.SemanticModel.Compilation;
                 var allTypeParameters = availableMethodTypeParameters.Concat(availableTypeParameters);
 
-                var typeArgumentToTypeParameterMap = this.GetTypeArgumentToTypeParameterMap(cancellationToken);
+                var typeArgumentToTypeParameterMap = GetTypeArgumentToTypeParameterMap(cancellationToken);
 
                 return typeSymbol.RemoveAnonymousTypes(compilation)
-                                 .ReplaceTypeParametersBasedOnTypeConstraints(compilation, allTypeParameters, this.Document.Document.Project.Solution, cancellationToken)
+                                 .ReplaceTypeParametersBasedOnTypeConstraints(compilation, allTypeParameters, Document.Document.Project.Solution, cancellationToken)
                                  .RemoveUnavailableTypeParameters(compilation, allTypeParameters)
                                  .RemoveUnnamedErrorTypes(compilation)
                                  .SubstituteTypes(typeArgumentToTypeParameterMap, new TypeGenerator());
@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             private IDictionary<ITypeSymbol, ITypeParameterSymbol> CreateTypeArgumentToTypeParameterMap(
                 CancellationToken cancellationToken)
             {
-                var typeArguments = this.DetermineTypeArguments(cancellationToken);
-                var typeParameters = this.DetermineTypeParameters(cancellationToken);
+                var typeArguments = DetermineTypeArguments(cancellationToken);
+                var typeParameters = DetermineTypeParameters(cancellationToken);
 
                 // We use a nullability-ignoring comparer because top-level and nested nullability won't matter. If we are looking to replace
                 // IEnumerable<string> with T, we want to replace IEnumerable<string?> whenever it appears in an argument or return type, partly because
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 bool isAbstract,
                 CancellationToken cancellationToken)
             {
-                var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(factory, this.Document, "System.NotImplementedException", cancellationToken);
+                var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(factory, Document, "System.NotImplementedException");
 
                 return isAbstract || State.TypeToGenerateIn.TypeKind == TypeKind.Interface || throwStatement == null
                     ? default
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
             private Accessibility DetermineAccessibility(bool isAbstract)
             {
-                var containingType = this.State.ContainingType;
+                var containingType = State.ContainingType;
 
                 // If we're generating into an interface, then we don't use any modifiers.
                 if (State.TypeToGenerateIn.TypeKind != TypeKind.Interface)

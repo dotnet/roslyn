@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var evalResult = FormatResult("o", value);
             DkmEvaluationResultEnumContext enumContext;
             var children = GetChildren(evalResult, 100, null, out enumContext);
-            Assert.Equal(enumContext.Count, 4);
+            Assert.Equal(4, enumContext.Count);
             Verify(children,
                 EvalResult("F1", "null", "object", "o.F1"),
                 EvalResult("F2", "null", "object", "o.F2"),
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var evalResult = FormatResult("o", value);
             DkmEvaluationResultEnumContext enumContext;
             var children = GetChildren(evalResult, 0, null, out enumContext);
-            Assert.Equal(enumContext.Count, 4);
+            Assert.Equal(4, enumContext.Count);
             Verify(children);
             children = GetItems(enumContext, 2, 4);
             Verify(children,
@@ -743,11 +743,47 @@ unsafe class C
                 string fullName = string.Format("*({0}).p", rootExpr);
                 children = GetChildren(children[0]);
                 Verify(children,
-                    EvalResult(fullName, "{4}", "System.IntPtr", fullName, DkmEvaluationResultFlags.Expandable));
+                    EvalResult(fullName, IntPtr.Size == 8 ? "0x0000000000000004" : "0x00000004", "System.IntPtr", fullName, DkmEvaluationResultFlags.None));
+            }
+        }
+
+        [Fact]
+        public void UIntPtrPointer()
+        {
+            var source = @"
+using System;
+
+unsafe class C
+{
+    internal C(ulong p)
+    {
+        this.p = (UIntPtr*)p;
+    }
+    UIntPtr* p;
+    UIntPtr* q;
+}";
+            var assembly = GetUnsafeAssembly(source);
+            unsafe
+            {
+                // NOTE: We're depending on endian-ness to put
+                // the interesting bytes first when we run this
+                // test as 32-bit.
+                ulong i = 4;
+                ulong p = (ulong)&i;
+                var type = assembly.GetType("C");
+                var rootExpr = string.Format("new C({0})", p);
+                var value = CreateDkmClrValue(type.Instantiate(p));
+                var evalResult = FormatResult(rootExpr, value);
+                Verify(evalResult,
+                    EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult("p", PointerToString(new UIntPtr(p)), "System.UIntPtr*", string.Format("({0}).p", rootExpr), DkmEvaluationResultFlags.Expandable),
+                    EvalResult("q", PointerToString(UIntPtr.Zero), "System.UIntPtr*", string.Format("({0}).q", rootExpr)));
+                string fullName = string.Format("*({0}).p", rootExpr);
                 children = GetChildren(children[0]);
                 Verify(children,
-                    EvalResult("m_value", PointerToString(new IntPtr(i)), "void*", string.Format("({0}).m_value", fullName)),
-                    EvalResult("Static members", null, "", "System.IntPtr", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
+                    EvalResult(fullName, UIntPtr.Size == 8 ? "0x0000000000000004" : "0x00000004", "System.UIntPtr", fullName, DkmEvaluationResultFlags.None));
             }
         }
 
@@ -2372,13 +2408,13 @@ class D : C
             // GetChildren
             var getChildrenResult = default(DkmGetChildrenAsyncResult);
             resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
-            Assert.Equal(workList.Length, 0);
+            Assert.Equal(0, workList.Length);
             Assert.Equal(getChildrenResult.InitialChildren.Length, n);
 
             // GetItems
             var getItemsResult = default(DkmEvaluationEnumAsyncResult);
             resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
-            Assert.Equal(workList.Length, 0);
+            Assert.Equal(0, workList.Length);
             Assert.Equal(getItemsResult.Items.Length, n);
         }
 
@@ -2410,14 +2446,14 @@ class C
                 // GetChildren
                 var getChildrenResult = default(DkmGetChildrenAsyncResult);
                 resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
-                Assert.Equal(workList.Length, 1);
+                Assert.Equal(1, workList.Length);
                 workList.Execute();
                 Assert.Equal(getChildrenResult.InitialChildren.Length, n);
 
                 // GetItems
                 var getItemsResult = default(DkmEvaluationEnumAsyncResult);
                 resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
-                Assert.Equal(workList.Length, 1);
+                Assert.Equal(1, workList.Length);
                 workList.Execute();
                 Assert.Equal(getItemsResult.Items.Length, n);
             }
@@ -2457,7 +2493,7 @@ class C
                 // GetChildren
                 var getChildrenResult = default(DkmGetChildrenAsyncResult);
                 resultProvider.GetChildren(evalResult, workList, n, DefaultInspectionContext, r => getChildrenResult = r);
-                Assert.Equal(workList.Length, 1);
+                Assert.Equal(1, workList.Length);
                 workList.Execute();
                 var items = getChildrenResult.InitialChildren;
                 Assert.Equal(items.Length, n);
@@ -2466,7 +2502,7 @@ class C
                 // GetItems
                 var getItemsResult = default(DkmEvaluationEnumAsyncResult);
                 resultProvider.GetItems(getChildrenResult.EnumContext, workList, 0, n, r => getItemsResult = r);
-                Assert.Equal(workList.Length, 1);
+                Assert.Equal(1, workList.Length);
                 workList.Execute();
                 items = getItemsResult.Items;
                 Assert.Equal(items.Length, n);

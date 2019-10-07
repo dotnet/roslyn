@@ -678,22 +678,18 @@ Inner i;
             var info = await SymbolTreeInfo.CreateSourceSymbolTreeInfoAsync(
                 project, Checksum.Null, cancellationToken: CancellationToken.None);
 
-            using (var writerStream = new MemoryStream())
+            using var writerStream = new MemoryStream();
+            using (var writer = new ObjectWriter(writerStream))
             {
-                using (var writer = new ObjectWriter(writerStream))
-                {
-                    info.WriteTo(writer);
-                }
-
-                using (var readerStream = new MemoryStream(writerStream.ToArray()))
-                using (var reader = ObjectReader.TryGetReader(readerStream))
-                {
-                    var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(
-                        reader, Checksum.Null);
-
-                    info.AssertEquivalentTo(readInfo);
-                }
+                info.WriteTo(writer);
             }
+
+            using var readerStream = new MemoryStream(writerStream.ToArray());
+            using var reader = ObjectReader.TryGetReader(readerStream);
+            var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(
+reader, Checksum.Null);
+
+            info.AssertEquivalentTo(readInfo);
         }
 
         [Fact, WorkItem(7941, "https://github.com/dotnet/roslyn/pull/7941")]

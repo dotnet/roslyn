@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Remote
             SetNativeDllSearchDirectories();
         }
 
-        public RemoteHostService(Stream stream, IServiceProvider serviceProvider) :
-            base(serviceProvider, stream)
+        public RemoteHostService(Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
         {
             _shutdownCancellationSource = new CancellationTokenSource();
 
@@ -95,13 +95,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 return _host;
             }, cancellationToken);
-        }
-
-        protected override void OnDisconnected(JsonRpcDisconnectedEventArgs e)
-        {
-            _shutdownCancellationSource.Cancel();
-
-            base.OnDisconnected(e);
         }
 
         public void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
@@ -197,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Remote
             EnsureCulture(uiCultureLCID, cultureLCID);
 
             // set roslyn loggers
-            WatsonReporter.SetTelemetrySession(session);
+            RoslynServices.SetTelemetrySession(session);
 
             RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
 

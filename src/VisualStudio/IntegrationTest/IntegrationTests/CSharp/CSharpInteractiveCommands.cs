@@ -16,7 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18779")]
         public void VerifyPreviousAndNextHistory()
         {
             VisualStudio.InteractiveWindow.SubmitText("1 + 2");

@@ -5568,27 +5568,13 @@ class C
 
             // if names are provided, you need one for each element
             var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType);
-            try
-            {
-                comp.CreateTupleTypeSymbol(vt2, new[] { "Item1" }.AsImmutable());
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, e.Message);
-            }
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vt2, new[] { "Item1" }.AsImmutable()));
+            Assert.Contains(CodeAnalysisResources.TupleElementNameCountMismatch, e.Message);
 
             var tree = CSharpSyntaxTree.ParseText("class C { }");
             var loc1 = Location.Create(tree, new TextSpan(0, 1));
-            try
-            {
-                comp.CreateTupleTypeSymbol(vt2, elementLocations: new[] { loc1 }.AsImmutable());
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, e.Message);
-            }
+            e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vt2, elementLocations: new[] { loc1 }.AsImmutable()));
+            Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, e.Message);
         }
 
         [Fact]
@@ -5609,7 +5595,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         private static ImmutableArray<string> GetTupleElementNames(INamedTypeSymbol tuple)
@@ -5666,7 +5652,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5685,7 +5671,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
             Assert.All(tupleWithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5704,7 +5690,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32" }, ElementTypeNames(tupleWithSomeNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind);
             Assert.All(tupleWithSomeNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5722,7 +5708,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.Int32" }, ElementTypeNames(tupleWithNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
             Assert.All(tupleWithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5746,7 +5732,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
                         ElementTypeNames(tuple8WithoutNames));
             Assert.All(tuple8WithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5771,7 +5757,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
                         ElementTypeNames(tuple8WithNames));
             Assert.All(tuple8WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5796,7 +5782,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32" },
                         ElementTypeNames(tuple9WithoutNames));
             Assert.All(tuple9WithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5822,7 +5808,7 @@ class C
                         ElementTypeNames(tuple9WithNames));
 
             Assert.All(tuple9WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5851,7 +5837,7 @@ class C
                         ElementTypeNames(tuple9WithNames));
 
             Assert.All(tuple9WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5873,7 +5859,7 @@ class C
             Assert.Equal(SymbolKind.NamedType, types[0].Kind);
             Assert.Equal(SymbolKind.ErrorType, types[1].Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact, WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")]
@@ -5955,15 +5941,8 @@ class C
             Assert.Equal(new[] { "return", "class" }, GetTupleElementNames(tuple3));
 
             // not tuple-compatible underlying type
-            try
-            {
-                comp.CreateTupleTypeSymbol(intType);
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, e.Message);
-            }
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(intType));
+            Assert.Contains(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, e.Message);
         }
 
         [Fact]
@@ -5974,17 +5953,10 @@ class C
             NamedTypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(intType, intType);
 
-            try
-            {
-                // illegal C# identifiers and blank
-                var tuple2 = comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", ""));
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, e.Message);
-                Assert.Contains("elementNames[1]", e.Message);
-            }
+            // illegal C# identifiers and blank
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vt2, ImmutableArray.Create("123", "")));
+            Assert.Contains(CodeAnalysisResources.TupleElementNameEmpty, e.Message);
+            Assert.Contains("elementNames[1]", e.Message);
         }
 
         [Fact]
@@ -6000,15 +5972,8 @@ End Class";
             INamedTypeSymbol vbType = (INamedTypeSymbol)vbComp.GlobalNamespace.GetMembers("C").Single();
 
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
-            try
-            {
-                comp.CreateTupleTypeSymbol(vbType, default(ImmutableArray<string>));
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CSharpResources.NotACSharpSymbol, e.Message);
-            }
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vbType, default(ImmutableArray<string>)));
+            Assert.Contains(CSharpResources.NotACSharpSymbol, e.Message);
         }
 
         [Fact]
@@ -6024,15 +5989,8 @@ End Class";
             var vbType = (ITypeSymbol)vbComp.GlobalNamespace.GetMembers("C").Single();
 
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
-            try
-            {
-                comp.CreateAnonymousTypeSymbol(ImmutableArray.Create(vbType), ImmutableArray.Create("m1"));
-                Assert.True(false);
-            }
-            catch (ArgumentException e)
-            {
-                Assert.Contains(CSharpResources.NotACSharpSymbol, e.Message);
-            }
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateAnonymousTypeSymbol(ImmutableArray.Create(vbType), ImmutableArray.Create("m1")));
+            Assert.Contains(CSharpResources.NotACSharpSymbol, e.Message);
         }
 
         [Fact]
@@ -6321,6 +6279,226 @@ class C
             Assert.False(tuple1.Equals(tuple4));
             Assert.True(tuple1.Equals(tuple4, TypeCompareKind.IgnoreDynamicAndTupleNames));
         }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_UnderlyingType_DefaultArgs()
+        {
+            var source =
+@"class Program
+{
+    (int, string) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var underlyingType = tuple1.TupleUnderlyingType;
+
+            var tuple2 = comp.CreateTupleTypeSymbol(underlyingType);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, default, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, default, default, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, default(ImmutableArray<string>), default(ImmutableArray<Location>), default(ImmutableArray<CodeAnalysis.NullableAnnotation>));
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNames: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementLocations: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: default);
+            Assert.True(tuple1.Equals(tuple2));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_ElementTypes_DefaultArgs()
+        {
+            var source =
+@"class Program
+{
+    (int, string) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var elementTypes = tuple1.TupleElements.SelectAsArray(e => e.Type);
+
+            var tuple2 = comp.CreateTupleTypeSymbol(elementTypes);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, default, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, default, default, default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, default(ImmutableArray<string>), default(ImmutableArray<Location>), default(ImmutableArray<CodeAnalysis.NullableAnnotation>));
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNames: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementLocations: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: default);
+            Assert.True(tuple1.Equals(tuple2));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_01()
+        {
+            var source =
+@"class Program
+{
+    (int, string) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var underlyingType = tuple1.TupleUnderlyingType;
+
+            var tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, e.Message);
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.False(tuple1.Equals(tuple2, SymbolEqualityComparer.IncludeNullability));
+            Assert.Equal("(System.Int32, System.String?)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                underlyingType,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.None));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_UnderlyingType_WithNullableAnnotations_02()
+        {
+            var source =
+@"class Program
+{
+    (object _1, object _2, object _3, object _4, object _5, object _6, object _7, object _8, object _9) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var underlyingType = tuple1.TupleUnderlyingType;
+
+            var tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: default);
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.NotAnnotated, 8)));
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, e.Message);
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.None, 9));
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(underlyingType, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.Annotated, 9));
+            Assert.False(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Assert.Equal("(System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?)", tuple2.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_01()
+        {
+            var source =
+@"class Program
+{
+    (int, string) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var elementTypes = tuple1.TupleElements.SelectAsArray(e => e.Type);
+
+            var tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: default);
+            Assert.True(tuple1.Equals(tuple2));
+
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: ImmutableArray<CodeAnalysis.NullableAnnotation>.Empty));
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, e.Message);
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.None, CodeAnalysis.NullableAnnotation.None));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableAnnotation.Annotated));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.False(tuple1.Equals(tuple2, SymbolEqualityComparer.IncludeNullability));
+            Assert.Equal("(System.Int32, System.String?)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(
+                elementTypes,
+                elementNullableAnnotations: ImmutableArray.Create(CodeAnalysis.NullableAnnotation.Annotated, CodeAnalysis.NullableAnnotation.None));
+            Assert.True(tuple1.Equals(tuple2));
+            Assert.Equal("(System.Int32, System.String)", tuple2.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        [WorkItem(36047, "https://github.com/dotnet/roslyn/issues/36047")]
+        public void CreateTupleTypeSymbol_ElementTypes_WithNullableAnnotations_02()
+        {
+            var source =
+@"class Program
+{
+    (object _1, object _2, object _3, object _4, object _5, object _6, object _7, object _8, object _9) F;
+}";
+            var comp = CreateCompilation(source);
+            var tuple1 = (INamedTypeSymbol)((IFieldSymbol)comp.GetMember("Program.F")).Type;
+            var elementTypes = tuple1.TupleElements.SelectAsArray(e => e.Type);
+
+            var tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: default);
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            var e = Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.NotAnnotated, 8)));
+            Assert.Contains(CodeAnalysisResources.TupleElementNullableAnnotationCountMismatch, e.Message);
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.None, 9));
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.Equal("(System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object)", tuple2.ToTestDisplayString(includeNonNullable: true));
+
+            tuple2 = comp.CreateTupleTypeSymbol(elementTypes, elementNullableAnnotations: CreateAnnotations(CodeAnalysis.NullableAnnotation.Annotated, 9));
+            Assert.False(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames));
+            Assert.True(TypeEquals(tuple1, tuple2, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+            Assert.Equal("(System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?, System.Object?)", tuple2.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        private static ImmutableArray<CodeAnalysis.NullableAnnotation> CreateAnnotations(CodeAnalysis.NullableAnnotation annotation, int n) =>
+            ImmutableArray.CreateRange(Enumerable.Range(0, n).Select(_ => annotation));
+
+        private static bool TypeEquals(ITypeSymbol a, ITypeSymbol b, TypeCompareKind compareKind) =>
+            ((TypeSymbol)a).Equals((TypeSymbol)b, compareKind);
 
         [Fact]
         public void TupleMethodsOnNonTupleType()
@@ -7113,6 +7291,9 @@ class C
     static void Main()
     {
         // this works
+        Test(()=>(()=>(short)1, 1));
+
+        // this works
         Test(()=>(()=>(byte)1, 1));
 
         // this does not
@@ -7122,9 +7303,9 @@ class C
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
+                // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
                 //         Test(()=>(()=>1, 1));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(23, 9)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(26, 9)
             );
         }
 
@@ -13060,24 +13241,24 @@ interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T :
 
             comp.VerifyDiagnostics(
                 // (31,18): error CS0509: 'Test1<T>': cannot derive from sealed type 'ValueTuple<int, int, int, int, int, int, int, T>'
-                // class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T>
+                // class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
                 Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("Test1<T>", "System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(31, 18),
                 // (35,23): error CS0527: Type 'ValueTuple<int, int, int, int, int, int, int, T>' in interface list is not an interface
-                // interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T>
+                // interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(35, 23),
-                // (25,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('ValueTuple<int, int, int, int, int, int, int, T>')
+                // (25,69): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('ValueTuple<int, int, int, int, int, int, int, T>')
                 //     public static ValueTuple<int, int, int, int, int, int, int, T>* M5()
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "ValueTuple<int, int, int, int, int, int, int, T>*").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(25, 19),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "M5").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(25, 69),
                 // (23,74): error CS0066: 'Test<T>.E1': event must be of a delegate type
                 //     public static event ValueTuple<int, int, int, int, int, int, int, T> E1;
                 Diagnostic(ErrorCode.ERR_EventNotDelegate, "E1").WithArguments("Test<T>.E1").WithLocation(23, 74),
                 // (7,44): error CS0070: The event 'Test<(int, int)>.E1' can only appear on the left hand side of += or -= (except when used from within the type 'Test<(int, int)>')
                 //         var x = Test<ValueTuple<int, int>>.E1;
                 Diagnostic(ErrorCode.ERR_BadEventUsage, "E1").WithArguments("Test<(int, int)>.E1", "Test<(int, int)>").WithLocation(7, 44),
-                // (14,37): error CS1061: 'Test1<(int, int)>' does not contain a definition for 'Item8' and no extension method 'Item8' accepting a first argument of type 'Test1<(int, int)>' could be found (are you missing a using directive or an assembly reference?)
+                // (14,37): error CS1061: 'Test1<(int, int)>' does not contain a definition for 'Item8' and no accessible extension method 'Item8' accepting a first argument of type 'Test1<(int, int)>' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.WriteLine(v1.Item8);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item8").WithArguments("Test1<(int, int)>", "Item8").WithLocation(14, 37),
-                // (17,37): error CS1061: 'ITest2<(int, int)>' does not contain a definition for 'Item8' and no extension method 'Item8' accepting a first argument of type 'ITest2<(int, int)>' could be found (are you missing a using directive or an assembly reference?)
+                // (17,37): error CS1061: 'ITest2<(int, int)>' does not contain a definition for 'Item8' and no accessible extension method 'Item8' accepting a first argument of type 'ITest2<(int, int)>' could be found (are you missing a using directive or an assembly reference?)
                 //         System.Console.WriteLine(v2.Item8);
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item8").WithArguments("ITest2<(int, int)>", "Item8").WithLocation(17, 37)
                 );
@@ -14879,13 +15060,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 24),
                 // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18),
-                // (6,19): error CS0150: A constant value is expected
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 19),
-                // (6,24): error CS0150: A constant value is expected
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18)
                 );
         }
 
@@ -14984,13 +15159,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 24),
                 // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18),
-                // (7,19): error CS0150: A constant value is expected
-                //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 19),
-                // (7,24): error CS0150: A constant value is expected
-                //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 24)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18)
                );
         }
 
@@ -15135,10 +15304,10 @@ class TestAttribute : System.Attribute
 
             var comp = CreateCompilation(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics(
-                // (6,32): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (6,32): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         var x0 = new {tuple = (null, null)};
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(6, 32),
-                // (6,38): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (6,38): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         var x0 = new {tuple = (null, null)};
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(6, 38),
                 // (8,31): error CS8330: Cannot implicitly convert tuple expression to 'ValueType'
@@ -15156,7 +15325,7 @@ class TestAttribute : System.Attribute
                 // (14,20): error CS0655: 'Val' is not a valid named attribute argument because it is not a valid attribute parameter type
                 //     [TestAttribute(Val = (5, "5"))]
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "Val").WithArguments("Val").WithLocation(14, 20),
-                // (19,16): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (19,16): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         await (null, "6");
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(19, 16),
                 // (20,9): error CS1061: '(int, string)' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type '(int, string)' could be found (are you missing a using directive or an assembly reference?)
@@ -15186,7 +15355,7 @@ class TestAttribute : System.Attribute
                 // (36,14): error CS8330: Cannot implicitly convert tuple expression to 'int'
                 //         V3 = ("15", "15"),
                 Diagnostic(ErrorCode.Unknown, @"(""15"", ""15"")").WithArguments("int").WithLocation(36, 14),
-                // (41,28): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (41,28): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         var x = (16, (16 , null));
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(41, 28),
                 // (44,17): error CS8330: Cannot implicitly convert tuple expression to 'TypedReference'
@@ -15966,6 +16135,44 @@ class C
             Assert.Null(model.GetTypeInfo(n5).Type);
             Assert.Equal("System.Func<System.Int32>", model.GetTypeInfo(n5).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.AnonymousFunction, model.GetConversion(n5).Kind);
+        }
+
+        [Fact]
+        [WorkItem(36185, "https://github.com/dotnet/roslyn/issues/36185")]
+        public void GetTypeInfo_03()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        M((1, ""hello""));
+        M((2, null));
+    }
+    public static void M((short, string) x) { }
+}
+" + trivial2uple + tupleattributes_cs;
+
+            var tree = Parse(source, options: TestOptions.Regular);
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var n1 = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+
+            Assert.Equal(@"(1, ""hello"")", n1.ToString());
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(n1).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int16, System.String)", model.GetTypeInfo(n1).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(n1).Kind);
+
+            var n2 = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
+
+            Assert.Equal(@"(2, null)", n2.ToString());
+            Assert.Null(model.GetTypeInfo(n2).Type);
+            Assert.Equal("(System.Int16, System.String)", model.GetTypeInfo(n2).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(n2).Kind);
         }
 
         [Fact]

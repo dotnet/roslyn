@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
         public void AddIteratorMethod()
         {
-            var source0 =
+            var source0 = WithWindowsLineBreaks(
 @"using System.Collections.Generic;
 class C
 {
@@ -27,8 +27,8 @@ class C
     {
         yield return 0;
     }
-}";
-            var source1 =
+}");
+            var source1 = WithWindowsLineBreaks(
 @"using System.Collections.Generic;
 class C
 {
@@ -40,7 +40,7 @@ class C
     {
         yield return 1;
     }
-}";
+}");
             var compilation0 = CreateCompilationWithMscorlib40(new[] { Parse(source0, "a.cs") }, options: TestOptions.DebugDll);
             var compilation1 = CreateCompilationWithMscorlib40(new[] { Parse(source1, "a.cs") }, options: TestOptions.DebugDll);
 
@@ -50,167 +50,165 @@ class C
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.G"))));
 
-            using (var md1 = diff1.GetMetadata())
-            {
-                var reader1 = md1.Reader;
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
 
-                CheckEncLog(reader1,
-                    Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                    Row(17, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(18, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(19, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(20, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(21, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(22, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(23, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(24, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(25, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(26, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(27, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(28, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(29, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                    Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(21, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(22, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(23, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(24, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(25, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(26, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.PropertyMap, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(4, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(5, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(6, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(17, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
-                    Row(3, TableIndex.Property, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
-                    Row(4, TableIndex.Property, EditAndContinueOperation.Default),
-                    Row(12, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                    Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                    Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
-                    Row(8, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(9, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(10, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(11, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(12, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(13, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(14, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default),
-                    Row(6, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
-                    Row(7, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
-                    Row(8, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
-                    Row(9, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
-                    Row(10, TableIndex.InterfaceImpl, EditAndContinueOperation.Default));
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(17, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(18, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(19, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(20, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(21, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(22, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(23, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(24, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(25, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(26, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(27, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(28, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(29, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(20, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(21, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(22, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(23, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(24, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(25, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(26, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.PropertyMap, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(5, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(6, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(17, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
+                Row(3, TableIndex.Property, EditAndContinueOperation.Default),
+                Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
+                Row(4, TableIndex.Property, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                Row(11, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                Row(13, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                Row(14, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                Row(6, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
+                Row(7, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
+                Row(8, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
+                Row(9, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
+                Row(10, TableIndex.InterfaceImpl, EditAndContinueOperation.Default));
 
-                CheckEncMap(reader1,
-                    Handle(16, TableIndex.TypeRef),
-                    Handle(17, TableIndex.TypeRef),
-                    Handle(18, TableIndex.TypeRef),
-                    Handle(19, TableIndex.TypeRef),
-                    Handle(20, TableIndex.TypeRef),
-                    Handle(21, TableIndex.TypeRef),
-                    Handle(22, TableIndex.TypeRef),
-                    Handle(23, TableIndex.TypeRef),
-                    Handle(24, TableIndex.TypeRef),
-                    Handle(25, TableIndex.TypeRef),
-                    Handle(26, TableIndex.TypeRef),
-                    Handle(4, TableIndex.TypeDef),
-                    Handle(4, TableIndex.Field),
-                    Handle(5, TableIndex.Field),
-                    Handle(6, TableIndex.Field),
-                    Handle(11, TableIndex.MethodDef),
-                    Handle(12, TableIndex.MethodDef),
-                    Handle(13, TableIndex.MethodDef),
-                    Handle(14, TableIndex.MethodDef),
-                    Handle(15, TableIndex.MethodDef),
-                    Handle(16, TableIndex.MethodDef),
-                    Handle(17, TableIndex.MethodDef),
-                    Handle(18, TableIndex.MethodDef),
-                    Handle(19, TableIndex.MethodDef),
-                    Handle(2, TableIndex.Param),
-                    Handle(6, TableIndex.InterfaceImpl),
-                    Handle(7, TableIndex.InterfaceImpl),
-                    Handle(8, TableIndex.InterfaceImpl),
-                    Handle(9, TableIndex.InterfaceImpl),
-                    Handle(10, TableIndex.InterfaceImpl),
-                    Handle(17, TableIndex.MemberRef),
-                    Handle(18, TableIndex.MemberRef),
-                    Handle(19, TableIndex.MemberRef),
-                    Handle(20, TableIndex.MemberRef),
-                    Handle(21, TableIndex.MemberRef),
-                    Handle(22, TableIndex.MemberRef),
-                    Handle(23, TableIndex.MemberRef),
-                    Handle(24, TableIndex.MemberRef),
-                    Handle(25, TableIndex.MemberRef),
-                    Handle(26, TableIndex.MemberRef),
-                    Handle(27, TableIndex.MemberRef),
-                    Handle(28, TableIndex.MemberRef),
-                    Handle(29, TableIndex.MemberRef),
-                    Handle(12, TableIndex.CustomAttribute),
-                    Handle(13, TableIndex.CustomAttribute),
-                    Handle(14, TableIndex.CustomAttribute),
-                    Handle(15, TableIndex.CustomAttribute),
-                    Handle(16, TableIndex.CustomAttribute),
-                    Handle(17, TableIndex.CustomAttribute),
-                    Handle(18, TableIndex.CustomAttribute),
-                    Handle(19, TableIndex.CustomAttribute),
-                    Handle(3, TableIndex.StandAloneSig),
-                    Handle(4, TableIndex.StandAloneSig),
-                    Handle(2, TableIndex.PropertyMap),
-                    Handle(3, TableIndex.Property),
-                    Handle(4, TableIndex.Property),
-                    Handle(3, TableIndex.MethodSemantics),
-                    Handle(4, TableIndex.MethodSemantics),
-                    Handle(8, TableIndex.MethodImpl),
-                    Handle(9, TableIndex.MethodImpl),
-                    Handle(10, TableIndex.MethodImpl),
-                    Handle(11, TableIndex.MethodImpl),
-                    Handle(12, TableIndex.MethodImpl),
-                    Handle(13, TableIndex.MethodImpl),
-                    Handle(14, TableIndex.MethodImpl),
-                    Handle(3, TableIndex.TypeSpec),
-                    Handle(4, TableIndex.TypeSpec),
-                    Handle(2, TableIndex.AssemblyRef),
-                    Handle(2, TableIndex.NestedClass));
-            }
+            CheckEncMap(reader1,
+                Handle(16, TableIndex.TypeRef),
+                Handle(17, TableIndex.TypeRef),
+                Handle(18, TableIndex.TypeRef),
+                Handle(19, TableIndex.TypeRef),
+                Handle(20, TableIndex.TypeRef),
+                Handle(21, TableIndex.TypeRef),
+                Handle(22, TableIndex.TypeRef),
+                Handle(23, TableIndex.TypeRef),
+                Handle(24, TableIndex.TypeRef),
+                Handle(25, TableIndex.TypeRef),
+                Handle(26, TableIndex.TypeRef),
+                Handle(4, TableIndex.TypeDef),
+                Handle(4, TableIndex.Field),
+                Handle(5, TableIndex.Field),
+                Handle(6, TableIndex.Field),
+                Handle(11, TableIndex.MethodDef),
+                Handle(12, TableIndex.MethodDef),
+                Handle(13, TableIndex.MethodDef),
+                Handle(14, TableIndex.MethodDef),
+                Handle(15, TableIndex.MethodDef),
+                Handle(16, TableIndex.MethodDef),
+                Handle(17, TableIndex.MethodDef),
+                Handle(18, TableIndex.MethodDef),
+                Handle(19, TableIndex.MethodDef),
+                Handle(2, TableIndex.Param),
+                Handle(6, TableIndex.InterfaceImpl),
+                Handle(7, TableIndex.InterfaceImpl),
+                Handle(8, TableIndex.InterfaceImpl),
+                Handle(9, TableIndex.InterfaceImpl),
+                Handle(10, TableIndex.InterfaceImpl),
+                Handle(17, TableIndex.MemberRef),
+                Handle(18, TableIndex.MemberRef),
+                Handle(19, TableIndex.MemberRef),
+                Handle(20, TableIndex.MemberRef),
+                Handle(21, TableIndex.MemberRef),
+                Handle(22, TableIndex.MemberRef),
+                Handle(23, TableIndex.MemberRef),
+                Handle(24, TableIndex.MemberRef),
+                Handle(25, TableIndex.MemberRef),
+                Handle(26, TableIndex.MemberRef),
+                Handle(27, TableIndex.MemberRef),
+                Handle(28, TableIndex.MemberRef),
+                Handle(29, TableIndex.MemberRef),
+                Handle(12, TableIndex.CustomAttribute),
+                Handle(13, TableIndex.CustomAttribute),
+                Handle(14, TableIndex.CustomAttribute),
+                Handle(15, TableIndex.CustomAttribute),
+                Handle(16, TableIndex.CustomAttribute),
+                Handle(17, TableIndex.CustomAttribute),
+                Handle(18, TableIndex.CustomAttribute),
+                Handle(19, TableIndex.CustomAttribute),
+                Handle(3, TableIndex.StandAloneSig),
+                Handle(4, TableIndex.StandAloneSig),
+                Handle(2, TableIndex.PropertyMap),
+                Handle(3, TableIndex.Property),
+                Handle(4, TableIndex.Property),
+                Handle(3, TableIndex.MethodSemantics),
+                Handle(4, TableIndex.MethodSemantics),
+                Handle(8, TableIndex.MethodImpl),
+                Handle(9, TableIndex.MethodImpl),
+                Handle(10, TableIndex.MethodImpl),
+                Handle(11, TableIndex.MethodImpl),
+                Handle(12, TableIndex.MethodImpl),
+                Handle(13, TableIndex.MethodImpl),
+                Handle(14, TableIndex.MethodImpl),
+                Handle(3, TableIndex.TypeSpec),
+                Handle(4, TableIndex.TypeSpec),
+                Handle(2, TableIndex.AssemblyRef),
+                Handle(2, TableIndex.NestedClass));
 
             diff1.VerifyPdb(Enumerable.Range(0x06000001, 0x20), @"
 <symbols>
@@ -814,10 +812,10 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void UpdateAsync_NoVariables()
         {
-            var source0 = @"
+            var source0 = WithWindowsLineBreaks(@"
 using System.Threading.Tasks;
 
 class C
@@ -827,8 +825,8 @@ class C
         await Task.FromResult(1);
         return 2;
     }
-}";
-            var source1 = @"
+}");
+            var source1 = WithWindowsLineBreaks(@"
 using System.Threading.Tasks;
 
 class C
@@ -838,7 +836,7 @@ class C
         await Task.FromResult(10);
         return 20;
     }
-}";
+}");
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
@@ -5369,6 +5367,103 @@ class C
                 "C: {<>c}",
                 "C.<>c: {<>9__0_0, <F>b__0_0, <<F>b__0_0>d}",
                 "C.<>c.<<F>b__0_0>d: {<>1__state, <>t__builder, <>4__this, <a>5__1, <>s__2, <>u__1, MoveNext, SetStateMachine}");
+        }
+
+        [Fact]
+        public void AsyncMethodWithNullableParameterAddingNullCheck()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Threading.Tasks;
+#nullable enable
+
+class C
+{
+    static T id<T>(T t) => t;
+    static Task<T> G<T>(Func<T> f) => Task.FromResult(f());
+    static T H<T>(Func<T> f) => f();
+
+    public async void F(string? x)
+    <N:4>{</N:4>
+        var <N:2>y = await G(<N:0>() => new { A = id(x) }</N:0>)</N:2>;
+        var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
+    }
+}
+", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var source1 = MarkedSource(@"
+using System;
+using System.Threading.Tasks;
+#nullable enable
+
+class C
+{
+    static T id<T>(T t) => t;
+    static Task<T> G<T>(Func<T> f) => Task.FromResult(f());
+    static T H<T>(Func<T> f) => f();
+
+    public async void F(string? x)
+    <N:4>{</N:4>
+        if (x is null) throw new Exception();
+        var <N:2>y = await G(<N:0>() => new { A = id(x) }</N:0>)</N:2>;
+        var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
+    }
+}
+", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
+
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Passes);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify();
+
+            diff1.VerifySynthesizedMembers(
+                "C.<>c__DisplayClass3_0: {x, y, <F>b__1, <F>b__0}",
+                "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}",
+                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}",
+                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
+                "Microsoft: {CodeAnalysis}",
+                "System.Runtime: {CompilerServices, CompilerServices}",
+                "C: {<>c__DisplayClass3_0, <F>d__3}",
+                "<global namespace>: {Microsoft, System, System}",
+                "System: {Runtime, Runtime}",
+                "C.<F>d__3: {<>1__state, <>t__builder, x, <>4__this, <>8__4, <z>5__2, <>s__5, <>u__1, MoveNext, SetStateMachine}");
+
+            diff1.VerifyIL("C.<>c__DisplayClass3_0.<F>b__1()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""string C.<>c__DisplayClass3_0.x""
+  IL_0006:  call       ""string C.id<string>(string)""
+  IL_000b:  newobj     ""<>f__AnonymousType0<string>..ctor(string)""
+  IL_0010:  ret
+}
+");
+
+            diff1.VerifyIL("C.<>c__DisplayClass3_0.<F>b__0()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""<anonymous type: string A> C.<>c__DisplayClass3_0.y""
+  IL_0006:  callvirt   ""string <>f__AnonymousType0<string>.A.get""
+  IL_000b:  ret
+}
+");
         }
     }
 }

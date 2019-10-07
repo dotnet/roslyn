@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -13,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class INamedTypeSymbolExtensions
     {
-        public static IEnumerable<INamedTypeSymbol> GetBaseTypesAndThis(this INamedTypeSymbol namedType)
+        public static IEnumerable<INamedTypeSymbol> GetBaseTypesAndThis(this INamedTypeSymbol? namedType)
         {
             var current = namedType;
             while (current != null)
@@ -23,19 +26,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol symbol)
+        public static IEnumerable<ITypeParameterSymbol> GetAllTypeParameters(this INamedTypeSymbol? symbol)
         {
             var stack = GetContainmentStack(symbol);
             return stack.SelectMany(n => n.TypeParameters);
         }
 
-        public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol symbol)
+        public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
         {
             var stack = GetContainmentStack(symbol);
             return stack.SelectMany(n => n.TypeArguments);
         }
 
-        private static Stack<INamedTypeSymbol> GetContainmentStack(INamedTypeSymbol symbol)
+        private static Stack<INamedTypeSymbol> GetContainmentStack(INamedTypeSymbol? symbol)
         {
             var stack = new Stack<INamedTypeSymbol>();
             for (var current = symbol; current != null; current = current.ContainingType)
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return stack;
         }
 
-        public static bool IsContainedWithin(this INamedTypeSymbol symbol, INamedTypeSymbol outer)
+        public static bool IsContainedWithin([NotNullWhen(returnValue: true)] this INamedTypeSymbol? symbol, INamedTypeSymbol outer)
         {
             // TODO(cyrusn): Should we be using OriginalSymbol here?
             for (var current = symbol; current != null; current = current.ContainingType)
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static ISymbol FindImplementationForAbstractMember(this INamedTypeSymbol type, ISymbol symbol)
+        public static ISymbol? FindImplementationForAbstractMember(this INamedTypeSymbol? type, ISymbol symbol)
         {
             if (symbol.IsAbstract)
             {
@@ -71,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return null;
         }
 
-        internal static ISymbol GetOverriddenMember(this ISymbol symbol)
+        internal static ISymbol? GetOverriddenMember(this ISymbol? symbol)
         {
             switch (symbol)
             {
@@ -98,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (member.Kind == SymbolKind.Property)
                 {
-                    return IsInterfacePropertyImplemented(classOrStructType, (IPropertySymbol)member, cancellationToken);
+                    return IsInterfacePropertyImplemented(classOrStructType, (IPropertySymbol)member);
                 }
                 else
                 {
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (member.Kind == SymbolKind.Property)
                 {
-                    return IsAbstractPropertyImplemented(classOrStructType, (IPropertySymbol)member, cancellationToken);
+                    return IsAbstractPropertyImplemented(classOrStructType, (IPropertySymbol)member);
                 }
                 else
                 {
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
-        private static bool IsInterfacePropertyImplemented(INamedTypeSymbol classOrStructType, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
+        private static bool IsInterfacePropertyImplemented(INamedTypeSymbol classOrStructType, IPropertySymbol propertySymbol)
         {
             // A property is only fully implemented if both it's setter and getter is implemented.
 
@@ -129,13 +132,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // local functions
 
-            static bool IsAccessorImplemented(IMethodSymbol accessor, INamedTypeSymbol classOrStructType)
+            static bool IsAccessorImplemented(IMethodSymbol? accessor, INamedTypeSymbol classOrStructType)
             {
                 return accessor == null || !IsImplementable(accessor) || classOrStructType.FindImplementationForInterfaceMember(accessor) != null;
             }
         }
 
-        private static bool IsAbstractPropertyImplemented(INamedTypeSymbol classOrStructType, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
+        private static bool IsAbstractPropertyImplemented(INamedTypeSymbol classOrStructType, IPropertySymbol propertySymbol)
         {
             // A property is only fully implemented if both it's setter and getter is implemented.
             if (propertySymbol.GetMethod != null)
@@ -305,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return IsInaccessibleImplementableAccessor(property.GetMethod, within) || IsInaccessibleImplementableAccessor(property.SetMethod, within);
             }
 
-            static bool IsInaccessibleImplementableAccessor(IMethodSymbol accessor, ISymbol within)
+            static bool IsInaccessibleImplementableAccessor(IMethodSymbol? accessor, ISymbol within)
             {
                 return accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
             }
@@ -353,13 +356,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return interfacesOrAbstractClasses.First().TypeKind == TypeKind.Interface
                 ? GetInterfacesToImplement(classOrStructType, interfacesOrAbstractClasses, allowReimplementation, cancellationToken)
-                : GetAbstractClassesToImplement(classOrStructType, interfacesOrAbstractClasses, cancellationToken);
+                : GetAbstractClassesToImplement(classOrStructType, interfacesOrAbstractClasses);
         }
 
         private static ImmutableArray<INamedTypeSymbol> GetAbstractClassesToImplement(
             INamedTypeSymbol classOrStructType,
-            IEnumerable<INamedTypeSymbol> abstractClasses,
-            CancellationToken cancellationToken)
+            IEnumerable<INamedTypeSymbol> abstractClasses)
         {
             return abstractClasses.SelectMany(a => a.GetBaseTypesAndThis())
                                   .Where(t => t.IsAbstractClass())
@@ -434,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        private static ISymbol IsAttributeNamedParameter(
+        private static ISymbol? IsAttributeNamedParameter(
             ISymbol symbol,
             ISymbol within)
         {
@@ -599,8 +601,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
         {
-            // TODO: pass along nullability once https://github.com/dotnet/roslyn/issues/36046 is fixed
-            return typeArguments.Length > 0 ? type.Construct(typeArguments.Select(t => t.WithoutNullability()).ToArray()) : type;
+            return typeArguments.Length > 0 ? type.ConstructWithNullability(typeArguments) : type;
         }
     }
 }

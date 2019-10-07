@@ -69,12 +69,34 @@
 
       <_AssetsByPackageId Remove="@(_ExcludedPackageId)" />
     </ItemGroup>
+    
+    <ItemGroup>
+      <_PackageToOptimize Include="@(NuGetPackageToIncludeInVsix)" Condition="'%(NuGetPackageToIncludeInVsix.Optimization)' == 'true'" />
+      <_PackageNotToOptimize Include="@(NuGetPackageToIncludeInVsix)" Condition="'%(NuGetPackageToIncludeInVsix.Optimization)' != 'true'" />
+
+      <_AssetsToOptimize Include="@(_AssetsByPackageId)" />
+      <_AssetsToOptimize Remove="@(_PackageNotToOptimize)" />
+
+      <_AssetsNotToOptimize Include="@(_AssetsByPackageId)" />
+      <_AssetsNotToOptimize Remove="@(_PackageToOptimize)" />
+
+      <_AllAssetsToInclude Include="@(_AssetsToOptimize)">
+        <Optimization>true</Optimization>
+      </_AllAssetsToInclude>
+
+      <_AllAssetsToInclude Include="@(_AssetsNotToOptimize)">
+        <Optimization>false</Optimization>
+      </_AllAssetsToInclude>
+    </ItemGroup>
 
     <!-- Include the assets in the VSIX -->
     <ItemGroup>
-      <VSIXCopyLocalReferenceSourceItem Include="@(_AssetsByPackageId->'%(Path)')">
+      <VSIXCopyLocalReferenceSourceItem Include="@(_AllAssetsToInclude->'%(Path)')">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
+        <Ngen Condition="'%(_AllAssetsToInclude.Optimization)' == 'true'">true</Ngen>
+        <NgenArchitecture Condition="'%(_AllAssetsToInclude.Optimization)' == 'true'">All</NgenArchitecture>
+        <NgenPriority Condition="'%(_AllAssetsToInclude.Optimization)' == 'true'">3</NgenPriority>
       </VSIXCopyLocalReferenceSourceItem>
     </ItemGroup>
   </Target>
@@ -103,4 +125,19 @@
       </ReferencePath>
     </ItemGroup>
   </Target>
+
+  <!-- Add License and Third Party Notices files into each VSIX. -->
+  <ItemGroup Condition="'$(CreateVsixContainer)' == 'true'">
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.VsixLicense\EULA.rtf">
+      <Link>EULA.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.ThirdPartyNotices\ThirdPartyNotices.rtf">
+      <Link>ThirdPartyNotices.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
+  </ItemGroup>
+
 </Project>

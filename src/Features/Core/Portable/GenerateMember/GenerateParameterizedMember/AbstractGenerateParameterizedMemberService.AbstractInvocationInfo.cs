@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     // If the user wrote something like Goo(x) then we still might want to generate
                     // a generic method if the expression 'x' captured any method type variables.
                     var capturedTypeParameters = GetCapturedTypeParameters(cancellationToken);
-                    var availableTypeParameters = this.State.TypeToGenerateIn.GetAllTypeParameters();
+                    var availableTypeParameters = State.TypeToGenerateIn.GetAllTypeParameters();
                     var result = capturedTypeParameters.Except<ITypeParameterSymbol>(availableTypeParameters, AllNullabilityIgnoringSymbolComparer.Instance).ToImmutableArray();
                     return result;
                 }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var classTypes = constraints.Where(ts => ts.TypeKind == TypeKind.Class).ToList();
                 var nonClassTypes = constraints.Where(ts => ts.TypeKind != TypeKind.Class).ToList();
 
-                classTypes = MergeClassTypes(classTypes, cancellationToken);
+                classTypes = MergeClassTypes(classTypes);
                 constraints = classTypes.Concat(nonClassTypes).ToList();
                 if (constraints.SequenceEqual(typeParameter.ConstraintTypes))
                 {
@@ -77,15 +77,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     hasNotNullConstraint: typeParameter.HasNotNullConstraint);
             }
 
-            private List<ITypeSymbol> MergeClassTypes(List<ITypeSymbol> classTypes, CancellationToken cancellationToken)
+            private List<ITypeSymbol> MergeClassTypes(List<ITypeSymbol> classTypes)
             {
-                var compilation = this.Document.SemanticModel.Compilation;
-                for (int i = classTypes.Count - 1; i >= 0; i--)
+                var compilation = Document.SemanticModel.Compilation;
+                for (var i = classTypes.Count - 1; i >= 0; i--)
                 {
                     // For example, 'Attribute'.
                     var type1 = classTypes[i];
 
-                    for (int j = 0; j < classTypes.Count; j++)
+                    for (var j = 0; j < classTypes.Count; j++)
                     {
                         if (j != i)
                         {

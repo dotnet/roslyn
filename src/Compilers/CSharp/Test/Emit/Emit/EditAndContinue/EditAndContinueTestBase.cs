@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -194,14 +195,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             AssertEx.Equal(rows, reader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
         }
 
-        internal static void CheckNames(MetadataReader reader, StringHandle[] handles, params string[] expectedNames)
+        internal static void CheckNames(MetadataReader reader, IEnumerable<StringHandle> handles, params string[] expectedNames)
         {
             CheckNames(new[] { reader }, handles, expectedNames);
         }
 
-        internal static void CheckNames(MetadataReader[] readers, StringHandle[] handles, params string[] expectedNames)
+        internal static void CheckNames(IEnumerable<MetadataReader> readers, IEnumerable<StringHandle> handles, params string[] expectedNames)
         {
             var actualNames = readers.GetStrings(handles);
+            AssertEx.Equal(expectedNames, actualNames);
+        }
+
+        internal static void CheckNames(IList<MetadataReader> readers, IEnumerable<(StringHandle Namespace, StringHandle Name)> handles, params string[] expectedNames)
+        {
+            var actualNames = handles.Select(handlePair => string.Join(".", readers.GetString(handlePair.Namespace), readers.GetString(handlePair.Name))).ToArray();
             AssertEx.Equal(expectedNames, actualNames);
         }
 

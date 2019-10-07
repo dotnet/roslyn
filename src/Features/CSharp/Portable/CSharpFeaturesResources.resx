@@ -246,9 +246,6 @@
   <data name="Organize_Usings" xml:space="preserve">
     <value>Organize Usings</value>
   </data>
-  <data name="Remove_and_Sort_Usings" xml:space="preserve">
-    <value>R&amp;emove and Sort Usings</value>
-  </data>
   <data name="Insert_await" xml:space="preserve">
     <value>Insert 'await'.</value>
   </data>
@@ -316,6 +313,18 @@
     <value>foreach statement</value>
     <comment>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="asynchronous_foreach_statement" xml:space="preserve">
+    <value>asynchronous foreach statement</value>
+    <comment>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="using_declaration" xml:space="preserve">
+    <value>using declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="asynchronous_using_declaration" xml:space="preserve">
+    <value>asynchronous using declaration</value>
+    <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
   <data name="checked_statement" xml:space="preserve">
     <value>checked statement</value>
     <comment>{Locked="checked"} "checked" is a C# keyword and should not be localized.</comment>
@@ -324,9 +333,13 @@
     <value>unchecked statement</value>
     <comment>{Locked="unchecked"} "unchecked" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="yield_statement" xml:space="preserve">
-    <value>yield statement</value>
-    <comment>{Locked="yield"} "yield" is a C# keyword and should not be localized.</comment>
+  <data name="yield_return_statement" xml:space="preserve">
+    <value>yield return statement</value>
+    <comment>{Locked="yield return"} "yield return" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="yield_break_statement" xml:space="preserve">
+    <value>yield break statement</value>
+    <comment>{Locked="yield break"} "yield break" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="await_expression" xml:space="preserve">
     <value>await expression</value>
@@ -393,8 +406,9 @@
     <value>ref local or expression</value>
     <comment>{Locked="ref"} "ref" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="v7_switch" xml:space="preserve">
-    <value>C# 7 enhanced switch statement</value>
+  <data name="switch_statement" xml:space="preserve">
+    <value>switch statement</value>
+    <comment>{Locked="switch"} "switch" is a C# keyword and should not be localized.</comment>
   </data>
   <data name="global_statement" xml:space="preserve">
     <value>global statement</value>
@@ -599,9 +613,6 @@
     <value>Make 'ref struct'</value>
     <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
   </data>
-  <data name="Sort_Usings" xml:space="preserve">
-    <value>&amp;Sort Usings</value>
-  </data>
   <data name="Convert_switch_statement_to_expression" xml:space="preserve">
     <value>Convert switch statement to expression</value>
   </data>
@@ -627,5 +638,35 @@
   <data name="Warning_colon_Moving_using_directives_may_change_code_meaning" xml:space="preserve">
     <value>Warning: Moving using directives may change code meaning.</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="_0_is_not_null_here" xml:space="preserve">
+    <value>'{0}' is not null here.</value>
+  </data>
+  <data name="_0_may_be_null_here" xml:space="preserve">
+    <value>'{0}' may be null here.</value>
+  </data>
+  <data name="Assign_out_parameters" xml:space="preserve">
+    <value>Assign 'out' parameters</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Assign_out_parameters_at_start" xml:space="preserve">
+    <value>Assign 'out' parameters (at start)</value>
+    <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Warning_Inlining_temporary_into_conditional_method_call" xml:space="preserve">
+    <value>Warning: Inlining temporary into conditional method call.</value>
+  </data>
+  <data name="local_variable_declaration" xml:space="preserve">
+    <value>local variable declaration</value>
+  </data>
+  <data name="switch_statement_case_clause" xml:space="preserve">
+    <value>switch statement case clause</value>
+    <comment>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code" xml:space="preserve">
+    <value>Warning: Adding parameters to local function declaration may produce invalid code.</value>
+  </data>
+  <data name="Pass_in_captured_variables_as_arguments" xml:space="preserve">
+    <value>Pass in captured variables as arguments</value>
   </data>
 </root>

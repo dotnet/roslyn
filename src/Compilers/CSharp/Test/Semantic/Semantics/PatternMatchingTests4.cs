@@ -29,12 +29,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (8,18): error CS0150: A constant value is expected
+                // (8,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //             case default:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "default").WithLocation(8, 18),
-                // (8,18): error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.
-                //             case default:
-                Diagnostic(ErrorCode.ERR_DefaultInSwitch, "default").WithLocation(8, 18));
+                Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(8, 18));
         }
 
         [Fact]
@@ -1779,7 +1776,7 @@ class _
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,25): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (6,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         return (b1, b2) switch {
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 25)
                 );
@@ -2051,7 +2048,7 @@ public class C
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
@@ -2094,7 +2091,7 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
@@ -2137,7 +2134,7 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
@@ -2179,7 +2176,7 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,24): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (8,24): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //             _ = (1, 2) switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(8, 24)
                 );
@@ -2226,7 +2223,7 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (9,19): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //             _ = r switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 19)
                 );
@@ -2818,7 +2815,7 @@ public class C
 ";
             var compilation = CreatePatternCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (7,32): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (7,32): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         Console.Write((x, 300) switch  { ((1, int x2), int y) => x2+y });
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 32)
                 );
@@ -2894,7 +2891,7 @@ public class C
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,15): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (6,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         _ = o switch { null => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 15)
                 );
@@ -2933,7 +2930,7 @@ class Program
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (22,18): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (22,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         return b switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(22, 18)
                 );
@@ -3085,7 +3082,7 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (17,23): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (17,23): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         return (x, y) switch { (1, 2) => 3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 23)
                 );
@@ -3221,7 +3218,7 @@ namespace System.Runtime.CompilerServices
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (17,44): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (17,44): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //         return (x, y, a, b, c, d, e, f, g) switch { (1, 2, _, _, _, _, _, _, _) => 3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(17, 44)
                 );

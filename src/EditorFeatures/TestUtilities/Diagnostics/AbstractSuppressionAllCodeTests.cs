@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         protected abstract TestWorkspace CreateWorkspaceFromFile(string definition, ParseOptions parseOptions);
 
-        internal abstract Tuple<Analyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
+        internal abstract Tuple<Analyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 
         protected Task TestPragmaAsync(string code, ParseOptions options, Func<string, bool> verifier)
         {
@@ -75,12 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 foreach (var diagnostic in diagnostics)
                 {
-                    if (!fixer.CanBeSuppressedOrUnsuppressed(diagnostic))
+                    if (!fixer.IsFixableDiagnostic(diagnostic))
                     {
                         continue;
                     }
 
-                    var fixes = fixer.GetSuppressionsAsync(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), CancellationToken.None).GetAwaiter().GetResult();
+                    var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), CancellationToken.None).GetAwaiter().GetResult();
                     if (fixes == null || fixes.Count() <= 0)
                     {
                         continue;

@@ -200,8 +200,7 @@ End Module")
             // case where these tests are run under extreme load.  In high load scenarios the
             // client will correctly drop down to a local compilation if the server doesn't respond
             // fast enough.
-            var client = ServerUtil.CreateBuildClient(language);
-            client.TimeoutOverride = Timeout.Infinite;
+            var client = ServerUtil.CreateBuildClient(language, timeoutOverride: Timeout.Infinite);
 
             var sdkDir = ServerUtil.DefaultSdkDirectory;
 
@@ -292,7 +291,7 @@ End Module")
                 var files = new Dictionary<string, string> { { "hello.cs", "♕" } };
 
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, files, redirectEncoding: Encoding.ASCII, shouldRunOnServer: false);
-                Assert.Equal(result.ExitCode, 1);
+                Assert.Equal(1, result.ExitCode);
                 Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -333,7 +332,7 @@ End Module")
                     redirectEncoding: Encoding.ASCII,
                     shouldRunOnServer: false);
 
-                Assert.Equal(result.ExitCode, 1);
+                Assert.Equal(1, result.ExitCode);
                 Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
 
 ?

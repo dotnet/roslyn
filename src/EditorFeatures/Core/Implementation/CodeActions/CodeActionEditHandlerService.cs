@@ -6,7 +6,6 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return currentResult;
         }
 
-        public async Task<bool> ApplyAsync(
+        public bool Apply(
             Workspace workspace, Document fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title, IProgressTracker progressTracker,
@@ -121,9 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 foreach (var document in project.Documents)
                 {
-                    // ConfigureAwait(true) so we come back to the same thread as 
-                    // we do all application on the UI thread.                    
-                    if (!await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(true))
+                    if (!document.HasAnyErrorsAsync(cancellationToken).WaitAndGetResult(cancellationToken))
                     {
                         documentErrorLookup.Add(document.Id);
                     }
@@ -147,9 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
             if (singleChangedDocument != null)
             {
-                // ConfigureAwait(true) so we come back to the same thread as 
-                // we do all application on the UI thread.
-                var text = await singleChangedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
+                var text = singleChangedDocument.GetTextSynchronously(cancellationToken);
 
                 using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
                 {
@@ -160,22 +155,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 // More than just a single document changed.  Make a global undo to run 
                 // all the changes under.
-                using (var transaction = workspace.OpenGlobalUndoTransaction(title))
+                using var transaction = workspace.OpenGlobalUndoTransaction(title);
+
+                // link current file in the global undo transaction
+                // Do this before processing operations, since that can change
+                // documentIds.
+                if (fromDocument != null)
                 {
-                    // link current file in the global undo transaction
-                    // Do this before processing operations, since that can change
-                    // documentIds.
-                    if (fromDocument != null)
-                    {
-                        transaction.AddDocument(fromDocument.Id);
-                    }
-
-                    applied = ProcessOperations(
-                        workspace, operations, progressTracker,
-                        cancellationToken);
-
-                    transaction.Commit();
+                    transaction.AddDocument(fromDocument.Id);
                 }
+
+                applied = ProcessOperations(
+                    workspace, operations, progressTracker,
+                    cancellationToken);
+
+                transaction.Commit();
             }
 
             var updatedSolution = operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution ?? oldSolution;
@@ -192,8 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return null;
             }
 
-            var applyOperation = operationsList.Single() as ApplyChangesOperation;
-            if (applyOperation == null)
+            if (!(operationsList.Single() is ApplyChangesOperation applyOperation))
             {
                 return null;
             }

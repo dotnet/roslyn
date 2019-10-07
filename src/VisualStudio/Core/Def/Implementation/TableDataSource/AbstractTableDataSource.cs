@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             foreach (var (_, items) in groupedItems)
             {
                 TItem firstItem = null;
-                bool hasSingle = true;
+                var hasSingle = true;
 
                 foreach (var item in items)
                 {
@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             // reuse factory. it is okay to re-use factory since we make sure we remove the factory before
             // adding it back
-            bool newFactory = false;
+            var newFactory = false;
             ImmutableArray<SubscriptionWithoutLock> snapshot;
             lock (_gate)
             {

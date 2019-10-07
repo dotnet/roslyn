@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             Accessibility defaultAccessibility)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
             if (!options.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
             {
                 return;
@@ -210,9 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ? contextLocation.SourceTree
                 : null;
 
-            return contextTree == null
-                ? null
-                : contextTree.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;
+            return contextTree?.GetRoot(cancellationToken).FindToken(contextLocation.SourceSpan.Start).Parent;
         }
 
         public static ExplicitInterfaceSpecifierSyntax GenerateExplicitInterfaceSpecifier(
@@ -224,8 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return null;
             }
 
-            var name = implementation.ContainingType.GenerateTypeSyntax() as NameSyntax;
-            if (name == null)
+            if (!(implementation.ContainingType.GenerateTypeSyntax() is NameSyntax name))
             {
                 return null;
             }
@@ -237,23 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (destination != null)
             {
-                switch (destination.Kind())
+                return destination.Kind() switch
                 {
-                    case SyntaxKind.ClassDeclaration:
-                        return CodeGenerationDestination.ClassType;
-                    case SyntaxKind.CompilationUnit:
-                        return CodeGenerationDestination.CompilationUnit;
-                    case SyntaxKind.EnumDeclaration:
-                        return CodeGenerationDestination.EnumType;
-                    case SyntaxKind.InterfaceDeclaration:
-                        return CodeGenerationDestination.InterfaceType;
-                    case SyntaxKind.NamespaceDeclaration:
-                        return CodeGenerationDestination.Namespace;
-                    case SyntaxKind.StructDeclaration:
-                        return CodeGenerationDestination.StructType;
-                    default:
-                        return CodeGenerationDestination.Unspecified;
-                }
+                    SyntaxKind.ClassDeclaration => CodeGenerationDestination.ClassType,
+                    SyntaxKind.CompilationUnit => CodeGenerationDestination.CompilationUnit,
+                    SyntaxKind.EnumDeclaration => CodeGenerationDestination.EnumType,
+                    SyntaxKind.InterfaceDeclaration => CodeGenerationDestination.InterfaceType,
+                    SyntaxKind.NamespaceDeclaration => CodeGenerationDestination.Namespace,
+                    SyntaxKind.StructDeclaration => CodeGenerationDestination.StructType,
+                    _ => CodeGenerationDestination.Unspecified,
+                };
             }
 
             return CodeGenerationDestination.Unspecified;

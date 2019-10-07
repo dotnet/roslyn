@@ -5,14 +5,16 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionSize;
+// When building for source-build, there is no sqlite dependency
+#if !DOTNET_BUILD_FROM_SOURCE
 using Microsoft.CodeAnalysis.SQLite;
+#endif
 
 namespace Microsoft.CodeAnalysis.Storage
 {
     [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Desktop), Shared]
     internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly object _gate = new object();
         private readonly ISolutionSizeTracker _solutionSizeTracker;
 
         [ImportingConstructor]
@@ -23,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
+#if !DOTNET_BUILD_FROM_SOURCE
             var optionService = workspaceServices.GetRequiredService<IOptionService>();
             var database = optionService.GetOption(StorageOptions.Database);
             switch (database)
@@ -36,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
                     break;
             }
+#endif
 
             return NoOpPersistentStorageService.Instance;
         }

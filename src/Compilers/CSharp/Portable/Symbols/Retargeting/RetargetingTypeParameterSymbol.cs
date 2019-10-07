@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetConstraintTypes(inProgress));
         }
 
-        internal override bool? IsNotNullableIfReferenceType
+        internal override bool? IsNotNullable
         {
             get
             {
-                return _underlyingTypeParameter.IsNotNullableIfReferenceType;
+                return _underlyingTypeParameter.IsNotNullable;
             }
         }
 

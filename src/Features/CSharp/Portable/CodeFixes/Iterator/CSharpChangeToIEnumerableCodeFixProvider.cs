@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 if (arity == 1)
                 {
                     var typeArg = type.GetTypeArguments().First();
-                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct(typeArg);
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.ConstructWithNullability(typeArg);
                 }
                 else if (arity == 0 && type is IArrayTypeSymbol)
                 {
-                    ienumerableGenericSymbol = ienumerableGenericSymbol.Construct((type as IArrayTypeSymbol).ElementType);
+                    ienumerableGenericSymbol = ienumerableGenericSymbol.ConstructWithNullability((type as IArrayTypeSymbol).ElementType);
                 }
                 else
                 {
@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Document newDocument) :
-                base(title, c => Task.FromResult(newDocument))
+            public MyCodeAction(string title, Document newDocument)
+                : base(title, c => Task.FromResult(newDocument))
             {
             }
         }

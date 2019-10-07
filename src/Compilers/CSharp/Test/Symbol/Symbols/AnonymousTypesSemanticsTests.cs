@@ -1782,31 +1782,31 @@ class ClassA
 }
 ";
             string expectedOperationTree = @"
-IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid) (Syntax: 'new { f1 =  ... = default }')
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: error f1, error f2, ? f3>, IsInvalid) (Syntax: 'new { f1 =  ... = default }')
   Initializers(3):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, Constant: null, IsInvalid) (Syntax: 'f1 = null')
         Left: 
-          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, error f3>.f1 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f1')
+          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, ? f3>.f1 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f1')
             Instance Receiver: 
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, ? f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, IsInvalid) (Syntax: 'f2 = M')
         Left: 
-          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, error f3>.f2 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f2')
+          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, ? f3>.f2 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f2')
             Instance Receiver: 
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, ? f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
         Right: 
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M')
             Children(1):
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: ClassA, IsInvalid, IsImplicit) (Syntax: 'M')
-      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, IsInvalid) (Syntax: 'f3 = default')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'f3 = default')
         Left: 
-          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, error f3>.f3 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f3')
+          IPropertyReferenceOperation: ? <anonymous type: error f1, error f2, ? f3>.f3 { get; } (OperationKind.PropertyReference, Type: ?) (Syntax: 'f3')
             Instance Receiver: 
-              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, ? f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
         Right: 
-          IDefaultValueOperation (OperationKind.DefaultValue, Type: null, IsInvalid) (Syntax: 'default')
+          IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(6,35): error CS0828: Cannot assign '<null>' to anonymous type property
@@ -1815,9 +1815,9 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                 // file.cs(6,46): error CS0828: Cannot assign 'method group' to anonymous type property
                 //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f2 = M").WithArguments("method group").WithLocation(6, 46),
-                // file.cs(6,54): error CS0828: Cannot assign 'default' to anonymous type property
+                // file.cs(6,59): error CS8716: There is no target type for the default literal.
                 //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f3 = default").WithArguments("default").WithLocation(6, 54)
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 59)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

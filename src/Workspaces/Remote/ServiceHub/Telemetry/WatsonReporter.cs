@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
@@ -9,31 +10,23 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal class WatsonReporter
     {
-        private static TelemetrySession s_sessionOpt;
-
         /// <summary>
         /// The default callback to pass to <see cref="TelemetrySessionExtensions.PostFault(TelemetrySession, string, string, Exception, Func{IFaultUtility, int})"/>.
         /// Returning "0" signals that we should send data to Watson; any other value will cancel the Watson report.
         /// </summary>
-        private static Func<IFaultUtility, int> s_defaultCallback = _ => 0;
-
-        /// <summary>
-        /// Set default telemetry session
-        /// </summary>
-        public static void SetTelemetrySession(TelemetrySession session)
-        {
-            s_sessionOpt = session;
-        }
+        private static readonly Func<IFaultUtility, int> s_defaultCallback = _ => 0;
 
         /// <summary>
         /// Default telemetry session
         /// </summary>
-        public static TelemetrySession SessionOpt => s_sessionOpt;
+        [Obsolete("use RoslynServices.SessionOpt instead", error: false)]
+        public static TelemetrySession SessionOpt => RoslynServices.SessionOpt;
 
         /// <summary>
         /// Check whether current user is microsoft internal or not
         /// </summary>
-        public static bool IsUserMicrosoftInternal => SessionOpt?.IsUserMicrosoftInternal ?? false;
+        [Obsolete("use RoslynServices.IsUserMicrosoftInternal instead", error: false)]
+        public static bool IsUserMicrosoftInternal => RoslynServices.IsUserMicrosoftInternal;
 
         /// <summary>
         /// Report Non-Fatal Watson
@@ -82,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 return;
             }
 
-            if (SessionOpt == null)
+            if (RoslynServices.SessionOpt == null)
             {
                 return;
             }
@@ -113,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             // watson and telemetry. 
             faultEvent.SetExtraParameters(exception, emptyCallstack);
 
-            SessionOpt.PostEvent(faultEvent);
+            RoslynServices.SessionOpt.PostEvent(faultEvent);
         }
 
         private static bool IsNonRecoverableException(Exception exception)

@@ -760,7 +760,153 @@ public struct S
         }
 
         [Fact]
-        public void ReadOnlyMethod_AddRemoveEventHandlers()
+        public void ReadOnlyMethod_EventAssignment()
+        {
+            var csharp = @"
+using System;
+
+public struct S
+{
+    public readonly void M()
+    {
+        Console.WriteLine(E is null);
+        // should create local copy
+        E += () => {}; // warning
+        Console.WriteLine(E is null);
+        E -= () => {}; // warning
+
+        // explicit local copy, no warning
+        var copy = this;
+        copy.E += () => {};
+        Console.WriteLine(copy.E is null);
+    }
+
+    public event Action E;
+
+    static void Main()
+    {
+        var s = new S();
+        s.M();
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyDiagnostics(
+                // (10,9): warning CS8656: Call to non-readonly member 'S.E.add' from a 'readonly' member results in an implicit copy of 'this'.
+                //         E += () => {}; // warning
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.add", "this").WithLocation(10, 9),
+                // (12,9): warning CS8656: Call to non-readonly member 'S.E.remove' from a 'readonly' member results in an implicit copy of 'this'.
+                //         E -= () => {}; // warning
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.remove", "this").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void ReadOnlyStruct_EventAssignment()
+        {
+            var csharp = @"
+using System;
+
+public struct S
+{
+    public void M()
+    {
+        E += () => {};
+        E -= () => {};
+    }
+
+    public event Action E { add {} remove {} }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_ReadOnlyEventAssignment()
+        {
+            var csharp = @"
+using System;
+
+public struct S
+{
+    public readonly void M()
+    {
+        E += () => {};
+        E -= () => {};
+    }
+
+    public readonly event Action E { add {} remove {} }
+}
+";
+
+            var verifier = CreateCompilation(csharp);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Field_EventAssignment()
+        {
+            var csharp = @"
+#pragma warning disable 0067
+using System;
+
+public struct S2
+{
+    public event Action E;
+}
+
+public struct S1
+{
+    public S2 s2;
+
+    public readonly void M()
+    {
+        s2.E += () => {};
+        s2.E -= () => {};
+    }
+}
+";
+
+            // TODO: should warn in warning wave https://github.com/dotnet/roslyn/issues/33968
+            var verifier = CreateCompilation(csharp);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStruct_Field_EventAssignment()
+        {
+            var csharp = @"
+#pragma warning disable 0067
+using System;
+
+public struct S2
+{
+    public event Action E;
+}
+
+public readonly struct S1
+{
+    public readonly S2 s2;
+
+    public void M()
+    {
+        s2.E += () => {};
+        s2.E -= () => {};
+    }
+}
+";
+
+            // TODO: should warn in warning wave https://github.com/dotnet/roslyn/issues/33968
+            var verifier = CreateCompilation(csharp);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_EventAssignment_Error()
         {
             var csharp = @"
 using System;
@@ -779,9 +925,14 @@ public struct S
     }
 }
 ";
-            // should warn about E += handler in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
+                // (9,9): warning CS8656: Call to non-readonly member 'S.E.add' from a 'readonly' member results in an implicit copy of 'this'.
+                //         E += handler;
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.add", "this").WithLocation(9, 9),
+                // (10,9): warning CS8656: Call to non-readonly member 'S.E.remove' from a 'readonly' member results in an implicit copy of 'this'.
+                //         E -= handler;
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "E").WithArguments("S.E.remove", "this").WithLocation(10, 9),
                 // (11,9): error CS1604: Cannot assign to 'E' because it is read-only
                 //         E = handler;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "E").WithArguments("E").WithLocation(11, 9));
@@ -1759,7 +1910,7 @@ public struct S2
         {
             // 'using' results in a boxing conversion when the struct implements 'IDisposable'.
             // Boxing conversions are out of scope of the implicit copy warning.
-            // 'await using' can't be used with ref structs, so implicity copy warnings can't be produced in that scenario.
+            // 'await using' can't be used with ref structs, so implicitly copy warnings can't be produced in that scenario.
             var csharp = @"
 public ref struct S1
 {
@@ -2183,27 +2334,27 @@ public struct S
 ";
             var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
-                // (6,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,12): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public readonly void M() {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(6, 12),
-                // (8,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(6, 12),
+                // (8,12): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public readonly int P1 => 42;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(8, 12),
-                // (9,21): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(8, 12),
+                // (9,21): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public int P2 { readonly get => 123; set {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(9, 21),
-                // (10,33): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(9, 21),
+                // (10,33): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public int P3 { get => 123; readonly set {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(10, 33),
-                // (12,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(10, 33),
+                // (12,12): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public readonly int this[int i] => i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(12, 12),
-                // (13,37): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(12, 12),
+                // (13,37): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public int this[int i, int j] { readonly get => i + j; set {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(13, 37),
-                // (15,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(13, 37),
+                // (15,12): error CS8652: The feature 'readonly members' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public readonly event Action<EventArgs> E { add {} remove {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(15, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "readonly").WithArguments("readonly members", "8.0").WithLocation(15, 12));
 
             comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();

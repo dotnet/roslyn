@@ -285,12 +285,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim t1IsDefinition = t1.IsDefinition
                 Dim t2IsDefinition = t2.IsDefinition
 
-                If (t1IsDefinition <> t2IsDefinition) AndAlso
-                   Not ((compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) <> 0 AndAlso
-                            (DirectCast(t1, NamedTypeSymbol).HasTypeArgumentsCustomModifiers OrElse DirectCast(t2, NamedTypeSymbol).HasTypeArgumentsCustomModifiers)) Then
-                    Return False
-                End If
-
                 If Not (t1IsDefinition AndAlso t2IsDefinition) Then ' This is a generic instantiation case
 
                     If Not t1.OriginalDefinition.Equals(t2.OriginalDefinition) Then
@@ -303,20 +297,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Do
 
-                        If (compareKind And Global.Microsoft.CodeAnalysis.TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
-                           Not HasSameTypeArgumentCustomModifiers(container1, container2) Then
+                        If Not (container1 Is container1.ConstructedFrom AndAlso container2 Is container2.ConstructedFrom) Then
+                            ' No need to compare type arguments on those containers when they didn't add type arguments (that would cause cycles)
 
-                            Return False
-                        End If
+                            If (compareKind And Global.Microsoft.CodeAnalysis.TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
+                                Not HasSameTypeArgumentCustomModifiers(container1, container2) Then
 
-                        Dim args1 As ImmutableArray(Of TypeSymbol) = container1.TypeArgumentsNoUseSiteDiagnostics
-                        Dim args2 As ImmutableArray(Of TypeSymbol) = container2.TypeArgumentsNoUseSiteDiagnostics
-
-                        For i As Integer = 0 To args1.Length - 1 Step 1
-                            If Not args1(i).IsSameType(args2(i), compareKind) Then
                                 Return False
                             End If
-                        Next
+
+                            Dim args1 As ImmutableArray(Of TypeSymbol) = container1.TypeArgumentsNoUseSiteDiagnostics
+                            Dim args2 As ImmutableArray(Of TypeSymbol) = container2.TypeArgumentsNoUseSiteDiagnostics
+
+                            For i As Integer = 0 To args1.Length - 1 Step 1
+                                If Not args1(i).IsSameType(args2(i), compareKind) Then
+                                    Return False
+                                End If
+                            Next
+                        End If
 
                         container1 = container1.ContainingType
                         container2 = container2.ContainingType
@@ -326,16 +324,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Exit Do
                         End If
 
-                        If (container1.IsDefinition <> container2.IsDefinition) AndAlso
-                            Not ((compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) <> 0 AndAlso
-                            (container1.HasTypeArgumentsCustomModifiers OrElse container2.HasTypeArgumentsCustomModifiers)) Then
-
-                            Return False
-                        End If
                     Loop
 
                     Return True
                 End If
+            ElseIf kind = SymbolKind.TypeParameter Then
+                If Not t1.OriginalDefinition.Equals(t2.OriginalDefinition) Then
+                    Return False ' different definition
+                End If
+
+                Return t1.ContainingType.IsSameType(t2.ContainingType, compareKind)
             End If
 
             Return t1.Equals(t2)

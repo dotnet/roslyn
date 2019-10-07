@@ -109,7 +109,7 @@ $@"class C
 {{
     int [|{correctedName}|];
 }}",
-                options: options.FieldNamesAreCamelCaseWithUnderscore);
+                options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
@@ -1216,20 +1216,18 @@ namespace Microsoft.CodeAnalysis.Host
             var markup = @"public class [|c|] { }";
             var testParameters = new TestParameters(options: options.ClassNamesArePascalCase);
 
-            using (var workspace = CreateWorkspaceFromOptions(markup, testParameters))
-            {
-                var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
+            using var workspace = CreateWorkspaceFromOptions(markup, testParameters);
+            var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
 
-                var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
-                Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
+            var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
+            Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
 
-                var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
-                Assert.Equal(2, commitOperations.Length);
+            var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
+            Assert.Equal(2, commitOperations.Length);
 
-                var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
-                Assert.Equal("c", symbolRenamedOperation._symbol.Name);
-                Assert.Equal("C", symbolRenamedOperation._newName);
-            }
+            var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
+            Assert.Equal("c", symbolRenamedOperation._symbol.Name);
+            Assert.Equal("C", symbolRenamedOperation._newName);
         }
     }
 }

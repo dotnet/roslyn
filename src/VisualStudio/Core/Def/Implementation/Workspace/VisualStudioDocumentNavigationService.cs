@@ -324,8 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private bool IsSecondaryBuffer(Workspace workspace, DocumentId documentId)
         {
-            var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace == null)
+            if (!(workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
             {
                 return false;
             }

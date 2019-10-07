@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers(IContentType contentType)
         {
             var fixers = _codeCleanUpFixers
-               .Where(handler => handler.Metadata.ContentTypes.Contains(contentType.TypeName)).ToList();
+               .Where(handler => handler.Metadata.ContentTypes.Any(contentType.IsOfType)).ToList();
 
             return fixers.ConvertAll(l => l.Value);
         }

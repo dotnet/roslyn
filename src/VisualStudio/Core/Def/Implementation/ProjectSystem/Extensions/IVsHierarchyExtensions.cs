@@ -86,8 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public static uint TryGetItemId(this IVsHierarchy hierarchy, string moniker)
         {
-            uint itemid;
-            if (ErrorHandler.Succeeded(hierarchy.ParseCanonicalName(moniker, out itemid)))
+            if (ErrorHandler.Succeeded(hierarchy.ParseCanonicalName(moniker, out var itemid)))
             {
                 return itemid;
             }

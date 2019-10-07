@@ -514,8 +514,7 @@ Public Class ScannerTests
         Assert.Equal(SyntaxKind.WhitespaceTrivia, tk.LeadingTrivia(0).Kind)
         Assert.Equal(SyntaxKind.LineContinuationTrivia, tk.LeadingTrivia(1).Kind)
         Assert.Equal(SyntaxKind.CommentTrivia, tk.LeadingTrivia(2).Kind)
-        Assert.Equal(1, tk.Errors.Count)
-        Assert.Equal(ERRID.ERR_CommentsAfterLineContinuationNotAvailable1, tk.Errors.First().Code)
+        Assert.Equal(0, tk.Errors.Count)
 
         tk = ScanOnce(" _'", LanguageVersion.VisualBasic16)
         Assert.Equal(SyntaxKind.EndOfFileToken, tk.Kind)

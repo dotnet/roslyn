@@ -537,9 +537,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                     Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
                 }
-                else
+                else if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
-                    CheckManagedAddr(elementType.Type, node, diagnostics);
+                    CheckManagedAddr(Compilation, elementType.Type, node.Location, diagnostics);
                 }
 
                 return TypeWithAnnotations.Create(new PointerTypeSymbol(elementType));
@@ -1637,10 +1637,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var first = symbols[best.Index];
                         var second = symbols[secondBest.Index];
 
-                        Debug.Assert(originalSymbols[best.Index] != originalSymbols[secondBest.Index] || options.IsAttributeTypeLookup(),
+                        Debug.Assert(!Symbol.Equals(originalSymbols[best.Index], originalSymbols[secondBest.Index], TypeCompareKind.ConsiderEverything) || options.IsAttributeTypeLookup(),
                             "This kind of ambiguity is only possible for attributes.");
 
-                        Debug.Assert(first != second || originalSymbols[best.Index] != originalSymbols[secondBest.Index],
+                        Debug.Assert(!Symbol.Equals(first, second, TypeCompareKind.ConsiderEverything) || !Symbol.Equals(originalSymbols[best.Index], originalSymbols[secondBest.Index], TypeCompareKind.ConsiderEverything),
                             "Why does the LookupResult contain the same symbol twice?");
 
                         CSDiagnosticInfo info;
@@ -1787,7 +1787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             Debug.Assert(originalSymbols[best.Index].Name != originalSymbols[secondBest.Index].Name ||
-                                         originalSymbols[best.Index] != originalSymbols[secondBest.Index],
+                                         !Symbol.Equals(originalSymbols[best.Index], originalSymbols[secondBest.Index], TypeCompareKind.ConsiderEverything),
                                 "Why was the lookup result viable if it contained non-equal symbols with the same name?");
 
                             reportError = true;
@@ -2315,6 +2315,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, DiagnosticBag diagnostics, Location location)
-            => feature.CheckFeatureAvailability(diagnostics, location);
+        {
+            if (feature.GetFeatureAvailabilityDiagnosticInfoOpt((CSharpParseOptions)tree.Options) is { } diagInfo)
+            {
+                diagnostics.Add(diagInfo, location);
+                return false;
+            }
+            return true;
+        }
     }
 }

@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Experimentation;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -214,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // we don't have actual snapshot (we have no idea what sources out of proc build has picked up)
                         // so we might be out of sync.
                         // example of such cases will be changing anything about solution while building is going on.
-                        // it can be user explict actions such as unloading project, deleting a file, but also it can be 
+                        // it can be user explicit actions such as unloading project, deleting a file, but also it can be 
                         // something project system or roslyn workspace does such as populating workspace right after
                         // solution is loaded.
                         continue;
@@ -226,8 +225,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 await SerializeAsync(serializer, project, result.ProjectId, _owner.NonLocalStateName, result.Others).ConfigureAwait(false);
-
-                AnalyzerABTestLogger.LogProjectDiagnostics(project, _owner.StateName, result);
             }
 
             public void ResetVersion()
@@ -245,8 +242,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var syntax = state.GetAnalysisData(AnalysisKind.Syntax);
                 var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
-
-                AnalyzerABTestLogger.LogDocumentDiagnostics(document, _owner.StateName, syntax.Items, semantic.Items);
 
                 var project = document.Project;
 
@@ -367,10 +362,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.Cache(_owner.Analyzer, ValueTuple.Create(key, stateKey), new CacheEntry(serializer.Version, diagnostics));
             }
 
-            private static Action<Builder, DocumentId, ImmutableArray<DiagnosticData>> s_addSyntaxLocals = (b, id, locals) => b.AddSyntaxLocals(id, locals);
-            private static Action<Builder, DocumentId, ImmutableArray<DiagnosticData>> s_addSemanticLocals = (b, id, locals) => b.AddSemanticLocals(id, locals);
-            private static Action<Builder, DocumentId, ImmutableArray<DiagnosticData>> s_addNonLocals = (b, id, locals) => b.AddNonLocals(id, locals);
-            private static Action<Builder, ProjectId, ImmutableArray<DiagnosticData>> s_addOthers = (b, _, locals) => b.AddOthers(locals);
+            private static readonly Action<Builder, DocumentId, ImmutableArray<DiagnosticData>> s_addSyntaxLocals = (b, id, locals) => b.AddSyntaxLocals(id, locals);
+            private static readonly Action<Builder, DocumentId, ImmutableArray<DiagnosticData>> s_addSemanticLocals = (b, id, locals) => b.AddSemanticLocals(id, locals);
+            private static readonly Action<Builder, DocumentId, ImmutableArray<DiagnosticData>> s_addNonLocals = (b, id, locals) => b.AddNonLocals(id, locals);
+            private static readonly Action<Builder, ProjectId, ImmutableArray<DiagnosticData>> s_addOthers = (b, _, locals) => b.AddOthers(locals);
 
             private async Task<bool> TryDeserializeDocumentAsync(DiagnosticDataSerializer serializer, Document document, Builder builder, CancellationToken cancellationToken)
             {
@@ -502,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return;
                     }
 
-                    locals = locals ?? ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
+                    locals ??= ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
                     locals.Add(documentId, diagnostics);
                 }
 

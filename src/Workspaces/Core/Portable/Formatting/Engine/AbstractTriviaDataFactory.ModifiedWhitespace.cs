@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly Whitespace _original;
 
-            public ModifiedWhitespace(OptionSet optionSet, int lineBreaks, int indentation, bool elastic, string language) :
-                base(optionSet, lineBreaks, indentation, elastic, language)
+            public ModifiedWhitespace(OptionSet optionSet, int lineBreaks, int indentation, bool elastic, string language)
+                : base(optionSet, lineBreaks, indentation, elastic, language)
             {
                 _original = null;
             }
 
-            public ModifiedWhitespace(OptionSet optionSet, Whitespace original, int lineBreaks, int indentation, bool elastic, string language) :
-                base(optionSet, lineBreaks, indentation, elastic, language)
+            public ModifiedWhitespace(OptionSet optionSet, Whitespace original, int lineBreaks, int indentation, bool elastic, string language)
+                : base(optionSet, lineBreaks, indentation, elastic, language)
             {
                 Contract.ThrowIfNull(original);
                 _original = original;

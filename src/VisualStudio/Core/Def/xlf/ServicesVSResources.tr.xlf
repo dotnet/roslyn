@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
-        <target state="new">A new namespace will be created</target>
+        <target state="translated">Yeni bir ad alanı oluşturulacak</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -57,6 +57,11 @@
         <target state="translated">Geri</target>
         <note />
       </trans-unit>
+      <trans-unit id="Build_plus_live_analysis_NuGet_package">
+        <source>Build + live analysis (NuGet package)</source>
+        <target state="translated">Derleme ve canlı analiz (NuGet paketi)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Bağımlılar hesaplanıyor...</target>
@@ -72,6 +77,16 @@
         <target state="translated">Normal ifadeleri renklendir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Containing_member">
+        <source>Containing Member</source>
+        <target state="new">Containing Member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_type">
+        <source>Containing Type</source>
+        <target state="new">Containing Type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Öğe geçerli değil.</target>
@@ -79,7 +94,12 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
         <source>Enable nullable reference analysis IDE features</source>
-        <target state="new">Enable nullable reference analysis IDE features</target>
+        <target state="translated">Boş değer atanabilir başvuru analizi IDE özelliklerini etkinleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Evaluating_0_tasks_in_queue">
+        <source>Evaluating ({0} tasks in queue)</source>
+        <target state="translated">Değerlendiriliyor (kuyrukta {0} görev var)</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -102,6 +122,11 @@
         <target state="translated">Diğer işleçlerde</target>
         <note />
       </trans-unit>
+      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
+        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
+        <target state="translated">Microsoft'un önerdiği, genel API tasarımı, güvenlik, performans ve güvenilirlik sorunları için ek tanılama ve düzeltmeler sağlayan Roslyn çözümleyicilerini yükleyin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
         <source>Interface cannot have field.</source>
         <target state="translated">Arabirimde alan olamaz.</target>
@@ -117,9 +142,9 @@
         <target state="translated">Tür</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_analysis">
-        <source>Live analysis</source>
-        <target state="new">Live analysis</target>
+      <trans-unit id="Live_analysis_VSIX_extension">
+        <source>Live analysis (VSIX extension)</source>
+        <target state="translated">Canlı analiz (VSIX uzantısı)</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -144,12 +169,12 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
-        <target state="new">Move to Namespace</target>
+        <target state="translated">Ad Alanına Taşı</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
         <source>Namespace</source>
-        <target state="new">Namespace</target>
+        <target state="translated">Ad alanı</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0">
@@ -179,7 +204,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Field">
         <source>field</source>
-        <target state="new">field</target>
+        <target state="translated">alan</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# programming language concept of a "field" (which stores data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Interface">
@@ -189,17 +214,17 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Local">
         <source>local</source>
-        <target state="new">local</target>
+        <target state="translated">yerel</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local variable".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_LocalFunction">
         <source>local function</source>
-        <target state="new">local function</target>
+        <target state="translated">yerel işlev</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "local function" that exists locally within another function.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Method">
         <source>method</source>
-        <target state="new">method</target>
+        <target state="translated">yöntem</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "method" that can be called by other code.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Namespace">
@@ -209,12 +234,12 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Parameter">
         <source>parameter</source>
-        <target state="new">parameter</target>
+        <target state="translated">parametre</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "parameter" being passed to a method.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Property">
         <source>property</source>
-        <target state="new">property</target>
+        <target state="translated">özellik</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "property" (which allows for the retrieval of data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Struct">
@@ -224,7 +249,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_TypeParameter">
         <source>type parameter</source>
-        <target state="new">type parameter</target>
+        <target state="translated">tür parametresi</target>
         <note>This string can be found under "Tools | Options | Text Editor | C# | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_CSharp_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the C# language concept of a "type parameter".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Class">
@@ -249,7 +274,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Field">
         <source>Field</source>
-        <target state="new">Field</target>
+        <target state="translated">Alan</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "field" (which stores data).</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Interface">
@@ -259,12 +284,12 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Local">
         <source>Local</source>
-        <target state="new">Local</target>
+        <target state="translated">Yerel</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "local variable".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Method">
         <source>Method</source>
-        <target state="new">Method</target>
+        <target state="translated">yöntem</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "method".</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Module">
@@ -279,7 +304,7 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Parameter">
         <source>Parameter</source>
-        <target state="new">Parameter</target>
+        <target state="translated">Parametre</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "parameter" which can be passed to a method.</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_Property">
@@ -294,8 +319,13 @@
       </trans-unit>
       <trans-unit id="NamingSpecification_VisualBasic_TypeParameter">
         <source>Type Parameter</source>
-        <target state="new">Type Parameter</target>
+        <target state="translated">Tür Parametresi</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
+      </trans-unit>
+      <trans-unit id="Naming_rules">
+        <source>Naming rules</source>
+        <target state="new">Naming rules</target>
+        <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
@@ -317,6 +347,11 @@
         <target state="translated">Parantez tercihleri:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paused_0_tasks_in_queue">
+        <source>Paused ({0} tasks in queue)</source>
+        <target state="translated">Duraklatıldı (kuyrukta {0} görev var)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Bileşik atamaları tercih et</target>
@@ -334,7 +369,7 @@
       </trans-unit>
       <trans-unit id="Prefer_readonly_fields">
         <source>Prefer readonly fields</source>
-        <target state="translated">Salt okunur alanları tercih et</target>
+        <target state="translated">Saltokunur alanları tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_simple_using_statement">
@@ -377,6 +412,11 @@
         <target state="translated">Değişiklikleri Gözden Geçir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Running_low_priority_background_processes">
+        <source>Running low priority background processes</source>
+        <target state="translated">Düşük öncelikli arka plan işlemleri çalıştırılıyor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
         <source>Save .editorconfig file</source>
         <target state="translated">.editorconfig dosyasını kaydet</target>
@@ -389,12 +429,12 @@
       </trans-unit>
       <trans-unit id="Select_Dependents">
         <source>Select _Dependents</source>
-        <target state="translated">Bağımlıları _seçin</target>
+        <target state="translated">_Bağımlıları Seçin</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
         <source>Select _Public</source>
-        <target state="translated">Ortak _seçin</target>
+        <target state="translated">_Geneli Seçin</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
@@ -419,17 +459,17 @@
       </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
-        <target state="translated">Tamamlanma listesini göster</target>
+        <target state="translated">Tamamlama listesini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
-        <target state="new">Target Namespace:</target>
+        <target state="translated">Hedef Ad Alanı:</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
-        <target state="new">This is an invalid namespace</target>
+        <target state="translated">Bu geçersiz bir ad alanı</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -440,6 +480,16 @@
       <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
         <source>Unused value is explicitly assigned to discard</source>
         <target state="translated">Kullanılmayan değer açıkça atılmak üzere atandı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="new">Updating severity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_editorconfig_compatibility_mode">
+        <source>Use .editorconfig compatibility mode (requires restart)</source>
+        <target state="translated">.editorconfig uyumluluk modunu kullanın (yeniden başlatma gerektirir)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
@@ -1062,31 +1112,6 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       <trans-unit id="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well">
         <source>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</source>
         <target state="translated">Çözümleyici bütünleştirilmiş kodu '{0}', '{1}' öğesine bağımlı ancak bu öğe bulunamadı. Eksik bütünleştirilmiş kod da çözümleyici başvurusu olarak eklenmeden, çözümleyiciler düzgün şekilde çalışmayabilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppression_State">
-        <source>Suppression State</source>
-        <target state="translated">Gizleme Durumu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Active">
-        <source>Active</source>
-        <target state="translated">Etkin</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suppressed">
-        <source>Suppressed</source>
-        <target state="translated">Gizlendi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NotApplicable">
-        <source>N/A</source>
-        <target state="translated">Yok</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SuppressionNotSupportedToolTip">
-        <source>Suppression state is supported only for intellisense diagnostics, which are for the current solution snapshot. Switch to 'Intellisense' diagnostics for suppression.</source>
-        <target state="translated">Gizleme durumu yalnızca, geçerli çözümün anlık görüntüsüne yönelik olan IntelliSense tanılaması için desteklenir. Gizleme için 'Intellisense' tanılamasına geçiş yapın.</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_diagnostics">
@@ -1793,11 +1818,6 @@ Ek bilgiler: {1}</target>
         <target state="translated">Seçenekler</target>
         <note />
       </trans-unit>
-      <trans-unit id="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues">
-        <source>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</source>
-        <target state="translated">Sık karşılaşılan API tasarımı, adlandırma, performans ve güvenilirlik sorunlarıyla ilgili daha fazla düzeltme bilgisi sağlayan canlı kod analizi uzantımızın önizleme sürümünü deneyin</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Never_show_this_again">
         <source>Never show this again</source>
         <target state="translated">Bunu bir daha gösterme</target>
@@ -1843,30 +1863,6 @@ Ek bilgiler: {1}</target>
         <target state="translated">Soluklaştırılıyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesNotAllowedIFAssemblyHasNotBeenLoaded">
-        <source>Changes are not allowed if the assembly has not been loaded.</source>
-        <target state="translated">Bütünleştirilmiş kod yüklenmediyse değişikliklere izin verilmez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted">
-        <source>Changes are not allowed if the project wasn't built when debugging started.</source>
-        <target state="translated">Hata ayıklama başlatıldığında proje derlenemişse değişikliklere izin verilmez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedIfProjectWasntLoadedWhileDebugging">
-        <source>Changes are not allowed if the project wasn't loaded and built when debugging started.
-
-'Lightweight solution load' is enabled for the current solution. Disable it to ensure that all projects are loaded when debugging starts.</source>
-        <target state="translated">Hata ayıklama başlatıldığında proje yüklenmemiş ve derlenmemişse değişikliklere izin verilmez.
-
-Geçerli durum için 'basit çözüm yükü' etkin. Hata ayıklama başlatıldığında tüm projelerin yüklenmiş olduğundan emin olmak için bunu devre dışı bırakın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ChangesNotAllowedWhileCodeIsRunning">
-        <source>Changes are not allowed while code is running.</source>
-        <target state="translated">Kod çalışırken değişikliklere izin verilmez.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
         <target state="translated">Anonim işlevler yerine yerel işlevleri tercih et</target>
@@ -1902,19 +1898,9 @@ Geçerli durum için 'basit çözüm yükü' etkin. Hata ayıklama başlatıldı
         <target state="translated">otomatik özellikleri tercih et</target>
         <note />
       </trans-unit>
-      <trans-unit id="ErrorReadingFile">
-        <source>Error while reading file '{0}': {1}</source>
-        <target state="translated">'{0}' dosyası okunurken hata: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
         <source>Module has been unloaded.</source>
         <target state="translated">Modül kaldırıldı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesModuleHasBeenUnloaded">
-        <source>Can't apply changes -- module '{0}' has been unloaded.</source>
-        <target state="translated">Değişiklikler uygulanamıyor -- '{0}' modülü kaldırıldı.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1950,17 +1936,12 @@ Aşağıdakilerin tümünü onaylıyorum:</target>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</source>
-        <target state="needs-review-translation">Burada yapılandırılan ayarlar yalnızca makineniz için geçerlidir. Bu ayarları çözümünüzle birlikte taşımak için .editorconfig dosyalarını kullanın.</target>
+        <target state="translated">.editorconfig dosyanız, bu sayfada yapılandırılan ve yalnızca makinenizde uygulanan yerel ayarları geçersiz kılabilir. Bu ayarları çözümünüzle birlikte hareket etmek üzere yapılandırmak için EditorConfig dosyalarını kullanın. Daha fazla bilgi</target>
         <note />
       </trans-unit>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">Sınıf Görünümünü Eşitle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="translated">Değişiklikler uygulanamıyor - beklenmeyen hata: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

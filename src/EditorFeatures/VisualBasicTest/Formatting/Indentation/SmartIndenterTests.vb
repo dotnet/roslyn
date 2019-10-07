@@ -1,21 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Microsoft.VisualStudio.Text.Operations
-Imports Microsoft.VisualStudio.Text.Projection
-Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     <[UseExportProvider]>
@@ -2591,8 +2581,7 @@ End Namespace
             AssertSmartIndent(
                 code,
                 indentationLine:=3,
-                expectedIndentation:=Nothing,
-                expectedBlankLineIndentation:=0,
+                expectedIndentation:=0,
                 indentStyle:=FormattingOptions.IndentStyle.None)
         End Sub
 
@@ -2980,10 +2969,30 @@ End Class
                 expectedIndentation:=12)
         End Sub
 
+        <WorkItem(38819, "https://github.com/dotnet/roslyn/issues/38819")>
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub IndentationOfReturnInFileWithTabs1()
+            dim code = "
+public class Example
+	public sub Test(session as object)
+		if (session is nothing)
+return
+	end sub
+end class"
+            ' Ensure the test code doesn't get switched to spaces
+            Assert.Contains(vbTab & vbTab & "if (session is nothing)", code)
+            AssertSmartIndent(
+                code,
+                indentationLine:=4,
+                expectedIndentation:=12,
+                useTabs:=True,
+                indentStyle:=FormattingOptions.IndentStyle.Smart)
+        End sub
+
         Private Sub AssertSmartIndentIndentationInProjection(
                 markup As String,
-                expectedIndentation As Integer,
-                Optional expectedBlankLineIndentation As Integer? = Nothing)
+                expectedIndentation As Integer)
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
@@ -2999,9 +3008,7 @@ End Class
                 Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor)
 
                 TestIndentation(
-                    workspace, point.Value,
-                    expectedIndentation, expectedBlankLineIndentation,
-                    projectedDocument.GetTextView(), subjectDocument)
+                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
             End Using
         End Sub
 
@@ -3009,14 +3016,23 @@ End Class
         Private Sub AssertSmartIndent(
                 code As String, indentationLine As Integer,
                 expectedIndentation As Integer?,
-                Optional expectedBlankLineIndentation As Integer? = Nothing,
                 Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
+            AssertSmartIndent(code, indentationLine, expectedIndentation, useTabs:=False, indentStyle)
+            AssertSmartIndent(code.Replace("    ", vbTab), indentationLine, expectedIndentation, useTabs:=True, indentStyle)
+        End Sub
 
-                TestIndentation(
-                    workspace, indentationLine,
-                    expectedIndentation, expectedBlankLineIndentation)
+        ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
+        Private Sub AssertSmartIndent(
+                code As String, indentationLine As Integer,
+                expectedIndentation As Integer?,
+                useTabs As Boolean,
+                indentStyle As FormattingOptions.IndentStyle)
+            Using workspace = TestWorkspace.CreateVisualBasic(code)
+                workspace.Options = workspace.Options _
+                    .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle) _
+                    .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, useTabs)
+
+                TestIndentation(workspace, indentationLine, expectedIndentation)
             End Using
         End Sub
     End Class

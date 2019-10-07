@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         IChainedCommandHandler<TabKeyCommandArgs>,
         IChainedCommandHandler<BackTabKeyCommandArgs>
     {
-        public VSCommanding.CommandState GetCommandState(TabKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(TabKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             return GetCommandState(nextHandler);
         }
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public void ExecuteCommand(TabKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // If the Dashboard is focused, just navigate through its UI.
-            Dashboard dashboard = GetDashboard(args.TextView);
+            var dashboard = GetDashboard(args.TextView);
             if (dashboard != null && dashboard.ShouldReceiveKeyboardNavigation)
             {
                 dashboard.FocusNextElement();
@@ -36,11 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     _renameService.ActiveSession.GetBufferManager(args.SubjectBuffer)
                     .GetEditableSpansForSnapshot(args.SubjectBuffer.CurrentSnapshot));
 
-                for (int i = 0; i < spans.Count; i++)
+                for (var i = 0; i < spans.Count; i++)
                 {
                     if (span == spans[i])
                     {
-                        int selectNext = i < spans.Count - 1 ? i + 1 : 0;
+                        var selectNext = i < spans.Count - 1 ? i + 1 : 0;
                         var newSelection = spans[selectNext];
                         args.TextView.TryMoveCaretToAndEnsureVisible(newSelection.Start);
                         args.TextView.SetSelection(newSelection);
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             });
         }
 
-        public VSCommanding.CommandState GetCommandState(BackTabKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        public CommandState GetCommandState(BackTabKeyCommandArgs args, Func<CommandState> nextHandler)
         {
             return GetCommandState(nextHandler);
         }

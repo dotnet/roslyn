@@ -118,10 +118,9 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = semanticModel.Compilation;
-                var currentField = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
 
                 // We couldn't resolve this field. skip it
-                if (currentField == null)
+                if (!(field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol is IFieldSymbol currentField))
                 {
                     failedFieldSymbols.Add(field);
                     continue;
@@ -223,8 +222,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 originalField,
                 field.ContainingType,
                 new SyntaxAnnotation(),
-                document,
-                cancellationToken);
+                document);
 
             var solutionWithProperty = await AddPropertyAsync(
                 document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
@@ -302,8 +300,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             IFieldSymbol field,
             INamedTypeSymbol containingSymbol,
             SyntaxAnnotation annotation,
-            Document document,
-            CancellationToken cancellationToken)
+            Document document)
         {
             var factory = document.GetLanguageService<SyntaxGenerator>();
 
@@ -408,21 +405,21 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         {
             public Result(Solution solutionWithProperty, string name, Glyph glyph)
             {
-                this.Solution = solutionWithProperty;
-                this.Name = name;
-                this.Glyph = glyph;
+                Solution = solutionWithProperty;
+                Name = name;
+                Glyph = glyph;
             }
 
-            public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols) :
-                this(solutionWithProperty, name, glyph)
+            public Result(Solution solutionWithProperty, string name, Glyph glyph, List<IFieldSymbol> failedFieldSymbols)
+                : this(solutionWithProperty, name, glyph)
             {
-                this.FailedFields = failedFieldSymbols.ToImmutableArrayOrEmpty();
+                FailedFields = failedFieldSymbols.ToImmutableArrayOrEmpty();
             }
 
-            public Result(Solution originalSolution, params IFieldSymbol[] fields) :
-                this(originalSolution, string.Empty, Glyph.Error)
+            public Result(Solution originalSolution, params IFieldSymbol[] fields)
+                : this(originalSolution, string.Empty, Glyph.Error)
             {
-                this.FailedFields = fields.ToImmutableArrayOrEmpty();
+                FailedFields = fields.ToImmutableArrayOrEmpty();
             }
 
             public Solution Solution { get; }

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: true,
                     cancellationToken: cancellationToken) ||
-                syntaxTree.IsTypeParameterConstraintStartContext(position, context.LeftToken, cancellationToken);
+                syntaxTree.IsTypeParameterConstraintStartContext(position, context.LeftToken);
         }
     }
 }

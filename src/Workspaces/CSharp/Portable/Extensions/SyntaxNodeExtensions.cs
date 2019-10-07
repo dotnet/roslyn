@@ -490,13 +490,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var childList = self.ChildNodesAndTokens();
 
-            int left = 0;
-            int right = childList.Count - 1;
+            var left = 0;
+            var right = childList.Count - 1;
 
             while (left <= right)
             {
-                int middle = left + ((right - left) / 2);
-                SyntaxNodeOrToken node = childList[middle];
+                var middle = left + ((right - left) / 2);
+                var node = childList[middle];
 
                 var span = node.FullSpan;
                 if (position < span.Start)
@@ -518,11 +518,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // but we wan to optimize for the common case where position is valid.
             Debug.Assert(!self.FullSpan.Contains(position), "Position is valid. How could we not find a child?");
             throw new ArgumentOutOfRangeException(nameof(position));
-        }
-
-        public static SyntaxNode GetParent(this SyntaxNode node)
-        {
-            return node != null ? node.Parent : null;
         }
 
         public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetParentheses(this SyntaxNode node)
@@ -753,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInDeconstructionLeft(this SyntaxNode node, out SyntaxNode deconstructionLeft)
         {
             SyntaxNode previous = null;
-            for (var current = node; current != null; current = current.GetParent())
+            for (var current = node; current != null; current = current.Parent)
             {
                 if ((current is AssignmentExpressionSyntax assignment && previous == assignment.Left && assignment.IsDeconstruction()) ||
                     (current is ForEachVariableStatementSyntax @foreach && previous == @foreach.Variable))

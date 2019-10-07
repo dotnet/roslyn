@@ -39,20 +39,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void VersionStamp_RoundTripText()
         {
-            using (var writerStream = new MemoryStream())
-            using (var writer = new ObjectWriter(writerStream))
-            {
-                var versionStamp = VersionStamp.Create();
-                versionStamp.WriteTo(writer);
+            using var writerStream = new MemoryStream();
+            using var writer = new ObjectWriter(writerStream);
+            var versionStamp = VersionStamp.Create();
+            versionStamp.WriteTo(writer);
 
-                using (var readerStream = new MemoryStream(writerStream.ToArray()))
-                using (var reader = ObjectReader.TryGetReader(readerStream))
-                {
-                    var deserializedVersionStamp = VersionStamp.ReadFrom(reader);
+            using var readerStream = new MemoryStream(writerStream.ToArray());
+            using var reader = ObjectReader.TryGetReader(readerStream);
+            var deserializedVersionStamp = VersionStamp.ReadFrom(reader);
 
-                    Assert.Equal(versionStamp, deserializedVersionStamp);
-                }
-            }
+            Assert.Equal(versionStamp, deserializedVersionStamp);
         }
 
         private void TestSymbolSerialization(Document document, string symbolName)
@@ -64,16 +60,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root = (CS.Syntax.CompilationUnitSyntax)model.SyntaxTree.GetRoot();
             var annotation = SymbolAnnotation.Create(symbol);
             var rootWithAnnotation = root.WithAdditionalAnnotations(annotation);
-            Assert.Equal(true, rootWithAnnotation.ContainsAnnotations);
-            Assert.Equal(true, rootWithAnnotation.HasAnnotation(annotation));
+            Assert.True(rootWithAnnotation.ContainsAnnotations);
+            Assert.True(rootWithAnnotation.HasAnnotation(annotation));
 
             var stream = new MemoryStream();
             rootWithAnnotation.SerializeTo(stream);
 
             stream.Position = 0;
             var droot = CS.CSharpSyntaxNode.DeserializeFrom(stream);
-            Assert.Equal(true, droot.ContainsAnnotations);
-            Assert.Equal(true, droot.HasAnnotation(annotation));
+            Assert.True(droot.ContainsAnnotations);
+            Assert.True(droot.HasAnnotation(annotation));
 
             var dannotation = droot.GetAnnotations(SymbolAnnotation.Kind).SingleOrDefault();
             Assert.NotNull(dannotation);
@@ -82,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var id = SymbolAnnotation.GetSymbol(annotation, model.Compilation);
             var did = SymbolAnnotation.GetSymbol(dannotation, model.Compilation);
 
-            Assert.Equal(true, id.Equals(did));
+            Assert.True(id.Equals(did));
         }
     }
 }

@@ -349,10 +349,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
-                var methodSymbol = symbolInfo.Symbol as IMethodSymbol;
                 var isReducedExtensionMethod = false;
 
-                if (methodSymbol != null && methodSymbol.MethodKind == MethodKind.ReducedExtension)
+                if (symbolInfo.Symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.ReducedExtension)
                 {
                     isReducedExtensionMethod = true;
                 }
@@ -488,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             where U : SyntaxNode
         {
             var result = new List<T>();
-            int index = 0;
+            var index = 0;
             foreach (var newArgument in newArguments)
             {
                 result.Add(TransferLeadingWhitespaceTrivia(newArgument, oldArguments[index]));
@@ -533,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             var dictionary = new Dictionary<string, XmlElementSyntax>();
-            int i = 0;
+            var i = 0;
             foreach (var paramNode in paramNodes)
             {
                 var nameAttribute = paramNode.StartTag.Attributes.FirstOrDefault(a => a.Name.ToString().Equals("name", StringComparison.OrdinalIgnoreCase));
@@ -576,8 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     continue;
                 }
 
-                var structuredTrivia = trivia.GetStructure() as DocumentationCommentTriviaSyntax;
-                if (structuredTrivia == null)
+                if (!(trivia.GetStructure() is DocumentationCommentTriviaSyntax structuredTrivia))
                 {
                     updatedLeadingTrivia.Add(trivia);
                     continue;
@@ -585,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 var updatedNodeList = new List<XmlNodeSyntax>();
                 var structuredContent = structuredTrivia.Content.ToList();
-                for (int i = 0; i < structuredContent.Count; i++)
+                for (var i = 0; i < structuredContent.Count; i++)
                 {
                     var content = structuredContent[i];
                     if (!content.IsKind(SyntaxKind.XmlElement))
@@ -627,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         private static List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
         {
             var separators = new List<SyntaxToken>();
-            for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
+            for (var i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {
                 separators.Add(arguments.GetSeparator(i));
             }

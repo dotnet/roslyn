@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     .AddProject(pid, "goo", "goo", LanguageNames.CSharp)
                     .AddMetadataReference(pid, MscorlibRef);
 
-            int docCounter = 1;
+            var docCounter = 1;
 
             foreach (var sourceText in sourceTexts)
             {
@@ -131,19 +131,19 @@ Module Module1
  End Module
             ");
 
-            ProjectId prj1Id = ProjectId.CreateNewId();
-            DocumentId docId = DocumentId.CreateNewId(prj1Id);
+            var prj1Id = ProjectId.CreateNewId();
+            var docId = DocumentId.CreateNewId(prj1Id);
 
-            Solution sln = new AdhocWorkspace().CurrentSolution
+            var sln = new AdhocWorkspace().CurrentSolution
                 .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.VisualBasic)
                 .AddMetadataReference(prj1Id, MscorlibRef)
                 .AddDocument(docId, "testFile", tree.GetText());
 
-            Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
+            var prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
             tree = await prj.GetDocument(docId).GetSyntaxTreeAsync();
-            Compilation comp = await prj.GetCompilationAsync();
+            var comp = await prj.GetCompilationAsync();
 
-            SemanticModel semanticModel = comp.GetSemanticModel(tree);
+            var semanticModel = comp.GetSemanticModel(tree);
 
             SyntaxNode declareMethod = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.VisualBasic.Syntax.DeclareStatementSyntax>().FirstOrDefault();
             SyntaxNode normalMethod = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.VisualBasic.Syntax.MethodStatementSyntax>().ToList()[1];
@@ -202,21 +202,21 @@ static class Module1
     }
                 ");
 
-            ProjectId prj1Id = ProjectId.CreateNewId();
-            DocumentId docId = DocumentId.CreateNewId(prj1Id);
+            var prj1Id = ProjectId.CreateNewId();
+            var docId = DocumentId.CreateNewId(prj1Id);
 
             var sln = new AdhocWorkspace().CurrentSolution
                 .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.CSharp)
                 .AddMetadataReference(prj1Id, MscorlibRef)
                 .AddDocument(docId, "testFile", tree.GetText());
 
-            Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            var prj = sln.GetProject(prj1Id).WithCompilationOptions(new CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication));
             tree = await prj.GetDocument(docId).GetSyntaxTreeAsync();
-            Compilation comp = await prj.GetCompilationAsync();
+            var comp = await prj.GetCompilationAsync();
 
-            SemanticModel semanticModel = comp.GetSemanticModel(tree);
+            var semanticModel = comp.GetSemanticModel(tree);
 
-            List<Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax> methodlist = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax>().ToList();
+            var methodlist = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax>().ToList();
             SyntaxNode declareMethod = methodlist.ElementAt(0);
             SyntaxNode normalMethod = methodlist.ElementAt(2);
 
@@ -261,7 +261,7 @@ class B : C, A
             var result = (await SymbolFinder.FindReferencesAsync(boo, solution)).ToList();
             Assert.Equal(2, result.Count); // 2 symbols found
 
-            HashSet<int> expectedMatchedLines = new HashSet<int> { 3, 13, 14 };
+            var expectedMatchedLines = new HashSet<int> { 3, 13, 14 };
             result.ForEach((reference) => Verify(reference, expectedMatchedLines));
 
             Assert.Empty(expectedMatchedLines);

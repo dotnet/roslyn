@@ -6,9 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -18,31 +20,6 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
     {
         protected AbstractGenerateFromMembersCodeRefactoringProvider()
         {
-        }
-
-        /// <summary>
-        /// Gets the enclosing named type for the specified position.  We can't use
-        /// <see cref="SemanticModel.GetEnclosingSymbol"/> because that doesn't return
-        /// the type you're current on if you're on the header of a class/interface.
-        /// </summary>
-        internal static INamedTypeSymbol GetEnclosingNamedType(
-            SemanticModel semanticModel, SyntaxNode root, int start, CancellationToken cancellationToken)
-        {
-            var token = root.FindToken(start);
-            if (token == ((ICompilationUnitSyntax)root).EndOfFileToken)
-            {
-                token = token.GetPreviousToken();
-            }
-
-            for (var node = token.Parent; node != null; node = node.Parent)
-            {
-                if (semanticModel.GetDeclaredSymbol(node) is INamedTypeSymbol declaration)
-                {
-                    return declaration;
-                }
-            }
-
-            return null;
         }
 
         protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
@@ -105,23 +82,37 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         private static bool IsViableProperty(IPropertySymbol property)
             => property.Parameters.IsEmpty;
 
+        /// <summary>
+        /// Returns an array of parameter symbols that correspond to selected member symbols.
+        /// If a selected member symbol has an empty base identifier name, the parameter symbol will not be added.
+        /// </summary>
+        /// <param name="selectedMembers"></param>
+        /// <param name="rules"></param>
+        /// <returns></returns>
         protected ImmutableArray<IParameterSymbol> DetermineParameters(
-            ImmutableArray<ISymbol> selectedMembers)
+            ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
         {
             var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
 
             foreach (var symbol in selectedMembers)
             {
-                var type = symbol is IFieldSymbol
-                    ? ((IFieldSymbol)symbol).Type
-                    : ((IPropertySymbol)symbol).Type;
+                var type = symbol.GetMemberType();
+
+                var identifierNameParts = IdentifierNameParts.CreateIdentifierNameParts(symbol, rules);
+                if (identifierNameParts.BaseName == "")
+                {
+                    continue;
+                }
+
+                var parameterNamingRule = rules.Where(rule => rule.SymbolSpecification.AppliesTo(SymbolKind.Parameter, Accessibility.NotApplicable)).First();
+                var parameterName = parameterNamingRule.NamingStyle.MakeCompliant(identifierNameParts.BaseName).First();
 
                 parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                     attributes: default,
                     refKind: RefKind.None,
                     isParams: false,
                     type: type,
-                    name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
+                    name: parameterName));
             }
 
             return parameters.ToImmutableAndFree();

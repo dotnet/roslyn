@@ -8,28 +8,18 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Microsoft Visual Basic-Codepage-Editor</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="translated">Visual Basic-Editor mit Codierung</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Microsoft Visual Basic-Editor</target>
+        <source>Visual Basic Editor</source>
+        <target state="translated">Visual Basic-Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">End-Konstruktionen automatisch einfügen;
-Einstellungen für automatische Strukturierung und Einrückung ändern;
-Gliederungsmodus ändern;
-Schnittstellen- und MustOverride-Member automatisch einfügen;
-Zeilentrennzeichen zwischen Prozeduren anzeigen oder ausblenden;
-Vorschläge für Fehlerkorrektur ein- oder ausschalten;
-Hervorheben von Verweisen und Schlüsselwörtern ein- oder ausschalten;
-RegEx;
-Reguläre Ausdrücke farbig hervorheben;
-Zugehörige Komponenten unter dem Cursor hervorheben;
-Nicht zulässige reguläre Ausdrücke melden;</target>
+        <target state="translated">Endkonstrukte automatisch einfügen;Einstellungen für automatische Strukturierung und Einrückung ändern;Gliederungsmodus ändern;Schnittstellen- und MustOverride-Member automatisch einfügen;Zeilentrennzeichen zwischen Prozeduren anzeigen oder ausblenden;Vorschläge für Fehlerkorrektur ein- oder ausschalten;Markierung von Verweisen und Schlüsselwörtern ein- oder ausschalten;Regex;Reguläre Ausdrücke farbig markieren;Verwandte Komponenten unter Cursor hervorheben;Ungültige reguläre Ausdrücke melden;regex;regulärer Ausdruck;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -114,12 +104,12 @@ Nicht zulässige reguläre Ausdrücke melden;</target>
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="new">An empty Visual Basic script file.</target>
+        <target state="translated">Eine leere Visual Basic-Skriptdatei.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">
         <source>Visual Basic Script</source>
-        <target state="new">Visual Basic Script</target>
+        <target state="translated">Visual Basic-Skript</target>
         <note />
       </trans-unit>
     </body>

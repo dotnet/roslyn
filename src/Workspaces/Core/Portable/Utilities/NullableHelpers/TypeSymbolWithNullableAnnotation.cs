@@ -24,12 +24,17 @@ namespace Microsoft.CodeAnalysis
                 Nullability = nullability;
             }
 
-            public bool Equals(ISymbol other)
+            bool IEquatable<ISymbol>.Equals(ISymbol other)
+            {
+                return Equals(other, SymbolEqualityComparer.Default);
+            }
+
+            public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
             {
                 if (other is TypeSymbolWithNullableAnnotation otherWrappingSymbol)
                 {
                     return this.Nullability == otherWrappingSymbol.Nullability &&
-                           this.WrappedSymbol.Equals(otherWrappingSymbol.WrappedSymbol);
+                           this.WrappedSymbol.Equals(otherWrappingSymbol.WrappedSymbol, equalityComparer);
                 }
                 else if (other is ITypeSymbol)
                 {
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis
 
             public override bool Equals(object obj)
             {
-                return this.Equals(obj as ISymbol);
+                return this.Equals(obj as ISymbol, SymbolEqualityComparer.Default);
             }
 
             public override int GetHashCode()
@@ -182,7 +187,9 @@ namespace Microsoft.CodeAnalysis
 
             public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
             {
-                return WrappedSymbol.ToMinimalDisplayParts(semanticModel, position, format);
+                // Call the right API once https://github.com/dotnet/roslyn/pull/35698 is merged
+                var convertedFlowState = Nullability == NullableAnnotation.Annotated ? NullableFlowState.MaybeNull : NullableFlowState.None;
+                return WrappedSymbol.ToMinimalDisplayParts(semanticModel, convertedFlowState, position, format);
             }
 
             public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)

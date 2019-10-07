@@ -17,18 +17,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     {
         private async Task TestAsync(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup, parseOptions))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
-                var locationInfo = await LocationInfoGetter.GetInfoAsync(
-                    workspace.CurrentSolution.Projects.Single().Documents.Single(),
-                    position,
-                    CancellationToken.None);
+            using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions);
 
-                Assert.Equal(expectedName, locationInfo.Name);
-                Assert.Equal(expectedLineOffset, locationInfo.LineOffset);
-            }
+            var testDocument = workspace.Documents.Single();
+            var position = testDocument.CursorPosition.Value;
+            var locationInfo = await LocationInfoGetter.GetInfoAsync(
+                workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                position,
+                CancellationToken.None);
+
+            Assert.Equal(expectedName, locationInfo.Name);
+            Assert.Equal(expectedLineOffset, locationInfo.LineOffset);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]

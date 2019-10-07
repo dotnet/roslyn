@@ -69,14 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        protected override BoundExpression ShallowClone()
-        {
-            var result = new BoundLambda(this.Syntax, this.UnboundLambda, this.Symbol, this.Body, this.Diagnostics, this.Binder, this.Type, this.HasErrors);
-            result.CopyAttributes(this);
-            result.InferredReturnType = InferredReturnType;
-            return result;
-        }
-
         public TypeWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Nullability (and conversions) are ignored.
@@ -124,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
                                        initialState: nullableState,
                                        analyzedNullabilityMapOpt: null,
+                                       updatedSymbolMapOpt: null,
                                        snapshotBuilderOpt: null,
                                        returnTypes);
                 diagnostics.Free();
@@ -495,26 +488,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnostics = DiagnosticBag.GetInstance();
             var compilation = Binder.Compilation;
 
-            // when binding for real (not for return inference), there is still
-            // a good chance that we could reuse a body of a lambda previously bound for 
-            // return type inference.
             var cacheKey = ReturnInferenceCacheKey.Create(Binder, delegateType, IsAsync);
 
-            BoundLambda returnInferenceLambda;
-            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredReturnType.FromSingleType)
-            {
-                lambdaSymbol = returnInferenceLambda.Symbol;
-                var lambdaReturnType = lambdaSymbol.ReturnTypeWithAnnotations;
-                if ((object)LambdaSymbol.InferenceFailureReturnType != lambdaReturnType.Type &&
-                    lambdaReturnType.Equals(returnType, TypeCompareKind.ConsiderEverything) && lambdaSymbol.RefKind == refKind)
-                {
-                    lambdaBodyBinder = returnInferenceLambda.Binder;
-                    block = returnInferenceLambda.Body;
-                    diagnostics.AddRange(returnInferenceLambda.Diagnostics);
-
-                    goto haveLambdaBodyAndBinders;
-                }
-            }
+            // When binding for real (not for return inference), we cannot reuse a body of a lambda
+            // previously bound for return type inference because we have not converted the returned
+            // expression(s) to the return type.
 
             lambdaSymbol = new LambdaSymbol(
                 compilation,
@@ -552,8 +530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ((ExecutableCodeBinder)lambdaBodyBinder).ValidateIteratorMethods(diagnostics);
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
-
-haveLambdaBodyAndBinders:
 
             bool reachableEndpoint = ControlFlowPass.Analyze(compilation, lambdaSymbol, block, diagnostics);
             if (reachableEndpoint)

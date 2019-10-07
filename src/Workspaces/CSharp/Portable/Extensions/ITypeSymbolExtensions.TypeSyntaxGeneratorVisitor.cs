@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             private readonly bool _nameOnly;
 
-            private static TypeSyntaxGeneratorVisitor NameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: true);
-            private static TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: false);
+            private static readonly TypeSyntaxGeneratorVisitor NameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: true);
+            private static readonly TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: false);
 
             private TypeSyntaxGeneratorVisitor(bool nameOnly)
             {
@@ -62,25 +62,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 ThrowIfNameOnly();
 
-                var underlyingNonArrayType = symbol.ElementType;
-                while (underlyingNonArrayType.Kind == SymbolKind.ArrayType)
+                ITypeSymbol underlyingType = symbol;
+
+                while (underlyingType is IArrayTypeSymbol innerArray)
                 {
-                    underlyingNonArrayType = ((IArrayTypeSymbol)underlyingNonArrayType).ElementType;
+                    underlyingType = innerArray.GetElementTypeWithAnnotatedNullability();
+
+                    if (underlyingType.GetNullability() == NullableAnnotation.Annotated)
+                    {
+                        // If the inner array we just moved to is also nullable, then
+                        // we must terminate the digging now so we produce the syntax for that,
+                        // and then append the ranks we passed through at the end. This is because
+                        // nullability annotations acts as a "barrier" where we won't reorder array
+                        // through. So whereas:
+                        //
+                        //     string[][,]
+                        //
+                        // is really an array of rank 1 that has an element of rank 2,
+                        //
+                        //     string[]?[,]
+                        //
+                        // is really an array of rank 2 that has nullable elements of rank 1.
+
+                        break;
+                    }
                 }
 
-                var elementTypeSyntax = underlyingNonArrayType.GenerateTypeSyntax();
+                var elementTypeSyntax = underlyingType.GenerateTypeSyntax();
                 var ranks = new List<ArrayRankSpecifierSyntax>();
 
                 var arrayType = symbol;
-                while (arrayType != null)
+                while (arrayType != null && !arrayType.Equals(underlyingType))
                 {
                     ranks.Add(SyntaxFactory.ArrayRankSpecifier(
                         SyntaxFactory.SeparatedList(Enumerable.Repeat<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression(), arrayType.Rank))));
 
-                    arrayType = arrayType.ElementType as IArrayTypeSymbol;
+                    arrayType = arrayType.GetElementTypeWithAnnotatedNullability() as IArrayTypeSymbol;
                 }
 
-                var arrayTypeSyntax = SyntaxFactory.ArrayType(elementTypeSyntax, ranks.ToSyntaxList());
+                TypeSyntax arrayTypeSyntax = SyntaxFactory.ArrayType(elementTypeSyntax, ranks.ToSyntaxList());
+
+                if (symbol.GetNullability() == NullableAnnotation.Annotated)
+                {
+                    arrayTypeSyntax = SyntaxFactory.NullableType(arrayTypeSyntax);
+                }
+
                 return AddInformationTo(arrayTypeSyntax, symbol);
             }
 
@@ -123,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 var typeArguments = symbol.IsUnboundGenericType
                     ? Enumerable.Repeat((TypeSyntax)SyntaxFactory.OmittedTypeArgument(), symbol.TypeArguments.Length)
-                    : symbol.TypeArguments.ZipAsArray(symbol.TypeArgumentsNullableAnnotations, (t, n) => t.WithNullability(n).GenerateTypeSyntax());
+                    : symbol.TypeArguments.ZipAsArray(symbol.TypeArgumentNullableAnnotations, (t, n) => t.WithNullability(n).GenerateTypeSyntax());
 
                 return SyntaxFactory.GenericName(
                     symbol.Name.ToIdentifierToken(),
@@ -177,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 foreach (var element in symbol.TupleElements)
                 {
                     var name = element.IsImplicitlyDeclared ? default : SyntaxFactory.Identifier(element.Name);
-                    list = list.Add(SyntaxFactory.TupleElement(element.Type.GenerateTypeSyntax(), name));
+                    list = list.Add(SyntaxFactory.TupleElement(element.GetTypeWithAnnotatedNullability().GenerateTypeSyntax(), name));
                 }
 
                 return AddInformationTo(SyntaxFactory.TupleType(list), symbol);

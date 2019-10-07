@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A common base class for lowering the pattern switch statement and the pattern switch expression.
         /// </summary>
-        private class BaseSwitchLocalRewriter : PatternLocalRewriter
+        private abstract class BaseSwitchLocalRewriter : PatternLocalRewriter
         {
             /// <summary>
             /// Map from switch section's syntax to the lowered code for the section. The code for a section
@@ -37,27 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
 
-            /// <summary>
-            /// True if we are translating a switch statement. This affects sequence points (a when clause gets
-            /// a sequence point in a switch statement, but not in a switch expression).
-            /// </summary>
-            private readonly bool _isSwitchStatement;
-
             protected BaseSwitchLocalRewriter(
                 SyntaxNode node,
                 LocalRewriter localRewriter,
-                ImmutableArray<SyntaxNode> arms,
-                bool isSwitchStatement)
+                ImmutableArray<SyntaxNode> arms)
                 : base(node, localRewriter)
             {
-                this._isSwitchStatement = isSwitchStatement;
                 foreach (var arm in arms)
                 {
                     var armBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
                     // We start each switch block of a switch statement with a hidden sequence point so that
                     // we do not appear to be in the previous switch block when we begin.
-                    if (isSwitchStatement)
+                    if (IsSwitchStatement)
                         armBuilder.Add(_factory.HiddenSequencePoint());
 
                     _switchArms.Add(arm, armBuilder);
@@ -289,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
                 // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
                 // the decision dag do not appear to jump back up to the enclosing construct.
-                if (_isSwitchStatement)
+                if (IsSwitchStatement)
                     result.Add(_factory.HiddenSequencePoint());
 
                 return decisionDag;
@@ -303,9 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(this._loweredDecisionDag.IsEmpty());
                 ComputeLabelSet(decisionDag);
                 LowerDecisionDagCore(decisionDag);
-                ImmutableArray<BoundStatement> loweredDag = this._loweredDecisionDag.ToImmutableAndFree();
-                ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections = this._switchArms.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableAndFree());
-                this._switchArms.Clear();
+                ImmutableArray<BoundStatement> loweredDag = _loweredDecisionDag.ToImmutableAndFree();
+                var switchSections = _switchArms.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableAndFree());
+                _switchArms.Clear();
                 return (loweredDag, switchSections);
             }
 
@@ -343,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (this._dagNodeLabels.TryGetValue(node, out LabelSymbol label))
+                    if (_dagNodeLabels.TryGetValue(node, out LabelSymbol label))
                     {
                         _loweredDecisionDag.Add(_factory.Label(label));
                     }
@@ -581,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true);
 
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-                    if (_isSwitchStatement && !whenClause.WhenExpression.WasCompilerGenerated && _localRewriter.Instrument)
+                    if (IsSwitchStatement && !whenClause.WhenExpression.WasCompilerGenerated && _localRewriter.Instrument)
                     {
                         conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
                     }
@@ -592,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We hide the jump back into the decision dag, as it is not logically part of the when clause
                     BoundStatement jump = _factory.Goto(GetDagNodeLabel(whenFalse));
-                    sectionBuilder.Add(_isSwitchStatement ? _factory.HiddenSequencePoint(jump) : jump);
+                    sectionBuilder.Add(IsSwitchStatement ? _factory.HiddenSequencePoint(jump) : jump);
                 }
                 else
                 {
@@ -618,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
                             // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
                             // synchronize on changes.
-                            if (_isSwitchStatement)
+                            if (IsSwitchStatement)
                                 _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
 
                             if (nextNode != evaluationNode.Next)

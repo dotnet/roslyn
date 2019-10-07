@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(originalDefinition.Arity > 0)
 
             Dim current As TypeSubstitution = Me
-            Dim result = ArrayBuilder(Of TypeSymbol).GetInstance(originalDefinition.Arity, Nothing)
+            Dim result = ArrayBuilder(Of TypeSymbol).GetInstance(originalDefinition.Arity, fillWithValue:=Nothing)
             hasTypeArgumentsCustomModifiers = False
 
             Do
@@ -902,6 +902,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             Return customModifiers
+        End Function
+
+        Public Function WasConstructedForModifiers() As Boolean
+            For Each pair In _pairs
+                If Not pair.Key.Equals(pair.Value.Type.OriginalDefinition) Then
+                    Return False
+                End If
+            Next
+
+            Return If(_parent Is Nothing, True, _parent.WasConstructedForModifiers())
         End Function
 
     End Class

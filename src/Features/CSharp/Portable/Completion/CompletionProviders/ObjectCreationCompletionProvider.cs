@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -77,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (symbol is IAliasSymbol)
             {
                 return (symbol.Name, "", symbol.Name);
+            }
+
+            if (symbol is ITypeSymbol typeSymbol)
+            {
+                return base.GetDisplayAndSuffixAndInsertionText(typeSymbol.WithNullability(NullableAnnotation.None), context);
             }
 
             return base.GetDisplayAndSuffixAndInsertionText(symbol, context);

@@ -271,6 +271,7 @@ class X
                         case ErrorCode.WRN_NullReferenceArgument:
                         case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                         case ErrorCode.WRN_NullReferenceIterationVariable:
+                        case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
@@ -294,6 +295,7 @@ class X
                         case ErrorCode.WRN_NullableValueTypeMayBeNull:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:
                         case ErrorCode.WRN_MissingNonNullTypesContextForAnnotation:
+                        case ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnImplicitImplementation:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
@@ -307,6 +309,8 @@ class X
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
+                        case ErrorCode.WRN_NullReferenceInitializer:
+                        case ErrorCode.WRN_ExpressionMayIntroduceNullT:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -319,6 +323,39 @@ class X
                             break;
                     }
                 }
+            }
+        }
+
+        [Fact]
+        public void NullableWarnings()
+        {
+            foreach (ErrorCode error in Enum.GetValues(typeof(ErrorCode)))
+            {
+                if ((int)error < 8600 || (int)error >= 9000)
+                {
+                    continue;
+                }
+
+                if (!error.ToString().StartsWith("WRN"))
+                {
+                    // Only interested in warnings
+                    continue;
+                }
+
+                if (ErrorFacts.NullableWarnings.Contains(MessageProvider.Instance.GetIdForErrorCode((int)error)))
+                {
+                    continue;
+                }
+
+                // Nullable-unrelated warnings in the C# 8 range should be added to this array.
+                var nullableUnrelatedWarnings = new[]
+                {
+                    ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
+                    ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
+                    ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
+                };
+
+                Assert.Contains(error, nullableUnrelatedWarnings);
             }
         }
 
@@ -1885,7 +1922,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_IllegalPPWarning, "blah").WithLocation(14, 17));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
         public void PragmaWarning_Enable()
         {
             var text1 = @"

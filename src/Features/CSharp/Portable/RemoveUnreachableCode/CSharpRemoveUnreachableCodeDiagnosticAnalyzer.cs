@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Unreachable_code_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    configurable: false)
         {
@@ -35,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var options = context.Options as WorkspaceAnalyzerOptions;
-            if (options == null)
+            if (!(context.Options is WorkspaceAnalyzerOptions options))
             {
                 return;
             }

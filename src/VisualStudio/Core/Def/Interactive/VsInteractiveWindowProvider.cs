@@ -158,8 +158,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             // We should choose specialized C#/VB commands over generic core interactive window commands
             // Build a map of names and associated core command first
-            Dictionary<string, int> interactiveCommandMap = new Dictionary<string, int>();
-            for (int i = 0; i < interactiveCommands.Length; i++)
+            var interactiveCommandMap = new Dictionary<string, int>();
+            for (var i = 0; i < interactiveCommands.Length; i++)
             {
                 foreach (var name in interactiveCommands[i].Names)
                 {
