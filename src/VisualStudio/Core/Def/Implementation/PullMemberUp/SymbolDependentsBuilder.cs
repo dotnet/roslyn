@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 }
 
                 // This check is added for checking method invoked in the member
-                // It is seperated since IInvocationOperation is not subtype of IMemberReferenceOperation
+                // It is separated since IInvocationOperation is not subtype of IMemberReferenceOperation
                 // issue for this https://github.com/dotnet/roslyn/issues/26206#issuecomment-382105829
                 if (operation is IInvocationOperation methodReferenceOp &&
                     _membersInType.Contains(methodReferenceOp.TargetMethod))

@@ -328,23 +328,23 @@ class C
     }
     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>
     {
-        public T1 Item1;
+        // No Item1;
         public T2 Item2;
         public T3 Item3;
         public T4 Item4;
         public T5 Item5;
         public T6 Item6;
         public T7 Item7;
-        // No Rest.
+        public T8 Rest;
         public ValueTuple(T1 _1, T2 _2, T3 _3, T4 _4, T5 _5, T6 _6, T7 _7, T8 _8)
         {
-            Item1 = _1;
             Item2 = _2;
             Item3 = _3;
             Item4 = _4;
             Item5 = _5;
             Item6 = _6;
             Item7 = _7;
+            Rest = _8;
         }
     }
 }
@@ -384,13 +384,13 @@ class C
                 Verify(moreChildren);
                 moreChildren = GetChildren(children[2]);
                 Verify(moreChildren,
-                    EvalResult("Item1", "1", "int", "o.H.Item1"),
                     EvalResult("B", "2", "int", "o.H.Item2"),
                     EvalResult("Item3", "3", "int", "o.H.Item3"),
                     EvalResult("D", "4", "int", "o.H.Item4"),
                     EvalResult("Item5", "5", "int", "o.H.Item5"),
                     EvalResult("F", "6", "int", "o.H.Item6"),
                     EvalResult("Item7", "7", "int", "o.H.Item7"),
+                    EvalResult("H", "8", "int", "o.H.Rest.Item1"),
                     EvalResult("Raw View", "{(int, int, int, int, int, int, int, int, int)}", "(int, int B, int, int D, int, int F, int, int H, int)", "o.H, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
             }
         }
