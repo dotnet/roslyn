@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         /// it is the smallest that can be retrieved.
         /// </para>
         /// <para>
-        /// When selection doesn't contain intersect the node in any way it's not considered to not to be underselected.
+        /// When <paramref name="selection"/> doesn't intersect the node in any way it's not considered to be underselected.
         /// </para>
         /// <para>
         /// Null node is always considered underselected.
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            // Selection or node is empty -> can't be uderselected
+            // Selection or node is empty -> can't be underselected
             if (selection.IsEmpty || node.Span.IsEmpty)
             {
                 return false;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Only precisely one token of the node is selected -> treat is as empty selection -> not 
-            // under-selected. The rationale is that if a only one Token is selected then the selection 
+            // underselected. The rationale is that if only one Token is selected then the selection 
             // wasn't about precisely getting the one node and nothing else & therefore we should treat 
             // it as empty selection.
             if (node.FullSpan.Contains(selection.Start))
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
             // of the last child doesn't intersect with the end.
 
             // Node is underselected if either the first (lowest) child ends before the selection has started
-            // of the last child starts before the selection ends (i.e. one of them is completely on the outside of selection).
+            // or the last child starts before the selection ends (i.e. one of them is completely on the outside of selection).
             // It's a crude heuristic but it allows omitting parts of nodes or trivial tokens from the beginning/end 
             // but fires up e.g.: `1 + [|2 + 3|]`.
             return beginningNode.Span.End <= selection.Start || endNode.Span.Start > selection.End - 1;
