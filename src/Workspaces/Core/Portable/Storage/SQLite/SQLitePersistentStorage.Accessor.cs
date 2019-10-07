@@ -151,7 +151,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             private Stream ReadBlob(
-                SqlConnection connection, bool writeCacheDB, TDatabaseId dataId, string columnName,
+                SqlConnection connection, bool writeCacheDB,
+                TDatabaseId dataId, string columnName,
                 Checksum checksumOpt, CancellationToken cancellationToken)
             {
                 try
