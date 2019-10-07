@@ -1,4 +1,4 @@
 *REMOVED*Microsoft.CodeAnalysis.TextDocument.Project.set -> void
 *REMOVED*Microsoft.CodeAnalysis.TextDocument.TextDocument() -> void
-static Microsoft.CodeAnalysis.Formatting.Formatter.OrganizeImportsAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+static Microsoft.CodeAnalysis.Formatting.Formatter.OrganizeImportsAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
 static Microsoft.CodeAnalysis.Simplification.Simplifier.AddImportsAnnotation.get -> Microsoft.CodeAnalysis.SyntaxAnnotation

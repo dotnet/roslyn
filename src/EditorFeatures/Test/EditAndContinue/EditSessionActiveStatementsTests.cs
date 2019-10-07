@@ -87,42 +87,51 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return Enumerate().ToImmutableArray();
         }
 
-        internal static async Task<(ActiveStatementsMap, ImmutableArray<ActiveStatementExceptionRegions>, ImmutableArray<DocumentId>)> GetBaseActiveStatementsAndExceptionRegions(
-            string[] markedSource,
-            ImmutableArray<ActiveStatementDebugInfo> activeStatements,
-            ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
-            Func<Solution, Solution> adjustSolution = null)
+        private sealed class Validator
         {
-            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
+            public readonly TestWorkspace Workspace;
+            public readonly EditSession EditSession;
+
+            public Validator(
+                string[] markedSource,
+                ImmutableArray<ActiveStatementDebugInfo> activeStatements,
+                ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
+                Func<Solution, Solution> adjustSolution = null,
+                CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesDebuggee)
+            {
+                var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
 
-            var exportProvider = exportProviderFactory.CreateExportProvider();
+                var exportProvider = exportProviderFactory.CreateExportProvider();
 
-            using var workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider);
+                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider);
 
-            if (adjustSolution != null)
-            {
-                workspace.ChangeSolution(adjustSolution(workspace.CurrentSolution));
+                if (adjustSolution != null)
+                {
+                    Workspace.ChangeSolution(adjustSolution(Workspace.CurrentSolution));
+                }
+
+                var activeStatementProvider = new TestActiveStatementProvider(activeStatements);
+                var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
+                var mockCompilationOutputsProvider = new MockCompilationOutputsProviderService();
+
+                var debuggingSession = new DebuggingSession(Workspace, mockDebuggeModuleProvider.Object, activeStatementProvider, mockCompilationOutputsProvider);
+
+                if (initialState != CommittedSolution.DocumentState.None)
+                {
+                    EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, Workspace.CurrentSolution, initialState);
+                }
+
+                debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
+
+                var telemetry = new EditSessionTelemetry();
+                EditSession = new EditSession(debuggingSession, telemetry);
             }
 
-            var docsIds = from p in workspace.CurrentSolution.Projects
-                          from d in p.DocumentIds
-                          select d;
-
-            var activeStatementProvider = new TestActiveStatementProvider(activeStatements);
-            var mockDebuggeModuleProvider = new Mock<IDebuggeeModuleMetadataProvider>();
-            var mockCompilationOutputsProvider = new Mock<ICompilationOutputsProviderService>();
-
-            var debuggingSession = new DebuggingSession(workspace, mockDebuggeModuleProvider.Object, activeStatementProvider, mockCompilationOutputsProvider.Object);
-
-            debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
-
-            var telemetry = new EditSessionTelemetry();
-            var editSession = new EditSession(debuggingSession, telemetry);
-
-            return (await editSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
-                    await editSession.BaseActiveExceptionRegions.GetValueAsync(CancellationToken.None).ConfigureAwait(false),
-                    docsIds.ToImmutableArray());
+            public ImmutableArray<DocumentId> GetDocumentIds()
+                => (from p in Workspace.CurrentSolution.Projects
+                    from d in p.DocumentIds
+                    select d).ToImmutableArray();
         }
 
         private static string Delete(string src, string marker)
@@ -271,11 +280,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 return project.Solution.AddDocument(DocumentId.CreateNewId(project.Id, DummyLanguageService.LanguageName), "a.dummy", "");
             });
 
-            var (baseActiveStatements, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(markedSource, activeStatements, adjustSolution: adjustSolution).ConfigureAwait(false);
+            var validator = new Validator(markedSource, activeStatements, adjustSolution: adjustSolution);
+            var baseActiveStatementsMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
+            var docs = validator.GetDocumentIds();
 
             // Active Statements
 
-            var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
             AssertEx.Equal(new[]
             {
                 "0: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate] pdid=test1.cs docs=[test1.cs] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0001",
@@ -287,22 +298,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Active Statements per document
 
-            Assert.Equal(2, baseActiveStatements.DocumentMap.Count);
+            Assert.Equal(2, baseActiveStatementsMap.DocumentMap.Count);
 
             AssertEx.Equal(new[]
             {
                 "0: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate] pdid=test1.cs docs=[test1.cs]",
                 "1: (4,32)-(4,37) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]"
-            }, baseActiveStatements.DocumentMap[docs[0]].Select(InspectActiveStatement));
+            }, baseActiveStatementsMap.DocumentMap[docs[0]].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
                 "2: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
                 "3: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]",
                 "4: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] pdid=test2.cs docs=[test2.cs]"
-            }, baseActiveStatements.DocumentMap[docs[1]].Select(InspectActiveStatement));
+            }, baseActiveStatementsMap.DocumentMap[docs[1]].Select(InspectActiveStatement));
 
             // Exception Regions
+
+            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
 
             AssertEx.Equal(new[]
             {
@@ -319,7 +332,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             //   Test2.M2: adding a line in front of try-catch.
             //   Test2.F2: moving the entire method 2 lines down.
 
-            LinePositionSpan AddDelta(LinePositionSpan span, int lineDelta)
+            static LinePositionSpan AddDelta(LinePositionSpan span, int lineDelta)
                 => new LinePositionSpan(new LinePosition(span.Start.Line + lineDelta, span.Start.Character), new LinePosition(span.End.Line + lineDelta, span.End.Character));
 
             var newActiveStatementsInChangedDocuments = ImmutableArray.Create(
@@ -340,7 +353,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             EditSession.GetActiveStatementAndExceptionRegionSpans(
                 module2,
-                baseActiveStatements,
+                baseActiveStatementsMap,
                 baseExceptionRegions,
                 updatedMethodTokens: ImmutableArray.Create(0x06000004), // contains only recompiled methods in the project we are interested in (module2)
                 ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
@@ -401,7 +414,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame,    // F2
                 });
 
-            var (baseActiveStatementMap, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(new[] { baseSource }, baseActiveStatementInfos).ConfigureAwait(false);
+            var validator = new Validator(new[] { baseSource }, baseActiveStatementInfos);
+            var baseActiveStatementMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
+            var docs = validator.GetDocumentIds();
 
             // Active Statements
 
@@ -414,6 +429,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, baseActiveStatements.Select(s => InspectActiveStatementAndInstruction(s, baseText)));
 
             // Exception Regions
+
+            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Note that the spans correspond to the base snapshot (V2). 
             AssertEx.Equal(new[]
@@ -459,6 +476,82 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 "thread=00000000-0000-0000-0000-000000000010 mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0000: (6,18)-(6,23) '<AS:0>F2();</AS:0>'"
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan} '{GetFirstLineText(v.NewSpan, updatedText)}'"));
+        }
+
+        [Fact]
+        public async Task BaseActiveStatementsAndExceptionRegions_OutOfSyncDocuments()
+        {
+            var markedSource = new[]
+            {
+@"class C
+{
+    static void M()
+    {
+        try 
+        {
+            <AS:0>M();</AS:0>
+        }
+        catch (Exception e)
+        {
+        }
+    }
+}"
+            };
+
+            var thread1 = Guid.NewGuid();
+
+            // Thread1 stack trace: F (AS:0 leaf)
+
+            var activeStatements = GetActiveStatementDebugInfos(
+                markedSource,
+                methodRowIds: new[] { 1 },
+                ilOffsets: new[] { 1 },
+                flags: new[]
+                {
+                    ActiveStatementFlags.IsLeafFrame | ActiveStatementFlags.MethodUpToDate
+                },
+                threads: new[] { ImmutableArray.Create(thread1) });
+
+            var validator = new Validator(markedSource, activeStatements, initialState: CommittedSolution.DocumentState.OutOfSync);
+            var baseActiveStatementMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
+            var docs = validator.GetDocumentIds();
+
+            // Active Statements - available in out-of-sync documents, as they reflect the state of the debuggee and not the base document content
+
+            Assert.Single(baseActiveStatementMap.DocumentMap);
+
+            AssertEx.Equal(new[]
+            {
+                "0: (6,18)-(6,22) flags=[IsLeafFrame, MethodUpToDate] pdid=test1.cs docs=[test1.cs]",
+            }, baseActiveStatementMap.DocumentMap[docs[0]].Select(InspectActiveStatement));
+
+            Assert.Equal(1, baseActiveStatementMap.InstructionMap.Count);
+
+            var s = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.InstructionId.MethodId.Token).Single();
+            Assert.Equal(0x06000001, s.InstructionId.MethodId.Token);
+            Assert.Equal(0, s.PrimaryDocumentOrdinal);
+            Assert.Equal(docs[0], s.DocumentIds.Single());
+            Assert.True(s.IsLeaf);
+            AssertEx.Equal(new[] { thread1 }, s.ThreadIds);
+
+            // Exception Regions - not available in out-of-sync documents as we need the content of the base document to calculate them
+
+            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
+
+            AssertEx.Equal(new[]
+            {
+                "out-of-sync"
+            }, baseExceptionRegions.Select(r => r.Spans.IsDefault ? "out-of-sync" : "[" + string.Join(",", r.Spans) + "]"));
+
+            // document got synchronized:
+            validator.EditSession.DebuggingSession.LastCommittedSolution.Test_SetDocumentState(docs[0], CommittedSolution.DocumentState.MatchesDebuggee);
+
+            baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
+
+            AssertEx.Equal(new[]
+            {
+                "[]"
+            }, baseExceptionRegions.Select(r => r.Spans.IsDefault ? "out-of-sync" : "[" + string.Join(",", r.Spans) + "]"));
         }
 
         [Fact]
@@ -571,7 +664,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     new NonRemappableRegion(erPreRemap31, lineDelta: +1, isExceptionRegion: true)) }
             }.ToImmutableDictionary();
 
-            var (baseActiveStatementMap, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(new[] { markedSourceV2 }, activeStatementsPreRemap, initialNonRemappableRegions).ConfigureAwait(false);
+            var validator = new Validator(new[] { markedSourceV2 }, activeStatementsPreRemap, initialNonRemappableRegions);
+            var baseActiveStatementMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
+            var docs = validator.GetDocumentIds();
 
             // Active Statements
 
@@ -587,6 +682,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }, baseActiveStatements.Select(s => InspectActiveStatementAndInstruction(s, sourceTextV2)));
 
             // Exception Regions
+
+            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
 
             // Note that the spans correspond to the base snapshot (V2). 
             AssertEx.Equal(new[]
@@ -692,21 +789,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 },
                 threads: new[] { ImmutableArray.Create(thread1, thread2), ImmutableArray.Create(thread1, thread2, thread2) });
 
-            var (baseActiveStatements, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(markedSource, activeStatements).ConfigureAwait(false);
+            var validator = new Validator(markedSource, activeStatements);
+            var baseActiveStatementMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
+            var docs = validator.GetDocumentIds();
 
             // Active Statements
 
-            Assert.Equal(1, baseActiveStatements.DocumentMap.Count);
+            Assert.Equal(1, baseActiveStatementMap.DocumentMap.Count);
 
             AssertEx.Equal(new[]
             {
                 "0: (15,14)-(15,18) flags=[PartiallyExecuted, NonUserCode, MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
                 "1: (6,18)-(6,22) flags=[IsLeafFrame, MethodUpToDate, IsNonLeafFrame] pdid=test1.cs docs=[test1.cs]",
-            }, baseActiveStatements.DocumentMap[docs[0]].Select(InspectActiveStatement));
+            }, baseActiveStatementMap.DocumentMap[docs[0]].Select(InspectActiveStatement));
 
-            Assert.Equal(2, baseActiveStatements.InstructionMap.Count);
+            Assert.Equal(2, baseActiveStatementMap.InstructionMap.Count);
 
-            var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.InstructionId.MethodId.Token).ToArray();
+            var statements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.InstructionId.MethodId.Token).ToArray();
             var s = statements[0];
             Assert.Equal(0x06000001, s.InstructionId.MethodId.Token);
             Assert.Equal(0, s.PrimaryDocumentOrdinal);
@@ -723,6 +822,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertEx.Equal(new[] { thread1, thread2, thread2 }, s.ThreadIds);
 
             // Exception Regions
+
+            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
 
             AssertEx.Equal(new[]
             {
@@ -782,11 +883,13 @@ class Test2
                 return solution;
             });
 
-            var (baseActiveStatements, baseExceptionRegions, docs) = await GetBaseActiveStatementsAndExceptionRegions(markedSource, activeStatements, adjustSolution: adjustSolution).ConfigureAwait(false);
+            var validator = new Validator(markedSource, activeStatements, adjustSolution: adjustSolution);
+            var baseActiveStatementsMap = await validator.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
+            var docs = validator.GetDocumentIds();
 
             // Active Statements
 
-            var documentMap = baseActiveStatements.DocumentMap;
+            var documentMap = baseActiveStatementsMap.DocumentMap;
 
             Assert.Equal(5, docs.Length);
             Assert.Equal(5, documentMap.Count);
@@ -822,9 +925,9 @@ class Test2
                 "0: (3,29)-(3,49) flags=[IsLeafFrame, MethodUpToDate] pdid=test2.cs docs=[test2.cs,Project4->test2.cs]",
             }, documentMap[docs[4]].Select(InspectActiveStatement));
 
-            Assert.Equal(3, baseActiveStatements.InstructionMap.Count);
+            Assert.Equal(3, baseActiveStatementsMap.InstructionMap.Count);
 
-            var statements = baseActiveStatements.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
             var s = statements[0];
             Assert.Equal(0x06000001, s.InstructionId.MethodId.Token);
             Assert.Equal(module4, s.InstructionId.MethodId.ModuleId);

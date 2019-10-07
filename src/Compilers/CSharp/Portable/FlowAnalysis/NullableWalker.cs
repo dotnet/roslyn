@@ -713,11 +713,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NullableFlowState GetDefaultState(ref LocalState state, int slot)
         {
+            Debug.Assert(slot > 0);
+
             if (!state.Reachable)
                 return NullableFlowState.NotNull;
-
-            if (slot == 0)
-                return NullableFlowState.MaybeNull;
 
             var variable = variableBySlot[slot];
             var symbol = variable.Symbol;
@@ -1324,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalState TopState()
         {
             var state = LocalState.ReachableState(capacity: nextVariableSlot);
-            Populate(ref state, start: 0);
+            Populate(ref state, start: 1);
             return state;
         }
 
