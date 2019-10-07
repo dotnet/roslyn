@@ -36,5 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(SyntaxToken asyncKeyword, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
             => SimpleLambdaExpression(TokenList(asyncKeyword), parameter, arrowToken, block, expressionBody);
+
+        public static SimpleLambdaExpressionSyntax SimpleLambdaExpression(ParameterSyntax parameter, BlockSyntax block, ExpressionSyntax expressionBody)
+            => SimpleLambdaExpression(default(SyntaxTokenList), parameter, block, expressionBody);
     }
 }
