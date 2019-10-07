@@ -22,20 +22,20 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             protected readonly SQLitePersistentStorage Storage;
 
-            private readonly string _select_rowid_from_main_0_where_1;
-            private readonly string _select_rowid_from_writecache_0_where_1;
-            private readonly string _insert_or_replace_into_writecache_0_1_2_3_value;
-            private readonly string _delete_from_writecache_0;
-            private readonly string _insert_or_replace_into_main_0_select_star_from_writecache_1;
+            private readonly string _select_rowid_from_main_table_where_0;
+            private readonly string _select_rowid_from_writecache_table_where_0;
+            private readonly string _insert_or_replace_into_writecache_table_values_0_1_2;
+            private readonly string _delete_from_writecache_table;
+            private readonly string _insert_or_replace_into_main_table_select_star_from_writecache_table;
 
             public Accessor(SQLitePersistentStorage storage)
             {
                 Storage = storage;
-                _select_rowid_from_main_0_where_1 = $@"select rowid from {MainDBName}.{DataTableName} where ""{DataIdColumnName}"" = ?";
-                _select_rowid_from_writecache_0_where_1 = $@"select rowid from {WriteCacheDBName}.{DataTableName} where ""{DataIdColumnName}"" = ?";
-                _insert_or_replace_into_writecache_0_1_2_3_value = $@"insert or replace into {WriteCacheDBName}.{DataTableName}(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)";
-                _delete_from_writecache_0 = $"delete from {WriteCacheDBName}.{DataTableName};";
-                _insert_or_replace_into_main_0_select_star_from_writecache_1 = $"insert or replace into {MainDBName}.{DataTableName} select * from {WriteCacheDBName}.{DataTableName};";
+                _select_rowid_from_main_table_where_0 = $@"select rowid from {MainDBName}.{DataTableName} where ""{DataIdColumnName}"" = ?";
+                _select_rowid_from_writecache_table_where_0 = $@"select rowid from {WriteCacheDBName}.{DataTableName} where ""{DataIdColumnName}"" = ?";
+                _insert_or_replace_into_writecache_table_values_0_1_2 = $@"insert or replace into {WriteCacheDBName}.{DataTableName}(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)";
+                _delete_from_writecache_table = $"delete from {WriteCacheDBName}.{DataTableName};";
+                _insert_or_replace_into_main_table_select_star_from_writecache_table = $"insert or replace into {MainDBName}.{DataTableName} select * from {WriteCacheDBName}.{DataTableName};";
             }
 
             protected abstract string DataTableName { get; }
@@ -261,8 +261,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // of those special names, then the use of that name will refer to the declared column
                 // not to the internal ROWID.
                 using (var resettableStatement = connection.GetResettableStatement(writeCacheDB
-                    ? _select_rowid_from_writecache_0_where_1
-                    : _select_rowid_from_main_0_where_1))
+                    ? _select_rowid_from_writecache_table_where_0
+                    : _select_rowid_from_main_table_where_0))
                 {
                     var statement = resettableStatement.Statement;
 
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 byte[] checksumBytes, int checksumLength,
                 byte[] dataBytes, int dataLength)
             {
-                using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_writecache_0_1_2_3_value))
+                using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_writecache_table_values_0_1_2))
                 {
                     var statement = resettableStatement.Statement;
 
@@ -312,13 +312,13 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 // Efficient call to sqlite to just fully copy all data from one table to the
                 // other.  No need to actually do any reading/writing of the data ourselves.
-                using (var statement = connection.GetResettableStatement(_insert_or_replace_into_main_0_select_star_from_writecache_1))
+                using (var statement = connection.GetResettableStatement(_insert_or_replace_into_main_table_select_star_from_writecache_table))
                 {
                     statement.Statement.Step();
                 }
 
                 // Now, just delete all the data from the write cache.
-                using (var statement = connection.GetResettableStatement(_delete_from_writecache_0))
+                using (var statement = connection.GetResettableStatement(_delete_from_writecache_table))
                 {
                     statement.Statement.Step();
                 }
