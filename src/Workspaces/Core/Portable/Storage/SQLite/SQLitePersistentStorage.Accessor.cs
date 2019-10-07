@@ -97,10 +97,17 @@ namespace Microsoft.CodeAnalysis.SQLite
                     var connection = pooledConnection.Connection;
                     if (TryGetDatabaseId(pooledConnection.Connection, key, out var dataId))
                     {
-                        // First, try to see if there was a write to this key in our in-memory db.
-                        // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
-                        return ReadBlob(connection, writeCacheDB: true, dataId, columnName, checksumOpt, cancellationToken) ??
-                               ReadBlob(connection, writeCacheDB: false, dataId, columnName, checksumOpt, cancellationToken);
+                        try
+                        {
+                            // First, try to see if there was a write to this key in our in-memory db.
+                            // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
+                            return ReadBlob(connection, writeCacheDB: true, dataId, columnName, checksumOpt, cancellationToken) ??
+                                   ReadBlob(connection, writeCacheDB: false, dataId, columnName, checksumOpt, cancellationToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            StorageDatabaseLogger.LogException(ex);
+                        }
                     }
                 }
 
@@ -155,34 +162,27 @@ namespace Microsoft.CodeAnalysis.SQLite
                 TDatabaseId dataId, string columnName,
                 Checksum checksumOpt, CancellationToken cancellationToken)
             {
-                try
+                // Note: it's possible that someone may write to this row between when we
+                // get the row ID above and now.  That's fine.  We'll just read the new
+                // bytes that have been written to this location.  Note that only the
+                // data for a row in our system can change, the ID will always stay the
+                // same, and the data will always be valid for our ID.  So there is no
+                // safety issue here.
+                if (!TryGetRowId(connection, writeCacheDB, dataId, out var rowId))
                 {
-                    // Note: it's possible that someone may write to this row between when we
-                    // get the row ID above and now.  That's fine.  We'll just read the new
-                    // bytes that have been written to this location.  Note that only the
-                    // data for a row in our system can change, the ID will always stay the
-                    // same, and the data will always be valid for our ID.  So there is no
-                    // safety issue here.
-                    if (TryGetRowId(connection, writeCacheDB, dataId, out var rowId))
-                    {
-                        // Have to run the blob reading in a transaction.  This is necessary
-                        // for two reasons.  First, blob reading outside a transaction is not
-                        // safe to do with the sqlite API.  It may produce corrupt bits if 
-                        // another thread is writing to the blob.  Second, if a checksum was
-                        // passed in, we need to validate that the checksums match.  This is
-                        // only safe if we are in a transaction and no-one else can race with
-                        // us.
-                        return connection.RunInTransaction(
-                            s_validateChecksumAndReadBlock,
-                            (self: this, connection, writeCacheDB, columnName, checksumOpt, rowId, cancellationToken));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    StorageDatabaseLogger.LogException(ex);
+                    return null;
                 }
 
-                return null;
+                // Have to run the blob reading in a transaction.  This is necessary
+                // for two reasons.  First, blob reading outside a transaction is not
+                // safe to do with the sqlite API.  It may produce corrupt bits if 
+                // another thread is writing to the blob.  Second, if a checksum was
+                // passed in, we need to validate that the checksums match.  This is
+                // only safe if we are in a transaction and no-one else can race with
+                // us.
+                return connection.RunInTransaction(
+                    s_validateChecksumAndReadBlock,
+                    (self: this, connection, writeCacheDB, columnName, checksumOpt, rowId, cancellationToken));
             }
 
             private static readonly Func<(Accessor<TKey, TWriteQueueKey, TDatabaseId> self, SqlConnection connection, bool writeCacheDB,
