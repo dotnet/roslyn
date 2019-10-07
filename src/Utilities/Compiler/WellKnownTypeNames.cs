@@ -365,7 +365,7 @@ namespace Analyzer.Utilities
         public const string SystemSecurityCryptographyAesGcm = "System.Security.Cryptography.AesGcm";
         public const string SystemSecurityCryptographyAesCcm = "System.Security.Cryptography.AesCcm";
         public const string SystemThreadingInterlocked = "System.Threading.Interlocked";
-        public const string SystemRuntimeAttributeUsageAttribute = "System.Runtime.AttributeUsageAttribute";
+        public const string SystemAttributeUsageAttribute = "System.AttributeUsageAttribute";
         public const string SystemInvalidOperationException = "System.InvalidOperationException";
         public const string SystemArgumentException = "System.ArgumentException";
         public const string SystemNotSupportedException = "System.NotSupportedException";

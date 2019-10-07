@@ -196,6 +196,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterlockedNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingInterlocked);
             SerializationInfoNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
             GenericIEquatableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
+            CollectionNamedTypes = GetWellKnownCollectionTypes();
 
             _lValueFlowCaptures = LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(analysisContext.ControlFlowGraph);
             _valueCacheBuilder = ImmutableDictionary.CreateBuilder<IOperation, TAbstractAnalysisValue>();
@@ -3569,5 +3570,37 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.IEquatable{T}"/>
         /// </summary>
         protected INamedTypeSymbol GenericIEquatableNamedType { get; }
+
+        /// <summary>
+        /// Set containing following named types, if not null:
+        /// 1. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.ICollection"/>
+        /// 2. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Generic.ICollection{T}"/>
+        /// 3. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Generic.IReadOnlyCollection{T}"/>
+        /// </summary>
+        protected ImmutableHashSet<INamedTypeSymbol> CollectionNamedTypes { get; }
+
+        private ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes()
+        {
+            var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
+            var iCollection = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection);
+            if (iCollection != null)
+            {
+                builder.Add(iCollection);
+            }
+
+            var genericICollection = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1);
+            if (genericICollection != null)
+            {
+                builder.Add(genericICollection);
+            }
+
+            var genericIReadOnlyCollection = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1);
+            if (genericIReadOnlyCollection != null)
+            {
+                builder.Add(genericIReadOnlyCollection);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
     }
 }

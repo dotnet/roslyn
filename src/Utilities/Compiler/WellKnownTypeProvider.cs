@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
@@ -20,8 +18,6 @@ namespace Analyzer.Utilities
         {
             Compilation = compilation;
             _fullNameToTypeMap = new ConcurrentDictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
-
-            CollectionTypes = GetWellKnownCollectionTypes();
         }
 
         public static WellKnownTypeProvider GetOrCreate(Compilation compilation)
@@ -63,38 +59,6 @@ namespace Analyzer.Utilities
         {
             TryGetOrCreateTypeByMetadataName(fullTypeName, out INamedTypeSymbol namedTypeSymbol);
             return namedTypeSymbol;
-        }
-
-        /// <summary>
-        /// Set containing following named types, if not null:
-        /// 1. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.ICollection"/>
-        /// 2. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Generic.ICollection{T}"/>
-        /// 3. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Generic.IReadOnlyCollection{T}"/>
-        /// </summary>
-        public ImmutableHashSet<INamedTypeSymbol> CollectionTypes { get; }
-
-        private ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes()
-        {
-            var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
-            var iCollection = GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection);
-            if (iCollection != null)
-            {
-                builder.Add(iCollection);
-            }
-
-            var genericICollection = GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1);
-            if (genericICollection != null)
-            {
-                builder.Add(genericICollection);
-            }
-
-            var genericIReadOnlyCollection = GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1);
-            if (genericIReadOnlyCollection != null)
-            {
-                builder.Add(genericIReadOnlyCollection);
-            }
-
-            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
