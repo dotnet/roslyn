@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
