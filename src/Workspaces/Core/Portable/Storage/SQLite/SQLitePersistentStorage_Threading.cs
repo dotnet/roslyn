@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             private static void ReturnBox(StrongBox<(Func<TArg, TResult> func, TArg arg)> box)
             {
+                // Clear out the box so it doesn't keep things alive longer than necessary.
+                box.Value = default;
                 lock (s_boxes)
                 {
                     s_boxes.Push(box);
