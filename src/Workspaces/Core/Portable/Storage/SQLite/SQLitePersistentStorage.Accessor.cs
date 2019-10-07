@@ -22,6 +22,15 @@ namespace Microsoft.CodeAnalysis.SQLite
         {
             protected readonly SQLitePersistentStorage Storage;
 
+            // Cache the statement strings we want to execute per accessor.  This way we avoid
+            // allocating these strings each time we execute a command.  We also cache the prepared
+            // statements (at the connection level) we make for each of these strings.  That way we
+            // only incur the parsing cost once. After that, we can use the same prepared statements
+            // and just bind the appropriate values it needs into it.
+            //
+            // values like 0, 1, 2 in the name are the `?`s in the sql string that will need to be
+            // bound to runtime values appropriately when executed.
+
             private readonly string _select_rowid_from_main_table_where_0;
             private readonly string _select_rowid_from_writecache_table_where_0;
             private readonly string _insert_or_replace_into_writecache_table_values_0_1_2;
@@ -83,30 +92,15 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    bool haveDataId;
-                    TDatabaseId dataId;
-                    using (var pooledConnection = Storage.GetPooledConnection())
-                    {
-                        haveDataId = TryGetDatabaseId(pooledConnection.Connection, key, out dataId);
-                    }
+                    using var pooledConnection = Storage.GetPooledConnection();
 
-                    if (haveDataId)
+                    var connection = pooledConnection.Connection;
+                    if (TryGetDatabaseId(pooledConnection.Connection, key, out var dataId))
                     {
-                        using var pooledConnection = Storage.GetPooledConnection();
-
                         // First, try to see if there was a write to this key in our in-memory db.
-                        var result = ReadBlob(
-                            pooledConnection.Connection, writeCacheDB: true,
-                            dataId, columnName, checksumOpt, cancellationToken);
-                        if (result != null)
-                        {
-                            return result;
-                        }
-
-                        // Wasn't in the in-memory write-cache.  Check the full on-disk file.
-                        return ReadBlob(
-                            pooledConnection.Connection, writeCacheDB: false,
-                            dataId, columnName, checksumOpt, cancellationToken);
+                        // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
+                        return ReadBlob(connection, writeCacheDB: true, dataId, columnName, checksumOpt, cancellationToken) ??
+                               ReadBlob(connection, writeCacheDB: false, dataId, columnName, checksumOpt, cancellationToken);
                     }
                 }
 
@@ -121,35 +115,23 @@ namespace Microsoft.CodeAnalysis.SQLite
 
             private bool WriteStream(TKey key, Stream stream, Checksum checksumOpt, CancellationToken cancellationToken)
             {
-                // Note: we're technically fully synchronous.  However, we're called from several
-                // async methods.  We just return a Task<bool> here so that all our callers don't
-                // need to call Task.FromResult on us.
-
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
-                    bool haveDataId;
-                    TDatabaseId dataId;
-                    using (var pooledConnection = Storage.GetPooledConnection())
-                    {
-                        // Determine the appropriate data-id to store this stream at.
-                        haveDataId = TryGetDatabaseId(pooledConnection.Connection, key, out dataId);
-                    }
+                    using var pooledConnection = Storage.GetPooledConnection();
+                    var connection = pooledConnection.Connection;
 
-                    if (haveDataId)
+                    // Determine the appropriate data-id to store this stream at.
+                    if (TryGetDatabaseId(pooledConnection.Connection, key, out var dataId))
                     {
                         var (checksumBytes, checksumLength, checksumPooled) = GetBytes(checksumOpt, cancellationToken);
                         var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
 
-                        using (var pooledConnection = Storage.GetPooledConnection())
-                        {
-                            // Write the information into the in-memory write-cache.
-                            InsertOrReplaceBlobIntoWriteCache(
-                                pooledConnection.Connection, dataId,
-                                checksumBytes, checksumLength,
-                                dataBytes, dataLength);
-                        }
+                        // Write the information into the in-memory write-cache.  Later on a bg task
+                        // will move it from the in-memory cache to the on-disk db in a bulk transaction.
+                        InsertOrReplaceBlobIntoWriteCache(
+                            connection, dataId, checksumBytes, checksumLength, dataBytes, dataLength);
 
                         if (dataPooled)
                         {
@@ -189,19 +171,9 @@ namespace Microsoft.CodeAnalysis.SQLite
                         // passed in, we need to validate that the checksums match.  This is
                         // only safe if we are in a transaction and no-one else can race with
                         // us.
-                        return connection.RunInTransaction((tuple) =>
-                        {
-                            // If we were passed a checksum, make sure it matches what we have
-                            // stored in the table already.  If they don't match, don't read
-                            // out the data value at all.
-                            if (tuple.checksumOpt != null &&
-                                !ChecksumsMatch_MustRunInTransaction(tuple.connection, tuple.writeCacheDB, tuple.rowId, tuple.checksumOpt, cancellationToken))
-                            {
-                                return null;
-                            }
-
-                            return connection.ReadBlob_MustRunInTransaction(tuple.writeCacheDB, tuple.self.DataTableName, tuple.columnName, tuple.rowId);
-                        }, (self: this, connection, writeCacheDB, columnName, checksumOpt, rowId));
+                        return connection.RunInTransaction(
+                            ValidateChecksumAndReadBlob,
+                            (self: this, connection, writeCacheDB, columnName, checksumOpt, rowId, cancellationToken));
                     }
                 }
                 catch (Exception ex)
@@ -210,6 +182,27 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
 
                 return null;
+
+                static Stream ValidateChecksumAndReadBlob(
+                    (Accessor<TKey, TWriteQueueKey, TDatabaseId> self, SqlConnection connection, bool writeCacheDB, string columnName,
+                     Checksum checksumOpt, long rowId, CancellationToken cancellationToken) t)
+                {
+                    // If we were passed a checksum, make sure it matches what we have
+                    // stored in the table already.  If they don't match, don't read
+                    // out the data value at all.
+                    if (t.checksumOpt != null)
+                    {
+                        if (!t.self.ChecksumsMatch_MustRunInTransaction(
+                                t.connection, t.writeCacheDB, t.rowId,
+                                t.checksumOpt, t.cancellationToken))
+                        {
+                            return null;
+                        }
+                    }
+
+                    return t.connection.ReadBlob_MustRunInTransaction(
+                        t.writeCacheDB, t.self.DataTableName, t.columnName, t.rowId);
+                }
             }
 
             private bool ChecksumsMatch_MustRunInTransaction(
