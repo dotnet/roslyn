@@ -189,14 +189,10 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // If we were passed a checksum, make sure it matches what we have
                     // stored in the table already.  If they don't match, don't read
                     // out the data value at all.
-                    if (t.checksumOpt != null)
+                    if (t.checksumOpt != null &&
+                        !t.self.ChecksumsMatch_MustRunInTransaction(t.connection, t.writeCacheDB, t.rowId, t.checksumOpt, t.cancellationToken))
                     {
-                        if (!t.self.ChecksumsMatch_MustRunInTransaction(
-                                t.connection, t.writeCacheDB, t.rowId,
-                                t.checksumOpt, t.cancellationToken))
-                        {
-                            return null;
-                        }
+                        return null;
                     }
 
                     return t.connection.ReadBlob_MustRunInTransaction(t.writeCacheDB, t.self.DataTableName, t.columnName, t.rowId);
