@@ -6047,9 +6047,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-    public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxTokenList modifiers = default(SyntaxTokenList))
+    public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression()
     {
-      return SyntaxFactory.ParenthesizedLambdaExpression(modifiers, SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default(BlockSyntax), default(ExpressionSyntax));
+      return SyntaxFactory.ParenthesizedLambdaExpression(default(SyntaxTokenList), SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default(BlockSyntax), default(ExpressionSyntax));
     }
 
     /// <summary>Creates a new InitializerExpressionSyntax instance.</summary>
