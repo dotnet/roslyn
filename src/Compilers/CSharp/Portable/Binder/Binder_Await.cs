@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out BoundExpression getAwaiter,
                 out PropertySymbol isCompleted,
                 out MethodSymbol getResult,
-                out _,
+                getAwaiterGetResultCall: out _,
                 node,
                 diagnostics);
             hasErrors |= hasGetAwaitableErrors;

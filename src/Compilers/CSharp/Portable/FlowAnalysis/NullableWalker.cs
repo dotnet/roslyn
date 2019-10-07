@@ -173,9 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private PooledDictionary<BoundExpression, TypeWithState> _methodGroupReceiverMapOpt;
 
         /// <summary>
-        /// State of awaited expressions on the stack, for substitution in placeholders within GetAwaiter calls.
+        /// State of awaitable expressions, for substitution in placeholders within GetAwaiter calls.
         /// </summary>
-        private PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression, VisitResult)> _awaitablePlaceholdersOpt;
+        private PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression AwaitableExpression, VisitResult Result)> _awaitablePlaceholdersOpt;
 
         /// <summary>
         /// True if we're analyzing speculative code. This turns off some initialization steps
@@ -2671,7 +2671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_awaitablePlaceholdersOpt != null && _awaitablePlaceholdersOpt.TryGetValue((BoundAwaitableValuePlaceholder)expression, out var value))
                 {
-                    expression = value.Item1;
+                    expression = value.AwaitableExpression;
                 }
                 else
                 {
@@ -7166,7 +7166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var awaitableInfo = node.AwaitableInfo;
             var placeholder = awaitableInfo.AwaitableInstancePlaceholder;
 
-            _awaitablePlaceholdersOpt ??= PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression, VisitResult)>.GetInstance();
+            _awaitablePlaceholdersOpt ??= PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression AwaitableExpression, VisitResult Result)>.GetInstance();
             _awaitablePlaceholdersOpt.Add(placeholder, (node.Expression, _visitResult));
             Visit(awaitableInfo);
             _awaitablePlaceholdersOpt.Remove(placeholder);
@@ -7772,9 +7772,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
         {
-            VisitResult result = _awaitablePlaceholdersOpt != null &&
-                _awaitablePlaceholdersOpt.TryGetValue(node, out (BoundExpression, VisitResult) value) ?
-                value.Item2 :
+            VisitResult result = _awaitablePlaceholdersOpt != null && _awaitablePlaceholdersOpt.TryGetValue(node, out var value) ?
+                value.Result :
                 new VisitResult(TypeWithState.Create(node.Type, default));
             SetResult(node, result.RValueType, result.LValueType);
             return null;
