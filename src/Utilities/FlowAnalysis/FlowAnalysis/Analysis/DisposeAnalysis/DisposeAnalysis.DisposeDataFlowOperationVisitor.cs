@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 if (!location.IsNull &&
                     location.LocationTypeOpt != null &&
                     !location.LocationTypeOpt.IsValueType &&
-                    location.LocationTypeOpt.IsDisposable(WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable)))
+                    location.LocationTypeOpt.IsDisposable(IDisposableNamedType))
                 {
                     CurrentAnalysisData[location] = value;
                 }
@@ -84,15 +84,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 defaultValue = DisposeAbstractValue.NotDisposable;
                 var instanceType = creation.Type;
 
-                if (!instanceType.IsDisposable(WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable)) ||
+                if (!instanceType.IsDisposable(IDisposableNamedType) ||
                     !IsCurrentBlockReachable())
                 {
                     return defaultValue;
                 }
 
                 // Special case: Do not track System.Threading.Tasks.Task as you are not required to dispose them.
-                if (WellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask, out var taskType) &&
-                    instanceType.DerivesFrom(taskType, baseTypesOnly: true))
+                if (TaskNamedType != null &&
+                    instanceType.DerivesFrom(TaskNamedType, baseTypesOnly: true))
                 {
                     return defaultValue;
                 }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             private void HandleDisposingOperation(IOperation disposingOperation, IOperation disposedInstance)
             {
-                if (disposedInstance.Type?.IsDisposable(WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable)) == false)
+                if (disposedInstance.Type?.IsDisposable(IDisposableNamedType) == false)
                 {
                     return;
                 }
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 Debug.Assert(!escapedLocations.IsEmpty);
                 Debug.Assert(parameter.RefKind != RefKind.None);
                 var escapedDisposableLocations =
-                    escapedLocations.Where(l => l.LocationTypeOpt?.IsDisposable(WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable)) == true);
+                    escapedLocations.Where(l => l.LocationTypeOpt?.IsDisposable(IDisposableNamedType) == true);
                 SetAbstractValue(escapedDisposableLocations, ValueDomain.UnknownOrMayBeValue);
             }
 
@@ -272,9 +272,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, instance,
                     arguments, invokedAsDelegate, originalOperation, defaultValue);
 
-                var disposeMethodKind = targetMethod.GetDisposeMethodKind(
-                    WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable),
-                    WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask));
+                var disposeMethodKind = targetMethod.GetDisposeMethodKind(IDisposableNamedType, TaskNamedType);
                 switch (disposeMethodKind)
                 {
                     case DisposeMethodKind.Dispose:

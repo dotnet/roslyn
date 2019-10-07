@@ -281,13 +281,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 }
                 else if (targetMethod.Parameters.Length > 0 &&
                          arguments.Length > 0 &&
-                         WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException) is INamedTypeSymbol exceptionType &&
-                         targetMethod.ContainingType.DerivesFrom(exceptionType))
+                         ExceptionNamedType != null &&
+                         targetMethod.ContainingType.DerivesFrom(ExceptionNamedType))
                 {
                     // FxCop compat: special cases handled by FxCop.
                     //  1. First argument of type System.Runtime.Serialization.SerializationInfo to System.Exception.GetObjectData or its override is validated.
                     //  2. First argument of type System.Runtime.Serialization.SerializationInfo to constructor of System.Exception or its subtype is validated.
-                    if (Equals(targetMethod.Parameters[0].Type, WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo)))
+                    if (Equals(targetMethod.Parameters[0].Type, SerializationInfoNamedType))
                     {
                         switch (targetMethod.MethodKind)
                         {
