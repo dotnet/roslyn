@@ -185,8 +185,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
 
                 static Stream ValidateChecksumAndReadBlob(
-                    (Accessor<TKey, TWriteQueueKey, TDatabaseId> self, SqlConnection connection, bool writeCacheDB, string columnName,
-                     Checksum checksumOpt, long rowId, CancellationToken cancellationToken) t)
+                    (Accessor<TKey, TWriteQueueKey, TDatabaseId> self, SqlConnection connection, bool writeCacheDB,
+                     string columnName, Checksum checksumOpt, long rowId, CancellationToken cancellationToken) t)
                 {
                     // If we were passed a checksum, make sure it matches what we have
                     // stored in the table already.  If they don't match, don't read
@@ -201,8 +201,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                         }
                     }
 
-                    return t.connection.ReadBlob_MustRunInTransaction(
-                        t.writeCacheDB, t.self.DataTableName, t.columnName, t.rowId);
+                    return t.connection.ReadBlob_MustRunInTransaction(t.writeCacheDB, t.self.DataTableName, t.columnName, t.rowId);
                 }
             }
 
