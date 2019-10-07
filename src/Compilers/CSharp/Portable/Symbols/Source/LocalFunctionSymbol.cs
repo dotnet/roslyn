@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LocalFunctionSymbol : SourceMethodSymbol
+    internal sealed class LocalFunctionSymbol : SourceMethodSymbol, IAttributeTargetSymbol
     {
         private readonly Binder _binder;
         private readonly LocalFunctionStatementSyntax _syntax;
@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeWithAnnotations.Boxed _lazyReturnType;
         private TypeWithAnnotations.Boxed _lazyIteratorElementType;
+
+        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
+        private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
 
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
@@ -120,6 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ComputeReturnType();
+
+            GetAttributes();
+            GetReturnTypeAttributes();
 
             addTo.AddRange(_declarationDiagnostics);
         }
@@ -375,6 +381,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => false;
 
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
+
+        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.Method | AttributeLocation.Return;
+
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Method;
+
         public override DllImportData GetDllImportData() => null;
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
@@ -424,7 +436,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
                 }
 
-                // Attributes are currently disallowed on local function type parameters
                 ReportAttributesDisallowed(parameter.AttributeLists, diagnostics);
 
                 var identifier = parameter.Identifier;
@@ -495,6 +506,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return _lazyTypeParameterConstraints;
+        }
+
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            var lazyCustomAttributesBag = _lazyCustomAttributesBag;
+            if (lazyCustomAttributesBag != null)
+            {
+                return lazyCustomAttributesBag.Attributes;
+            }
+
+            var bagCreatedOnThisThread = LoadAndValidateAttributes(OneOrMany.Create(_syntax.AttributeLists), ref _lazyCustomAttributesBag);
+            // PROTOTYPE: there is no completion part to set, but does the thread that wins the race need to do anything else?
+            return _lazyCustomAttributesBag.Attributes;
+        }
+
+        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        {
+            var lazyReturnTypeCustomAttributesBag = _lazyReturnTypeCustomAttributesBag;
+            if (lazyReturnTypeCustomAttributesBag != null)
+            {
+                return lazyReturnTypeCustomAttributesBag.Attributes;
+            }
+
+            var bagCreatedOnThisThread = LoadAndValidateAttributes(
+                OneOrMany.Create(_syntax.AttributeLists),
+                ref _lazyReturnTypeCustomAttributesBag,
+                symbolPart: AttributeLocation.Return);
+            // PROTOTYPE: there is no completion part to set, but does the thread that wins the race need to do anything else?
+            return _lazyReturnTypeCustomAttributesBag.Attributes;
         }
 
         public override int GetHashCode()

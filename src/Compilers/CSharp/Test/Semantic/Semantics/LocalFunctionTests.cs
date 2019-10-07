@@ -442,8 +442,15 @@ class C
             Assert.NotNull(symbol);
 
             var attributes = symbol.GetAttributes();
-            // PROTOTYPE: method symbol should have the attribute
-            //Assert.Single(attributes);
+            Assert.Single(attributes);
+
+            var attributeData = attributes[0];
+            var aAttribute = comp.GetTypeByMetadataName("A");
+            Assert.Equal(aAttribute, attributeData.AttributeClass);
+            Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor);
+
+            var returnAttributes = symbol.GetReturnTypeAttributes();
+            Assert.Empty(returnAttributes);
         }
 
         [Fact]
@@ -484,9 +491,16 @@ class C
             var symbol = (IMethodSymbol)model.GetDeclaredSymbol(localFunction);
             Assert.NotNull(symbol);
 
+            var returnAttributes = symbol.GetReturnTypeAttributes();
+            Assert.Single(returnAttributes);
+
+            var attributeData = returnAttributes[0];
+            var aAttribute = comp.GetTypeByMetadataName("A");
+            Assert.Equal(aAttribute, attributeData.AttributeClass);
+            Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor);
+
             var attributes = symbol.GetAttributes();
-            // PROTOTYPE: method symbol should have the attribute
-            //Assert.Single(attributes);
+            Assert.Empty(attributes);
         }
 
         [Fact]
