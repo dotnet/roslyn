@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -153,6 +152,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     writer.WriteInt32(v);
                 }
             }
+
+            if (_simpleTypeNameToExtensionMethodMap == null)
+            {
+                writer.WriteInt32(0);
+            }
+            else
+            {
+                writer.WriteInt32(_simpleTypeNameToExtensionMethodMap.Count);
+                foreach (var key in _simpleTypeNameToExtensionMethodMap.Keys)
+                {
+                    writer.WriteString(key);
+
+                    var values = _simpleTypeNameToExtensionMethodMap[key];
+                    writer.WriteInt32(values.Count);
+
+                    foreach (var value in values)
+                    {
+                        writer.WriteString(value.FullyQualifiedContainerName);
+                        writer.WriteString(value.Name);
+                    }
+                }
+            }
+
+            writer.WriteInt32(_extensionMethodOfComplexType.Length);
+            foreach (var methodInfo in _extensionMethodOfComplexType)
+            {
+                writer.WriteString(methodInfo.FullyQualifiedContainerName);
+                writer.WriteString(methodInfo.Name);
+            }
         }
 
         internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
@@ -197,9 +225,56 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
+                MultiDictionary<string, ExtensionMethodInfo> simpleTypeNameToExtensionMethodMap;
+                ImmutableArray<ExtensionMethodInfo> extensionMethodOfComplexType;
+
+                var keyCount = reader.ReadInt32();
+                if (keyCount == 0)
+                {
+                    simpleTypeNameToExtensionMethodMap = null;
+                }
+                else
+                {
+                    simpleTypeNameToExtensionMethodMap = new MultiDictionary<string, ExtensionMethodInfo>();
+
+                    for (var i = 0; i < keyCount; i++)
+                    {
+                        var typeName = reader.ReadString();
+                        var valueCount = reader.ReadInt32();
+
+                        for (var j = 0; j < valueCount; j++)
+                        {
+                            var containerName = reader.ReadString();
+                            var name = reader.ReadString();
+
+                            simpleTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
+                        }
+                    }
+                }
+
+                var arrayLength = reader.ReadInt32();
+                if (arrayLength == 0)
+                {
+                    extensionMethodOfComplexType = ImmutableArray<ExtensionMethodInfo>.Empty;
+                }
+                else
+                {
+                    var builder = ArrayBuilder<ExtensionMethodInfo>.GetInstance(arrayLength);
+                    for (var i = 0; i < arrayLength; ++i)
+                    {
+                        var containerName = reader.ReadString();
+                        var name = reader.ReadString();
+                        builder.Add(new ExtensionMethodInfo(containerName, name));
+                    }
+
+                    extensionMethodOfComplexType = builder.ToImmutableAndFree();
+                }
+
                 var nodeArray = nodes.ToImmutableAndFree();
                 var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
-                return new SymbolTreeInfo(checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap);
+                return new SymbolTreeInfo(
+                    checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap, 
+                    extensionMethodOfComplexType, simpleTypeNameToExtensionMethodMap);
             }
             catch
             {

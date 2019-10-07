@@ -20,20 +20,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         // return a multi-dictionary of mappings "FQN of containing type" => "extension method names"
         public async Task<MultiDictionary<string, string>> GetPossibleExtensionMethodMatchesAsync(
-            Project project,
+            Project currentProject,
             ISet<string> targetTypeNames,
             CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
-            var graph = project.Solution.GetProjectDependencyGraph();
-            var dependencies = graph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id);
+            var solution = currentProject.Solution;
+            var graph = currentProject.Solution.GetProjectDependencyGraph();
+            var dependencies = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id);
             var relevantProjects = dependencies.Select(solution.GetProject)
                                                  .Where(p => p.SupportsCompilation)
-                                                 .Concat(project);
+                                                 .Concat(currentProject);
+
             var results = new MultiDictionary<string, string>();
 
             // Find matching extension methods from source.
-            foreach (var proj in relevantProjects)
+            foreach (var project in relevantProjects)
             {
                 foreach (var document in project.Documents)
                 {
@@ -72,10 +73,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // Find matching extension methods from metadata
-            foreach (var peReference in project.MetadataReferences.OfType<PortableExecutableReference>())
+            foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
             {
                 var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                     solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+
+                if (!info.ContainsExtensionMethod)
+                {
+                    continue;
+                }
+
+                // Add simple extension methods with matching target type name
+                foreach (var targetTypeName in targetTypeNames)
+                {
+                    foreach (var methodInfo in info.GetMatchingExtensionMethodInfo(targetTypeName))
+                    {
+                        results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
+                    }
+                }
             }
 
             return results;
