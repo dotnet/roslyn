@@ -22,8 +22,8 @@ namespace IdeBenchmarks
         private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
 
         // Run the test with different ratios of reads/writes.
-        // [Params(0, 25, 50, 75, 100)]
-        [Params(25)]
+        [Params(0, 25, 50, 75, 100)]
+        // [Params(25)]
         public int ReadPercentage { get; set; }
 
         private TestWorkspace workspace;

@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                 {
                     var token = _shutdownTokenSource.Token;
                     _flushTask = Task.Delay(FlushAllDelayMS, token).ContinueWith(
-                        _ => FlushInMemoryDataToDisk(force: false),
+                        (_, self) => ((SQLitePersistentStorage)self).FlushInMemoryDataToDisk(force: false),
+                        this,
                         token,
                         TaskContinuationOptions.None,
                         _readerWriterLock.ExclusiveScheduler);

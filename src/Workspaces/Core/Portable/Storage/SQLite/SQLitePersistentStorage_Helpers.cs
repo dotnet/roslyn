@@ -20,12 +20,11 @@ namespace Microsoft.CodeAnalysis.SQLite
         private static long CombineInt32ValuesToInt64(int v1, int v2)
             => ((long)v1 << 32) | (long)v2;
 
-
         private static (byte[] bytes, int length, bool fromPool) GetBytes(
             Checksum checksumOpt, CancellationToken cancellationToken)
         {
-            // If we weren't passed a checsum, just pass the singleton empty byte array.
-            // Note: we don't add this to/from our pool.  But it likely woudn't be a problem
+            // If we weren't passed a checksum, just pass the singleton empty byte array.
+            // Note: we don't add this to/from our pool.  But it likely wouldn't be a problem
             // for us to do that as this instance can't actually be mutated since it's just
             // an empty array.
             if (checksumOpt == null)

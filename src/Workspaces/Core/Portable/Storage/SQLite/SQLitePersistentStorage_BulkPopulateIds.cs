@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// We have a lot of ID information to put into the DB. IDs for all strings we intend to 
         /// intern, as well as compound IDs for our projects and documents. Inserting these 
         /// individually is far too slow as SQLite will lock the DB for each insert and will have
-        /// to do all the journalling work to ensure ACID semantics.  To avoid that, we attempt
+        /// to do all the journaling work to ensure ACID semantics.  To avoid that, we attempt
         /// to precompute all the information we'd need to put in the ID tables and perform it
         /// all at once per project.
         /// </remarks>
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // 1) Process1 and Process2 are concurrently attempting to bulk populate the DB.  Process1
                 // ends up populating the DB.  Process2 then tries to do the same, and gets a constraint
                 // violation because it is trying to add the same strings as Process1 did.  Because of the
-                // contraint violation, Process2 will back off to try again later.  Unless it actually gets
+                // constraint violation, Process2 will back off to try again later.  Unless it actually gets
                 // the current string table, it will keep having problems trying to bulk populate.
                 if (fetchStringTable)
                 {
