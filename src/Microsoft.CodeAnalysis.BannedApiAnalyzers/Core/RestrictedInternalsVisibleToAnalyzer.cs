@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
         private static ImmutableDictionary<IAssemblySymbol, ImmutableSortedSet<string>> GetRestrictedInternalsVisibleToMap(Compilation compilation)
         {
-            var restrictedInternalsVisibleToAttribute = compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute");
+            var restrictedInternalsVisibleToAttribute = compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesRestrictedInternalsVisibleToAttribute);
             if (restrictedInternalsVisibleToAttribute == null)
             {
                 return ImmutableDictionary<IAssemblySymbol, ImmutableSortedSet<string>>.Empty;

@@ -62,7 +62,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 ImmutableHashSet<INamedTypeSymbol>.Builder builder = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>();
                 foreach (string typeToTrackMetadataName in analysisContext.TypeToTrackMetadataNames)
                 {
-                    this.WellKnownTypeProvider.TryGetTypeByMetadataName(typeToTrackMetadataName, out INamedTypeSymbol trackedTypeSymbol);
+                    this.WellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(typeToTrackMetadataName, out INamedTypeSymbol trackedTypeSymbol);
                     builder.Add(trackedTypeSymbol);
                 }
 

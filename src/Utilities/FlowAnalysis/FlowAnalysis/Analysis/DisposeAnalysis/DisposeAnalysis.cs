@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             bool performCopyAnalysis,
             out PointsToAnalysisResult pointsToAnalysisResult)
         {
-            Debug.Assert(wellKnownTypeProvider.IDisposable != null);
+            Debug.Assert(wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable, out _));
             Debug.Assert(owningSymbol != null);
 
             pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(
