@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 stringId = connection.RunInTransaction(
-                    state => state.self.InsertStringIntoDatabase_MustRunInTransaction(state.connection, state.value),
+                    InsertStringIntoDataBase,
                     (self: this, connection, value));
 
                 Contract.ThrowIfTrue(stringId == null);
@@ -106,6 +106,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             return null;
+
+            static int InsertStringIntoDataBase((SQLitePersistentStorage self, SqlConnection connection, string value) state)
+            {
+                return state.self.InsertStringIntoDatabase_MustRunInTransaction(state.connection, state.value);
+            }
         }
 
         private int InsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
