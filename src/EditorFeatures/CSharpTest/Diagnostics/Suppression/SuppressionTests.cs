@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
@@ -14,9 +15,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -148,12 +151,69 @@ class Class
     {{
         // Start comment previous line
 #pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
-                              /* Start comment same line */
+        /* Start comment same line */
         int x = 0; // End comment same line
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
-                              /* End comment next line */
+        /* End comment next line */
     }}
 }}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
+                public async Task TestPragmaWarningDirectiveWithDocumentationComment1()
+                {
+                    await TestAsync(
+        @"
+sealed class Class
+{
+    /// <summary>Text</summary>
+    [|protected void Method()|]
+    {
+    }
+}",
+        $@"
+sealed class Class
+{{
+    /// <summary>Text</summary>
+#pragma warning disable CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
+    protected void Method()
+#pragma warning restore CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
+    {{
+    }}
+}}");
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(16681, "https://github.com/dotnet/roslyn/issues/16681")]
+                public async Task TestPragmaWarningDirectiveWithDocumentationComment2()
+                {
+                    await TestAsync(
+        @"
+sealed class Class
+{
+    /// <summary>Text</summary>
+    /// <remarks>
+    /// <see cref=""[|Class2|]""/>
+    /// </remarks>
+    void Method()
+    {
+    }
+}",
+        $@"
+sealed class Class
+{{
+
+#pragma warning disable CS1574 // {CSharpResources.WRN_BadXMLRef_Title}
+    /// <summary>Text</summary>
+    /// <remarks>
+    /// <see cref=""Class2""/>
+    /// </remarks>
+    void Method()
+#pragma warning restore CS1574 // {CSharpResources.WRN_BadXMLRef_Title}
+    {{
+    }}
+}}", new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose));
                 }
 
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -505,6 +565,56 @@ class Class
                 }
             }
 
+            public partial class FormattingDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
+            {
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                {
+                    return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
+                        new FormattingDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+                }
+
+                protected override Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
+                {
+                    var solution = workspace.CurrentSolution;
+                    var compilationOptions = solution.Projects.Single().CompilationOptions;
+                    var specificDiagnosticOptions = new[] { KeyValuePairUtil.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
+                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
+                    var updatedSolution = solution.WithProjectCompilationOptions(solution.ProjectIds.Single(), compilationOptions);
+                    workspace.ChangeSolution(updatedSolution);
+
+                    return base.GetCodeActionsAsync(workspace, parameters);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(38587, "https://github.com/dotnet/roslyn/issues/38587")]
+                public async Task TestFormattingDiagnosticSuppressed()
+                {
+                    await TestAsync(
+            @"
+using System;
+
+class Class
+{
+    int Method()
+    {
+        [|int x = 0 ;|]
+    }
+}",
+            @"
+using System;
+
+class Class
+{
+    int Method()
+    {
+#pragma warning disable format
+        int x = 0 ;
+#pragma warning restore format
+    }
+}");
+                }
+            }
+
             public class UserErrorDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
@@ -703,6 +813,43 @@ class Class
     void Method()
     {
         [|int x = 0;|]
+    }
+}", 1);
+                }
+            }
+
+            public class FormattingDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
+            {
+                internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+                {
+                    return Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(
+                        new FormattingDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+                }
+
+                protected override Task<(ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetCodeActionsAsync(TestWorkspace workspace, TestParameters parameters)
+                {
+                    var solution = workspace.CurrentSolution;
+                    var compilationOptions = solution.Projects.Single().CompilationOptions;
+                    var specificDiagnosticOptions = new[] { KeyValuePairUtil.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
+                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
+                    var updatedSolution = solution.WithProjectCompilationOptions(solution.ProjectIds.Single(), compilationOptions);
+                    workspace.ChangeSolution(updatedSolution);
+
+                    return base.GetCodeActionsAsync(workspace, parameters);
+                }
+
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [WorkItem(38587, "https://github.com/dotnet/roslyn/issues/38587")]
+                public async Task TestCompilerDiagnosticsCannotBeSuppressed()
+                {
+                    // Another test verifies we have a pragma warning action for this source, this verifies there are no other suppression actions.
+                    await TestActionCountAsync(
+        @"
+class Class
+{
+    void Method()
+    {
+        [|int x = 0 ;|]
     }
 }", 1);
                 }

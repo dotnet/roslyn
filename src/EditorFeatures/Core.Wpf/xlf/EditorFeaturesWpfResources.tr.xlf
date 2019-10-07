@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Configure_or_Suppress_issues">
         <source>Configure or Suppress issues</source>
-        <target state="new">Configure or Suppress issues</target>
+        <target state="translated">Sorunları Yapılandır veya Gizle</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_index_failed">

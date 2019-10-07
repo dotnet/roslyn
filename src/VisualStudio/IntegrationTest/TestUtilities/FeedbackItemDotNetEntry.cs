@@ -14,13 +14,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     internal class FeedbackItemDotNetEntry
     {
         /// <summary>
-        /// The time the event happend (UTC)
+        /// The time the event happened (UTC)
         /// </summary>
         [DataMember(Name = "eventTime")]
         public DateTime EventTime { get; set; }
 
         /// <summary>
-        /// The .NET Runtime event id (this is set by .NET and we get it from the Event Log, so we can better differenciate between them)
+        /// The .NET Runtime event id (this is set by .NET and we get it from the Event Log, so we can better differentiate between them)
         /// As defined in CLR code:  ndp\clr\src\vm\eventreporter.cpp, these IDs are:
         /// 1023 - ERT_UnmanagedFailFast, 1025 - ERT_ManagedFailFast, 1026 - ERT_UnhandledException, 1027 - ERT_StackOverflow, 1028 - ERT_CodeContractFailed
         /// </summary>

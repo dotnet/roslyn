@@ -2,9 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -35,15 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 System.Diagnostics.Debug.Assert(item != null);
 
                 var visited = this.Visit(item);
-                if (item != visited)
+                if (newList == null && item != visited)
                 {
-                    if (newList == null)
+                    newList = ArrayBuilder<T>.GetInstance();
+                    if (i > 0)
                     {
-                        newList = ArrayBuilder<T>.GetInstance();
-                        if (i > 0)
-                        {
-                            newList.AddRange(list, i);
-                        }
+                        newList.AddRange(list, i);
                     }
                 }
 

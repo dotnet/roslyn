@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using CustomMethods = Microsoft.VisualStudio.LiveShare.LanguageServices.Protocol.CustomMethods;
@@ -18,6 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             : base(diagnosticService)
         {
         }
+
+        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(LanguageNames.CSharp, LanguageNames.VisualBasic);
     }
 
     [Export(LiveShareConstants.CSharpContractName, typeof(ILspNotificationProvider))]
@@ -29,6 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             : base(diagnosticService)
         {
         }
+
+        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(LanguageNames.CSharp);
     }
 
     [Export(LiveShareConstants.VisualBasicContractName, typeof(ILspNotificationProvider))]
@@ -40,17 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             : base(diagnosticService)
         {
         }
-    }
 
-    [Export(LiveShareConstants.TypeScriptContractName, typeof(ILspNotificationProvider))]
-    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, CustomMethods.GetDocumentDiagnosticsName)]
-    internal class TypeScriptDiagnosticsHandler : DiagnosticsHandler
-    {
-        [ImportingConstructor]
-        public TypeScriptDiagnosticsHandler(IDiagnosticService diagnosticService)
-            : base(diagnosticService)
-        {
-        }
+        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(LanguageNames.VisualBasic);
     }
 
     /// <summary>
@@ -65,5 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             : base(diagnosticService)
         {
         }
+
+        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create("TypeScript");
     }
 }

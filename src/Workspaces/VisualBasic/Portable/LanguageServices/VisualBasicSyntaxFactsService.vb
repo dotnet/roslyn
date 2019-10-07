@@ -982,6 +982,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(namespaceDeclaration, NamespaceBlockSyntax).Members
         End Function
 
+        Public Function GetMembersOfCompilationUnit(compilationUnit As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetMembersOfCompilationUnit
+            Return DirectCast(compilationUnit, CompilationUnitSyntax).Members
+        End Function
+
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTopLevelNodeWithMembers
             Return TypeOf node Is NamespaceBlockSyntax OrElse
                    TypeOf node Is TypeBlockSyntax OrElse

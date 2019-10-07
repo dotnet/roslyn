@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Base class for parameters can be referred to from source code.
     /// </summary>
     /// <remarks>
-    /// These parameters can potentially be targetted by an attribute specified in source code. 
+    /// These parameters can potentially be targeted by an attribute specified in source code. 
     /// As an optimization we distinguish simple parameters (no attributes, no modifiers, etc.) and complex parameters.
     /// </remarks>
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase

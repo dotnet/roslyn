@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     _lastPendingItemCount = progressData.PendingItemCount.Value;
                     ProgressUpdated();
                     break;
-                case ProgressStatus.Stoped:
+                case ProgressStatus.Stopped:
                     StartedOrStopped(started: false);
                     break;
                 case ProgressStatus.Evaluating:

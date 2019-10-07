@@ -709,7 +709,7 @@ class C
             parsedArgs = DefaultParse(new[] { "/win32Manifest:goo", "/noWin32Manifest", "a.cs" }, WorkingDirectory);
             Assert.Equal(0, parsedArgs.Errors.Length);
             Assert.True(parsedArgs.NoWin32Manifest);
-            Assert.Equal(null, parsedArgs.Win32Manifest);
+            Assert.Null(parsedArgs.Win32Manifest);
         }
 
         [Fact]
@@ -1491,7 +1491,7 @@ class C
         public void LangVersion_DefaultMapsCorrectly()
         {
             LanguageVersion defaultEffectiveVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
-            Assert.NotEqual(defaultEffectiveVersion, LanguageVersion.Default);
+            Assert.NotEqual(LanguageVersion.Default, defaultEffectiveVersion);
 
             var parsedArgs = DefaultParse(new[] { "/langversion:default", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -1504,7 +1504,7 @@ class C
         public void LangVersion_LatestMapsCorrectly()
         {
             LanguageVersion latestEffectiveVersion = LanguageVersion.Latest.MapSpecifiedToEffectiveVersion();
-            Assert.NotEqual(latestEffectiveVersion, LanguageVersion.Latest);
+            Assert.NotEqual(LanguageVersion.Latest, latestEffectiveVersion);
 
             var parsedArgs = DefaultParse(new[] { "/langversion:latest", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
@@ -1846,14 +1846,14 @@ class C
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.True(parsedArgs.EmitPdb);
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.PortablePdb);
+            Assert.Equal(DebugInformationFormat.PortablePdb, parsedArgs.EmitOptions.DebugInformationFormat);
             Assert.Equal(Path.Combine(WorkingDirectory, "a.pdb"), parsedArgs.GetPdbFilePath("a.dll"));
 
             parsedArgs = DefaultParse(new[] { "/debug:embedded", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.False(parsedArgs.CompilationOptions.DebugPlusMode);
             Assert.True(parsedArgs.EmitPdb);
-            Assert.Equal(parsedArgs.EmitOptions.DebugInformationFormat, DebugInformationFormat.Embedded);
+            Assert.Equal(DebugInformationFormat.Embedded, parsedArgs.EmitOptions.DebugInformationFormat);
             Assert.Equal(Path.Combine(WorkingDirectory, "a.pdb"), parsedArgs.GetPdbFilePath("a.dll"));
 
             parsedArgs = DefaultParse(new[] { "/debug:PDBONLY", "a.cs" }, WorkingDirectory);
@@ -6826,7 +6826,7 @@ public class C
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keycontainer:bbb", });
             var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
-            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(DesktopStrongNameProvider));
+            Assert.Equal(typeof(DesktopStrongNameProvider), comp.Options.StrongNameProvider.GetType());
         }
 
         [Fact]
@@ -6848,7 +6848,7 @@ public class C
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyFile:key.snk", "/features:UseLegacyStrongNameProvider" });
             var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
-            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(DesktopStrongNameProvider));
+            Assert.Equal(typeof(DesktopStrongNameProvider), comp.Options.StrongNameProvider.GetType());
         }
 
         [Fact]
@@ -9057,10 +9057,10 @@ using System.Diagnostics; // Unused.
             Assert.Equal("-_+@%#*^", parsedArgs.EmitOptions.RuntimeMetadataVersion);
 
             var comp = CreateEmptyCompilation(string.Empty);
-            Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "v4.0.30319"))).Module.MetadataVersion, "v4.0.30319");
+            Assert.Equal("v4.0.30319", ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "v4.0.30319"))).Module.MetadataVersion);
 
             comp = CreateEmptyCompilation(string.Empty);
-            Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "_+@%#*^"))).Module.MetadataVersion, "_+@%#*^");
+            Assert.Equal("_+@%#*^", ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "_+@%#*^"))).Module.MetadataVersion);
         }
 
         [WorkItem(715339, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715339")]
@@ -11002,7 +11002,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
         public void TestSuppression_CompilerParserWarningAsError()
         {
             string source = @"
@@ -11038,7 +11038,7 @@ class C
             Assert.DoesNotContain($"error CS0078", output, StringComparison.Ordinal);
             Assert.DoesNotContain($"warning CS0078", output, StringComparison.Ordinal);
 
-            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_LowercaseEllSuffix, "l"), Location.None).GetMessage(CultureInfo.InvariantCulture),
@@ -11051,7 +11051,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
         public void TestSuppression_CompilerSyntaxWarning()
         {
             // warning CS1522: Empty switch block
@@ -11078,7 +11078,7 @@ class C
             // and info diagnostic is logged with programmatic suppression information.
             var suppressor = new DiagnosticSuppressorForId("CS1522");
 
-            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_EmptySwitch), Location.None).GetMessage(CultureInfo.InvariantCulture),
@@ -11111,7 +11111,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
         public void TestSuppression_CompilerSemanticWarning()
         {
             string source = @"
@@ -11132,7 +11132,7 @@ class C
             // and info diagnostic is logged with programmatic suppression information.
             var suppressor = new DiagnosticSuppressorForId("CS0169");
 
-            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.WRN_UnreferencedField, "C.f"), Location.None).GetMessage(CultureInfo.InvariantCulture),
@@ -11214,7 +11214,7 @@ class C
         }
 
         [WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38454")]
         public void TestSuppression_AnalyzerWarning()
         {
             string source = @"
@@ -11234,7 +11234,7 @@ class C { }";
             // and info diagnostic is logged with programmatic suppression information.
             var suppressor = new DiagnosticSuppressorForId(analyzer.Descriptor.Id);
 
-            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
+            // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             var suppressionMessage = string.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 analyzer.Descriptor.MessageFormat,
@@ -11466,6 +11466,71 @@ class C
 
             string binaryPath = Path.Combine(dir.Path, "temp.dll");
             Assert.True(File.Exists(binaryPath) == !warnAsError);
+        }
+
+        // Currently, configuring no location diagnostics through editorconfig is not supported.
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/38042")]
+        [CombinatorialData]
+        public void AnalyzerConfigRespectedForNoLocationDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault, bool noWarn)
+        {
+            var analyzer = new AnalyzerWithNoLocationDiagnostics(isEnabledByDefault);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn);
+        }
+
+        [WorkItem(37876, "https://github.com/dotnet/roslyn/issues/37876")]
+        [Theory]
+        [CombinatorialData]
+        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn)
+        {
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity, noWarn);
+        }
+
+        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity, bool noWarn)
+        {
+            if (analyzerConfigSeverity == ReportDiagnostic.Default)
+            {
+                // "dotnet_diagnostic.ID.severity = default" is not supported.
+                return;
+            }
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+[*.cs]
+dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerConfigString()}");
+
+            var arguments = new[] {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path };
+            if (noWarn)
+            {
+                arguments = arguments.Append($"/nowarn:{descriptor.Id}");
+            }
+
+            var cmd = CreateCSharpCompiler(null, dir.Path, arguments,
+                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+
+            var expectedErrorCode = analyzerConfigSeverity == ReportDiagnostic.Error ? 1 : 0;
+            Assert.Equal(expectedErrorCode, exitCode);
+
+            if (analyzerConfigSeverity == ReportDiagnostic.Error || analyzerConfigSeverity == ReportDiagnostic.Warn || analyzerConfigSeverity == ReportDiagnostic.Info)
+            {
+                var prefix = analyzerConfigSeverity == ReportDiagnostic.Error ? "error" : analyzerConfigSeverity == ReportDiagnostic.Warn ? "warning" : "info";
+                Assert.Contains($"{prefix} {descriptor.Id}: {descriptor.MessageFormat}", outWriter.ToString());
+            }
+            else
+            {
+                Assert.DoesNotContain(descriptor.Id.ToString(), outWriter.ToString());
+            }
         }
     }
 

@@ -6,8 +6,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Roslyn.Utilities;
@@ -17,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
     internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
-        private static class Connections
+        internal static class Connections
         {
             /// <summary>
             /// call <paramref name="funcAsync"/> and retry up to <paramref name="timeout"/> if the call throws
@@ -95,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // when it couldn't connect to service hub service for some reasons
                         // (ex, OOP process GC blocked and not responding to request)
                         //
-                        // we have double re-try here. we have these 2 seperated since 2 retries are for different problems.
+                        // we have double re-try here. we have these 2 separated since 2 retries are for different problems.
                         // as noted by 2 different issues above at the start of each 2 different retries.
                         // first retry most likely deal with real issue on servicehub, second retry (cancellation) is to deal with
                         // by design servicehub behavior we don't want to use.

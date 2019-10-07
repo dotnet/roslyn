@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            ' CONSIDER Handling badly targetted assembly attributes from netmodules
+            ' CONSIDER Handling badly targeted assembly attributes from netmodules
             'If (attributeUsage.ValidTargets And AttributeTargets.Assembly) = 0 Then
             '    If Not attribute.HasErrors Then
             '        'Error and skip

@@ -6082,7 +6082,7 @@
       </trans-unit>
       <trans-unit id="WRN_SynthMemberShadowsSynthMember7_Title">
         <source>Property or event implicitly declares member, which conflicts with a member implicitly declared for property or event in the base type</source>
-        <target state="translated">La propiedad o el evento declaran implícitamente al miembro, lo que es incompatible con la declaración implícita de un miembro para la propiedad o el evento del tipo base</target>
+        <target state="translated">La propiedad o el evento declaran implícitamente al miembro, lo que crea un conflicto con la declaración implícita de un miembro para la propiedad o el evento del tipo base</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor3">

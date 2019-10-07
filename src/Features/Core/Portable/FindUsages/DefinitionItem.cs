@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// Additional diplayable properties that can be attached to the definition for clients that want to
         /// display additional data.
         /// </summary>
-        public ImmutableArray<FindUsageProperty> DisplayableProperties { get; }
+        public ImmutableDictionary<string, string> DisplayableProperties { get; }
 
         /// <summary>
         /// The DisplayParts just for the name of this definition.  Generally used only for 
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 originationParts,
                 sourceSpans,
                 properties,
-                ImmutableArray<FindUsageProperty>.Empty,
+                ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences)
         {
         }
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableDictionary<string, string> properties,
-            ImmutableArray<FindUsageProperty> displayableProperties,
+            ImmutableDictionary<string, string> displayableProperties,
             bool displayIfNoReferences)
         {
             Tags = tags;
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
-            DisplayableProperties = displayableProperties.NullToEmpty();
+            DisplayableProperties = displayableProperties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
 
             if (Properties.ContainsKey(MetadataSymbolKey))
@@ -171,7 +170,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
             return Create(
                 tags, displayParts, sourceSpans, nameDisplayParts,
-                properties: null, displayableProperties: ImmutableArray<FindUsageProperty>.Empty, displayIfNoReferences: displayIfNoReferences);
+                properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences);
         }
 
         public static DefinitionItem Create(
@@ -182,7 +181,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            return Create(tags, displayParts, sourceSpans, nameDisplayParts, properties, ImmutableArray<FindUsageProperty>.Empty, displayIfNoReferences);
+            return Create(tags, displayParts, sourceSpans, nameDisplayParts, properties, ImmutableDictionary<string, string>.Empty, displayIfNoReferences);
         }
 
         public static DefinitionItem Create(
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<TaggedText> nameDisplayParts = default,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<FindUsageProperty> displayableProperties = default,
+            ImmutableDictionary<string, string> displayableProperties = default,
             bool displayIfNoReferences = true)
         {
             if (sourceSpans.Length == 0)
@@ -230,7 +229,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 tags, displayParts, nameDisplayParts, originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
-                findUsagesProperties: ImmutableArray<FindUsageProperty>.Empty,
+                displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
         }
 
@@ -263,7 +262,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 originationParts: originationParts,
                 sourceSpans: ImmutableArray<DocumentSpan>.Empty,
                 properties: properties,
-                findUsagesProperties: ImmutableArray<FindUsageProperty>.Empty,
+                displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
         }
 

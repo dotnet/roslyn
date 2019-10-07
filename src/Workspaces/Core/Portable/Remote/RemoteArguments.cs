@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
 
-        public ImmutableArray<FindUsageProperty> AdditionalProperties { get; set; }
+        public ImmutableDictionary<string, string> AdditionalProperties { get; set; }
 
         public CandidateReason CandidateReason { get; set; }
 
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Location = referenceLocation.Location.SourceSpan,
                 IsImplicit = referenceLocation.IsImplicit,
                 SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
-                AdditionalProperties = referenceLocation.FindUsagesProperties,
+                AdditionalProperties = referenceLocation.AdditionalProperties,
                 CandidateReason = referenceLocation.CandidateReason
             };
         }
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
                 symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
-                additionalProperties: additionalProperties.NullToEmpty(),
+                additionalProperties: additionalProperties ?? ImmutableDictionary<string, string>.Empty,
                 candidateReason: CandidateReason);
         }
 

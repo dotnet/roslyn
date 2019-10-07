@@ -34,12 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         protected override IComparer<SyntaxNode> GetMemberComparer()
             => CSharpDeclarationComparer.WithoutNamesInstance;
 
-        protected override AbstractImportsAdder CreateImportsAdder(
-            Document document)
-        {
-            return new UsingDirectivesAdder(document);
-        }
-
         protected override IList<bool> GetAvailableInsertionIndices(SyntaxNode destination, CancellationToken cancellationToken)
         {
             if (destination is TypeDeclarationSyntax typeDeclaration)
