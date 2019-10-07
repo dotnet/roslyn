@@ -6684,5 +6684,22 @@ void $$M(int x, int y) { }";
                 MainDescription("void C.M(int x, int y)"),
                 Documentation("Summary documentation"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(38794, "https://github.com/dotnet/roslyn/issues/38794")]
+        public async Task TestLinqGroupVariableDeclaration()
+        {
+            var code =
+@"
+void M(string[] a)
+{
+    var v = from x in a
+            group x by x.Length into $$g
+            select g;
+}";
+
+            await TestInClassAsync(code,
+                MainDescription($"({FeaturesResources.range_variable}) IGrouping<int, string> g"));
+        }
     }
 }

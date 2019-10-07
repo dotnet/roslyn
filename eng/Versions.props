@@ -27,7 +27,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
-    <RoslynDiagnosticsNugetPackageVersion>2.9.4</RoslynDiagnosticsNugetPackageVersion>
+    <RoslynDiagnosticsNugetPackageVersion>2.9.6</RoslynDiagnosticsNugetPackageVersion>
     <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.3.1-beta3-19454-05</CodeStyleAnalyzerVersion>
@@ -176,7 +176,6 @@
     <RoslynToolsVSIXExpInstallerVersion>1.0.0-beta2-63222-01</RoslynToolsVSIXExpInstallerVersion>
     <RoslynToolsOptProfVersion>1.0.0-beta3.19057.1</RoslynToolsOptProfVersion>
     <RoslynOptProfRunSettingsGeneratorVersion>1.0.0-beta3.19057.1</RoslynOptProfRunSettingsGeneratorVersion>
-    <RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>4.3.0</RoslynToolsLightUpSystemRuntimeLoaderFixedVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <StreamJsonRpcVersion>2.1.55</StreamJsonRpcVersion>
@@ -191,6 +190,7 @@
     <SystemMemoryVersion>4.5.3</SystemMemoryVersion>
     <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>4.5.2</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemRuntimeLoaderVersion>4.3.0</SystemRuntimeLoaderVersion>
     <SystemTextEncodingCodePagesVersion>4.5.1</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
     <SystemThreadingTasksDataflowVersion>4.9.0</SystemThreadingTasksDataflowVersion>
