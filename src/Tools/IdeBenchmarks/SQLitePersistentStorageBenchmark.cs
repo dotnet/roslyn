@@ -26,23 +26,23 @@ namespace IdeBenchmarks
         // [Params(25)]
         public int ReadPercentage { get; set; }
 
-        private TestWorkspace workspace;
-        private SQLitePersistentStorageService storageService;
-        private IChecksummedPersistentStorage storage;
-        private Document document;
-        private Random random;
+        private TestWorkspace _workspace;
+        private SQLitePersistentStorageService _storageService;
+        private IChecksummedPersistentStorage _storage;
+        private Document _document;
+        private Random _random;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
             _useExportProviderAttribute.Before(null);
 
-            if (workspace != null)
+            if (_workspace != null)
             {
                 throw new InvalidOperationException();
             }
 
-            workspace = TestWorkspace.Create(
+            _workspace = TestWorkspace.Create(
 @"<Workspace>
     <Project Language=""NoCompilation"" CommonReferences=""false"">
         <Document>
@@ -52,69 +52,68 @@ namespace IdeBenchmarks
 </Workspace>");
 
             // Ensure we always use the storage service, no matter what the size of the solution.
-            workspace.Options = workspace.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1);
+            _workspace.Options = _workspace.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1);
 
-            storageService = new SQLitePersistentStorageService(
-                workspace.Services.GetService<IOptionService>(),
+            _storageService = new SQLitePersistentStorageService(
+                _workspace.Services.GetService<IOptionService>(),
                 new LocationService(),
                 new SolutionSizeTracker());
 
-            storage = storageService.GetStorageWorker(workspace.CurrentSolution);
-            if (storage == NoOpPersistentStorage.Instance)
+            _storage = _storageService.GetStorageWorker(_workspace.CurrentSolution);
+            if (_storage == NoOpPersistentStorage.Instance)
             {
                 throw new InvalidOperationException("We didn't properly get the sqlite storage instance.");
             }
 
-            Console.WriteLine("Storage type: " + storage.GetType());
-            document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            random = new Random(0);
+            Console.WriteLine("Storage type: " + _storage.GetType());
+            _document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
+            _random = new Random(0);
         }
 
         [GlobalCleanup]
         public void GlobalCleanup()
         {
-            if (workspace == null)
+            if (_workspace == null)
             {
                 throw new InvalidOperationException();
             }
 
-            document = null;
-            storage.Dispose();
-            storage = null;
-            storageService = null;
-            workspace.Dispose();
-            workspace = null;
+            _document = null;
+            _storage.Dispose();
+            _storage = null;
+            _storageService = null;
+            _workspace.Dispose();
+            _workspace = null;
 
             _useExportProviderAttribute.After(null);
         }
 
-        static readonly byte[] bytes = new byte[1000];
+        private static readonly byte[] s_bytes = new byte[1000];
 
         [Benchmark(Baseline = true)]
         public Task Perf()
         {
             var tasks = new List<Task>();
 
-            for (int i = 0; i < 1000; i++)
+            // Create a lot of overlapping reads and writes to the DB to several different keys. The
+            // percentage of reads and writes is parameterized above, allowing us to validate
+            // performance with several different usage patterns.
+            for (var i = 0; i < 1000; i++)
             {
-                var name = random.Next(0, 4).ToString();
-                if (random.Next(0, 100) < ReadPercentage)
+                var name = _random.Next(0, 4).ToString();
+                if (_random.Next(0, 100) < ReadPercentage)
                 {
                     tasks.Add(Task.Run(async () =>
                     {
-                        using (var stream = await storage.ReadStreamAsync(document, name))
-                        {
-                        }
+                        using var stream = await _storage.ReadStreamAsync(_document, name);
                     }));
                 }
                 else
                 {
                     tasks.Add(Task.Run(async () =>
                     {
-                        using (var stream = new MemoryStream(bytes))
-                        {
-                            await storage.WriteStreamAsync(document, name, stream);
-                        }
+                        using var stream = new MemoryStream(s_bytes);
+                        await _storage.WriteStreamAsync(_document, name, stream);
                     }));
                 }
             }
