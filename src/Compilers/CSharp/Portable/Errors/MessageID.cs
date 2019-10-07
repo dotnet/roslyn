@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Invariantly = MessageBase + 12663,
 
         IDS_FeatureAsync = MessageBase + 12668,
+        IDS_FeatureStaticAnonymousFunction = MessageBase + 12669,
 
         IDS_LIB_ENV = MessageBase + 12680,
         IDS_LIB_OPTION = MessageBase + 12681,

@@ -9162,11 +9162,26 @@ tryAgain:
                     // TODO: this should not be a compound name.. (disallow dots)
                     expr = this.ParseQualifiedName(NameOptions.InExpression);
                     break;
+                case SyntaxKind.StaticKeyword:
+                    if (this.IsPossibleAnonymousMethodExpression())
+                    {
+                        expr = this.ParseAnonymousMethodExpression();
+                    }
+                    else if (this.IsPossibleLambdaExpression(precedence))
+                    {
+                        expr = this.ParseLambdaExpression();
+                    }
+                    else
+                    {
+                        expr = this.CreateMissingIdentifierName();
+                        expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
+                    }
+
+                    break;
                 case SyntaxKind.IdentifierToken:
                     if (this.IsTrueIdentifier())
                     {
-                        var contextualKind = this.CurrentToken.ContextualKind;
-                        if (contextualKind == SyntaxKind.AsyncKeyword && this.PeekToken(1).Kind == SyntaxKind.DelegateKeyword)
+                        if (this.IsPossibleAnonymousMethodExpression())
                         {
                             expr = this.ParseAnonymousMethodExpression();
                         }
@@ -9328,19 +9343,17 @@ tryAgain:
             }
         }
 
-        private bool IsPossibleLambdaExpression(Precedence precedence)
+        private bool IsPossibleAnonymousMethodExpression()
         {
-            if (precedence <= Precedence.Lambda && this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
+            // Skip past any static/async keywords.
+            var tokenIndex = 0;
+            while (this.PeekToken(tokenIndex).Kind == SyntaxKind.StaticKeyword ||
+                   this.PeekToken(tokenIndex).ContextualKind == SyntaxKind.AsyncKeyword)
             {
-                return true;
+                tokenIndex++;
             }
 
-            if (ScanAsyncLambda(precedence))
-            {
-                return true;
-            }
-
-            return false;
+            return this.PeekToken(tokenIndex).Kind == SyntaxKind.DelegateKeyword;
         }
 
         private ExpressionSyntax ParsePostFixExpression(ExpressionSyntax expr)
@@ -10100,24 +10113,51 @@ tryAgain:
             return (type == ScanTypeFlags.GenericTypeOrMethod || type == ScanTypeFlags.GenericTypeOrExpression || type == ScanTypeFlags.NonGenericTypeOrExpression || type == ScanTypeFlags.TupleType) && CanFollowCast(this.CurrentToken.Kind);
         }
 
-        private bool ScanAsyncLambda(Precedence precedence)
+        private bool IsPossibleLambdaExpression(Precedence precedence)
         {
-            // Adapted from CParser::ScanAsyncLambda
-
-            // Precedence must not exceed that of lambdas
+            // Only call into this if after `static` or after a legal identifier.
+            Debug.Assert(
+                this.CurrentToken.Kind == SyntaxKind.StaticKeyword ||
+                this.IsTrueIdentifier(this.CurrentToken));
             if (precedence > Precedence.Lambda)
             {
                 return false;
             }
 
-            // Async lambda must start with 'async'
+            var definitelyStaticLambda = isDefinitelyStaticLambda();
+            if (definitelyStaticLambda != null)
+            {
+                // we saw 'static'.  we figured out of this was then a static lambda or not.
+                return definitelyStaticLambda.Value;
+            }
+
+            // We didn't see 'static'.  So we must have seen an identifier.
+            Debug.Assert(this.IsTrueIdentifier(this.CurrentToken));
+
+            // Now look for some sort of lambda form.  This is complicated by the fact that if we
+            // see `async` it might be a modifier (like `async a => ...`) or it might be the lambda
+            // parameter itself (like `async => async.bar()` or `async (a) => ...`), or it just
+            // might be an identifier like (`async()`).
+            //
+            // So, in the case we see `async`, try to see if it's legal in either form.
+
+            // First, just check the simplest form of `a => ...`.  This also works properly for 
+            // `async => ...
+            if (this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
+            {
+                return true;
+            }
+
+            // Wasn't the simple form.  At this point, the identifier we have must be 'async'
+            // for us to be a lambda.
             if (this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword)
             {
                 return false;
             }
 
             // 'async <identifier> => ...' looks like an async simple lambda
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
+            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
             {
                 return true;
             }
@@ -10128,20 +10168,62 @@ tryAgain:
                 return false;
             }
 
+            // we have `async (`.  Could be a lambda, or could be an invocation of something called
+            // `async`.  Have to do a more costly speculative scan to find out.
+            var resetPoint = this.GetResetPoint();
+
+            // Skip 'async'
+            EatToken(SyntaxKind.IdentifierToken);
+
+            // Check whether looks like implicitly or explicitly typed lambda
+            bool isAsync = ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
+
+            // Restore current token index
+            this.Reset(ref resetPoint);
+            this.Release(ref resetPoint);
+
+            return isAsync;
+
+            // tri-state.  `null` means 'don't know'.  true/false should be returned.
+            bool? isDefinitelyStaticLambda()
             {
-                var resetPoint = this.GetResetPoint();
+                // If we see `static` or `async static` we can just jump past that point and look at
+                // what follows.
+                var peekIndex = 0;
+                if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
+                {
+                    peekIndex++;
+                }
+                else if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
+                         this.PeekToken(1).Kind == SyntaxKind.StaticKeyword)
+                {
+                    peekIndex += 2;
+                }
+                else
+                {
+                    // didn't see 'static'.  have to keep looking.
+                    return null;
+                }
 
-                // Skip 'async'
-                EatToken(SyntaxKind.IdentifierToken);
+                // we definitely had 'static'.  Now see if we have enough to be sure this is a
+                // lambda, and not the declaration of some member/local function.
 
-                // Check whether looks like implicitly or explicitly typed lambda
-                bool isAsync = ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
+                if (this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(peekIndex + 1).Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    // 1. `static a => ...`
+                    // 2. `async static a => ...`
+                    return true;
+                }
 
-                // Restore current token index
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
+                if (this.PeekToken(peekIndex).Kind == SyntaxKind.OpenParenToken)
+                {
+                    // 1. `static (...
+                    // 2. `async static (...
+                    return true;
+                }
 
-                return isAsync;
+                return false;
             }
         }
 
@@ -10753,99 +10835,123 @@ tryAgain:
             return _syntaxFactory.StackAllocArrayCreationExpression(@stackalloc, elementType, initializer);
         }
 
+        private SyntaxList<SyntaxToken> ParseAnonymousFunctionModifiers()
+        {
+            var modifiers = _pool.Allocate();
+
+            while (true)
+            {
+                if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
+                {
+                    var staticKeyword = this.EatToken(SyntaxKind.StaticKeyword);
+                    staticKeyword = CheckFeatureAvailability(staticKeyword, MessageID.IDS_FeatureStaticAnonymousFunction);
+                    modifiers.Add(staticKeyword);
+                    continue;
+                }
+
+                if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
+                    this.PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
+                {
+                    var asyncToken = this.EatContextualToken(SyntaxKind.AsyncKeyword);
+                    asyncToken = CheckFeatureAvailability(asyncToken, MessageID.IDS_FeatureAsync);
+                    modifiers.Add(asyncToken);
+                    continue;
+                }
+
+                break;
+            }
+
+            var result = modifiers.ToList();
+            _pool.Free(modifiers);
+            return result;
+        }
+
         private AnonymousMethodExpressionSyntax ParseAnonymousMethodExpression()
         {
-            bool parentScopeIsInAsync = IsInAsync;
-            IsInAsync = false;
-            SyntaxToken asyncToken = null;
-            if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword)
-            {
-                asyncToken = this.EatContextualToken(SyntaxKind.AsyncKeyword);
-                asyncToken = CheckFeatureAvailability(asyncToken, MessageID.IDS_FeatureAsync);
-                IsInAsync = true;
-            }
+            var parentScopeIsInAsync = this.IsInAsync;
+            var result = parseAnonymousMethodExpressionWorker();
+            this.IsInAsync = parentScopeIsInAsync;
+            return result;
 
-            var @delegate = this.EatToken(SyntaxKind.DelegateKeyword);
-            @delegate = CheckFeatureAvailability(@delegate, MessageID.IDS_FeatureAnonDelegates);
-
-            ParameterListSyntax parameterList = null;
-            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            AnonymousMethodExpressionSyntax parseAnonymousMethodExpressionWorker()
             {
-                parameterList = this.ParseParenthesizedParameterList();
-            }
+                var modifiers = ParseAnonymousFunctionModifiers();
+                this.IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
 
-            // In mismatched braces cases (missing a }) it is possible for delegate declarations to be
-            // parsed as delegate statement expressions.  When this situation occurs all subsequent 
-            // delegate declarations will also be parsed as delegate statement expressions.  In a file with
-            // a sufficient number of delegates, common in generated code, it will put considerable 
-            // stack pressure on the parser.  
-            //
-            // To help avoid this problem we don't recursively descend into a delegate expression unless 
-            // { } are actually present.  This keeps the stack pressure lower in bad code scenarios.
-            if (this.CurrentToken.Kind != SyntaxKind.OpenBraceToken)
-            {
-                // There's a special error code for a missing token after an accessor keyword
-                var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+                var @delegate = this.EatToken(SyntaxKind.DelegateKeyword);
+                @delegate = CheckFeatureAvailability(@delegate, MessageID.IDS_FeatureAnonDelegates);
+
+                ParameterListSyntax parameterList = null;
+                if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                {
+                    parameterList = this.ParseParenthesizedParameterList();
+                }
+
+                // In mismatched braces cases (missing a }) it is possible for delegate declarations to be
+                // parsed as delegate statement expressions.  When this situation occurs all subsequent 
+                // delegate declarations will also be parsed as delegate statement expressions.  In a file with
+                // a sufficient number of delegates, common in generated code, it will put considerable 
+                // stack pressure on the parser.  
+                //
+                // To help avoid this problem we don't recursively descend into a delegate expression unless 
+                // { } are actually present.  This keeps the stack pressure lower in bad code scenarios.
+                if (this.CurrentToken.Kind != SyntaxKind.OpenBraceToken)
+                {
+                    // There's a special error code for a missing token after an accessor keyword
+                    var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+                    return _syntaxFactory.AnonymousMethodExpression(
+                        modifiers,
+                        @delegate,
+                        parameterList,
+                        _syntaxFactory.Block(
+                            openBrace,
+                            statements: default,
+                            SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)),
+                        expressionBody: null);
+                }
+
+                var body = this.ParseBlock();
                 return _syntaxFactory.AnonymousMethodExpression(
-                    asyncToken,
-                    @delegate,
-                    parameterList,
-                    _syntaxFactory.Block(
-                        openBrace,
-                        statements: default,
-                        SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken)),
-                    expressionBody: null);
+                    modifiers, @delegate, parameterList, body, expressionBody: null);
             }
-
-            var body = this.ParseBlock();
-            IsInAsync = parentScopeIsInAsync;
-            return _syntaxFactory.AnonymousMethodExpression(
-                asyncToken, @delegate, parameterList, body, expressionBody: null);
         }
 
         private LambdaExpressionSyntax ParseLambdaExpression()
         {
-            bool parentScopeIsInAsync = IsInAsync;
-            SyntaxToken asyncToken = null;
-            if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
-                PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
-            {
-                asyncToken = this.EatContextualToken(SyntaxKind.AsyncKeyword);
-                asyncToken = CheckFeatureAvailability(asyncToken, MessageID.IDS_FeatureAsync);
-                IsInAsync = true;
-            }
-
-            var result = ParseLambdaExpression(asyncToken);
-
-            IsInAsync = parentScopeIsInAsync;
+            var parentScopeIsInAsync = this.IsInAsync;
+            var result = parseLambdaExpressionWorker();
+            this.IsInAsync = parentScopeIsInAsync;
             return result;
-        }
 
-        private LambdaExpressionSyntax ParseLambdaExpression(SyntaxToken asyncToken)
-        {
-            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            LambdaExpressionSyntax parseLambdaExpressionWorker()
             {
-                var paramList = this.ParseLambdaParameterList();
-                var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
-                var (block, expression) = ParseLambdaBody();
+                var modifiers = ParseAnonymousFunctionModifiers();
+                this.IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
 
-                return _syntaxFactory.ParenthesizedLambdaExpression(
-                    asyncToken, paramList, arrow, block, expression);
-            }
-            else
-            {
-                var name = this.ParseIdentifierToken();
-                var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
+                if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                {
+                    var paramList = this.ParseLambdaParameterList();
+                    var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+                    arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
+                    var (block, expression) = ParseLambdaBody();
 
-                var parameter = _syntaxFactory.Parameter(
-                    attributeLists: default, modifiers: default,
-                    type: null, identifier: name, @default: null);
-                var (block, expression) = ParseLambdaBody();
+                    return _syntaxFactory.ParenthesizedLambdaExpression(
+                        modifiers, paramList, arrow, block, expression);
+                }
+                else
+                {
+                    var name = this.ParseIdentifierToken();
+                    var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+                    arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
 
-                return _syntaxFactory.SimpleLambdaExpression(
-                    asyncToken, parameter, arrow, block, expression);
+                    var parameter = _syntaxFactory.Parameter(
+                        attributeLists: default, modifiers: default,
+                        type: null, identifier: name, @default: null);
+                    var (block, expression) = ParseLambdaBody();
+
+                    return _syntaxFactory.SimpleLambdaExpression(
+                        modifiers, parameter, arrow, block, expression);
+                }
             }
         }
 

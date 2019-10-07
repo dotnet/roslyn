@@ -11780,6 +11780,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to static anonymous function.
+        /// </summary>
+        internal static string IDS_FeatureStaticAnonymousFunction {
+            get {
+                return ResourceManager.GetString("IDS_FeatureStaticAnonymousFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to static classes.
         /// </summary>
         internal static string IDS_FeatureStaticClasses {
