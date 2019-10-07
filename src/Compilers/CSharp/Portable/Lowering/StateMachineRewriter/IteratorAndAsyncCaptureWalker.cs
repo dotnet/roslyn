@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -24,13 +23,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         // In Release builds we hoist only variables (locals and parameters) that are captured. 
         // This set will contain such variables after the bound tree is visited.
-        private readonly OrderedSet<Symbol> _variablesToHoist;
+        private readonly OrderedSet<Symbol> _variablesToHoist = new OrderedSet<Symbol>();
 
         // Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
         // The value is a list of all uses of each such variable.
         private MultiDictionary<Symbol, SyntaxNode> _lazyDisallowedCaptures;
 
         private bool _seenYieldInCurrentTry;
+
+        // The initializing expressions for compiler-generated ref local temps.  If the temp needs to be hoisted, then any
+        // variables in its initializing expression will need to be hoisted too.
+        private readonly Dictionary<LocalSymbol, BoundExpression> _boundRefLocalInitializers = new Dictionary<LocalSymbol, BoundExpression>();
 
         private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, HashSet<Symbol> initiallyAssignedVariables)
             : base(compilation,
@@ -40,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                   trackUnassignments: true,
                   initiallyAssignedVariables: initiallyAssignedVariables)
         {
-            _variablesToHoist = new OrderedSet<Symbol>();
         }
 
         // Returns deterministically ordered list of variables that ought to be hoisted.
@@ -192,7 +194,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                _variablesToHoist.Add(variable);
+                if (_variablesToHoist.Add(variable) && variable is LocalSymbol local && _boundRefLocalInitializers.TryGetValue(local, out var variableInitializer))
+                    CaptureRefInitializer(variableInitializer, syntax);
+            }
+        }
+
+        private void CaptureRefInitializer(BoundExpression variableInitializer, SyntaxNode syntax)
+        {
+            switch (variableInitializer)
+            {
+                case BoundLocal { LocalSymbol: var symbol }:
+                    CaptureVariable(symbol, syntax);
+                    break;
+                case BoundParameter { ParameterSymbol: var symbol }:
+                    CaptureVariable(symbol, syntax);
+                    break;
+                case BoundFieldAccess { FieldSymbol: { IsStatic: false, ContainingType: { IsValueType: true } }, ReceiverOpt: BoundExpression receiver }:
+                    CaptureRefInitializer(receiver, syntax);
+                    break;
             }
         }
 
@@ -283,6 +302,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             base.VisitFinallyBlock(finallyBlock, ref unsetInFinally);
+        }
+
+        public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
+        {
+            base.VisitAssignmentOperator(node);
+            // for compiler-generated ref local temp, save the initializer.
+            if (node is { IsRef: true, Left: BoundLocal { LocalSymbol: LocalSymbol { IsCompilerGenerated: true } local } })
+                _boundRefLocalInitializers[local] = node.Right;
+            return null;
         }
 
         private sealed class OutsideVariablesUsedInside : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator

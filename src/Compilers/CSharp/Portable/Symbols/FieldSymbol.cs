@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsVolatile { get; }
 
         /// <summary>
-        /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static.
+        /// Returns true if this symbol requires an instance reference as the implicit receiver. This is false if the symbol is static.
         /// </summary>
         public virtual bool RequiresInstanceReceiver => !IsStatic;
 

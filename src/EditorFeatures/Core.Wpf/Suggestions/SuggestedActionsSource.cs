@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared;
@@ -169,7 +168,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     //       IWaitIndicator abstraction (which is a thin wrapper on top of IVsThreadedWaitDialog) directly
                     //       for now, we use the one LB created before calling us. meaning we don't update
                     //       text on the wait dialog window
-                    _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).Wait(cancellationToken);
+                    // 
+                    //       this also needs to run under threading context otherwise, we can deadlock on VS
+                    ThreadingContext.JoinableTaskFactory.Run(() => _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken));
                 }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
@@ -249,8 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private ImmutableArray<SuggestedActionSet> FilterActionSetsByTitle(ImmutableArray<SuggestedActionSet> allActionSets)
             {
-                var result = ArrayBuilder<SuggestedActionSet>.GetInstance();
-
+                using var resultDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var result);
                 var seenTitles = new HashSet<string>();
 
                 foreach (var set in allActionSets)
@@ -262,12 +262,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private SuggestedActionSet FilterActionSetByTitle(SuggestedActionSet set, HashSet<string> seenTitles)
             {
-                var actions = ArrayBuilder<ISuggestedAction>.GetInstance();
+                using var actionsDisposer = ArrayBuilder<ISuggestedAction>.GetInstance(out var actions);
 
                 foreach (var action in set.Actions)
                 {
@@ -277,16 +277,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
                 }
 
-                try
-                {
-                    return actions.Count == 0
-                        ? null
-                        : new SuggestedActionSet(set.CategoryName, actions.ToImmutable(), set.Title, set.Priority, set.ApplicableToSpan);
-                }
-                finally
-                {
-                    actions.Free();
-                }
+                return actions.Count == 0
+                    ? null
+                    : new SuggestedActionSet(set.CategoryName, actions.ToImmutable(), set.Title, set.Priority, set.ApplicableToSpan);
             }
 
             private ImmutableArray<SuggestedActionSet> InlineActionSetsIfDesirable(ImmutableArray<SuggestedActionSet> allActionSets)
@@ -304,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private SuggestedActionSet InlineActions(SuggestedActionSet actionSet)
             {
-                var newActions = ArrayBuilder<ISuggestedAction>.GetInstance();
+                using var newActionsDisposer = ArrayBuilder<ISuggestedAction>.GetInstance(out var newActions);
                 foreach (var action in actionSet.Actions)
                 {
                     var actionWithNestedActions = action as SuggestedActionWithNestedActions;
@@ -322,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return new SuggestedActionSet(
                     actionSet.CategoryName,
-                    newActions.ToImmutableAndFree(),
+                    newActions.ToImmutable(),
                     actionSet.Title,
                     actionSet.Priority,
                     actionSet.ApplicableToSpan);
@@ -348,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var fixes = Task.Run(
                         () => _owner._codeFixService.GetFixesAsync(
-                                document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken),
+                                document, range.Span.ToTextSpan(), includeSuppressionFixes, isBlocking: true, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredFixes = FilterOnUIThread(fixes, workspace);
@@ -420,13 +413,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 bool includeSuppressionFixes)
             {
                 var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, IList<SuggestedAction>>();
-                var order = ArrayBuilder<CodeFixGroupKey>.GetInstance();
+                using var orderDisposer = ArrayBuilder<CodeFixGroupKey>.GetInstance(out var order);
 
                 // First group fixes by diagnostic and priority.
                 GroupFixes(workspace, fixCollections, map, order, includeSuppressionFixes);
 
                 // Then prioritize between the groups.
-                return PrioritizeFixGroups(map.ToImmutable(), order.ToImmutableAndFree(), workspace);
+                return PrioritizeFixGroups(map.ToImmutable(), order.ToImmutable(), workspace);
             }
 
             /// <summary>
@@ -560,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                var fixAllSuggestedActions = ArrayBuilder<FixAllSuggestedAction>.GetInstance();
+                using var fixAllSuggestedActionsDisposer = ArrayBuilder<FixAllSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
                 foreach (var scope in supportedScopes)
                 {
                     var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
@@ -574,7 +567,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return new SuggestedActionSet(
                     categoryName: null,
-                    actions: fixAllSuggestedActions.ToImmutableAndFree(),
+                    actions: fixAllSuggestedActions.ToImmutable(),
                     title: EditorFeaturesResources.Fix_all_occurrences_in);
             }
 
@@ -593,8 +586,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ImmutableArray<CodeFixGroupKey> order,
                 Workspace workspace)
             {
-                var nonSuppressionSets = ArrayBuilder<SuggestedActionSet>.GetInstance();
-                var suppressionSets = ArrayBuilder<SuggestedActionSet>.GetInstance();
+                using var nonSuppressionSetsDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var nonSuppressionSets);
+                using var suppressionSetsDisposer = ArrayBuilder<SuggestedActionSet>.GetInstance(out var suppressionSets);
 
                 foreach (var diag in order)
                 {
@@ -607,7 +600,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     AddSuggestedActionsSet(suppressionActions, diag, suppressionSets);
                 }
 
-                var sets = nonSuppressionSets.ToImmutableAndFree();
+                var sets = nonSuppressionSets.ToImmutable();
 
                 if (suppressionSets.Count > 0)
                 {
@@ -630,7 +623,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     sets = sets.Add(wrappingSet);
                 }
 
-                suppressionSets.Free();
                 return sets;
 
                 // Local functions
@@ -747,7 +739,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // the UI thread.
                     var refactorings = Task.Run(
                         () => _owner._codeRefactoringService.GetRefactoringsAsync(
-                            document, selection, cancellationToken),
+                            document, selection, isBlocking: true, cancellationToken),
                         cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
@@ -770,7 +762,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private SuggestedActionSet OrganizeRefactorings(
                 Workspace workspace, CodeRefactoring refactoring)
             {
-                var refactoringSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
+                using var refactoringSuggestedActionsDisposer = ArrayBuilder<SuggestedAction>.GetInstance(out var refactoringSuggestedActions);
 
                 foreach (var codeAction in refactoring.CodeActions)
                 {
@@ -797,7 +789,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
                 }
 
-                var actions = refactoringSuggestedActions.ToImmutableAndFree();
+                var actions = refactoringSuggestedActions.ToImmutable();
 
                 // An action set:
                 // - gets the the same priority as the highest priority action within in.
@@ -1029,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 OnSuggestedActionsChanged(e.Workspace, e.DocumentId, e.Solution.WorkspaceVersion);
             }
 
-            private void OnWorkspaceStatusChanged(object sender, bool fullyLoaded)
+            private void OnWorkspaceStatusChanged(object sender, EventArgs args)
             {
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
                 if (document == null)

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                     Class B
                         Inherits C
-                        Public Shared Funtion Goo() As Integer
+                        Public Shared Function Goo() As Integer
                         End Function
                     End Class
                     Module Program
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                     Class B
                         Inherits C
-                        Public Shared Funtion Goo() As Integer
+                        Public Shared Function Goo() As Integer
                         End Function
                     End Class
                     Module Program

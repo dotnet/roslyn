@@ -48,18 +48,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task<SemanticModel> GetSemanticModelForSpanAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfFalse(document.SupportsSemanticModel);
+
             var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
             if (semanticModelService == null || syntaxFactService == null)
             {
-                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(root, "We shouldn't have a null root if the document supports semantic models");
             var token = root.FindToken(span.Start);
             if (token.Parent == null)
             {
-                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             }
 
             var node = token.Parent.AncestorsAndSelf().First(a => a.FullSpan.Contains(span));
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
             if (semanticModelService == null || syntaxFactService == null || node == null)
             {
-                return document.GetSemanticModelAsync(cancellationToken);
+                return document.GetSemanticModelAsync(cancellationToken)!;
             }
 
             return GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, node.FullSpan, cancellationToken);
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var speculativeBindingSpan = syntaxFactService.GetMemberBodySpanForSpeculativeBinding(node);
             if (!speculativeBindingSpan.Contains(span))
             {
-                return document.GetSemanticModelAsync(cancellationToken);
+                return document.GetSemanticModelAsync(cancellationToken)!;
             }
 
             return semanticModelService.GetSemanticModelForNodeAsync(document, node, cancellationToken);

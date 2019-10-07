@@ -1152,7 +1152,7 @@ class Program
             // Ensure the model can still bind without throwing when multiple labels values 
             // have duplicate constants (ConstantValue.Bad).  
             var symbolInfo = semanticModel.GetSymbolInfo(node);
-            Assert.NotNull(symbolInfo);
+            Assert.NotEqual(default, symbolInfo);
         }
 
         #endregion

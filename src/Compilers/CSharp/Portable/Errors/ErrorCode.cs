@@ -1063,7 +1063,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LegacyObjectIdSyntax = 2043,
         ERR_SourceLinkRequiresPdb = 2044,
         ERR_CannotEmbedWithoutPdb = 2045,
-        // unused 2046-2999
+        ERR_BadSwitchValue = 2046,
+        // unused 2047-2999
         WRN_CLS_NoVarArgs = 3000,
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,
@@ -1705,6 +1706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInConstraintsOnPartialImplementation = 8667,
         ERR_NullableDirectiveTargetExpected = 8668,
         WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode = 8669,
+        WRN_NullReferenceInitializer = 8670,
 
         ERR_MultipleAnalyzerConfigsInSameDir = 8700,
 
@@ -1727,10 +1729,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DuplicateNullSuppression = 8715,
         ERR_DefaultLiteralNoTargetType = 8716,
+        WRN_ExpressionMayIntroduceNullT = 8717,
 
         ERR_ReAbstractionInNoPIAType = 8750,
 
         #endregion diagnostics introduced for C# 8.0
+
+        ERR_InternalError = 8751,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

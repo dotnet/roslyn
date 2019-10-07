@@ -271,6 +271,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
+            if (context.IsFormattingDisabled(new TextSpan(context.TokenStream.LastTokenInStream.Token.SpanStart, 0)))
+            {
+                // Formatting is suppressed in the document, and not restored before the end
+                return;
+            }
+
             // remove all trailing indentation
             var triviaInfo = context.TokenStream.GetTriviaDataAtEndOfTree().WithIndentation(0, context, _formattingRules, cancellationToken);
 
@@ -301,6 +307,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             static void TriviaFormatter(int tokenPairIndex, FormattingContext ctx, ChainedFormattingRules formattingRules, CancellationToken ct)
             {
+                if (ctx.IsFormattingDisabled(tokenPairIndex))
+                {
+                    return;
+                }
+
                 var triviaInfo = ctx.TokenStream.GetTriviaData(tokenPairIndex);
                 triviaInfo.Format(
                     ctx,
@@ -412,16 +423,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             using (Logger.LogBlock(FunctionId.Formatting_ApplySpaceAndLine, cancellationToken))
             {
-                // go through each token pairs and apply operations. operations don't need to be applied in order
-                var partitioner = new Partitioner(context, tokenOperations);
-
-                // always create task 1 more than current processor count
-                var partitions = partitioner.GetPartitions(partitionCount: 1, cancellationToken);
-
-                foreach (var partition in partitions)
+                // go through each token pairs and apply operations
+                foreach (var operationPair in tokenOperations)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    partition.Do(operationPair => ApplySpaceAndWrappingOperationsBody(context, operationPair, applier, cancellationToken));
+                    ApplySpaceAndWrappingOperationsBody(context, operationPair, applier, cancellationToken);
                 }
             }
         }

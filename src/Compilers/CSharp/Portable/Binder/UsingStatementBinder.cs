@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // This is not awesome, but its factored. 
-            // In the future it might be better to have a seperate shared type that we add the info to, and have the callers create the appropriate bound nodes from it
+            // In the future it might be better to have a separate shared type that we add the info to, and have the callers create the appropriate bound nodes from it
             if (isUsingDeclaration)
             {
                 return new BoundUsingLocalDeclarations(syntax, disposeMethodOpt, iDisposableConversion, awaitOpt, declarationsOpt, hasErrors);

@@ -873,7 +873,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         LookupWithoutInheritance(submissionSymbols, submission.ScriptClass, name, arity, options, submissionClass, binder, useSiteDiagnostics)
                     End If
 
-                    ' TOOD (tomat): import aliases
+                    ' TODO (tomat): import aliases
 
                     If lookingForOverloadsOfKind Is Nothing Then
                         If Not submissionSymbols.IsGoodOrAmbiguous Then

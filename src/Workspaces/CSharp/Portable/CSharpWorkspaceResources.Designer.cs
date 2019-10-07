@@ -179,6 +179,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to R&amp;emove and Sort Usings.
+        /// </summary>
+        internal static string Remove_and_Sort_Usings {
+            get {
+                return ResourceManager.GetString("Remove_and_Sort_Usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &amp;Sort Usings.
+        /// </summary>
+        internal static string Sort_Usings {
+            get {
+                return ResourceManager.GetString("Sort_Usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Space preferences.
         /// </summary>
         internal static string Space_preferences {

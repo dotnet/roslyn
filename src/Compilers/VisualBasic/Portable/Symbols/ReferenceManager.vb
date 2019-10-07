@@ -320,6 +320,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim implicitlyResolvedReferenceMap As ImmutableArray(Of ResolvedReference) = Nothing
                     Dim allAssemblyData As ImmutableArray(Of AssemblyData) = Nothing
 
+                    ' Avoid resolving previously resolved missing references. If we call to the resolver again we would create new assembly symbols for them,
+                    ' which would not match the previously created ones. As a result we would get duplicate PE types And conversion errors.
+                    Dim implicitReferenceResolutions = If(compilation.ScriptCompilationInfo?.PreviousScriptCompilation?.GetBoundReferenceManager().ImplicitReferenceResolutions,
+                        ImmutableDictionary(Of AssemblyIdentity, PortableExecutableReference).Empty)
+
                     Dim bindingResult() As BoundInputAssembly = Bind(compilation,
                                                                      explicitAssemblyData,
                                                                      modules,
@@ -332,6 +337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      allAssemblyData,
                                                                      implicitlyResolvedReferences,
                                                                      implicitlyResolvedReferenceMap,
+                                                                     implicitReferenceResolutions,
                                                                      resolutionDiagnostics,
                                                                      hasCircularReference,
                                                                      corLibraryIndex)
@@ -428,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     boundReferenceDirectiveMap,
                                     boundReferenceDirectives,
                                     explicitReferences,
-                                    implicitlyResolvedReferences,
+                                    implicitReferenceResolutions,
                                     hasCircularReference,
                                     resolutionDiagnostics.ToReadOnly(),
                                     If(corLibrary Is assemblySymbol, Nothing, corLibrary),

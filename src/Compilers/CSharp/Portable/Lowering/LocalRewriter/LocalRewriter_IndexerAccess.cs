@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitIndexOrRangePatternIndexerAccess(node, isLeftOfAssignment: false);
         }
 
-        private BoundExpression VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
+        private BoundSequence VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
         {
             if (TypeSymbol.Equals(
                 node.Argument.Type,
@@ -192,7 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression VisitIndexPatternIndexerAccess(
+
+        private BoundSequence VisitIndexPatternIndexerAccess(
             SyntaxNode syntax,
             BoundExpression receiver,
             PropertySymbol lengthOrCountProperty,
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             locals.Add(indexLocal.LocalSymbol);
             sideEffects.Add(indexStore);
 
-            return F.Sequence(
+            return (BoundSequence)F.Sequence(
                 locals.ToImmutable(),
                 sideEffects.ToImmutable(),
                 MakeIndexerAccess(
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression VisitRangePatternIndexerAccess(
+        private BoundSequence VisitRangePatternIndexerAccess(
             BoundExpression receiver,
             PropertySymbol lengthOrCountProperty,
             MethodSymbol sliceMethod,
@@ -419,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rangeSizeExpr = rangeSizeLocal;
             }
 
-            return F.Sequence(
+            return (BoundSequence)F.Sequence(
                 localsBuilder.ToImmutableAndFree(),
                 sideEffectsBuilder.ToImmutableAndFree(),
                 F.Call(receiverLocal, sliceMethod, startExpr, rangeSizeExpr));

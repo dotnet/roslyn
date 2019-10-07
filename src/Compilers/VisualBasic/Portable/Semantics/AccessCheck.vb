@@ -947,15 +947,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If container.OriginalDefinition.Equals(containerOfTypeDefinition) Then
                 Return True
-            ElseIf container.IsInterfaceType() Then
-                If containerOfType.IsInterfaceType() Then
-                    For Each iface In container.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
-                        If iface.OriginalDefinition.Equals(containerOfTypeDefinition) Then
-                            Return True
-                        End If
-                    Next
-                End If
-            ElseIf Not containerOfType.IsInterfaceType() Then
+            End If
+
+            If containerOfType.IsInterfaceType() Then
+                For Each iface In container.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                    If iface.OriginalDefinition.Equals(containerOfTypeDefinition) Then
+                        Return True
+                    End If
+                Next
+            Else
                 Dim baseDefinition = container.BaseTypeOriginalDefinition(useSiteDiagnostics)
 
                 While baseDefinition IsNot Nothing

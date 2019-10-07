@@ -490,14 +490,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private bool SpansPreprocessorDirective(SyntaxTriviaList list)
             => list.Any(t => IsPreprocessorDirective(t));
 
-        public bool IsOnHeader(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
-            => IsOnHeader(position, ownerOfHeader, lastTokenOrNodeOfHeader, ImmutableArray<SyntaxNode>.Empty);
+        public bool IsOnHeader(SyntaxNode root, int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader)
+            => IsOnHeader(root, position, ownerOfHeader, lastTokenOrNodeOfHeader, ImmutableArray<SyntaxNode>.Empty);
 
-        public bool IsOnHeader<THoleSyntax>(int position, SyntaxNode ownerOfHeader, SyntaxNodeOrToken lastTokenOrNodeOfHeader, ImmutableArray<THoleSyntax> holes)
+        public bool IsOnHeader<THoleSyntax>(
+            SyntaxNode root,
+            int position,
+            SyntaxNode ownerOfHeader,
+            SyntaxNodeOrToken lastTokenOrNodeOfHeader,
+            ImmutableArray<THoleSyntax> holes)
             where THoleSyntax : SyntaxNode
         {
+            Debug.Assert(ownerOfHeader.FullSpan.Contains(lastTokenOrNodeOfHeader.Span));
+
             var headerSpan = TextSpan.FromBounds(
-                start: GetStartOfNodeExcludingAttributes(ownerOfHeader),
+                start: GetStartOfNodeExcludingAttributes(root, ownerOfHeader),
                 end: lastTokenOrNodeOfHeader.FullSpan.End);
 
             // Is in header check is inclusive, being on the end edge of an header still counts
@@ -521,7 +528,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// Tries to get an ancestor of a Token on current position or of Token directly to left:
         /// e.g.: tokenWithWantedAncestor[||]tokenWithoutWantedAncestor
         /// </summary>
-        protected TNode TryGetAncestorForLocation<TNode>(int position, SyntaxNode root) where TNode : SyntaxNode
+        protected TNode TryGetAncestorForLocation<TNode>(SyntaxNode root, int position) where TNode : SyntaxNode
         {
             var tokenToRightOrIn = root.FindToken(position);
             var nodeToRightOrIn = tokenToRightOrIn.GetAncestor<TNode>();
@@ -539,13 +546,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return tokenToRightOrIn.GetPreviousToken().GetAncestor<TNode>();
         }
 
-        protected int GetStartOfNodeExcludingAttributes(SyntaxNode node)
+        protected int GetStartOfNodeExcludingAttributes(SyntaxNode root, SyntaxNode node)
         {
             var attributeList = GetAttributeLists(node);
             if (attributeList.Any())
             {
                 var endOfAttributeLists = attributeList.Last().Span.End;
-                var afterAttributesToken = node.FindTokenOnRightOfPosition(endOfAttributeLists);
+                var afterAttributesToken = root.FindTokenOnRightOfPosition(endOfAttributeLists);
 
                 return Math.Min(afterAttributesToken.Span.Start, node.Span.End);
             }
@@ -571,9 +578,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
 
         public bool IsUsingStatement(SyntaxNode node)
-            => node.RawKind == SyntaxKinds.UsingStatement;
+            => node?.RawKind == SyntaxKinds.UsingStatement;
 
         public bool IsReturnStatement(SyntaxNode node)
-            => node.RawKind == SyntaxKinds.ReturnStatement;
+            => node?.RawKind == SyntaxKinds.ReturnStatement;
+
+        public bool IsExpressionStatement(SyntaxNode node)
+            => node?.RawKind == SyntaxKinds.ExpressionStatement;
     }
 }

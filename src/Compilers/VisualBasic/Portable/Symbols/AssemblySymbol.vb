@@ -335,6 +335,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' Figure out if the target runtime supports default interface implementation.
+        ''' </summary>
+        Friend ReadOnly Property RuntimeSupportsDefaultInterfaceImplementation As Boolean
+            Get
+                Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) IsNot Nothing
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Return an array of assemblies involved in canonical type resolution of
         ''' NoPia local types defined within this assembly. In other words, all 
         ''' references used by previous compilation referencing this assembly.

@@ -2396,7 +2396,7 @@ struct Type<T>
             Assert.Empty(tags);
             Assert.NotEmpty(allTags);
 
-            Assert.Equal(allTags.Count(), 1);
+            Assert.Equal(1, allTags.Count());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

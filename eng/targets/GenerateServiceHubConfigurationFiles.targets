@@ -10,6 +10,8 @@
     <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
     <ServiceHubService Include="roslynSnapshot" ClassName="Microsoft.CodeAnalysis.Remote.SnapshotService" />
     <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />
+    <ServiceHubService Include="roslynCSharpLanguageServer" ClassName="Microsoft.CodeAnalysis.Remote.CSharpLanguageServer" />
+    <ServiceHubService Include="roslynVisualBasicLanguageServer" ClassName="Microsoft.CodeAnalysis.Remote.VisualBasicLanguageServer" />
   </ItemGroup>
 
   <PropertyGroup>
