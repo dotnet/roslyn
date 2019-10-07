@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.SwitchExpressionArm:
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
                 case BoundKind.UsingLocalDeclarations:
-                    return CreateUsingLocalDeclarationsOperation((BoundUsingLocalDeclarations)boundNode);
+                    return CreateBoundUsingLocalDeclarationsOperation((BoundUsingLocalDeclarations)boundNode);
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return CreateCollectionValuePlaceholderOperation((BoundObjectOrCollectionValuePlaceholder)boundNode);
 
@@ -2045,18 +2045,22 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit: boundNode.WasCompilerGenerated);
         }
 
-        private IOperation CreateUsingLocalDeclarationsOperation(BoundUsingLocalDeclarations boundNode)
+        private IOperation CreateBoundUsingLocalDeclarationsOperation(BoundUsingLocalDeclarations boundNode)
         {
-            //TODO: Implement UsingLocalDeclaration operations correctly.
-            //      For now we return an implicit operationNone,
-            //      and GetIOperationChildren will return a single child
-            //      consisting of the using declaration parsed as if it were a standard variable declaration.
-            //      See: https://github.com/dotnet/roslyn/issues/32100
-            return new CSharpLazyNoneOperation(
+            var declarationGroupSyntax = (LocalDeclarationStatementSyntax)boundNode.Syntax;
+            bool isAsync = declarationGroupSyntax.AwaitKeyword != default;
+
+            // visit the node as a multipleDeclarations node to get the actual declarations. 
+            // (Note: We can't do this lazily inside the operation because it keys off of .Kind, not type so we have no way of knowing we need to visit it differently)
+            var declarations = CreateBoundMultipleLocalDeclarationsOperation(boundNode);
+
+            return new CSharpLazyUsingVariableDeclarationOperation(
                 this,
-                boundNode,
+                declarations,
+                isAsync,
                 _semanticModel,
-                boundNode.Syntax,
+                declarationGroupSyntax,
+                type: null,
                 constantValue: default,
                 isImplicit: false);
         }

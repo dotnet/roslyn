@@ -1854,4 +1854,22 @@ namespace Microsoft.CodeAnalysis.Operations
             return _operationFactory.Create(_rangeExpression.RightOperandOpt);
         }
     }
+
+    internal sealed class CSharpLazyUsingVariableDeclarationOperation : LazyUsingVariableDeclarationOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly IVariableDeclarationGroupOperation _declarationGroup;
+
+        public CSharpLazyUsingVariableDeclarationOperation(CSharpOperationFactory operationFactory, IVariableDeclarationGroupOperation declarationGroup, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(isAsynchronous, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _declarationGroup = declarationGroup;
+        }
+
+        protected override IVariableDeclarationGroupOperation CreateDeclarationGroup()
+        {
+            return _declarationGroup;
+        }
+    }
 }

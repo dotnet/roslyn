@@ -1930,6 +1930,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.DimensionSizes, "DimensionSizes", logElementCount: true);
         }
 
+        public override void VisitUsingVariableDeclaration(IUsingVariableDeclarationOperation operation)
+        {
+            LogString(nameof(IUsingVariableDeclarationOperation));
+            if (operation.IsAsynchronous)
+            {
+                LogString(" (Async)");
+            }
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.DeclarationGroup, nameof(operation.DeclarationGroup));
+        }
+
         #endregion
     }
 }

@@ -2,7 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Tree Root="IOperation">
 
-
+  
   <!--
       To regenerate the operation nodes, run eng/generate-compiler-code.cmd
 
@@ -66,6 +66,7 @@
           (3) C# using statement
           (4) VB Dim statement
           (5) VB Using statement
+          (6) C# using declaration statement
       </para>
     </Comments>
     <Property Name="Declarations" Type="ImmutableArray&lt;IVariableDeclarationOperation&gt;">
@@ -2896,6 +2897,23 @@
     <Property Name="Value" Type="IOperation">
       <Comments>
         <summary>Value to whose members leading-dot-qualified references within the with body bind.</summary>
+      </Comments>
+    </Property>
+  </Node>
+  <Node Name="IUsingVariableDeclarationOperation" Base="IOperation">
+    <Comments>
+      <summary>Represents a using variable declaration statement.</summary>
+    </Comments>
+    <Property Name="IsAsynchronous" Type="bool">
+      <Comments>
+        <summary>
+          Whether this using declaration is asynchronous.
+        </summary>
+      </Comments>
+    </Property>
+    <Property Name="DeclarationGroup" Type="IVariableDeclarationGroupOperation">
+      <Comments>
+        <summary>An <see cref="IVariableDeclarationGroupOperation" /> that contains the variables declared by this statement.</summary>
       </Comments>
     </Property>
   </Node>
