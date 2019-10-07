@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 // Haven't been shutdown.  Actually go and move any outstanding data to the real DB.
                 using var connection = storage.GetPooledConnection();
-                storage.FlushInMemoryDataToDisk_MustRunUnderLock(connection);
+                storage.FlushInMemoryDataToDisk_MustRunUnderLock(connection.Connection);
             }
         };
 
-        private void FlushInMemoryDataToDisk_MustRunUnderLock(PooledConnection connection)
+        private void FlushInMemoryDataToDisk_MustRunUnderLock(SqlConnection connection)
         {
             if (!Monitor.IsEntered(_flushGate))
             {

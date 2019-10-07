@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 lock (_flushGate)
                 {
                     using var connection = GetPooledConnection();
-                    FlushInMemoryDataToDisk_MustRunUnderLock(connection);
+                    FlushInMemoryDataToDisk_MustRunUnderLock(connection.Connection);
 
                     // Now that we've done this, definitely cancel any further work. From this point
                     // on, it is now invalid for any codepaths to try to acquire a db connection for
