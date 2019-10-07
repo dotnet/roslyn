@@ -171,8 +171,6 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private async Task FlushAllPendingWritesAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("Flushing 2:");
-
             // Copy the work from _writeQueue to a local list that we can process.
             var writesToProcess = ArrayBuilder<Action<SqlConnection>>.GetInstance();
             try
