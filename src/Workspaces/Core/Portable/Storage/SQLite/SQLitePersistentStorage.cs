@@ -183,16 +183,6 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private SqlConnection GetConnection()
         {
-            if (_shutdownTokenSource.IsCancellationRequested)
-            {
-                // Someone tried to get a connection *after* a call to Dispose the storage system
-                // happened.  That should never happen.  We only Dispose when the last ref to the
-                // storage system goes away.  Once that happens, it's an error for there to be any
-                // future or existing consumers of the storage service.  So nothing should be doing
-                // anything that wants to get an connection.
-                throw new InvalidOperationException();
-            }
-
             lock (_connectionGate)
             {
                 // If we have an available connection, just return that.
