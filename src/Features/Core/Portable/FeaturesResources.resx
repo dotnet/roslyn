@@ -1671,6 +1671,9 @@ This version used in: {2}</value>
   <data name="ChangesNotAppliedWhileRunning" xml:space="preserve">
     <value>Changes made in project '{0}' will not be applied while the application is running</value>
   </data>
+  <data name="DocumentIsOutOfSyncWithDebuggee" xml:space="preserve">
+    <value>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</value>
+  </data>
   <data name="ChangesDisallowedWhileStoppedAtException" xml:space="preserve">
     <value>Changes are not allowed while stopped at exception</value>
   </data>

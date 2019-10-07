@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var builder = ArrayBuilder<SymbolAndProjectId<INamedTypeSymbol>>.GetInstance();
 
             // Group by projectId so that we only process one project/compilation at a time.
-            // Also, process in dependency order so taht previous compilations are ready if
+            // Also, process in dependency order so that previous compilations are ready if
             // they're referenced by later compilations.
             var dependencyOrder = solution.GetProjectDependencyGraph()
                                           .GetTopologicallySortedProjects()

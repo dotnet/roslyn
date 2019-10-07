@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         {
         }
 
-        protected abstract SyntaxNode GetAlias(TUsingOrAliasSyntax usingOrAlias);
+        protected abstract SyntaxNode? GetAlias(TUsingOrAliasSyntax usingOrAlias);
         protected abstract ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation);
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);

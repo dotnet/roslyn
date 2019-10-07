@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 catch (InvalidOperationException)
                 {
                     // VsTargetFrameworkProvider throws InvalidOperationException in the 
-                    // some cases (like when targetting packs are missing).  In that case
+                    // some cases (like when targeting packs are missing).  In that case
                     // we can't resolve this path.
                     return null;
                 }

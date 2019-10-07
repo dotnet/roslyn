@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // when it couldn't connect to service hub service for some reasons
                         // (ex, OOP process GC blocked and not responding to request)
                         //
-                        // we have double re-try here. we have these 2 seperated since 2 retries are for different problems.
+                        // we have double re-try here. we have these 2 separated since 2 retries are for different problems.
                         // as noted by 2 different issues above at the start of each 2 different retries.
                         // first retry most likely deal with real issue on servicehub, second retry (cancellation) is to deal with
                         // by design servicehub behavior we don't want to use.
