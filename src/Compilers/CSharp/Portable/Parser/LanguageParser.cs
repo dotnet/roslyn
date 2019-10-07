@@ -10156,8 +10156,7 @@ tryAgain:
             }
 
             // 'async <identifier> => ...' looks like an async simple lambda
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
+            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
             {
                 return true;
             }
@@ -10168,21 +10167,23 @@ tryAgain:
                 return false;
             }
 
-            // we have `async (`.  Could be a lambda, or could be an invocation of something called
-            // `async`.  Have to do a more costly speculative scan to find out.
-            var resetPoint = this.GetResetPoint();
+            {
+                // we have `async (`.  Could be a lambda, or could be an invocation of something called
+                // `async`.  Have to do a more costly speculative scan to find out.
+                var resetPoint = this.GetResetPoint();
 
-            // Skip 'async'
-            EatToken(SyntaxKind.IdentifierToken);
+                // Skip 'async'
+                EatToken(SyntaxKind.IdentifierToken);
 
-            // Check whether looks like implicitly or explicitly typed lambda
-            bool isAsync = ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
+                // Check whether looks like implicitly or explicitly typed lambda
+                bool isAsync = ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
 
-            // Restore current token index
-            this.Reset(ref resetPoint);
-            this.Release(ref resetPoint);
+                // Restore current token index
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
 
-            return isAsync;
+                return isAsync;
+            }
 
             // tri-state.  `null` means 'don't know'.  true/false should be returned.
             bool? isDefinitelyStaticLambda()
