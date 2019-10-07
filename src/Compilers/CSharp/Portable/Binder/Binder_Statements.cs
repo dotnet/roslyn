@@ -37,6 +37,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public virtual BoundStatement BindStatement(StatementSyntax node, DiagnosticBag diagnostics)
         {
+            if (node.AttributeLists.Count > 0)
+            {
+                var attributeList = node.AttributeLists[0];
+
+                // Currently, attributes are only allowed on local-functions.
+                if (node.Kind() == SyntaxKind.LocalFunctionStatement)
+                {
+                    CheckFeatureAvailability(attributeList, MessageID.IDS_FeatureLocalFunctionAttributes, diagnostics);
+                }
+                else if (node.Kind() != SyntaxKind.Block)
+                {
+                    // Don't explicitly error here for blocks.  Some codepaths bypass BindStatement
+                    // to directly call BindBlock.
+                    Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                }
+            }
+
             Debug.Assert(node != null);
             BoundStatement result;
             switch (node.Kind())
@@ -220,6 +237,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!argument.HasAnyErrors)
             {
                 argument = binder.GenerateConversionForAssignment(elementType, argument, diagnostics);
+            }
+            else
+            {
+                argument = BindToTypeForErrorRecovery(argument);
             }
 
             // NOTE: it's possible that more than one of these conditions is satisfied and that
@@ -1121,7 +1142,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, dimensionsOpt: invalidDimensions.ToImmutableAndFree(), typeWithAnnotations: declTypeOpt);
             }
 
-            return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, inferredType: isVar, hasErrors: hasErrors);
+            return new BoundLocalDeclaration(
+                syntax: associatedSyntaxNode,
+                localSymbol: localSymbol,
+                declaredTypeOpt: boundDeclType,
+                initializerOpt: hasErrors ? BindToTypeForErrorRecovery(initializerOpt) : initializerOpt,
+                argumentsOpt: arguments,
+                inferredType: isVar,
+                hasErrors: hasErrors);
         }
 
         internal ImmutableArray<BoundExpression> BindDeclaratorArguments(VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)
@@ -1460,6 +1488,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
                 }
             }
+            else
+            {
+                op2 = BindToTypeForErrorRecovery(op2);
+            }
 
             TypeSymbol type;
             if ((op1.Kind == BoundKind.EventAccess) &&
@@ -1665,6 +1697,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
+            if (node.AttributeLists.Count > 0)
+            {
+                Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, node.AttributeLists[0]);
+            }
+
             var binder = GetBinder(node);
             Debug.Assert(binder != null);
 
@@ -2640,7 +2677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasErrors)
             {
-                return new BoundReturnStatement(syntax, refKind, arg, hasErrors: true);
+                return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), hasErrors: true);
             }
 
             // The return type could be null; we might be attempting to infer the return type either 
@@ -2712,7 +2749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundReturnStatement(syntax, refKind, arg, hasErrors);
+            return new BoundReturnStatement(syntax, refKind, hasErrors ? BindToTypeForErrorRecovery(arg) : arg, hasErrors);
         }
 
         internal BoundExpression CreateReturnConversion(
@@ -2760,7 +2797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        return argument;
+                        return BindToNaturalType(argument, diagnostics);
                     }
                 }
                 else if (!conversion.IsImplicit || !conversion.IsValid)
@@ -2956,7 +2993,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Report an extra error on the return if we are in a lambda conversion.
         private void ReportCantConvertLambdaReturn(SyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            // UNDONE: Suppress this error if the lambda is a result of a query rewrite.
+            // Suppress this error if the lambda is a result of a query rewrite.
+            if (syntax.Parent is QueryClauseSyntax || syntax.Parent is SelectOrGroupClauseSyntax)
+                return;
 
             var lambda = this.ContainingMemberOrLambda as LambdaSymbol;
             if ((object)lambda != null)
@@ -3047,6 +3086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? ErrorCode.ERR_MustNotHaveRefReturn
                         : ErrorCode.ERR_MustHaveRefReturn;
                     Error(diagnostics, errorCode, syntax);
+                    expression = BindToTypeForErrorRecovery(expression);
                     statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 }
                 else if (returnType.IsVoidType() || IsTaskReturningAsyncMethod())
@@ -3059,6 +3099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool errors = false;
                     if (expressionSyntax == null || !IsValidExpressionBody(expressionSyntax, expression))
                     {
+                        expression = BindToTypeForErrorRecovery(expression);
                         Error(diagnostics, ErrorCode.ERR_IllegalStatement, syntax);
                         errors = true;
                     }
@@ -3072,11 +3113,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod())
                 {
                     Error(diagnostics, ErrorCode.ERR_ReturnInIterator, syntax);
+                    expression = BindToTypeForErrorRecovery(expression);
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
                 }
                 else
                 {
-                    expression = CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
+                    expression = returnType.IsErrorType()
+                        ? BindToTypeForErrorRecovery(expression)
+                        : CreateReturnConversion(syntax, diagnostics, expression, refKind, returnType);
                     statement = new BoundReturnStatement(syntax, returnRefKind, expression) { WasCompilerGenerated = true };
                 }
             }

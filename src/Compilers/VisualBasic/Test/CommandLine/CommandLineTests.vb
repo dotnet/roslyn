@@ -9392,7 +9392,7 @@ End Class"
             ' and info diagnostic is logged with programmatic suppression information.
             Dim suppressor = New DiagnosticSuppressorForId("BC40008")
 
-            ' Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
+            ' Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             Dim suppressionMessage = String.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "C"), Location.None).GetMessage(CultureInfo.InvariantCulture),
@@ -9450,7 +9450,7 @@ End Class"
             Assert.DoesNotContain($"warning BC40008", output, StringComparison.Ordinal)
             Assert.DoesNotContain($"error BC40008", output, StringComparison.Ordinal)
 
-            ' Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
+            ' Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             Dim suppressionMessage = String.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "C"), Location.None).GetMessage(CultureInfo.InvariantCulture),
@@ -9510,7 +9510,7 @@ End Class"
             ' and info diagnostic is logged with programmatic suppression information.
             Dim suppressor = New DiagnosticSuppressorForId(analyzer.Descriptor.Id)
 
-            ' Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'
+            ' Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
             Dim suppressionMessage = String.Format(CodeAnalysisResources.SuppressionDiagnosticDescriptorMessage,
                 suppressor.SuppressionDescriptor.SuppressedDiagnosticId,
                 analyzer.Descriptor.MessageFormat,

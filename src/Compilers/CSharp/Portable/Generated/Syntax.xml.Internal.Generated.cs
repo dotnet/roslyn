@@ -11885,18 +11885,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
        : base(reader)
     {
     }
+
+    public abstract Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists { get; }
   }
 
   internal sealed partial class BlockSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken openBraceToken;
     internal readonly GreenNode statements;
     internal readonly SyntaxToken closeBraceToken;
 
-    internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal BlockSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
         if (statements != null)
@@ -11909,11 +11917,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
+    internal BlockSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
         if (statements != null)
@@ -11926,10 +11939,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal BlockSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken)
+    internal BlockSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken openBraceToken, GreenNode statements, SyntaxToken closeBraceToken)
         : base(kind)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
         if (statements != null)
@@ -11941,6 +11959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.closeBraceToken = closeBraceToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken OpenBraceToken => this.openBraceToken;
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> Statements => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax>(this.statements);
     public SyntaxToken CloseBraceToken => this.closeBraceToken;
@@ -11949,9 +11968,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.openBraceToken;
-            case 1: return this.statements;
-            case 2: return this.closeBraceToken;
+            case 0: return this.attributeLists;
+            case 1: return this.openBraceToken;
+            case 2: return this.statements;
+            case 3: return this.closeBraceToken;
             default: return null;
         }
     }
@@ -11962,11 +11982,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBlock(this);
 
-    public BlockSyntax Update(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+    public BlockSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
     {
-        if (openBraceToken != this.OpenBraceToken || statements != this.Statements || closeBraceToken != this.CloseBraceToken)
+        if (attributeLists != this.AttributeLists || openBraceToken != this.OpenBraceToken || statements != this.Statements || closeBraceToken != this.CloseBraceToken)
         {
-            var newNode = SyntaxFactory.Block(openBraceToken, statements, closeBraceToken);
+            var newNode = SyntaxFactory.Block(attributeLists, openBraceToken, statements, closeBraceToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -11980,15 +12000,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new BlockSyntax(this.Kind, this.openBraceToken, this.statements, this.closeBraceToken, diagnostics, GetAnnotations());
+        => new BlockSyntax(this.Kind, this.attributeLists, this.openBraceToken, this.statements, this.closeBraceToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new BlockSyntax(this.Kind, this.openBraceToken, this.statements, this.closeBraceToken, GetDiagnostics(), annotations);
+        => new BlockSyntax(this.Kind, this.attributeLists, this.openBraceToken, this.statements, this.closeBraceToken, GetDiagnostics(), annotations);
 
     internal BlockSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 3;
+      this.SlotCount = 4;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var openBraceToken = (SyntaxToken)reader.ReadValue();
       if (openBraceToken != null)
       {
@@ -12012,6 +12038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.openBraceToken);
       writer.WriteValue(this.statements);
       writer.WriteValue(this.closeBraceToken);
@@ -12180,7 +12207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
     public TypeSyntax ReturnType => this.returnType;
     /// <summary>Gets the identifier.</summary>
@@ -12329,16 +12356,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class LocalDeclarationStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken awaitKeyword;
     internal readonly SyntaxToken usingKeyword;
     internal readonly GreenNode modifiers;
     internal readonly VariableDeclarationSyntax declaration;
     internal readonly SyntaxToken semicolonToken;
 
-    internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal LocalDeclarationStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -12361,11 +12394,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal LocalDeclarationStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -12388,10 +12426,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal LocalDeclarationStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    internal LocalDeclarationStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, GreenNode modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -12413,6 +12456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken AwaitKeyword => this.awaitKeyword;
     public SyntaxToken UsingKeyword => this.usingKeyword;
     /// <summary>Gets the modifier list.</summary>
@@ -12424,11 +12468,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.awaitKeyword;
-            case 1: return this.usingKeyword;
-            case 2: return this.modifiers;
-            case 3: return this.declaration;
-            case 4: return this.semicolonToken;
+            case 0: return this.attributeLists;
+            case 1: return this.awaitKeyword;
+            case 2: return this.usingKeyword;
+            case 3: return this.modifiers;
+            case 4: return this.declaration;
+            case 5: return this.semicolonToken;
             default: return null;
         }
     }
@@ -12439,11 +12484,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLocalDeclarationStatement(this);
 
-    public LocalDeclarationStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public LocalDeclarationStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
-        if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || modifiers != this.Modifiers || declaration != this.Declaration || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.LocalDeclarationStatement(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
+            var newNode = SyntaxFactory.LocalDeclarationStatement(attributeLists, awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -12457,15 +12502,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new LocalDeclarationStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
+        => new LocalDeclarationStatementSyntax(this.Kind, this.attributeLists, this.awaitKeyword, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new LocalDeclarationStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
+        => new LocalDeclarationStatementSyntax(this.Kind, this.attributeLists, this.awaitKeyword, this.usingKeyword, this.modifiers, this.declaration, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal LocalDeclarationStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 5;
+      this.SlotCount = 6;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var awaitKeyword = (SyntaxToken)reader.ReadValue();
       if (awaitKeyword != null)
       {
@@ -12501,6 +12552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.awaitKeyword);
       writer.WriteValue(this.usingKeyword);
       writer.WriteValue(this.modifiers);
@@ -13236,13 +13288,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class ExpressionStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly ExpressionSyntax expression;
     internal readonly SyntaxToken semicolonToken;
 
-    internal ExpressionStatementSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ExpressionStatementSyntax(SyntaxKind kind, GreenNode attributeLists, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
         this.AdjustFlagsAndWidth(semicolonToken);
@@ -13250,11 +13308,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ExpressionStatementSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal ExpressionStatementSyntax(SyntaxKind kind, GreenNode attributeLists, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
         this.AdjustFlagsAndWidth(semicolonToken);
@@ -13262,16 +13325,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ExpressionStatementSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    internal ExpressionStatementSyntax(SyntaxKind kind, GreenNode attributeLists, ExpressionSyntax expression, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public ExpressionSyntax Expression => this.expression;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
@@ -13279,8 +13348,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.expression;
-            case 1: return this.semicolonToken;
+            case 0: return this.attributeLists;
+            case 1: return this.expression;
+            case 2: return this.semicolonToken;
             default: return null;
         }
     }
@@ -13291,11 +13361,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExpressionStatement(this);
 
-    public ExpressionStatementSyntax Update(ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public ExpressionStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
-        if (expression != this.Expression || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || expression != this.Expression || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.ExpressionStatement(expression, semicolonToken);
+            var newNode = SyntaxFactory.ExpressionStatement(attributeLists, expression, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -13309,15 +13379,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new ExpressionStatementSyntax(this.Kind, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
+        => new ExpressionStatementSyntax(this.Kind, this.attributeLists, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new ExpressionStatementSyntax(this.Kind, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
+        => new ExpressionStatementSyntax(this.Kind, this.attributeLists, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ExpressionStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 2;
+      this.SlotCount = 3;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var expression = (ExpressionSyntax)reader.ReadValue();
       if (expression != null)
       {
@@ -13335,6 +13411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.expression);
       writer.WriteValue(this.semicolonToken);
     }
@@ -13347,42 +13424,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class EmptyStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken semicolonToken;
 
-    internal EmptyStatementSyntax(SyntaxKind kind, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal EmptyStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 1;
+        this.SlotCount = 2;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
 
-    internal EmptyStatementSyntax(SyntaxKind kind, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal EmptyStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 1;
+        this.SlotCount = 2;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
 
-    internal EmptyStatementSyntax(SyntaxKind kind, SyntaxToken semicolonToken)
+    internal EmptyStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 1;
+        this.SlotCount = 2;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode GetSlot(int index)
     {
         switch (index)
         {
-            case 0: return this.semicolonToken;
+            case 0: return this.attributeLists;
+            case 1: return this.semicolonToken;
             default: return null;
         }
     }
@@ -13393,11 +13488,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEmptyStatement(this);
 
-    public EmptyStatementSyntax Update(SyntaxToken semicolonToken)
+    public EmptyStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken semicolonToken)
     {
-        if (semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.EmptyStatement(semicolonToken);
+            var newNode = SyntaxFactory.EmptyStatement(attributeLists, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -13411,15 +13506,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new EmptyStatementSyntax(this.Kind, this.semicolonToken, diagnostics, GetAnnotations());
+        => new EmptyStatementSyntax(this.Kind, this.attributeLists, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new EmptyStatementSyntax(this.Kind, this.semicolonToken, GetDiagnostics(), annotations);
+        => new EmptyStatementSyntax(this.Kind, this.attributeLists, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal EmptyStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 1;
+      this.SlotCount = 2;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var semicolonToken = (SyntaxToken)reader.ReadValue();
       if (semicolonToken != null)
       {
@@ -13431,6 +13532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.semicolonToken);
     }
 
@@ -13443,14 +13545,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
   /// <summary>Represents a labeled statement syntax.</summary>
   internal sealed partial class LabeledStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken identifier;
     internal readonly SyntaxToken colonToken;
     internal readonly StatementSyntax statement;
 
-    internal LabeledStatementSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal LabeledStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(identifier);
         this.identifier = identifier;
         this.AdjustFlagsAndWidth(colonToken);
@@ -13460,11 +13568,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal LabeledStatementSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement, SyntaxFactoryContext context)
+    internal LabeledStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(identifier);
         this.identifier = identifier;
         this.AdjustFlagsAndWidth(colonToken);
@@ -13474,10 +13587,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal LabeledStatementSyntax(SyntaxKind kind, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
+    internal LabeledStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
         : base(kind)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(identifier);
         this.identifier = identifier;
         this.AdjustFlagsAndWidth(colonToken);
@@ -13486,6 +13604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier => this.identifier;
     /// <summary>Gets a SyntaxToken that represents the colon following the statement's label.</summary>
@@ -13496,9 +13615,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.identifier;
-            case 1: return this.colonToken;
-            case 2: return this.statement;
+            case 0: return this.attributeLists;
+            case 1: return this.identifier;
+            case 2: return this.colonToken;
+            case 3: return this.statement;
             default: return null;
         }
     }
@@ -13509,11 +13629,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLabeledStatement(this);
 
-    public LabeledStatementSyntax Update(SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
+    public LabeledStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
     {
-        if (identifier != this.Identifier || colonToken != this.ColonToken || statement != this.Statement)
+        if (attributeLists != this.AttributeLists || identifier != this.Identifier || colonToken != this.ColonToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.LabeledStatement(identifier, colonToken, statement);
+            var newNode = SyntaxFactory.LabeledStatement(attributeLists, identifier, colonToken, statement);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -13527,15 +13647,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new LabeledStatementSyntax(this.Kind, this.identifier, this.colonToken, this.statement, diagnostics, GetAnnotations());
+        => new LabeledStatementSyntax(this.Kind, this.attributeLists, this.identifier, this.colonToken, this.statement, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new LabeledStatementSyntax(this.Kind, this.identifier, this.colonToken, this.statement, GetDiagnostics(), annotations);
+        => new LabeledStatementSyntax(this.Kind, this.attributeLists, this.identifier, this.colonToken, this.statement, GetDiagnostics(), annotations);
 
     internal LabeledStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 3;
+      this.SlotCount = 4;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var identifier = (SyntaxToken)reader.ReadValue();
       if (identifier != null)
       {
@@ -13559,6 +13685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.identifier);
       writer.WriteValue(this.colonToken);
       writer.WriteValue(this.statement);
@@ -13575,15 +13702,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
   /// </summary>
   internal sealed partial class GotoStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken gotoKeyword;
     internal readonly SyntaxToken caseOrDefaultKeyword;
     internal readonly ExpressionSyntax expression;
     internal readonly SyntaxToken semicolonToken;
 
-    internal GotoStatementSyntax(SyntaxKind kind, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal GotoStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 4;
+        this.SlotCount = 5;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(gotoKeyword);
         this.gotoKeyword = gotoKeyword;
         if (caseOrDefaultKeyword != null)
@@ -13601,11 +13734,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal GotoStatementSyntax(SyntaxKind kind, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal GotoStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 4;
+        this.SlotCount = 5;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(gotoKeyword);
         this.gotoKeyword = gotoKeyword;
         if (caseOrDefaultKeyword != null)
@@ -13623,10 +13761,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal GotoStatementSyntax(SyntaxKind kind, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    internal GotoStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 4;
+        this.SlotCount = 5;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(gotoKeyword);
         this.gotoKeyword = gotoKeyword;
         if (caseOrDefaultKeyword != null)
@@ -13643,6 +13786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>
     /// Gets a SyntaxToken that represents the goto keyword.
     /// </summary>
@@ -13664,10 +13808,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.gotoKeyword;
-            case 1: return this.caseOrDefaultKeyword;
-            case 2: return this.expression;
-            case 3: return this.semicolonToken;
+            case 0: return this.attributeLists;
+            case 1: return this.gotoKeyword;
+            case 2: return this.caseOrDefaultKeyword;
+            case 3: return this.expression;
+            case 4: return this.semicolonToken;
             default: return null;
         }
     }
@@ -13678,11 +13823,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGotoStatement(this);
 
-    public GotoStatementSyntax Update(SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public GotoStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
-        if (gotoKeyword != this.GotoKeyword || caseOrDefaultKeyword != this.CaseOrDefaultKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || gotoKeyword != this.GotoKeyword || caseOrDefaultKeyword != this.CaseOrDefaultKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.GotoStatement(this.Kind, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
+            var newNode = SyntaxFactory.GotoStatement(this.Kind, attributeLists, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -13696,15 +13841,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new GotoStatementSyntax(this.Kind, this.gotoKeyword, this.caseOrDefaultKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
+        => new GotoStatementSyntax(this.Kind, this.attributeLists, this.gotoKeyword, this.caseOrDefaultKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new GotoStatementSyntax(this.Kind, this.gotoKeyword, this.caseOrDefaultKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
+        => new GotoStatementSyntax(this.Kind, this.attributeLists, this.gotoKeyword, this.caseOrDefaultKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal GotoStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 4;
+      this.SlotCount = 5;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var gotoKeyword = (SyntaxToken)reader.ReadValue();
       if (gotoKeyword != null)
       {
@@ -13734,6 +13885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.gotoKeyword);
       writer.WriteValue(this.caseOrDefaultKeyword);
       writer.WriteValue(this.expression);
@@ -13748,13 +13900,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class BreakStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken breakKeyword;
     internal readonly SyntaxToken semicolonToken;
 
-    internal BreakStatementSyntax(SyntaxKind kind, SyntaxToken breakKeyword, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal BreakStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(breakKeyword);
         this.breakKeyword = breakKeyword;
         this.AdjustFlagsAndWidth(semicolonToken);
@@ -13762,11 +13920,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal BreakStatementSyntax(SyntaxKind kind, SyntaxToken breakKeyword, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal BreakStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(breakKeyword);
         this.breakKeyword = breakKeyword;
         this.AdjustFlagsAndWidth(semicolonToken);
@@ -13774,16 +13937,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal BreakStatementSyntax(SyntaxKind kind, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+    internal BreakStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(breakKeyword);
         this.breakKeyword = breakKeyword;
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken BreakKeyword => this.breakKeyword;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
@@ -13791,8 +13960,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.breakKeyword;
-            case 1: return this.semicolonToken;
+            case 0: return this.attributeLists;
+            case 1: return this.breakKeyword;
+            case 2: return this.semicolonToken;
             default: return null;
         }
     }
@@ -13803,11 +13973,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBreakStatement(this);
 
-    public BreakStatementSyntax Update(SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+    public BreakStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
     {
-        if (breakKeyword != this.BreakKeyword || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || breakKeyword != this.BreakKeyword || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.BreakStatement(breakKeyword, semicolonToken);
+            var newNode = SyntaxFactory.BreakStatement(attributeLists, breakKeyword, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -13821,15 +13991,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new BreakStatementSyntax(this.Kind, this.breakKeyword, this.semicolonToken, diagnostics, GetAnnotations());
+        => new BreakStatementSyntax(this.Kind, this.attributeLists, this.breakKeyword, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new BreakStatementSyntax(this.Kind, this.breakKeyword, this.semicolonToken, GetDiagnostics(), annotations);
+        => new BreakStatementSyntax(this.Kind, this.attributeLists, this.breakKeyword, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal BreakStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 2;
+      this.SlotCount = 3;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var breakKeyword = (SyntaxToken)reader.ReadValue();
       if (breakKeyword != null)
       {
@@ -13847,6 +14023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.breakKeyword);
       writer.WriteValue(this.semicolonToken);
     }
@@ -13859,13 +14036,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class ContinueStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken continueKeyword;
     internal readonly SyntaxToken semicolonToken;
 
-    internal ContinueStatementSyntax(SyntaxKind kind, SyntaxToken continueKeyword, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ContinueStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(continueKeyword);
         this.continueKeyword = continueKeyword;
         this.AdjustFlagsAndWidth(semicolonToken);
@@ -13873,11 +14056,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ContinueStatementSyntax(SyntaxKind kind, SyntaxToken continueKeyword, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal ContinueStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(continueKeyword);
         this.continueKeyword = continueKeyword;
         this.AdjustFlagsAndWidth(semicolonToken);
@@ -13885,16 +14073,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ContinueStatementSyntax(SyntaxKind kind, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+    internal ContinueStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(continueKeyword);
         this.continueKeyword = continueKeyword;
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken ContinueKeyword => this.continueKeyword;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
@@ -13902,8 +14096,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.continueKeyword;
-            case 1: return this.semicolonToken;
+            case 0: return this.attributeLists;
+            case 1: return this.continueKeyword;
+            case 2: return this.semicolonToken;
             default: return null;
         }
     }
@@ -13914,11 +14109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitContinueStatement(this);
 
-    public ContinueStatementSyntax Update(SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+    public ContinueStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
     {
-        if (continueKeyword != this.ContinueKeyword || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || continueKeyword != this.ContinueKeyword || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.ContinueStatement(continueKeyword, semicolonToken);
+            var newNode = SyntaxFactory.ContinueStatement(attributeLists, continueKeyword, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -13932,15 +14127,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new ContinueStatementSyntax(this.Kind, this.continueKeyword, this.semicolonToken, diagnostics, GetAnnotations());
+        => new ContinueStatementSyntax(this.Kind, this.attributeLists, this.continueKeyword, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new ContinueStatementSyntax(this.Kind, this.continueKeyword, this.semicolonToken, GetDiagnostics(), annotations);
+        => new ContinueStatementSyntax(this.Kind, this.attributeLists, this.continueKeyword, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ContinueStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 2;
+      this.SlotCount = 3;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var continueKeyword = (SyntaxToken)reader.ReadValue();
       if (continueKeyword != null)
       {
@@ -13958,6 +14159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.continueKeyword);
       writer.WriteValue(this.semicolonToken);
     }
@@ -13970,14 +14172,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class ReturnStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken returnKeyword;
     internal readonly ExpressionSyntax expression;
     internal readonly SyntaxToken semicolonToken;
 
-    internal ReturnStatementSyntax(SyntaxKind kind, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ReturnStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(returnKeyword);
         this.returnKeyword = returnKeyword;
         if (expression != null)
@@ -13990,11 +14198,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ReturnStatementSyntax(SyntaxKind kind, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal ReturnStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(returnKeyword);
         this.returnKeyword = returnKeyword;
         if (expression != null)
@@ -14007,10 +14220,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ReturnStatementSyntax(SyntaxKind kind, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    internal ReturnStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(returnKeyword);
         this.returnKeyword = returnKeyword;
         if (expression != null)
@@ -14022,6 +14240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken ReturnKeyword => this.returnKeyword;
     public ExpressionSyntax Expression => this.expression;
     public SyntaxToken SemicolonToken => this.semicolonToken;
@@ -14030,9 +14249,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.returnKeyword;
-            case 1: return this.expression;
-            case 2: return this.semicolonToken;
+            case 0: return this.attributeLists;
+            case 1: return this.returnKeyword;
+            case 2: return this.expression;
+            case 3: return this.semicolonToken;
             default: return null;
         }
     }
@@ -14043,11 +14263,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitReturnStatement(this);
 
-    public ReturnStatementSyntax Update(SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public ReturnStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
-        if (returnKeyword != this.ReturnKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || returnKeyword != this.ReturnKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.ReturnStatement(returnKeyword, expression, semicolonToken);
+            var newNode = SyntaxFactory.ReturnStatement(attributeLists, returnKeyword, expression, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -14061,15 +14281,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new ReturnStatementSyntax(this.Kind, this.returnKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
+        => new ReturnStatementSyntax(this.Kind, this.attributeLists, this.returnKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new ReturnStatementSyntax(this.Kind, this.returnKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
+        => new ReturnStatementSyntax(this.Kind, this.attributeLists, this.returnKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ReturnStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 3;
+      this.SlotCount = 4;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var returnKeyword = (SyntaxToken)reader.ReadValue();
       if (returnKeyword != null)
       {
@@ -14093,6 +14319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.returnKeyword);
       writer.WriteValue(this.expression);
       writer.WriteValue(this.semicolonToken);
@@ -14106,14 +14333,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class ThrowStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken throwKeyword;
     internal readonly ExpressionSyntax expression;
     internal readonly SyntaxToken semicolonToken;
 
-    internal ThrowStatementSyntax(SyntaxKind kind, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ThrowStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(throwKeyword);
         this.throwKeyword = throwKeyword;
         if (expression != null)
@@ -14126,11 +14359,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ThrowStatementSyntax(SyntaxKind kind, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal ThrowStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(throwKeyword);
         this.throwKeyword = throwKeyword;
         if (expression != null)
@@ -14143,10 +14381,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ThrowStatementSyntax(SyntaxKind kind, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    internal ThrowStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(throwKeyword);
         this.throwKeyword = throwKeyword;
         if (expression != null)
@@ -14158,6 +14401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken ThrowKeyword => this.throwKeyword;
     public ExpressionSyntax Expression => this.expression;
     public SyntaxToken SemicolonToken => this.semicolonToken;
@@ -14166,9 +14410,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.throwKeyword;
-            case 1: return this.expression;
-            case 2: return this.semicolonToken;
+            case 0: return this.attributeLists;
+            case 1: return this.throwKeyword;
+            case 2: return this.expression;
+            case 3: return this.semicolonToken;
             default: return null;
         }
     }
@@ -14179,11 +14424,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThrowStatement(this);
 
-    public ThrowStatementSyntax Update(SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public ThrowStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
-        if (throwKeyword != this.ThrowKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || throwKeyword != this.ThrowKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.ThrowStatement(throwKeyword, expression, semicolonToken);
+            var newNode = SyntaxFactory.ThrowStatement(attributeLists, throwKeyword, expression, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -14197,15 +14442,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new ThrowStatementSyntax(this.Kind, this.throwKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
+        => new ThrowStatementSyntax(this.Kind, this.attributeLists, this.throwKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new ThrowStatementSyntax(this.Kind, this.throwKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
+        => new ThrowStatementSyntax(this.Kind, this.attributeLists, this.throwKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal ThrowStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 3;
+      this.SlotCount = 4;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var throwKeyword = (SyntaxToken)reader.ReadValue();
       if (throwKeyword != null)
       {
@@ -14229,6 +14480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.throwKeyword);
       writer.WriteValue(this.expression);
       writer.WriteValue(this.semicolonToken);
@@ -14242,15 +14494,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class YieldStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken yieldKeyword;
     internal readonly SyntaxToken returnOrBreakKeyword;
     internal readonly ExpressionSyntax expression;
     internal readonly SyntaxToken semicolonToken;
 
-    internal YieldStatementSyntax(SyntaxKind kind, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal YieldStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 4;
+        this.SlotCount = 5;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(yieldKeyword);
         this.yieldKeyword = yieldKeyword;
         this.AdjustFlagsAndWidth(returnOrBreakKeyword);
@@ -14265,11 +14523,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal YieldStatementSyntax(SyntaxKind kind, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal YieldStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 4;
+        this.SlotCount = 5;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(yieldKeyword);
         this.yieldKeyword = yieldKeyword;
         this.AdjustFlagsAndWidth(returnOrBreakKeyword);
@@ -14284,10 +14547,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal YieldStatementSyntax(SyntaxKind kind, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    internal YieldStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 4;
+        this.SlotCount = 5;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(yieldKeyword);
         this.yieldKeyword = yieldKeyword;
         this.AdjustFlagsAndWidth(returnOrBreakKeyword);
@@ -14301,6 +14569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken YieldKeyword => this.yieldKeyword;
     public SyntaxToken ReturnOrBreakKeyword => this.returnOrBreakKeyword;
     public ExpressionSyntax Expression => this.expression;
@@ -14310,10 +14579,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.yieldKeyword;
-            case 1: return this.returnOrBreakKeyword;
-            case 2: return this.expression;
-            case 3: return this.semicolonToken;
+            case 0: return this.attributeLists;
+            case 1: return this.yieldKeyword;
+            case 2: return this.returnOrBreakKeyword;
+            case 3: return this.expression;
+            case 4: return this.semicolonToken;
             default: return null;
         }
     }
@@ -14324,11 +14594,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitYieldStatement(this);
 
-    public YieldStatementSyntax Update(SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public YieldStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
-        if (yieldKeyword != this.YieldKeyword || returnOrBreakKeyword != this.ReturnOrBreakKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || yieldKeyword != this.YieldKeyword || returnOrBreakKeyword != this.ReturnOrBreakKeyword || expression != this.Expression || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.YieldStatement(this.Kind, yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
+            var newNode = SyntaxFactory.YieldStatement(this.Kind, attributeLists, yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -14342,15 +14612,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new YieldStatementSyntax(this.Kind, this.yieldKeyword, this.returnOrBreakKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
+        => new YieldStatementSyntax(this.Kind, this.attributeLists, this.yieldKeyword, this.returnOrBreakKeyword, this.expression, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new YieldStatementSyntax(this.Kind, this.yieldKeyword, this.returnOrBreakKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
+        => new YieldStatementSyntax(this.Kind, this.attributeLists, this.yieldKeyword, this.returnOrBreakKeyword, this.expression, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal YieldStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 4;
+      this.SlotCount = 5;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var yieldKeyword = (SyntaxToken)reader.ReadValue();
       if (yieldKeyword != null)
       {
@@ -14380,6 +14656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.yieldKeyword);
       writer.WriteValue(this.returnOrBreakKeyword);
       writer.WriteValue(this.expression);
@@ -14394,16 +14671,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class WhileStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken whileKeyword;
     internal readonly SyntaxToken openParenToken;
     internal readonly ExpressionSyntax condition;
     internal readonly SyntaxToken closeParenToken;
     internal readonly StatementSyntax statement;
 
-    internal WhileStatementSyntax(SyntaxKind kind, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal WhileStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(whileKeyword);
         this.whileKeyword = whileKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -14417,11 +14700,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal WhileStatementSyntax(SyntaxKind kind, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
+    internal WhileStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(whileKeyword);
         this.whileKeyword = whileKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -14435,10 +14723,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal WhileStatementSyntax(SyntaxKind kind, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
+    internal WhileStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
         : base(kind)
     {
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(whileKeyword);
         this.whileKeyword = whileKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -14451,6 +14744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken WhileKeyword => this.whileKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
     public ExpressionSyntax Condition => this.condition;
@@ -14461,11 +14755,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.whileKeyword;
-            case 1: return this.openParenToken;
-            case 2: return this.condition;
-            case 3: return this.closeParenToken;
-            case 4: return this.statement;
+            case 0: return this.attributeLists;
+            case 1: return this.whileKeyword;
+            case 2: return this.openParenToken;
+            case 3: return this.condition;
+            case 4: return this.closeParenToken;
+            case 5: return this.statement;
             default: return null;
         }
     }
@@ -14476,11 +14771,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhileStatement(this);
 
-    public WhileStatementSyntax Update(SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
+    public WhileStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (whileKeyword != this.WhileKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (attributeLists != this.AttributeLists || whileKeyword != this.WhileKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.WhileStatement(whileKeyword, openParenToken, condition, closeParenToken, statement);
+            var newNode = SyntaxFactory.WhileStatement(attributeLists, whileKeyword, openParenToken, condition, closeParenToken, statement);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -14494,15 +14789,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new WhileStatementSyntax(this.Kind, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+        => new WhileStatementSyntax(this.Kind, this.attributeLists, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new WhileStatementSyntax(this.Kind, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+        => new WhileStatementSyntax(this.Kind, this.attributeLists, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal WhileStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 5;
+      this.SlotCount = 6;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var whileKeyword = (SyntaxToken)reader.ReadValue();
       if (whileKeyword != null)
       {
@@ -14538,6 +14839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.whileKeyword);
       writer.WriteValue(this.openParenToken);
       writer.WriteValue(this.condition);
@@ -14553,6 +14855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class DoStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken doKeyword;
     internal readonly StatementSyntax statement;
     internal readonly SyntaxToken whileKeyword;
@@ -14561,10 +14864,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal readonly SyntaxToken closeParenToken;
     internal readonly SyntaxToken semicolonToken;
 
-    internal DoStatementSyntax(SyntaxKind kind, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal DoStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 7;
+        this.SlotCount = 8;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(doKeyword);
         this.doKeyword = doKeyword;
         this.AdjustFlagsAndWidth(statement);
@@ -14582,11 +14890,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal DoStatementSyntax(SyntaxKind kind, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal DoStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 7;
+        this.SlotCount = 8;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(doKeyword);
         this.doKeyword = doKeyword;
         this.AdjustFlagsAndWidth(statement);
@@ -14604,10 +14917,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal DoStatementSyntax(SyntaxKind kind, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
+    internal DoStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
         : base(kind)
     {
-        this.SlotCount = 7;
+        this.SlotCount = 8;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(doKeyword);
         this.doKeyword = doKeyword;
         this.AdjustFlagsAndWidth(statement);
@@ -14624,6 +14942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.semicolonToken = semicolonToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken DoKeyword => this.doKeyword;
     public StatementSyntax Statement => this.statement;
     public SyntaxToken WhileKeyword => this.whileKeyword;
@@ -14636,13 +14955,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.doKeyword;
-            case 1: return this.statement;
-            case 2: return this.whileKeyword;
-            case 3: return this.openParenToken;
-            case 4: return this.condition;
-            case 5: return this.closeParenToken;
-            case 6: return this.semicolonToken;
+            case 0: return this.attributeLists;
+            case 1: return this.doKeyword;
+            case 2: return this.statement;
+            case 3: return this.whileKeyword;
+            case 4: return this.openParenToken;
+            case 5: return this.condition;
+            case 6: return this.closeParenToken;
+            case 7: return this.semicolonToken;
             default: return null;
         }
     }
@@ -14653,11 +14973,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDoStatement(this);
 
-    public DoStatementSyntax Update(SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
+    public DoStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
     {
-        if (doKeyword != this.DoKeyword || statement != this.Statement || whileKeyword != this.WhileKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || doKeyword != this.DoKeyword || statement != this.Statement || whileKeyword != this.WhileKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.DoStatement(doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
+            var newNode = SyntaxFactory.DoStatement(attributeLists, doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -14671,15 +14991,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new DoStatementSyntax(this.Kind, this.doKeyword, this.statement, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.semicolonToken, diagnostics, GetAnnotations());
+        => new DoStatementSyntax(this.Kind, this.attributeLists, this.doKeyword, this.statement, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new DoStatementSyntax(this.Kind, this.doKeyword, this.statement, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.semicolonToken, GetDiagnostics(), annotations);
+        => new DoStatementSyntax(this.Kind, this.attributeLists, this.doKeyword, this.statement, this.whileKeyword, this.openParenToken, this.condition, this.closeParenToken, this.semicolonToken, GetDiagnostics(), annotations);
 
     internal DoStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 7;
+      this.SlotCount = 8;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var doKeyword = (SyntaxToken)reader.ReadValue();
       if (doKeyword != null)
       {
@@ -14727,6 +15053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.doKeyword);
       writer.WriteValue(this.statement);
       writer.WriteValue(this.whileKeyword);
@@ -14744,6 +15071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class ForStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken forKeyword;
     internal readonly SyntaxToken openParenToken;
     internal readonly VariableDeclarationSyntax declaration;
@@ -14755,10 +15083,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal readonly SyntaxToken closeParenToken;
     internal readonly StatementSyntax statement;
 
-    internal ForStatementSyntax(SyntaxKind kind, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, GreenNode initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, GreenNode incrementors, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ForStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, GreenNode initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, GreenNode incrementors, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 10;
+        this.SlotCount = 11;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(forKeyword);
         this.forKeyword = forKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -14794,11 +15127,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ForStatementSyntax(SyntaxKind kind, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, GreenNode initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, GreenNode incrementors, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
+    internal ForStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, GreenNode initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, GreenNode incrementors, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 10;
+        this.SlotCount = 11;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(forKeyword);
         this.forKeyword = forKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -14834,10 +15172,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ForStatementSyntax(SyntaxKind kind, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, GreenNode initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, GreenNode incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
+    internal ForStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, GreenNode initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, GreenNode incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
         : base(kind)
     {
-        this.SlotCount = 10;
+        this.SlotCount = 11;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(forKeyword);
         this.forKeyword = forKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -14872,6 +15215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken ForKeyword => this.forKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
     public VariableDeclarationSyntax Declaration => this.declaration;
@@ -14887,16 +15231,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.forKeyword;
-            case 1: return this.openParenToken;
-            case 2: return this.declaration;
-            case 3: return this.initializers;
-            case 4: return this.firstSemicolonToken;
-            case 5: return this.condition;
-            case 6: return this.secondSemicolonToken;
-            case 7: return this.incrementors;
-            case 8: return this.closeParenToken;
-            case 9: return this.statement;
+            case 0: return this.attributeLists;
+            case 1: return this.forKeyword;
+            case 2: return this.openParenToken;
+            case 3: return this.declaration;
+            case 4: return this.initializers;
+            case 5: return this.firstSemicolonToken;
+            case 6: return this.condition;
+            case 7: return this.secondSemicolonToken;
+            case 8: return this.incrementors;
+            case 9: return this.closeParenToken;
+            case 10: return this.statement;
             default: return null;
         }
     }
@@ -14907,11 +15252,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForStatement(this);
 
-    public ForStatementSyntax Update(SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
+    public ForStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (forKeyword != this.ForKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || initializers != this.Initializers || firstSemicolonToken != this.FirstSemicolonToken || condition != this.Condition || secondSemicolonToken != this.SecondSemicolonToken || incrementors != this.Incrementors || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (attributeLists != this.AttributeLists || forKeyword != this.ForKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || initializers != this.Initializers || firstSemicolonToken != this.FirstSemicolonToken || condition != this.Condition || secondSemicolonToken != this.SecondSemicolonToken || incrementors != this.Incrementors || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.ForStatement(forKeyword, openParenToken, declaration, initializers, firstSemicolonToken, condition, secondSemicolonToken, incrementors, closeParenToken, statement);
+            var newNode = SyntaxFactory.ForStatement(attributeLists, forKeyword, openParenToken, declaration, initializers, firstSemicolonToken, condition, secondSemicolonToken, incrementors, closeParenToken, statement);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -14925,15 +15270,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new ForStatementSyntax(this.Kind, this.forKeyword, this.openParenToken, this.declaration, this.initializers, this.firstSemicolonToken, this.condition, this.secondSemicolonToken, this.incrementors, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+        => new ForStatementSyntax(this.Kind, this.attributeLists, this.forKeyword, this.openParenToken, this.declaration, this.initializers, this.firstSemicolonToken, this.condition, this.secondSemicolonToken, this.incrementors, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new ForStatementSyntax(this.Kind, this.forKeyword, this.openParenToken, this.declaration, this.initializers, this.firstSemicolonToken, this.condition, this.secondSemicolonToken, this.incrementors, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+        => new ForStatementSyntax(this.Kind, this.attributeLists, this.forKeyword, this.openParenToken, this.declaration, this.initializers, this.firstSemicolonToken, this.condition, this.secondSemicolonToken, this.incrementors, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal ForStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 10;
+      this.SlotCount = 11;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var forKeyword = (SyntaxToken)reader.ReadValue();
       if (forKeyword != null)
       {
@@ -14999,6 +15350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.forKeyword);
       writer.WriteValue(this.openParenToken);
       writer.WriteValue(this.declaration);
@@ -15050,6 +15402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class ForEachStatementSyntax : CommonForEachStatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken awaitKeyword;
     internal readonly SyntaxToken forEachKeyword;
     internal readonly SyntaxToken openParenToken;
@@ -15060,10 +15413,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal readonly SyntaxToken closeParenToken;
     internal readonly StatementSyntax statement;
 
-    internal ForEachStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ForEachStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 9;
+        this.SlotCount = 10;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -15088,11 +15446,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ForEachStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
+    internal ForEachStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 9;
+        this.SlotCount = 10;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -15117,10 +15480,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ForEachStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    internal ForEachStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         : base(kind)
     {
-        this.SlotCount = 9;
+        this.SlotCount = 10;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -15144,6 +15512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public override SyntaxToken AwaitKeyword => this.awaitKeyword;
     public override SyntaxToken ForEachKeyword => this.forEachKeyword;
     public override SyntaxToken OpenParenToken => this.openParenToken;
@@ -15159,15 +15528,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.awaitKeyword;
-            case 1: return this.forEachKeyword;
-            case 2: return this.openParenToken;
-            case 3: return this.type;
-            case 4: return this.identifier;
-            case 5: return this.inKeyword;
-            case 6: return this.expression;
-            case 7: return this.closeParenToken;
-            case 8: return this.statement;
+            case 0: return this.attributeLists;
+            case 1: return this.awaitKeyword;
+            case 2: return this.forEachKeyword;
+            case 3: return this.openParenToken;
+            case 4: return this.type;
+            case 5: return this.identifier;
+            case 6: return this.inKeyword;
+            case 7: return this.expression;
+            case 8: return this.closeParenToken;
+            case 9: return this.statement;
             default: return null;
         }
     }
@@ -15178,11 +15548,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForEachStatement(this);
 
-    public ForEachStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public ForEachStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (attributeLists != this.AttributeLists || awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || type != this.Type || identifier != this.Identifier || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.ForEachStatement(awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
+            var newNode = SyntaxFactory.ForEachStatement(attributeLists, awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -15196,15 +15566,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new ForEachStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.type, this.identifier, this.inKeyword, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+        => new ForEachStatementSyntax(this.Kind, this.attributeLists, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.type, this.identifier, this.inKeyword, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new ForEachStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.type, this.identifier, this.inKeyword, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+        => new ForEachStatementSyntax(this.Kind, this.attributeLists, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.type, this.identifier, this.inKeyword, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal ForEachStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 9;
+      this.SlotCount = 10;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var awaitKeyword = (SyntaxToken)reader.ReadValue();
       if (awaitKeyword != null)
       {
@@ -15264,6 +15640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.awaitKeyword);
       writer.WriteValue(this.forEachKeyword);
       writer.WriteValue(this.openParenToken);
@@ -15283,6 +15660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class ForEachVariableStatementSyntax : CommonForEachStatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken awaitKeyword;
     internal readonly SyntaxToken forEachKeyword;
     internal readonly SyntaxToken openParenToken;
@@ -15292,10 +15670,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal readonly SyntaxToken closeParenToken;
     internal readonly StatementSyntax statement;
 
-    internal ForEachVariableStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal ForEachVariableStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 8;
+        this.SlotCount = 9;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -15318,11 +15701,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ForEachVariableStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
+    internal ForEachVariableStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 8;
+        this.SlotCount = 9;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -15345,10 +15733,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal ForEachVariableStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    internal ForEachVariableStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         : base(kind)
     {
-        this.SlotCount = 8;
+        this.SlotCount = 9;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -15370,6 +15763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public override SyntaxToken AwaitKeyword => this.awaitKeyword;
     public override SyntaxToken ForEachKeyword => this.forEachKeyword;
     public override SyntaxToken OpenParenToken => this.openParenToken;
@@ -15389,14 +15783,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.awaitKeyword;
-            case 1: return this.forEachKeyword;
-            case 2: return this.openParenToken;
-            case 3: return this.variable;
-            case 4: return this.inKeyword;
-            case 5: return this.expression;
-            case 6: return this.closeParenToken;
-            case 7: return this.statement;
+            case 0: return this.attributeLists;
+            case 1: return this.awaitKeyword;
+            case 2: return this.forEachKeyword;
+            case 3: return this.openParenToken;
+            case 4: return this.variable;
+            case 5: return this.inKeyword;
+            case 6: return this.expression;
+            case 7: return this.closeParenToken;
+            case 8: return this.statement;
             default: return null;
         }
     }
@@ -15407,11 +15802,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForEachVariableStatement(this);
 
-    public ForEachVariableStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public ForEachVariableStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || variable != this.Variable || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (attributeLists != this.AttributeLists || awaitKeyword != this.AwaitKeyword || forEachKeyword != this.ForEachKeyword || openParenToken != this.OpenParenToken || variable != this.Variable || inKeyword != this.InKeyword || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.ForEachVariableStatement(awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
+            var newNode = SyntaxFactory.ForEachVariableStatement(attributeLists, awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -15425,15 +15820,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new ForEachVariableStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.variable, this.inKeyword, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+        => new ForEachVariableStatementSyntax(this.Kind, this.attributeLists, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.variable, this.inKeyword, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new ForEachVariableStatementSyntax(this.Kind, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.variable, this.inKeyword, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+        => new ForEachVariableStatementSyntax(this.Kind, this.attributeLists, this.awaitKeyword, this.forEachKeyword, this.openParenToken, this.variable, this.inKeyword, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal ForEachVariableStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 8;
+      this.SlotCount = 9;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var awaitKeyword = (SyntaxToken)reader.ReadValue();
       if (awaitKeyword != null)
       {
@@ -15487,6 +15888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.awaitKeyword);
       writer.WriteValue(this.forEachKeyword);
       writer.WriteValue(this.openParenToken);
@@ -15505,6 +15907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class UsingStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken awaitKeyword;
     internal readonly SyntaxToken usingKeyword;
     internal readonly SyntaxToken openParenToken;
@@ -15513,10 +15916,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal readonly SyntaxToken closeParenToken;
     internal readonly StatementSyntax statement;
 
-    internal UsingStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal UsingStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 7;
+        this.SlotCount = 8;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -15543,11 +15951,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal UsingStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
+    internal UsingStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 7;
+        this.SlotCount = 8;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -15574,10 +15987,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal UsingStatementSyntax(SyntaxKind kind, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    internal UsingStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         : base(kind)
     {
-        this.SlotCount = 7;
+        this.SlotCount = 8;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         if (awaitKeyword != null)
         {
             this.AdjustFlagsAndWidth(awaitKeyword);
@@ -15603,6 +16021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken AwaitKeyword => this.awaitKeyword;
     public SyntaxToken UsingKeyword => this.usingKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
@@ -15615,13 +16034,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.awaitKeyword;
-            case 1: return this.usingKeyword;
-            case 2: return this.openParenToken;
-            case 3: return this.declaration;
-            case 4: return this.expression;
-            case 5: return this.closeParenToken;
-            case 6: return this.statement;
+            case 0: return this.attributeLists;
+            case 1: return this.awaitKeyword;
+            case 2: return this.usingKeyword;
+            case 3: return this.openParenToken;
+            case 4: return this.declaration;
+            case 5: return this.expression;
+            case 6: return this.closeParenToken;
+            case 7: return this.statement;
             default: return null;
         }
     }
@@ -15632,11 +16052,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingStatement(this);
 
-    public UsingStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public UsingStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (attributeLists != this.AttributeLists || awaitKeyword != this.AwaitKeyword || usingKeyword != this.UsingKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.UsingStatement(awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
+            var newNode = SyntaxFactory.UsingStatement(attributeLists, awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -15650,15 +16070,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new UsingStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.openParenToken, this.declaration, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+        => new UsingStatementSyntax(this.Kind, this.attributeLists, this.awaitKeyword, this.usingKeyword, this.openParenToken, this.declaration, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new UsingStatementSyntax(this.Kind, this.awaitKeyword, this.usingKeyword, this.openParenToken, this.declaration, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+        => new UsingStatementSyntax(this.Kind, this.attributeLists, this.awaitKeyword, this.usingKeyword, this.openParenToken, this.declaration, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal UsingStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 7;
+      this.SlotCount = 8;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var awaitKeyword = (SyntaxToken)reader.ReadValue();
       if (awaitKeyword != null)
       {
@@ -15706,6 +16132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.awaitKeyword);
       writer.WriteValue(this.usingKeyword);
       writer.WriteValue(this.openParenToken);
@@ -15723,16 +16150,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class FixedStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken fixedKeyword;
     internal readonly SyntaxToken openParenToken;
     internal readonly VariableDeclarationSyntax declaration;
     internal readonly SyntaxToken closeParenToken;
     internal readonly StatementSyntax statement;
 
-    internal FixedStatementSyntax(SyntaxKind kind, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal FixedStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(fixedKeyword);
         this.fixedKeyword = fixedKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -15746,11 +16179,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal FixedStatementSyntax(SyntaxKind kind, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
+    internal FixedStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(fixedKeyword);
         this.fixedKeyword = fixedKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -15764,10 +16202,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal FixedStatementSyntax(SyntaxKind kind, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
+    internal FixedStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
         : base(kind)
     {
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(fixedKeyword);
         this.fixedKeyword = fixedKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -15780,6 +16223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken FixedKeyword => this.fixedKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
     public VariableDeclarationSyntax Declaration => this.declaration;
@@ -15790,11 +16234,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.fixedKeyword;
-            case 1: return this.openParenToken;
-            case 2: return this.declaration;
-            case 3: return this.closeParenToken;
-            case 4: return this.statement;
+            case 0: return this.attributeLists;
+            case 1: return this.fixedKeyword;
+            case 2: return this.openParenToken;
+            case 3: return this.declaration;
+            case 4: return this.closeParenToken;
+            case 5: return this.statement;
             default: return null;
         }
     }
@@ -15805,11 +16250,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFixedStatement(this);
 
-    public FixedStatementSyntax Update(SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
+    public FixedStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (fixedKeyword != this.FixedKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (attributeLists != this.AttributeLists || fixedKeyword != this.FixedKeyword || openParenToken != this.OpenParenToken || declaration != this.Declaration || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.FixedStatement(fixedKeyword, openParenToken, declaration, closeParenToken, statement);
+            var newNode = SyntaxFactory.FixedStatement(attributeLists, fixedKeyword, openParenToken, declaration, closeParenToken, statement);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -15823,15 +16268,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new FixedStatementSyntax(this.Kind, this.fixedKeyword, this.openParenToken, this.declaration, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+        => new FixedStatementSyntax(this.Kind, this.attributeLists, this.fixedKeyword, this.openParenToken, this.declaration, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new FixedStatementSyntax(this.Kind, this.fixedKeyword, this.openParenToken, this.declaration, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+        => new FixedStatementSyntax(this.Kind, this.attributeLists, this.fixedKeyword, this.openParenToken, this.declaration, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal FixedStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 5;
+      this.SlotCount = 6;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var fixedKeyword = (SyntaxToken)reader.ReadValue();
       if (fixedKeyword != null)
       {
@@ -15867,6 +16318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.fixedKeyword);
       writer.WriteValue(this.openParenToken);
       writer.WriteValue(this.declaration);
@@ -15882,13 +16334,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class CheckedStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken keyword;
     internal readonly BlockSyntax block;
 
-    internal CheckedStatementSyntax(SyntaxKind kind, SyntaxToken keyword, BlockSyntax block, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal CheckedStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken keyword, BlockSyntax block, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(keyword);
         this.keyword = keyword;
         this.AdjustFlagsAndWidth(block);
@@ -15896,11 +16354,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal CheckedStatementSyntax(SyntaxKind kind, SyntaxToken keyword, BlockSyntax block, SyntaxFactoryContext context)
+    internal CheckedStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken keyword, BlockSyntax block, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(keyword);
         this.keyword = keyword;
         this.AdjustFlagsAndWidth(block);
@@ -15908,16 +16371,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal CheckedStatementSyntax(SyntaxKind kind, SyntaxToken keyword, BlockSyntax block)
+    internal CheckedStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken keyword, BlockSyntax block)
         : base(kind)
     {
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(keyword);
         this.keyword = keyword;
         this.AdjustFlagsAndWidth(block);
         this.block = block;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken Keyword => this.keyword;
     public BlockSyntax Block => this.block;
 
@@ -15925,8 +16394,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.keyword;
-            case 1: return this.block;
+            case 0: return this.attributeLists;
+            case 1: return this.keyword;
+            case 2: return this.block;
             default: return null;
         }
     }
@@ -15937,11 +16407,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCheckedStatement(this);
 
-    public CheckedStatementSyntax Update(SyntaxToken keyword, BlockSyntax block)
+    public CheckedStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken keyword, BlockSyntax block)
     {
-        if (keyword != this.Keyword || block != this.Block)
+        if (attributeLists != this.AttributeLists || keyword != this.Keyword || block != this.Block)
         {
-            var newNode = SyntaxFactory.CheckedStatement(this.Kind, keyword, block);
+            var newNode = SyntaxFactory.CheckedStatement(this.Kind, attributeLists, keyword, block);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -15955,15 +16425,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new CheckedStatementSyntax(this.Kind, this.keyword, this.block, diagnostics, GetAnnotations());
+        => new CheckedStatementSyntax(this.Kind, this.attributeLists, this.keyword, this.block, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new CheckedStatementSyntax(this.Kind, this.keyword, this.block, GetDiagnostics(), annotations);
+        => new CheckedStatementSyntax(this.Kind, this.attributeLists, this.keyword, this.block, GetDiagnostics(), annotations);
 
     internal CheckedStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 2;
+      this.SlotCount = 3;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var keyword = (SyntaxToken)reader.ReadValue();
       if (keyword != null)
       {
@@ -15981,6 +16457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.keyword);
       writer.WriteValue(this.block);
     }
@@ -15993,13 +16470,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class UnsafeStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken unsafeKeyword;
     internal readonly BlockSyntax block;
 
-    internal UnsafeStatementSyntax(SyntaxKind kind, SyntaxToken unsafeKeyword, BlockSyntax block, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal UnsafeStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken unsafeKeyword, BlockSyntax block, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(unsafeKeyword);
         this.unsafeKeyword = unsafeKeyword;
         this.AdjustFlagsAndWidth(block);
@@ -16007,11 +16490,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal UnsafeStatementSyntax(SyntaxKind kind, SyntaxToken unsafeKeyword, BlockSyntax block, SyntaxFactoryContext context)
+    internal UnsafeStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken unsafeKeyword, BlockSyntax block, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(unsafeKeyword);
         this.unsafeKeyword = unsafeKeyword;
         this.AdjustFlagsAndWidth(block);
@@ -16019,16 +16507,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal UnsafeStatementSyntax(SyntaxKind kind, SyntaxToken unsafeKeyword, BlockSyntax block)
+    internal UnsafeStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken unsafeKeyword, BlockSyntax block)
         : base(kind)
     {
-        this.SlotCount = 2;
+        this.SlotCount = 3;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(unsafeKeyword);
         this.unsafeKeyword = unsafeKeyword;
         this.AdjustFlagsAndWidth(block);
         this.block = block;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken UnsafeKeyword => this.unsafeKeyword;
     public BlockSyntax Block => this.block;
 
@@ -16036,8 +16530,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.unsafeKeyword;
-            case 1: return this.block;
+            case 0: return this.attributeLists;
+            case 1: return this.unsafeKeyword;
+            case 2: return this.block;
             default: return null;
         }
     }
@@ -16048,11 +16543,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnsafeStatement(this);
 
-    public UnsafeStatementSyntax Update(SyntaxToken unsafeKeyword, BlockSyntax block)
+    public UnsafeStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken unsafeKeyword, BlockSyntax block)
     {
-        if (unsafeKeyword != this.UnsafeKeyword || block != this.Block)
+        if (attributeLists != this.AttributeLists || unsafeKeyword != this.UnsafeKeyword || block != this.Block)
         {
-            var newNode = SyntaxFactory.UnsafeStatement(unsafeKeyword, block);
+            var newNode = SyntaxFactory.UnsafeStatement(attributeLists, unsafeKeyword, block);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -16066,15 +16561,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new UnsafeStatementSyntax(this.Kind, this.unsafeKeyword, this.block, diagnostics, GetAnnotations());
+        => new UnsafeStatementSyntax(this.Kind, this.attributeLists, this.unsafeKeyword, this.block, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new UnsafeStatementSyntax(this.Kind, this.unsafeKeyword, this.block, GetDiagnostics(), annotations);
+        => new UnsafeStatementSyntax(this.Kind, this.attributeLists, this.unsafeKeyword, this.block, GetDiagnostics(), annotations);
 
     internal UnsafeStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 2;
+      this.SlotCount = 3;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var unsafeKeyword = (SyntaxToken)reader.ReadValue();
       if (unsafeKeyword != null)
       {
@@ -16092,6 +16593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.unsafeKeyword);
       writer.WriteValue(this.block);
     }
@@ -16104,16 +16606,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class LockStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken lockKeyword;
     internal readonly SyntaxToken openParenToken;
     internal readonly ExpressionSyntax expression;
     internal readonly SyntaxToken closeParenToken;
     internal readonly StatementSyntax statement;
 
-    internal LockStatementSyntax(SyntaxKind kind, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal LockStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(lockKeyword);
         this.lockKeyword = lockKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -16127,11 +16635,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal LockStatementSyntax(SyntaxKind kind, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
+    internal LockStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(lockKeyword);
         this.lockKeyword = lockKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -16145,10 +16658,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal LockStatementSyntax(SyntaxKind kind, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    internal LockStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         : base(kind)
     {
-        this.SlotCount = 5;
+        this.SlotCount = 6;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(lockKeyword);
         this.lockKeyword = lockKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -16161,6 +16679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.statement = statement;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken LockKeyword => this.lockKeyword;
     public SyntaxToken OpenParenToken => this.openParenToken;
     public ExpressionSyntax Expression => this.expression;
@@ -16171,11 +16690,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.lockKeyword;
-            case 1: return this.openParenToken;
-            case 2: return this.expression;
-            case 3: return this.closeParenToken;
-            case 4: return this.statement;
+            case 0: return this.attributeLists;
+            case 1: return this.lockKeyword;
+            case 2: return this.openParenToken;
+            case 3: return this.expression;
+            case 4: return this.closeParenToken;
+            case 5: return this.statement;
             default: return null;
         }
     }
@@ -16186,11 +16706,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLockStatement(this);
 
-    public LockStatementSyntax Update(SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public LockStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
-        if (lockKeyword != this.LockKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
+        if (attributeLists != this.AttributeLists || lockKeyword != this.LockKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken || statement != this.Statement)
         {
-            var newNode = SyntaxFactory.LockStatement(lockKeyword, openParenToken, expression, closeParenToken, statement);
+            var newNode = SyntaxFactory.LockStatement(attributeLists, lockKeyword, openParenToken, expression, closeParenToken, statement);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -16204,15 +16724,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new LockStatementSyntax(this.Kind, this.lockKeyword, this.openParenToken, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
+        => new LockStatementSyntax(this.Kind, this.attributeLists, this.lockKeyword, this.openParenToken, this.expression, this.closeParenToken, this.statement, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new LockStatementSyntax(this.Kind, this.lockKeyword, this.openParenToken, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
+        => new LockStatementSyntax(this.Kind, this.attributeLists, this.lockKeyword, this.openParenToken, this.expression, this.closeParenToken, this.statement, GetDiagnostics(), annotations);
 
     internal LockStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 5;
+      this.SlotCount = 6;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var lockKeyword = (SyntaxToken)reader.ReadValue();
       if (lockKeyword != null)
       {
@@ -16248,6 +16774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.lockKeyword);
       writer.WriteValue(this.openParenToken);
       writer.WriteValue(this.expression);
@@ -16266,6 +16793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
   /// </summary>
   internal sealed partial class IfStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken ifKeyword;
     internal readonly SyntaxToken openParenToken;
     internal readonly ExpressionSyntax condition;
@@ -16273,10 +16801,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal readonly StatementSyntax statement;
     internal readonly ElseClauseSyntax @else;
 
-    internal IfStatementSyntax(SyntaxKind kind, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal IfStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 6;
+        this.SlotCount = 7;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(ifKeyword);
         this.ifKeyword = ifKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -16295,11 +16828,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal IfStatementSyntax(SyntaxKind kind, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else, SyntaxFactoryContext context)
+    internal IfStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 6;
+        this.SlotCount = 7;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(ifKeyword);
         this.ifKeyword = ifKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -16318,10 +16856,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal IfStatementSyntax(SyntaxKind kind, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
+    internal IfStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
         : base(kind)
     {
-        this.SlotCount = 6;
+        this.SlotCount = 7;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(ifKeyword);
         this.ifKeyword = ifKeyword;
         this.AdjustFlagsAndWidth(openParenToken);
@@ -16339,6 +16882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>
     /// Gets a SyntaxToken that represents the if keyword.
     /// </summary>
@@ -16368,12 +16912,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.ifKeyword;
-            case 1: return this.openParenToken;
-            case 2: return this.condition;
-            case 3: return this.closeParenToken;
-            case 4: return this.statement;
-            case 5: return this.@else;
+            case 0: return this.attributeLists;
+            case 1: return this.ifKeyword;
+            case 2: return this.openParenToken;
+            case 3: return this.condition;
+            case 4: return this.closeParenToken;
+            case 5: return this.statement;
+            case 6: return this.@else;
             default: return null;
         }
     }
@@ -16384,11 +16929,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIfStatement(this);
 
-    public IfStatementSyntax Update(SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
+    public IfStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
     {
-        if (ifKeyword != this.IfKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || statement != this.Statement || @else != this.Else)
+        if (attributeLists != this.AttributeLists || ifKeyword != this.IfKeyword || openParenToken != this.OpenParenToken || condition != this.Condition || closeParenToken != this.CloseParenToken || statement != this.Statement || @else != this.Else)
         {
-            var newNode = SyntaxFactory.IfStatement(ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
+            var newNode = SyntaxFactory.IfStatement(attributeLists, ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -16402,15 +16947,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new IfStatementSyntax(this.Kind, this.ifKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, this.@else, diagnostics, GetAnnotations());
+        => new IfStatementSyntax(this.Kind, this.attributeLists, this.ifKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, this.@else, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new IfStatementSyntax(this.Kind, this.ifKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, this.@else, GetDiagnostics(), annotations);
+        => new IfStatementSyntax(this.Kind, this.attributeLists, this.ifKeyword, this.openParenToken, this.condition, this.closeParenToken, this.statement, this.@else, GetDiagnostics(), annotations);
 
     internal IfStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 6;
+      this.SlotCount = 7;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var ifKeyword = (SyntaxToken)reader.ReadValue();
       if (ifKeyword != null)
       {
@@ -16452,6 +17003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.ifKeyword);
       writer.WriteValue(this.openParenToken);
       writer.WriteValue(this.condition);
@@ -16584,6 +17136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
   /// <summary>Represents a switch statement syntax.</summary>
   internal sealed partial class SwitchStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken switchKeyword;
     internal readonly SyntaxToken openParenToken;
     internal readonly ExpressionSyntax expression;
@@ -16592,10 +17145,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal readonly GreenNode sections;
     internal readonly SyntaxToken closeBraceToken;
 
-    internal SwitchStatementSyntax(SyntaxKind kind, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, GreenNode sections, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal SwitchStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, GreenNode sections, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 7;
+        this.SlotCount = 8;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
         if (openParenToken != null)
@@ -16622,11 +17180,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal SwitchStatementSyntax(SyntaxKind kind, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, GreenNode sections, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
+    internal SwitchStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, GreenNode sections, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 7;
+        this.SlotCount = 8;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
         if (openParenToken != null)
@@ -16653,10 +17216,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal SwitchStatementSyntax(SyntaxKind kind, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, GreenNode sections, SyntaxToken closeBraceToken)
+    internal SwitchStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, GreenNode sections, SyntaxToken closeBraceToken)
         : base(kind)
     {
-        this.SlotCount = 7;
+        this.SlotCount = 8;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
         if (openParenToken != null)
@@ -16682,6 +17250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.closeBraceToken = closeBraceToken;
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     /// <summary>
     /// Gets a SyntaxToken that represents the switch keyword.
     /// </summary>
@@ -16715,13 +17284,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.switchKeyword;
-            case 1: return this.openParenToken;
-            case 2: return this.expression;
-            case 3: return this.closeParenToken;
-            case 4: return this.openBraceToken;
-            case 5: return this.sections;
-            case 6: return this.closeBraceToken;
+            case 0: return this.attributeLists;
+            case 1: return this.switchKeyword;
+            case 2: return this.openParenToken;
+            case 3: return this.expression;
+            case 4: return this.closeParenToken;
+            case 5: return this.openBraceToken;
+            case 6: return this.sections;
+            case 7: return this.closeBraceToken;
             default: return null;
         }
     }
@@ -16732,11 +17302,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchStatement(this);
 
-    public SwitchStatementSyntax Update(SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
+    public SwitchStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
     {
-        if (switchKeyword != this.SwitchKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken || openBraceToken != this.OpenBraceToken || sections != this.Sections || closeBraceToken != this.CloseBraceToken)
+        if (attributeLists != this.AttributeLists || switchKeyword != this.SwitchKeyword || openParenToken != this.OpenParenToken || expression != this.Expression || closeParenToken != this.CloseParenToken || openBraceToken != this.OpenBraceToken || sections != this.Sections || closeBraceToken != this.CloseBraceToken)
         {
-            var newNode = SyntaxFactory.SwitchStatement(switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections, closeBraceToken);
+            var newNode = SyntaxFactory.SwitchStatement(attributeLists, switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections, closeBraceToken);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -16750,15 +17320,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new SwitchStatementSyntax(this.Kind, this.switchKeyword, this.openParenToken, this.expression, this.closeParenToken, this.openBraceToken, this.sections, this.closeBraceToken, diagnostics, GetAnnotations());
+        => new SwitchStatementSyntax(this.Kind, this.attributeLists, this.switchKeyword, this.openParenToken, this.expression, this.closeParenToken, this.openBraceToken, this.sections, this.closeBraceToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new SwitchStatementSyntax(this.Kind, this.switchKeyword, this.openParenToken, this.expression, this.closeParenToken, this.openBraceToken, this.sections, this.closeBraceToken, GetDiagnostics(), annotations);
+        => new SwitchStatementSyntax(this.Kind, this.attributeLists, this.switchKeyword, this.openParenToken, this.expression, this.closeParenToken, this.openBraceToken, this.sections, this.closeBraceToken, GetDiagnostics(), annotations);
 
     internal SwitchStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 7;
+      this.SlotCount = 8;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var switchKeyword = (SyntaxToken)reader.ReadValue();
       if (switchKeyword != null)
       {
@@ -16806,6 +17382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.switchKeyword);
       writer.WriteValue(this.openParenToken);
       writer.WriteValue(this.expression);
@@ -17709,15 +18286,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
   internal sealed partial class TryStatementSyntax : StatementSyntax
   {
+    internal readonly GreenNode attributeLists;
     internal readonly SyntaxToken tryKeyword;
     internal readonly BlockSyntax block;
     internal readonly GreenNode catches;
     internal readonly FinallyClauseSyntax @finally;
 
-    internal TryStatementSyntax(SyntaxKind kind, SyntaxToken tryKeyword, BlockSyntax block, GreenNode catches, FinallyClauseSyntax @finally, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal TryStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken tryKeyword, BlockSyntax block, GreenNode catches, FinallyClauseSyntax @finally, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 4;
+        this.SlotCount = 5;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(tryKeyword);
         this.tryKeyword = tryKeyword;
         this.AdjustFlagsAndWidth(block);
@@ -17735,11 +18318,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal TryStatementSyntax(SyntaxKind kind, SyntaxToken tryKeyword, BlockSyntax block, GreenNode catches, FinallyClauseSyntax @finally, SyntaxFactoryContext context)
+    internal TryStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken tryKeyword, BlockSyntax block, GreenNode catches, FinallyClauseSyntax @finally, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 4;
+        this.SlotCount = 5;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(tryKeyword);
         this.tryKeyword = tryKeyword;
         this.AdjustFlagsAndWidth(block);
@@ -17757,10 +18345,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal TryStatementSyntax(SyntaxKind kind, SyntaxToken tryKeyword, BlockSyntax block, GreenNode catches, FinallyClauseSyntax @finally)
+    internal TryStatementSyntax(SyntaxKind kind, GreenNode attributeLists, SyntaxToken tryKeyword, BlockSyntax block, GreenNode catches, FinallyClauseSyntax @finally)
         : base(kind)
     {
-        this.SlotCount = 4;
+        this.SlotCount = 5;
+        if (attributeLists != null)
+        {
+            this.AdjustFlagsAndWidth(attributeLists);
+            this.attributeLists = attributeLists;
+        }
         this.AdjustFlagsAndWidth(tryKeyword);
         this.tryKeyword = tryKeyword;
         this.AdjustFlagsAndWidth(block);
@@ -17777,6 +18370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken TryKeyword => this.tryKeyword;
     public BlockSyntax Block => this.block;
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> Catches => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax>(this.catches);
@@ -17786,10 +18380,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         switch (index)
         {
-            case 0: return this.tryKeyword;
-            case 1: return this.block;
-            case 2: return this.catches;
-            case 3: return this.@finally;
+            case 0: return this.attributeLists;
+            case 1: return this.tryKeyword;
+            case 2: return this.block;
+            case 3: return this.catches;
+            case 4: return this.@finally;
             default: return null;
         }
     }
@@ -17800,11 +18395,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTryStatement(this);
 
-    public TryStatementSyntax Update(SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
+    public TryStatementSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
     {
-        if (tryKeyword != this.TryKeyword || block != this.Block || catches != this.Catches || @finally != this.Finally)
+        if (attributeLists != this.AttributeLists || tryKeyword != this.TryKeyword || block != this.Block || catches != this.Catches || @finally != this.Finally)
         {
-            var newNode = SyntaxFactory.TryStatement(tryKeyword, block, catches, @finally);
+            var newNode = SyntaxFactory.TryStatement(attributeLists, tryKeyword, block, catches, @finally);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -17818,15 +18413,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        => new TryStatementSyntax(this.Kind, this.tryKeyword, this.block, this.catches, this.@finally, diagnostics, GetAnnotations());
+        => new TryStatementSyntax(this.Kind, this.attributeLists, this.tryKeyword, this.block, this.catches, this.@finally, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        => new TryStatementSyntax(this.Kind, this.tryKeyword, this.block, this.catches, this.@finally, GetDiagnostics(), annotations);
+        => new TryStatementSyntax(this.Kind, this.attributeLists, this.tryKeyword, this.block, this.catches, this.@finally, GetDiagnostics(), annotations);
 
     internal TryStatementSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 4;
+      this.SlotCount = 5;
+      var attributeLists = (GreenNode)reader.ReadValue();
+      if (attributeLists != null)
+      {
+         AdjustFlagsAndWidth(attributeLists);
+         this.attributeLists = attributeLists;
+      }
       var tryKeyword = (SyntaxToken)reader.ReadValue();
       if (tryKeyword != null)
       {
@@ -17856,6 +18457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
+      writer.WriteValue(this.attributeLists);
       writer.WriteValue(this.tryKeyword);
       writer.WriteValue(this.block);
       writer.WriteValue(this.catches);
@@ -34566,10 +35168,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitBlock(BlockSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var openBraceToken = (SyntaxToken)this.Visit(node.OpenBraceToken);
       var statements = this.VisitList(node.Statements);
       var closeBraceToken = (SyntaxToken)this.Visit(node.CloseBraceToken);
-      return node.Update(openBraceToken, statements, closeBraceToken);
+      return node.Update(attributeLists, openBraceToken, statements, closeBraceToken);
     }
 
     public override CSharpSyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
@@ -34589,12 +35192,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var awaitKeyword = (SyntaxToken)this.Visit(node.AwaitKeyword);
       var usingKeyword = (SyntaxToken)this.Visit(node.UsingKeyword);
       var modifiers = this.VisitList(node.Modifiers);
       var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
+      return node.Update(attributeLists, awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitVariableDeclaration(VariableDeclarationSyntax node)
@@ -34641,85 +35245,96 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(expression, semicolonToken);
+      return node.Update(attributeLists, expression, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitEmptyStatement(EmptyStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(semicolonToken);
+      return node.Update(attributeLists, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitLabeledStatement(LabeledStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var identifier = (SyntaxToken)this.Visit(node.Identifier);
       var colonToken = (SyntaxToken)this.Visit(node.ColonToken);
       var statement = (StatementSyntax)this.Visit(node.Statement);
-      return node.Update(identifier, colonToken, statement);
+      return node.Update(attributeLists, identifier, colonToken, statement);
     }
 
     public override CSharpSyntaxNode VisitGotoStatement(GotoStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var gotoKeyword = (SyntaxToken)this.Visit(node.GotoKeyword);
       var caseOrDefaultKeyword = (SyntaxToken)this.Visit(node.CaseOrDefaultKeyword);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
+      return node.Update(attributeLists, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitBreakStatement(BreakStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var breakKeyword = (SyntaxToken)this.Visit(node.BreakKeyword);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(breakKeyword, semicolonToken);
+      return node.Update(attributeLists, breakKeyword, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitContinueStatement(ContinueStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var continueKeyword = (SyntaxToken)this.Visit(node.ContinueKeyword);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(continueKeyword, semicolonToken);
+      return node.Update(attributeLists, continueKeyword, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitReturnStatement(ReturnStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var returnKeyword = (SyntaxToken)this.Visit(node.ReturnKeyword);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(returnKeyword, expression, semicolonToken);
+      return node.Update(attributeLists, returnKeyword, expression, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitThrowStatement(ThrowStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var throwKeyword = (SyntaxToken)this.Visit(node.ThrowKeyword);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(throwKeyword, expression, semicolonToken);
+      return node.Update(attributeLists, throwKeyword, expression, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitYieldStatement(YieldStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var yieldKeyword = (SyntaxToken)this.Visit(node.YieldKeyword);
       var returnOrBreakKeyword = (SyntaxToken)this.Visit(node.ReturnOrBreakKeyword);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
+      return node.Update(attributeLists, yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitWhileStatement(WhileStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var whileKeyword = (SyntaxToken)this.Visit(node.WhileKeyword);
       var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
       var condition = (ExpressionSyntax)this.Visit(node.Condition);
       var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
       var statement = (StatementSyntax)this.Visit(node.Statement);
-      return node.Update(whileKeyword, openParenToken, condition, closeParenToken, statement);
+      return node.Update(attributeLists, whileKeyword, openParenToken, condition, closeParenToken, statement);
     }
 
     public override CSharpSyntaxNode VisitDoStatement(DoStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var doKeyword = (SyntaxToken)this.Visit(node.DoKeyword);
       var statement = (StatementSyntax)this.Visit(node.Statement);
       var whileKeyword = (SyntaxToken)this.Visit(node.WhileKeyword);
@@ -34727,11 +35342,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       var condition = (ExpressionSyntax)this.Visit(node.Condition);
       var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
       var semicolonToken = (SyntaxToken)this.Visit(node.SemicolonToken);
-      return node.Update(doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
+      return node.Update(attributeLists, doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
     }
 
     public override CSharpSyntaxNode VisitForStatement(ForStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var forKeyword = (SyntaxToken)this.Visit(node.ForKeyword);
       var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
       var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
@@ -34742,11 +35358,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       var incrementors = this.VisitList(node.Incrementors);
       var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
       var statement = (StatementSyntax)this.Visit(node.Statement);
-      return node.Update(forKeyword, openParenToken, declaration, initializers, firstSemicolonToken, condition, secondSemicolonToken, incrementors, closeParenToken, statement);
+      return node.Update(attributeLists, forKeyword, openParenToken, declaration, initializers, firstSemicolonToken, condition, secondSemicolonToken, incrementors, closeParenToken, statement);
     }
 
     public override CSharpSyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var awaitKeyword = (SyntaxToken)this.Visit(node.AwaitKeyword);
       var forEachKeyword = (SyntaxToken)this.Visit(node.ForEachKeyword);
       var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
@@ -34756,11 +35373,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
       var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
       var statement = (StatementSyntax)this.Visit(node.Statement);
-      return node.Update(awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
+      return node.Update(attributeLists, awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
     }
 
     public override CSharpSyntaxNode VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var awaitKeyword = (SyntaxToken)this.Visit(node.AwaitKeyword);
       var forEachKeyword = (SyntaxToken)this.Visit(node.ForEachKeyword);
       var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
@@ -34769,11 +35387,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
       var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
       var statement = (StatementSyntax)this.Visit(node.Statement);
-      return node.Update(awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
+      return node.Update(attributeLists, awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
     }
 
     public override CSharpSyntaxNode VisitUsingStatement(UsingStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var awaitKeyword = (SyntaxToken)this.Visit(node.AwaitKeyword);
       var usingKeyword = (SyntaxToken)this.Visit(node.UsingKeyword);
       var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
@@ -34781,52 +35400,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
       var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
       var statement = (StatementSyntax)this.Visit(node.Statement);
-      return node.Update(awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
+      return node.Update(attributeLists, awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
     }
 
     public override CSharpSyntaxNode VisitFixedStatement(FixedStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var fixedKeyword = (SyntaxToken)this.Visit(node.FixedKeyword);
       var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
       var declaration = (VariableDeclarationSyntax)this.Visit(node.Declaration);
       var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
       var statement = (StatementSyntax)this.Visit(node.Statement);
-      return node.Update(fixedKeyword, openParenToken, declaration, closeParenToken, statement);
+      return node.Update(attributeLists, fixedKeyword, openParenToken, declaration, closeParenToken, statement);
     }
 
     public override CSharpSyntaxNode VisitCheckedStatement(CheckedStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var keyword = (SyntaxToken)this.Visit(node.Keyword);
       var block = (BlockSyntax)this.Visit(node.Block);
-      return node.Update(keyword, block);
+      return node.Update(attributeLists, keyword, block);
     }
 
     public override CSharpSyntaxNode VisitUnsafeStatement(UnsafeStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var unsafeKeyword = (SyntaxToken)this.Visit(node.UnsafeKeyword);
       var block = (BlockSyntax)this.Visit(node.Block);
-      return node.Update(unsafeKeyword, block);
+      return node.Update(attributeLists, unsafeKeyword, block);
     }
 
     public override CSharpSyntaxNode VisitLockStatement(LockStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var lockKeyword = (SyntaxToken)this.Visit(node.LockKeyword);
       var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
       var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
       var statement = (StatementSyntax)this.Visit(node.Statement);
-      return node.Update(lockKeyword, openParenToken, expression, closeParenToken, statement);
+      return node.Update(attributeLists, lockKeyword, openParenToken, expression, closeParenToken, statement);
     }
 
     public override CSharpSyntaxNode VisitIfStatement(IfStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var ifKeyword = (SyntaxToken)this.Visit(node.IfKeyword);
       var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
       var condition = (ExpressionSyntax)this.Visit(node.Condition);
       var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
       var statement = (StatementSyntax)this.Visit(node.Statement);
       var @else = (ElseClauseSyntax)this.Visit(node.Else);
-      return node.Update(ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
+      return node.Update(attributeLists, ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
     }
 
     public override CSharpSyntaxNode VisitElseClause(ElseClauseSyntax node)
@@ -34838,6 +35462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitSwitchStatement(SwitchStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var switchKeyword = (SyntaxToken)this.Visit(node.SwitchKeyword);
       var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
@@ -34845,7 +35470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       var openBraceToken = (SyntaxToken)this.Visit(node.OpenBraceToken);
       var sections = this.VisitList(node.Sections);
       var closeBraceToken = (SyntaxToken)this.Visit(node.CloseBraceToken);
-      return node.Update(switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections, closeBraceToken);
+      return node.Update(attributeLists, switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections, closeBraceToken);
     }
 
     public override CSharpSyntaxNode VisitSwitchSection(SwitchSectionSyntax node)
@@ -34900,11 +35525,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitTryStatement(TryStatementSyntax node)
     {
+      var attributeLists = this.VisitList(node.AttributeLists);
       var tryKeyword = (SyntaxToken)this.Visit(node.TryKeyword);
       var block = (BlockSyntax)this.Visit(node.Block);
       var catches = this.VisitList(node.Catches);
       var @finally = (FinallyClauseSyntax)this.Visit(node.Finally);
-      return node.Update(tryKeyword, block, catches, @finally);
+      return node.Update(attributeLists, tryKeyword, block, catches, @finally);
     }
 
     public override CSharpSyntaxNode VisitCatchClause(CatchClauseSyntax node)
@@ -38581,7 +39207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public BlockSyntax Block(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+    public BlockSyntax Block(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
     {
 #if DEBUG
       if (openBraceToken == null)
@@ -38604,17 +39230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken, this.context, out hash);
-      if (cached != null) return (BlockSyntax)cached;
-
-      var result = new BlockSyntax(SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken, this.context);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new BlockSyntax(SyntaxKind.Block, attributeLists.Node, openBraceToken, statements.Node, closeBraceToken, this.context);
     }
 
     public LocalFunctionStatementSyntax LocalFunctionStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
@@ -38649,7 +39265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new LocalFunctionStatementSyntax(SyntaxKind.LocalFunctionStatement, attributeLists.Node, modifiers.Node, returnType, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken, this.context);
     }
 
-    public LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public LocalDeclarationStatementSyntax LocalDeclarationStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (awaitKeyword != null)
@@ -38687,7 +39303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, awaitKeyword, usingKeyword, modifiers.Node, declaration, semicolonToken, this.context);
+      return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, attributeLists.Node, awaitKeyword, usingKeyword, modifiers.Node, declaration, semicolonToken, this.context);
     }
 
     public VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
@@ -38856,7 +39472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public ExpressionStatementSyntax ExpressionStatement(ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public ExpressionStatementSyntax ExpressionStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (expression == null)
@@ -38873,10 +39489,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ExpressionStatement, expression, semicolonToken, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ExpressionStatement, attributeLists.Node, expression, semicolonToken, this.context, out hash);
       if (cached != null) return (ExpressionStatementSyntax)cached;
 
-      var result = new ExpressionStatementSyntax(SyntaxKind.ExpressionStatement, expression, semicolonToken, this.context);
+      var result = new ExpressionStatementSyntax(SyntaxKind.ExpressionStatement, attributeLists.Node, expression, semicolonToken, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -38885,7 +39501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public EmptyStatementSyntax EmptyStatement(SyntaxToken semicolonToken)
+    public EmptyStatementSyntax EmptyStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (semicolonToken == null)
@@ -38900,10 +39516,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.EmptyStatement, semicolonToken, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.EmptyStatement, attributeLists.Node, semicolonToken, this.context, out hash);
       if (cached != null) return (EmptyStatementSyntax)cached;
 
-      var result = new EmptyStatementSyntax(SyntaxKind.EmptyStatement, semicolonToken, this.context);
+      var result = new EmptyStatementSyntax(SyntaxKind.EmptyStatement, attributeLists.Node, semicolonToken, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -38912,7 +39528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public LabeledStatementSyntax LabeledStatement(SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
+    public LabeledStatementSyntax LabeledStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
     {
 #if DEBUG
       if (identifier == null)
@@ -38937,20 +39553,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.LabeledStatement, identifier, colonToken, statement, this.context, out hash);
-      if (cached != null) return (LabeledStatementSyntax)cached;
-
-      var result = new LabeledStatementSyntax(SyntaxKind.LabeledStatement, identifier, colonToken, statement, this.context);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new LabeledStatementSyntax(SyntaxKind.LabeledStatement, attributeLists.Node, identifier, colonToken, statement, this.context);
     }
 
-    public GotoStatementSyntax GotoStatement(SyntaxKind kind, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public GotoStatementSyntax GotoStatement(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
       switch (kind)
       {
@@ -38994,10 +39600,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new GotoStatementSyntax(kind, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken, this.context);
+      return new GotoStatementSyntax(kind, attributeLists.Node, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken, this.context);
     }
 
-    public BreakStatementSyntax BreakStatement(SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+    public BreakStatementSyntax BreakStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (breakKeyword == null)
@@ -39021,10 +39627,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.BreakStatement, breakKeyword, semicolonToken, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.BreakStatement, attributeLists.Node, breakKeyword, semicolonToken, this.context, out hash);
       if (cached != null) return (BreakStatementSyntax)cached;
 
-      var result = new BreakStatementSyntax(SyntaxKind.BreakStatement, breakKeyword, semicolonToken, this.context);
+      var result = new BreakStatementSyntax(SyntaxKind.BreakStatement, attributeLists.Node, breakKeyword, semicolonToken, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -39033,7 +39639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public ContinueStatementSyntax ContinueStatement(SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+    public ContinueStatementSyntax ContinueStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (continueKeyword == null)
@@ -39057,10 +39663,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ContinueStatement, continueKeyword, semicolonToken, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ContinueStatement, attributeLists.Node, continueKeyword, semicolonToken, this.context, out hash);
       if (cached != null) return (ContinueStatementSyntax)cached;
 
-      var result = new ContinueStatementSyntax(SyntaxKind.ContinueStatement, continueKeyword, semicolonToken, this.context);
+      var result = new ContinueStatementSyntax(SyntaxKind.ContinueStatement, attributeLists.Node, continueKeyword, semicolonToken, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -39069,7 +39675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public ReturnStatementSyntax ReturnStatement(SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public ReturnStatementSyntax ReturnStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (returnKeyword == null)
@@ -39092,20 +39698,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ReturnStatement, returnKeyword, expression, semicolonToken, this.context, out hash);
-      if (cached != null) return (ReturnStatementSyntax)cached;
-
-      var result = new ReturnStatementSyntax(SyntaxKind.ReturnStatement, returnKeyword, expression, semicolonToken, this.context);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new ReturnStatementSyntax(SyntaxKind.ReturnStatement, attributeLists.Node, returnKeyword, expression, semicolonToken, this.context);
     }
 
-    public ThrowStatementSyntax ThrowStatement(SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public ThrowStatementSyntax ThrowStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (throwKeyword == null)
@@ -39128,20 +39724,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ThrowStatement, throwKeyword, expression, semicolonToken, this.context, out hash);
-      if (cached != null) return (ThrowStatementSyntax)cached;
-
-      var result = new ThrowStatementSyntax(SyntaxKind.ThrowStatement, throwKeyword, expression, semicolonToken, this.context);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new ThrowStatementSyntax(SyntaxKind.ThrowStatement, attributeLists.Node, throwKeyword, expression, semicolonToken, this.context);
     }
 
-    public YieldStatementSyntax YieldStatement(SyntaxKind kind, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public YieldStatementSyntax YieldStatement(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
       switch (kind)
       {
@@ -39182,10 +39768,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new YieldStatementSyntax(kind, yieldKeyword, returnOrBreakKeyword, expression, semicolonToken, this.context);
+      return new YieldStatementSyntax(kind, attributeLists.Node, yieldKeyword, returnOrBreakKeyword, expression, semicolonToken, this.context);
     }
 
-    public WhileStatementSyntax WhileStatement(SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
+    public WhileStatementSyntax WhileStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (whileKeyword == null)
@@ -39221,10 +39807,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new WhileStatementSyntax(SyntaxKind.WhileStatement, whileKeyword, openParenToken, condition, closeParenToken, statement, this.context);
+      return new WhileStatementSyntax(SyntaxKind.WhileStatement, attributeLists.Node, whileKeyword, openParenToken, condition, closeParenToken, statement, this.context);
     }
 
-    public DoStatementSyntax DoStatement(SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
+    public DoStatementSyntax DoStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (doKeyword == null)
@@ -39278,10 +39864,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new DoStatementSyntax(SyntaxKind.DoStatement, doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken, this.context);
+      return new DoStatementSyntax(SyntaxKind.DoStatement, attributeLists.Node, doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken, this.context);
     }
 
-    public ForStatementSyntax ForStatement(SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
+    public ForStatementSyntax ForStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (forKeyword == null)
@@ -39333,10 +39919,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new ForStatementSyntax(SyntaxKind.ForStatement, forKeyword, openParenToken, declaration, initializers.Node, firstSemicolonToken, condition, secondSemicolonToken, incrementors.Node, closeParenToken, statement, this.context);
+      return new ForStatementSyntax(SyntaxKind.ForStatement, attributeLists.Node, forKeyword, openParenToken, declaration, initializers.Node, firstSemicolonToken, condition, secondSemicolonToken, incrementors.Node, closeParenToken, statement, this.context);
     }
 
-    public ForEachStatementSyntax ForEachStatement(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public ForEachStatementSyntax ForEachStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (awaitKeyword != null)
@@ -39403,10 +39989,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new ForEachStatementSyntax(SyntaxKind.ForEachStatement, awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement, this.context);
+      return new ForEachStatementSyntax(SyntaxKind.ForEachStatement, attributeLists.Node, awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement, this.context);
     }
 
-    public ForEachVariableStatementSyntax ForEachVariableStatement(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public ForEachVariableStatementSyntax ForEachVariableStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (awaitKeyword != null)
@@ -39464,10 +40050,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new ForEachVariableStatementSyntax(SyntaxKind.ForEachVariableStatement, awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement, this.context);
+      return new ForEachVariableStatementSyntax(SyntaxKind.ForEachVariableStatement, attributeLists.Node, awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement, this.context);
     }
 
-    public UsingStatementSyntax UsingStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public UsingStatementSyntax UsingStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (awaitKeyword != null)
@@ -39512,10 +40098,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new UsingStatementSyntax(SyntaxKind.UsingStatement, awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement, this.context);
+      return new UsingStatementSyntax(SyntaxKind.UsingStatement, attributeLists.Node, awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement, this.context);
     }
 
-    public FixedStatementSyntax FixedStatement(SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
+    public FixedStatementSyntax FixedStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (fixedKeyword == null)
@@ -39551,10 +40137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new FixedStatementSyntax(SyntaxKind.FixedStatement, fixedKeyword, openParenToken, declaration, closeParenToken, statement, this.context);
+      return new FixedStatementSyntax(SyntaxKind.FixedStatement, attributeLists.Node, fixedKeyword, openParenToken, declaration, closeParenToken, statement, this.context);
     }
 
-    public CheckedStatementSyntax CheckedStatement(SyntaxKind kind, SyntaxToken keyword, BlockSyntax block)
+    public CheckedStatementSyntax CheckedStatement(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken keyword, BlockSyntax block)
     {
       switch (kind)
       {
@@ -39580,10 +40166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)kind, keyword, block, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)kind, attributeLists.Node, keyword, block, this.context, out hash);
       if (cached != null) return (CheckedStatementSyntax)cached;
 
-      var result = new CheckedStatementSyntax(kind, keyword, block, this.context);
+      var result = new CheckedStatementSyntax(kind, attributeLists.Node, keyword, block, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -39592,7 +40178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public UnsafeStatementSyntax UnsafeStatement(SyntaxToken unsafeKeyword, BlockSyntax block)
+    public UnsafeStatementSyntax UnsafeStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken unsafeKeyword, BlockSyntax block)
     {
 #if DEBUG
       if (unsafeKeyword == null)
@@ -39609,10 +40195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.UnsafeStatement, unsafeKeyword, block, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.UnsafeStatement, attributeLists.Node, unsafeKeyword, block, this.context, out hash);
       if (cached != null) return (UnsafeStatementSyntax)cached;
 
-      var result = new UnsafeStatementSyntax(SyntaxKind.UnsafeStatement, unsafeKeyword, block, this.context);
+      var result = new UnsafeStatementSyntax(SyntaxKind.UnsafeStatement, attributeLists.Node, unsafeKeyword, block, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -39621,7 +40207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public LockStatementSyntax LockStatement(SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public LockStatementSyntax LockStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (lockKeyword == null)
@@ -39657,10 +40243,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new LockStatementSyntax(SyntaxKind.LockStatement, lockKeyword, openParenToken, expression, closeParenToken, statement, this.context);
+      return new LockStatementSyntax(SyntaxKind.LockStatement, attributeLists.Node, lockKeyword, openParenToken, expression, closeParenToken, statement, this.context);
     }
 
-    public IfStatementSyntax IfStatement(SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
+    public IfStatementSyntax IfStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
     {
 #if DEBUG
       if (ifKeyword == null)
@@ -39696,7 +40282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new IfStatementSyntax(SyntaxKind.IfStatement, ifKeyword, openParenToken, condition, closeParenToken, statement, @else, this.context);
+      return new IfStatementSyntax(SyntaxKind.IfStatement, attributeLists.Node, ifKeyword, openParenToken, condition, closeParenToken, statement, @else, this.context);
     }
 
     public ElseClauseSyntax ElseClause(SyntaxToken elseKeyword, StatementSyntax statement)
@@ -39728,7 +40314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public SwitchStatementSyntax SwitchStatement(SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
+    public SwitchStatementSyntax SwitchStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
     {
 #if DEBUG
       if (switchKeyword == null)
@@ -39784,7 +40370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new SwitchStatementSyntax(SyntaxKind.SwitchStatement, switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections.Node, closeBraceToken, this.context);
+      return new SwitchStatementSyntax(SyntaxKind.SwitchStatement, attributeLists.Node, switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections.Node, closeBraceToken, this.context);
     }
 
     public SwitchSectionSyntax SwitchSection(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchLabelSyntax> labels, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements)
@@ -39944,7 +40530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new SwitchExpressionArmSyntax(SyntaxKind.SwitchExpressionArm, pattern, whenClause, equalsGreaterThanToken, expression, this.context);
     }
 
-    public TryStatementSyntax TryStatement(SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
+    public TryStatementSyntax TryStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
     {
 #if DEBUG
       if (tryKeyword == null)
@@ -39960,7 +40546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(block));
 #endif
 
-      return new TryStatementSyntax(SyntaxKind.TryStatement, tryKeyword, block, catches.Node, @finally, this.context);
+      return new TryStatementSyntax(SyntaxKind.TryStatement, attributeLists.Node, tryKeyword, block, catches.Node, @finally, this.context);
     }
 
     public CatchClauseSyntax CatchClause(SyntaxToken catchKeyword, CatchDeclarationSyntax declaration, CatchFilterClauseSyntax filter, BlockSyntax block)
@@ -45904,7 +46490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static BlockSyntax Block(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
+    public static BlockSyntax Block(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
     {
 #if DEBUG
       if (openBraceToken == null)
@@ -45927,17 +46513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken, out hash);
-      if (cached != null) return (BlockSyntax)cached;
-
-      var result = new BlockSyntax(SyntaxKind.Block, openBraceToken, statements.Node, closeBraceToken);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new BlockSyntax(SyntaxKind.Block, attributeLists.Node, openBraceToken, statements.Node, closeBraceToken);
     }
 
     public static LocalFunctionStatementSyntax LocalFunctionStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
@@ -45972,7 +46548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new LocalFunctionStatementSyntax(SyntaxKind.LocalFunctionStatement, attributeLists.Node, modifiers.Node, returnType, identifier, typeParameterList, parameterList, constraintClauses.Node, body, expressionBody, semicolonToken);
     }
 
-    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
+    public static LocalDeclarationStatementSyntax LocalDeclarationStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (awaitKeyword != null)
@@ -46010,7 +46586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, awaitKeyword, usingKeyword, modifiers.Node, declaration, semicolonToken);
+      return new LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement, attributeLists.Node, awaitKeyword, usingKeyword, modifiers.Node, declaration, semicolonToken);
     }
 
     public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
@@ -46179,7 +46755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static ExpressionStatementSyntax ExpressionStatement(ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public static ExpressionStatementSyntax ExpressionStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (expression == null)
@@ -46196,10 +46772,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ExpressionStatement, expression, semicolonToken, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ExpressionStatement, attributeLists.Node, expression, semicolonToken, out hash);
       if (cached != null) return (ExpressionStatementSyntax)cached;
 
-      var result = new ExpressionStatementSyntax(SyntaxKind.ExpressionStatement, expression, semicolonToken);
+      var result = new ExpressionStatementSyntax(SyntaxKind.ExpressionStatement, attributeLists.Node, expression, semicolonToken);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -46208,7 +46784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static EmptyStatementSyntax EmptyStatement(SyntaxToken semicolonToken)
+    public static EmptyStatementSyntax EmptyStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (semicolonToken == null)
@@ -46223,10 +46799,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.EmptyStatement, semicolonToken, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.EmptyStatement, attributeLists.Node, semicolonToken, out hash);
       if (cached != null) return (EmptyStatementSyntax)cached;
 
-      var result = new EmptyStatementSyntax(SyntaxKind.EmptyStatement, semicolonToken);
+      var result = new EmptyStatementSyntax(SyntaxKind.EmptyStatement, attributeLists.Node, semicolonToken);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -46235,7 +46811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static LabeledStatementSyntax LabeledStatement(SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
+    public static LabeledStatementSyntax LabeledStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
     {
 #if DEBUG
       if (identifier == null)
@@ -46260,20 +46836,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.LabeledStatement, identifier, colonToken, statement, out hash);
-      if (cached != null) return (LabeledStatementSyntax)cached;
-
-      var result = new LabeledStatementSyntax(SyntaxKind.LabeledStatement, identifier, colonToken, statement);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new LabeledStatementSyntax(SyntaxKind.LabeledStatement, attributeLists.Node, identifier, colonToken, statement);
     }
 
-    public static GotoStatementSyntax GotoStatement(SyntaxKind kind, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public static GotoStatementSyntax GotoStatement(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
       switch (kind)
       {
@@ -46317,10 +46883,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new GotoStatementSyntax(kind, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
+      return new GotoStatementSyntax(kind, attributeLists.Node, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
     }
 
-    public static BreakStatementSyntax BreakStatement(SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+    public static BreakStatementSyntax BreakStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (breakKeyword == null)
@@ -46344,10 +46910,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BreakStatement, breakKeyword, semicolonToken, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BreakStatement, attributeLists.Node, breakKeyword, semicolonToken, out hash);
       if (cached != null) return (BreakStatementSyntax)cached;
 
-      var result = new BreakStatementSyntax(SyntaxKind.BreakStatement, breakKeyword, semicolonToken);
+      var result = new BreakStatementSyntax(SyntaxKind.BreakStatement, attributeLists.Node, breakKeyword, semicolonToken);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -46356,7 +46922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static ContinueStatementSyntax ContinueStatement(SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+    public static ContinueStatementSyntax ContinueStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (continueKeyword == null)
@@ -46380,10 +46946,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ContinueStatement, continueKeyword, semicolonToken, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ContinueStatement, attributeLists.Node, continueKeyword, semicolonToken, out hash);
       if (cached != null) return (ContinueStatementSyntax)cached;
 
-      var result = new ContinueStatementSyntax(SyntaxKind.ContinueStatement, continueKeyword, semicolonToken);
+      var result = new ContinueStatementSyntax(SyntaxKind.ContinueStatement, attributeLists.Node, continueKeyword, semicolonToken);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -46392,7 +46958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static ReturnStatementSyntax ReturnStatement(SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public static ReturnStatementSyntax ReturnStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken returnKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (returnKeyword == null)
@@ -46415,20 +46981,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ReturnStatement, returnKeyword, expression, semicolonToken, out hash);
-      if (cached != null) return (ReturnStatementSyntax)cached;
-
-      var result = new ReturnStatementSyntax(SyntaxKind.ReturnStatement, returnKeyword, expression, semicolonToken);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new ReturnStatementSyntax(SyntaxKind.ReturnStatement, attributeLists.Node, returnKeyword, expression, semicolonToken);
     }
 
-    public static ThrowStatementSyntax ThrowStatement(SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public static ThrowStatementSyntax ThrowStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (throwKeyword == null)
@@ -46451,20 +47007,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ThrowStatement, throwKeyword, expression, semicolonToken, out hash);
-      if (cached != null) return (ThrowStatementSyntax)cached;
-
-      var result = new ThrowStatementSyntax(SyntaxKind.ThrowStatement, throwKeyword, expression, semicolonToken);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
+      return new ThrowStatementSyntax(SyntaxKind.ThrowStatement, attributeLists.Node, throwKeyword, expression, semicolonToken);
     }
 
-    public static YieldStatementSyntax YieldStatement(SyntaxKind kind, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
+    public static YieldStatementSyntax YieldStatement(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
       switch (kind)
       {
@@ -46505,10 +47051,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new YieldStatementSyntax(kind, yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
+      return new YieldStatementSyntax(kind, attributeLists.Node, yieldKeyword, returnOrBreakKeyword, expression, semicolonToken);
     }
 
-    public static WhileStatementSyntax WhileStatement(SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
+    public static WhileStatementSyntax WhileStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (whileKeyword == null)
@@ -46544,10 +47090,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new WhileStatementSyntax(SyntaxKind.WhileStatement, whileKeyword, openParenToken, condition, closeParenToken, statement);
+      return new WhileStatementSyntax(SyntaxKind.WhileStatement, attributeLists.Node, whileKeyword, openParenToken, condition, closeParenToken, statement);
     }
 
-    public static DoStatementSyntax DoStatement(SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
+    public static DoStatementSyntax DoStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
     {
 #if DEBUG
       if (doKeyword == null)
@@ -46601,10 +47147,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new DoStatementSyntax(SyntaxKind.DoStatement, doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
+      return new DoStatementSyntax(SyntaxKind.DoStatement, attributeLists.Node, doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
     }
 
-    public static ForStatementSyntax ForStatement(SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
+    public static ForStatementSyntax ForStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax condition, SyntaxToken secondSemicolonToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (forKeyword == null)
@@ -46656,10 +47202,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new ForStatementSyntax(SyntaxKind.ForStatement, forKeyword, openParenToken, declaration, initializers.Node, firstSemicolonToken, condition, secondSemicolonToken, incrementors.Node, closeParenToken, statement);
+      return new ForStatementSyntax(SyntaxKind.ForStatement, attributeLists.Node, forKeyword, openParenToken, declaration, initializers.Node, firstSemicolonToken, condition, secondSemicolonToken, incrementors.Node, closeParenToken, statement);
     }
 
-    public static ForEachStatementSyntax ForEachStatement(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public static ForEachStatementSyntax ForEachStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (awaitKeyword != null)
@@ -46726,10 +47272,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new ForEachStatementSyntax(SyntaxKind.ForEachStatement, awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
+      return new ForEachStatementSyntax(SyntaxKind.ForEachStatement, attributeLists.Node, awaitKeyword, forEachKeyword, openParenToken, type, identifier, inKeyword, expression, closeParenToken, statement);
     }
 
-    public static ForEachVariableStatementSyntax ForEachVariableStatement(SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public static ForEachVariableStatementSyntax ForEachVariableStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (awaitKeyword != null)
@@ -46787,10 +47333,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new ForEachVariableStatementSyntax(SyntaxKind.ForEachVariableStatement, awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
+      return new ForEachVariableStatementSyntax(SyntaxKind.ForEachVariableStatement, attributeLists.Node, awaitKeyword, forEachKeyword, openParenToken, variable, inKeyword, expression, closeParenToken, statement);
     }
 
-    public static UsingStatementSyntax UsingStatement(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public static UsingStatementSyntax UsingStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (awaitKeyword != null)
@@ -46835,10 +47381,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new UsingStatementSyntax(SyntaxKind.UsingStatement, awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
+      return new UsingStatementSyntax(SyntaxKind.UsingStatement, attributeLists.Node, awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
     }
 
-    public static FixedStatementSyntax FixedStatement(SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
+    public static FixedStatementSyntax FixedStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (fixedKeyword == null)
@@ -46874,10 +47420,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new FixedStatementSyntax(SyntaxKind.FixedStatement, fixedKeyword, openParenToken, declaration, closeParenToken, statement);
+      return new FixedStatementSyntax(SyntaxKind.FixedStatement, attributeLists.Node, fixedKeyword, openParenToken, declaration, closeParenToken, statement);
     }
 
-    public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, SyntaxToken keyword, BlockSyntax block)
+    public static CheckedStatementSyntax CheckedStatement(SyntaxKind kind, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken keyword, BlockSyntax block)
     {
       switch (kind)
       {
@@ -46903,10 +47449,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)kind, keyword, block, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)kind, attributeLists.Node, keyword, block, out hash);
       if (cached != null) return (CheckedStatementSyntax)cached;
 
-      var result = new CheckedStatementSyntax(kind, keyword, block);
+      var result = new CheckedStatementSyntax(kind, attributeLists.Node, keyword, block);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -46915,7 +47461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static UnsafeStatementSyntax UnsafeStatement(SyntaxToken unsafeKeyword, BlockSyntax block)
+    public static UnsafeStatementSyntax UnsafeStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken unsafeKeyword, BlockSyntax block)
     {
 #if DEBUG
       if (unsafeKeyword == null)
@@ -46932,10 +47478,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.UnsafeStatement, unsafeKeyword, block, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.UnsafeStatement, attributeLists.Node, unsafeKeyword, block, out hash);
       if (cached != null) return (UnsafeStatementSyntax)cached;
 
-      var result = new UnsafeStatementSyntax(SyntaxKind.UnsafeStatement, unsafeKeyword, block);
+      var result = new UnsafeStatementSyntax(SyntaxKind.UnsafeStatement, attributeLists.Node, unsafeKeyword, block);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -46944,7 +47490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static LockStatementSyntax LockStatement(SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+    public static LockStatementSyntax LockStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
     {
 #if DEBUG
       if (lockKeyword == null)
@@ -46980,10 +47526,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new LockStatementSyntax(SyntaxKind.LockStatement, lockKeyword, openParenToken, expression, closeParenToken, statement);
+      return new LockStatementSyntax(SyntaxKind.LockStatement, attributeLists.Node, lockKeyword, openParenToken, expression, closeParenToken, statement);
     }
 
-    public static IfStatementSyntax IfStatement(SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
+    public static IfStatementSyntax IfStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
     {
 #if DEBUG
       if (ifKeyword == null)
@@ -47019,7 +47565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(statement));
 #endif
 
-      return new IfStatementSyntax(SyntaxKind.IfStatement, ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
+      return new IfStatementSyntax(SyntaxKind.IfStatement, attributeLists.Node, ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
     }
 
     public static ElseClauseSyntax ElseClause(SyntaxToken elseKeyword, StatementSyntax statement)
@@ -47051,7 +47597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static SwitchStatementSyntax SwitchStatement(SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
+    public static SwitchStatementSyntax SwitchStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
     {
 #if DEBUG
       if (switchKeyword == null)
@@ -47107,7 +47653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new SwitchStatementSyntax(SyntaxKind.SwitchStatement, switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections.Node, closeBraceToken);
+      return new SwitchStatementSyntax(SyntaxKind.SwitchStatement, attributeLists.Node, switchKeyword, openParenToken, expression, closeParenToken, openBraceToken, sections.Node, closeBraceToken);
     }
 
     public static SwitchSectionSyntax SwitchSection(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchLabelSyntax> labels, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<StatementSyntax> statements)
@@ -47267,7 +47813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return new SwitchExpressionArmSyntax(SyntaxKind.SwitchExpressionArm, pattern, whenClause, equalsGreaterThanToken, expression);
     }
 
-    public static TryStatementSyntax TryStatement(SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
+    public static TryStatementSyntax TryStatement(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken tryKeyword, BlockSyntax block, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
     {
 #if DEBUG
       if (tryKeyword == null)
@@ -47283,7 +47829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         throw new ArgumentNullException(nameof(block));
 #endif
 
-      return new TryStatementSyntax(SyntaxKind.TryStatement, tryKeyword, block, catches.Node, @finally);
+      return new TryStatementSyntax(SyntaxKind.TryStatement, attributeLists.Node, tryKeyword, block, catches.Node, @finally);
     }
 
     public static CatchClauseSyntax CatchClause(SyntaxToken catchKeyword, CatchDeclarationSyntax declaration, CatchFilterClauseSyntax filter, BlockSyntax block)

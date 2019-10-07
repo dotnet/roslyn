@@ -8,7 +8,7 @@
     <MajorVersion>3</MajorVersion>
     <MinorVersion>4</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>beta2</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
@@ -181,7 +181,7 @@
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <StreamJsonRpcVersion>2.1.55</StreamJsonRpcVersion>
     <SystemBuffersVersion>4.5.0</SystemBuffersVersion>
-    <SystemCollectionsImmutableVersion>1.6.0</SystemCollectionsImmutableVersion>
+    <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemCommandLineExperimentalVersion>0.1.0-alpha-63729-01</SystemCommandLineExperimentalVersion>
     <SystemCommandLineRenderingVersion>0.1.0-alpha-63729-01</SystemCommandLineRenderingVersion>
     <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
@@ -259,8 +259,6 @@
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.Language.StandardClassification" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LanguageServer.Client" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LanguageServer.Protocol" />
-    <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.LiveShare.WebEditors" />
     <PrivateVisualStudioPackage Include="Microsoft.VisualStudio.OLE.Interop" />

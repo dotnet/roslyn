@@ -80,3 +80,4 @@ In Visual Studio version 16.4, the nullable analysis will be more stringent for 
     class C<T> where T : I<(int a, int b)>, I<(int c, int d)> { } // error
     ```
 
+12. Previously, the language version was not checked for `this ref` and `this in` orderings of parameter modifiers. In *Visual Studio 2019 version 16.4* these orderings produce an error with langversion below 7.2. See https://github.com/dotnet/roslyn/issues/38486

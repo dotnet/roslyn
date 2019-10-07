@@ -22,6 +22,12 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\WellKnownMemberNames.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
+      <Link>Compiler\NullableAttributes.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs">
+      <Link>Compiler\RoslynString.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>Compiler\UnicodeCharacterUtilities.cs</Link>
     </Compile>

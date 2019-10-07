@@ -418,7 +418,7 @@ namespace M
             var refsFromVirtual = await SymbolFinder.FindReferencesAsync(baseVirtualMethodSymbol, solution);
             Assert.Equal(2, refsFromVirtual.Count());
 
-            // FAR from the overriden method should find both methods
+            // FAR from the overridden method should find both methods
             var refsFromOverride = await SymbolFinder.FindReferencesAsync(overriddenMethodSymbol, solution);
             Assert.Equal(2, refsFromOverride.Count());
 

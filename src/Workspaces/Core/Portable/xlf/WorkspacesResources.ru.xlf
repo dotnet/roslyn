@@ -1312,6 +1312,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Файлы Visual Basic</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
+        <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
+        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">Рабочая область не пуста.</target>

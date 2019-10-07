@@ -69,8 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
             }
 
-            ReportAttributesDisallowed(syntax.AttributeLists, _declarationDiagnostics);
-
             foreach (var param in syntax.ParameterList.Parameters)
             {
                 ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
