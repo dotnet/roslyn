@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.PatternMatching;
 using Roslyn.Test.EditorUtilities.NavigateTo;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
@@ -208,28 +209,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         // For ordering of NavigateToItems, see
         // http://msdn.microsoft.com/en-us/library/microsoft.visualstudio.language.navigateto.interfaces.navigatetoitem.aspx
         protected static int CompareNavigateToItems(NavigateToItem a, NavigateToItem b)
-        {
-            var result = ((int)a.PatternMatch.Kind) - ((int)b.PatternMatch.Kind);
-            if (result != 0)
-            {
-                return result;
-            }
+            => ComparerWithState.CompareTo(a, b, s_comparisonComponents);
 
-            result = a.Name.CompareTo(b.Name);
-            if (result != 0)
-            {
-                return result;
-            }
-
-            result = a.Kind.CompareTo(b.Kind);
-            if (result != 0)
-            {
-                return result;
-            }
-
-            result = a.SecondarySort.CompareTo(b.SecondarySort);
-            return result;
-        }
+        private readonly static ImmutableArray<Func<NavigateToItem, IComparable>> s_comparisonComponents =
+            ImmutableArray.Create<Func<NavigateToItem, IComparable>>(
+                item => (int)item.PatternMatch.Kind,
+                item => item.Name,
+                item => item.Kind,
+                item => item.SecondarySort);
 
         private class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
         {

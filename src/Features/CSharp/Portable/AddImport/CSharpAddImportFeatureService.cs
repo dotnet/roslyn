@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
                 var addImportService = document.GetLanguageService<IAddImportsService>();
                 var newRoot = addImportService.AddImports(
-                    semanticModel.Compilation, root, contextNode, newImports, placeSystemNamespaceFirst);
+                    semanticModel.Compilation, root, contextNode, newImports, placeSystemNamespaceFirst, cancellationToken);
                 return (CompilationUnitSyntax)newRoot;
             }
             finally
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var service = document.GetLanguageService<IAddImportsService>();
             var newRoot = service.AddImport(
-                compilation, root, contextNode, usingDirective, placeSystemNamespaceFirst);
+                compilation, root, contextNode, usingDirective, placeSystemNamespaceFirst, cancellationToken);
 
             return document.WithSyntaxRoot(newRoot);
         }
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 }
             }
 
-            // Didn't conflict with anything.  We shoudl remove the global:: alias.
+            // Didn't conflict with anything.  We should remove the global:: alias.
             return false;
         }
 

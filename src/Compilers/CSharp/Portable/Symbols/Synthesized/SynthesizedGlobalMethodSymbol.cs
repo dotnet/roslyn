@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-        public sealed override bool AreLocalsZeroed =>ContainingModule.AreLocalsZeroed;
+        public sealed override bool AreLocalsZeroed => ContainingModule.AreLocalsZeroed;
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -292,19 +293,25 @@ namespace Microsoft.CodeAnalysis
         private static readonly Func<DocumentId, Project, Document> s_createDocumentFunction = CreateDocument;
         private static Document CreateDocument(DocumentId documentId, Project project)
         {
-            return new Document(project, project._projectState.GetDocumentState(documentId));
+            var state = project._projectState.GetDocumentState(documentId);
+            Contract.ThrowIfNull(state);
+            return new Document(project, state);
         }
 
         private static readonly Func<DocumentId, Project, AdditionalDocument> s_createAdditionalDocumentFunction = CreateAdditionalDocument;
         private static AdditionalDocument CreateAdditionalDocument(DocumentId documentId, Project project)
         {
-            return new AdditionalDocument(project, project._projectState.GetAdditionalDocumentState(documentId));
+            var state = project._projectState.GetAdditionalDocumentState(documentId);
+            Contract.ThrowIfNull(state);
+            return new AdditionalDocument(project, state);
         }
 
         private static readonly Func<DocumentId, Project, AnalyzerConfigDocument> s_createAnalyzerConfigDocumentFunction = CreateAnalyzerConfigDocument;
         private static AnalyzerConfigDocument CreateAnalyzerConfigDocument(DocumentId documentId, Project project)
         {
-            return new AnalyzerConfigDocument(project, project._projectState.GetAnalyzerConfigDocumentState(documentId));
+            var state = project._projectState.GetAnalyzerConfigDocumentState(documentId);
+            Contract.ThrowIfNull(state);
+            return new AnalyzerConfigDocument(project, state);
         }
 
         /// <summary>
@@ -608,6 +615,9 @@ namespace Microsoft.CodeAnalysis
         {
             return this.Solution.RemoveAnalyzerConfigDocument(documentId).GetProject(this.Id)!;
         }
+
+        internal ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
+            => _projectState.GetAnalyzerConfigSpecialDiagnosticOptions();
 
         private string GetDebuggerDisplay()
         {

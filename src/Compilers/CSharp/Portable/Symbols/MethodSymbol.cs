@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static, or a <see cref="LocalFunctionSymbol"/>
+        /// Returns true if this symbol requires an instance reference as the implicit receiver. This is false if the symbol is static, or a <see cref="LocalFunctionSymbol"/>
         /// </summary>
         public virtual bool RequiresInstanceReceiver => !IsStatic;
 
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal bool IsConditional
+        public bool IsConditional
         {
             get
             {

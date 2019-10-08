@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -17,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -285,7 +285,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                      language == LanguageNames.VisualBasic ? ".vbproj" : ("." + language));
             }
 
-            var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
             var languageServices = workspace.Services.GetLanguageServices(language);
 
             var parseOptions = GetParseOptions(projectElement, language, languageServices);
@@ -527,6 +526,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var checkOverflow = false;
             var allowUnsafe = false;
             var outputKind = OutputKind.DynamicallyLinkedLibrary;
+            var nullable = NullableContextOptions.Disable;
 
             if (compilationOptionsElement != null)
             {
@@ -591,6 +591,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     delaySign = (bool)delaySignAttribute;
                 }
 
+                var nullableAttribute = compilationOptionsElement.Attribute(NullableAttributeName);
+                if (nullableAttribute != null)
+                {
+                    nullable = (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), (string)nullableAttribute.Value);
+                }
+
                 var outputTypeAttribute = compilationOptionsElement.Attribute(OutputTypeAttributeName);
                 if (outputTypeAttribute != null
                     && outputTypeAttribute.Value == "WindowsRuntimeMetadata")
@@ -632,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (language == LanguageNames.CSharp)
             {
-                compilationOptions = ((CSharpCompilationOptions)compilationOptions).WithAllowUnsafe(allowUnsafe);
+                compilationOptions = ((CSharpCompilationOptions)compilationOptions).WithAllowUnsafe(allowUnsafe).WithNullableContextOptions(nullable);
             }
 
             if (language == LanguageNames.VisualBasic)
@@ -746,9 +752,71 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 filePathToTextBufferMap.Add(filePath, textBuffer);
             }
 
+            var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
+
+            if (documentServiceProvider == null)
+            {
+                documentServiceProvider = testDocumentServiceProvider;
+            }
+            else if (testDocumentServiceProvider != null)
+            {
+                AssertEx.Fail($"The document attributes on file {filePath} conflicted");
+            }
+
             return new TestHostDocument(
                 exportProvider, languageServiceProvider, textBuffer, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
         }
+
+        internal static TestHostDocument CreateDocument(
+            XElement documentElement,
+            ExportProvider exportProvider,
+            HostLanguageServices languageServiceProvider,
+            ImmutableArray<string> roles)
+        {
+            string markupCode = documentElement.NormalizedValue();
+
+            var folders = GetFolders(documentElement);
+            var optionsElement = documentElement.Element(ParseOptionsElementName);
+
+            var codeKind = SourceCodeKind.Regular;
+            if (optionsElement != null)
+            {
+                var attr = optionsElement.Attribute(KindAttributeName);
+                codeKind = attr == null
+                    ? SourceCodeKind.Regular
+                    : (SourceCodeKind)Enum.Parse(typeof(SourceCodeKind), attr.Value);
+            }
+
+            MarkupTestFile.GetPositionAndSpans(markupCode,
+                out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+
+            var documentServiceProvider = GetDocumentServiceProvider(documentElement);
+            var contentTypeLanguageService = languageServiceProvider.GetService<IContentTypeLanguageService>();
+            var contentType = contentTypeLanguageService.GetDefaultContentType();
+            var textBuffer = EditorFactory.CreateBuffer(contentType.TypeName, exportProvider, code);
+
+            return new TestHostDocument(
+                exportProvider, languageServiceProvider, textBuffer, filePath: string.Empty, cursorPosition, spans, codeKind, folders, isLinkFile: false, documentServiceProvider, roles: roles);
+        }
+
+#nullable enable
+
+        private static TestDocumentServiceProvider? GetDocumentServiceProvider(XElement documentElement)
+        {
+            var canApplyChange = (bool?)documentElement.Attribute("CanApplyChange");
+            var supportDiagnostics = (bool?)documentElement.Attribute("SupportDiagnostics");
+
+            if (canApplyChange == null && supportDiagnostics == null)
+            {
+                return null;
+            }
+
+            return new TestDocumentServiceProvider(
+                canApplyChange ?? true,
+                supportDiagnostics ?? true);
+        }
+
+#nullable restore
 
         private static string GetFilePath(
             TestWorkspace workspace,

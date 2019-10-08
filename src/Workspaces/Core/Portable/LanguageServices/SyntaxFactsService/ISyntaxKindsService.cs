@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int UsingStatement { get; }
         int ReturnStatement { get; }
         int HashToken { get; }
+        int ExpressionStatement { get; }
     }
 
     internal abstract class AbstractSyntaxKindsService : ISyntaxKindsService
@@ -53,5 +54,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract int UsingStatement { get; }
         public abstract int ReturnStatement { get; }
         public abstract int HashToken { get; }
+        public abstract int ExpressionStatement { get; }
     }
 }

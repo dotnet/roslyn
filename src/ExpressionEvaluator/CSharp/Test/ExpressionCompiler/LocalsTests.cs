@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.Equal(assembly.Count, 0);
-                Assert.Equal(locals.Count, 0);
+                Assert.Equal(0, assembly.Count);
+                Assert.Equal(0, locals.Count);
                 locals.Free();
             });
         }
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 4);
+                Assert.Equal(4, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
     @"{
   // Code size        2 (0x2)
@@ -158,9 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 4);
+                Assert.Equal(4, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -217,9 +217,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 4);
+                Assert.Equal(4, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -313,9 +313,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 3);
+                Assert.Equal(3, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -377,9 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 3);
+                Assert.Equal(3, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -441,9 +441,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 // We should be able to evaluate "s" within this context, https://github.com/dotnet/roslyn/issues/16594.
                 //                VerifyLocal(testData, typeName, locals[0], "<>m0", "s", expectedILOpt:
                 //@"{
@@ -469,9 +469,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 // We should be able to evaluate "s" within this context, https://github.com/dotnet/roslyn/issues/16594.
                 //                VerifyLocal(testData, typeName, locals[0], "<>m0", "s", expectedILOpt:
                 //@"{
@@ -538,9 +538,9 @@ class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 4);
+                Assert.Equal(4, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -609,9 +609,9 @@ class C
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 4);
+                Assert.Equal(4, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -713,7 +713,7 @@ class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
     @"{
   // Code size        2 (0x2)
@@ -733,7 +733,7 @@ class C
                 string error;
                 testData = new CompilationTestData();
                 context.CompileExpression("b", out error, testData);
-                Assert.Equal(error, "error CS0103: The name 'b' does not exist in the current context");
+                Assert.Equal("error CS0103: The name 'b' does not exist in the current context", error);
 
                 testData = new CompilationTestData();
                 context.CompileExpression("a[1]", out error, testData);
@@ -783,7 +783,7 @@ class C
                     diagnostics: diagnostics,
                     typeName: out typeName,
                     testData: testData);
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "o");
                 locals.Clear();
 
@@ -796,7 +796,7 @@ class C
                     typeName: out typeName,
                     testData: testData);
                 diagnostics.Free();
-                Assert.Equal(locals.Count, 6);
+                Assert.Equal(6, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "$exception", "Error", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
     @"{
   // Code size       11 (0xb)
@@ -875,7 +875,7 @@ class C
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
     @"{
   // Code size        2 (0x2)
@@ -914,7 +914,7 @@ class C
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out typeName, testData: testData);
 
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0<T>", "x", expectedILOpt:
     @"{
   // Code size        2 (0x2)
@@ -960,7 +960,7 @@ class C
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "args", expectedILOpt:
     @"{
   // Code size        7 (0x7)
@@ -1055,7 +1055,7 @@ IL_0001:  ret
                 testData = new CompilationTestData();
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 5);
+                Assert.Equal(5, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "w");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "u");
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "y", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
@@ -1099,7 +1099,7 @@ class C
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
 
                 var method = (MethodSymbol)testData.GetMethodData("<>x.<>m0").Method;
                 Assert.Equal(method.Parameters[0].Type, method.ReturnType);
@@ -1155,7 +1155,7 @@ class P
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 3);
+                Assert.Equal(3, locals.Count);
 
                 VerifyLocal(testData, "<>x<T>", locals[0], "<>m0<U>", "t", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
     @"{
@@ -1290,7 +1290,7 @@ class P
   IL_0001:  ldfld      ""int C.<>c__DisplayClass1_1.w""
   IL_0006:  ret
 }");
-                Assert.Equal(locals.Count, 5);
+                Assert.Equal(5, locals.Count);
                 locals.Free();
             });
         }
@@ -1364,7 +1364,7 @@ class P
   IL_0001:  ldfld      ""object C.<>c__DisplayClass1_1.y""
   IL_0006:  ret
 }");
-                Assert.Equal(locals.Count, 4);
+                Assert.Equal(4, locals.Count);
                 locals.Free();
             });
         }
@@ -1547,7 +1547,7 @@ class C
                 VerifyLocal(testData, typeName, locals[2], "<>m2", "x3");
                 VerifyLocal(testData, typeName, locals[3], "<>m3", "x4");
 
-                Assert.Equal(locals.Count, 4);
+                Assert.Equal(4, locals.Count);
 
                 locals.Free();
 
@@ -1585,7 +1585,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, typeName, locals[5], "<>m5", "x4");
-                Assert.Equal(locals.Count, 6);
+                Assert.Equal(6, locals.Count);
                 locals.Free();
 
                 context = CreateMethodContext(
@@ -1624,7 +1624,7 @@ class C
   IL_000b:  ret
 }");
                 VerifyLocal(testData, typeName, locals[6], "<>m6", "x4");
-                Assert.Equal(locals.Count, 7);
+                Assert.Equal(7, locals.Count);
                 locals.Free();
 
                 context = CreateMethodContext(
@@ -1662,7 +1662,7 @@ class C
   IL_000b:  ldfld      ""object C.<>c__DisplayClass0_0.x4""
   IL_0010:  ret
 }");
-                Assert.Equal(locals.Count, 7);
+                Assert.Equal(7, locals.Count);
                 locals.Free();
             });
         }
@@ -1711,7 +1711,7 @@ class C
                 testData = new CompilationTestData();
                 locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 4);
+                Assert.Equal(4, locals.Count);
                 VerifyLocal(testData, "<>x<T>", locals[0], "<>m0", "z");
                 VerifyLocal(testData, "<>x<T>", locals[1], "<>m1", "y");
                 VerifyLocal(testData, "<>x<T>", locals[2], "<>m2", "x");
@@ -1745,7 +1745,7 @@ class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
-                Assert.Equal(locals.Count, 6);
+                Assert.Equal(6, locals.Count);
                 VerifyLocal(testData, "<>x<T, U, V>", locals[0], "<>m0<W>", "this", expectedILOpt:
     @"{
   // Code size        7 (0x7)
@@ -1878,7 +1878,7 @@ class C
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
-                Assert.Equal(locals.Count, 3);
+                Assert.Equal(3, locals.Count);
                 VerifyLocal(testData, "<>x<T, U>", locals[0], "<>m0", "t");
                 VerifyLocal(testData, "<>x<T, U>", locals[1], "<>m1", "u", expectedILOpt:
     @"{
@@ -1929,7 +1929,7 @@ class C
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "this", expectedILOpt:
     @"{
   // Code size        7 (0x7)
@@ -2018,7 +2018,7 @@ class C
   IL_0006:  ret
 }");
                 VerifyLocal(testData, "<>x<T>", locals[3], "<>m3", "<>TypeVariables", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
-                Assert.Equal(locals.Count, 4);
+                Assert.Equal(4, locals.Count);
                 locals.Free();
             });
         }
@@ -2086,7 +2086,7 @@ struct S<T> where T : class
 }");
                 VerifyLocal(testData, "<>x<T, U>", locals[3], "<>m3", "<>TypeVariables", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult);
 
-                Assert.Equal(locals.Count, 4);
+                Assert.Equal(4, locals.Count);
                 locals.Free();
             });
         }
@@ -2148,7 +2148,7 @@ class C
   IL_0001:  ldfld      ""object C.<M>d__1.<y>5__1""
   IL_0006:  ret
 }");
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 locals.Free();
             });
         }
@@ -2222,7 +2222,7 @@ class C
   IL_0001:  ldfld      ""int C.<M>d__1.<y>5__1""
   IL_0006:  ret
 }");
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 locals.Free();
 
                 context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext", atLineNumber: 2000);
@@ -2262,7 +2262,7 @@ class C
   IL_0001:  ldfld      ""long C.<M>d__1.<y>5__3""
   IL_0006:  ret
 }");
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 locals.Free();
             });
         }
@@ -2305,7 +2305,7 @@ class C
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "x", expectedILOpt:
     @"{
   // Code size       12 (0xc)
@@ -2363,7 +2363,7 @@ class C
                 string typeName;
                 var testData = new CompilationTestData();
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "x", expectedILOpt:
     @"{
   // Code size        7 (0x7)
@@ -2430,7 +2430,7 @@ public struct B
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
             });
 
-                Assert.Equal(locals.Count, 0);
+                Assert.Equal(0, locals.Count);
                 locals.Free();
             });
         }
@@ -2475,7 +2475,7 @@ public struct B
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("I", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
             });
 
-                Assert.Equal(locals.Count, 0);
+                Assert.Equal(0, locals.Count);
                 locals.Free();
             });
         }
@@ -2676,9 +2676,9 @@ class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 5);
+                Assert.Equal(5, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt: @"
 {
   // Code size        2 (0x2)
@@ -2765,9 +2765,9 @@ static class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x", expectedILOpt: expectedIL);
                 Assert.Equal(SpecialType.System_Int32, testData.GetMethodData(typeName + ".<>m0").Method.ReturnType.SpecialType);
                 locals.Free();
@@ -3449,7 +3449,7 @@ class C
                 string typeName;
                 var testData = new CompilationTestData();
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "this", expectedILOpt:
     @"{
   // Code size        7 (0x7)
@@ -3502,7 +3502,7 @@ class C
                 string typeName;
                 var testData = new CompilationTestData();
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0", "this");
                 VerifyLocal(testData, "<>x", locals[1], "<>m1", "s");
                 locals.Free();
@@ -3871,7 +3871,7 @@ class C
                     testData: testData);
                 diagnostics.Verify();
                 diagnostics.Free();
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x");
                 VerifyLocal(testData, typeName, locals[1], "<>m1", "y");
                 locals.Free();
@@ -3905,9 +3905,9 @@ class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -3966,9 +3966,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4002,9 +4002,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4039,9 +4039,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4098,9 +4098,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4131,9 +4131,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -4177,9 +4177,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4212,9 +4212,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -4236,9 +4236,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4271,9 +4271,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x2", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -4314,9 +4314,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4369,9 +4369,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4402,9 +4402,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -4451,9 +4451,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4511,9 +4511,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4569,9 +4569,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4630,9 +4630,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 3);
+                Assert.Equal(3, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4699,9 +4699,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 3);
+                Assert.Equal(3, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4772,9 +4772,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4806,9 +4806,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -4852,9 +4852,9 @@ class Base
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4912,9 +4912,9 @@ class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "a", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -4976,9 +4976,9 @@ class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "a", expectedILOpt:
 @"{
   // Code size        2 (0x2)
@@ -5010,9 +5010,9 @@ class C
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.NotEqual(assembly.Count, 0);
+                Assert.NotEqual(0, assembly.Count);
 
-                Assert.Equal(locals.Count, 1);
+                Assert.Equal(1, locals.Count);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "x1", expectedILOpt:
 @"{
   // Code size        7 (0x7)
@@ -5113,7 +5113,7 @@ public class C
                 string typeName;
                 context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
 
-                Assert.Equal(locals.Count, 3);
+                Assert.Equal(3, locals.Count);
                 VerifyLocal(testData, "<>x", locals[0], "<>m0<T>", "this", expectedILOpt: @"
 {
   // Code size        2 (0x2)

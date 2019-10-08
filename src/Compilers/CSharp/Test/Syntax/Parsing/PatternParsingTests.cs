@@ -5184,7 +5184,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         }
 
         [Fact]
-        public void ParenthseizedExpressionOfSwitchExpression()
+        public void ParenthesizedExpressionOfSwitchExpression()
         {
             UsingStatement("Console.Write((t) switch {var x => x});");
             N(SyntaxKind.ExpressionStatement);

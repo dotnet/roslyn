@@ -31,6 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadDynamicQuery, fromClause.Expression.Location);
                 boundFromExpression = BadExpression(fromClause.Expression, boundFromExpression);
             }
+            else
+            {
+                boundFromExpression = BindToNaturalType(boundFromExpression, diagnostics);
+            }
 
             QueryTranslationState state = new QueryTranslationState();
             state.fromExpression = MakeMemberAccessValue(boundFromExpression, diagnostics);

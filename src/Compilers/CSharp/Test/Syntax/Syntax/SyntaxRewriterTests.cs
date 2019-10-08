@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             Assert.NotNull(caught);
-            Assert.Equal(true, caught is InvalidOperationException);
+            Assert.True(caught is InvalidOperationException);
         }
 
         [Fact]
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             Assert.NotNull(caught);
-            Assert.Equal(true, caught is InvalidOperationException);
+            Assert.True(caught is InvalidOperationException);
         }
 
         #endregion Red Tree / SeparatedSyntaxList
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             Assert.NotNull(caught);
-            Assert.Equal(true, caught is InvalidOperationException);
+            Assert.True(caught is InvalidOperationException);
         }
 
         [Fact]

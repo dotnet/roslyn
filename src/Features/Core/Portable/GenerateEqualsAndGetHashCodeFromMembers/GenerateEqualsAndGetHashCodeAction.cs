@@ -106,15 +106,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var oldRoot = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var newDocument = _document.WithSyntaxRoot(
                     oldRoot.ReplaceNode(oldType, newType));
-
-                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-
-                var codeGenService = _document.GetLanguageService<ICodeGenerationService>();
-                newDocument = await codeGenService.AddImportsAsync(
+                newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
                     newDocument,
-                    new CodeGenerationOptions(placeSystemNamespaceFirst: placeSystemNamespaceFirst),
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
                 return newDocument;
             }
 

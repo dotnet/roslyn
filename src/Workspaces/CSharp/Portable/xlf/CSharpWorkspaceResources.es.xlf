@@ -52,6 +52,16 @@
         <target state="translated">Preferencias de coincidencia de patrón</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_and_Sort_Usings">
+        <source>R&amp;emove and Sort Usings</source>
+        <target state="translated">Q&amp;uitar y ordenar usos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Usings">
+        <source>&amp;Sort Usings</source>
+        <target state="translated">&amp;Ordenar instrucciones Using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Space_preferences">
         <source>Space preferences</source>
         <target state="translated">Preferencias de espacio</target>

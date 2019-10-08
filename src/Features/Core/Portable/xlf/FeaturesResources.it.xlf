@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into an interface method will prevent the debug session from continuing.</target>
+        <target state="translated">Se si aggiunge '{0}' in metodo di interfaccia, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into an interface will prevent the debug session from continuing.</target>
+        <target state="translated">Se si aggiunge '{0}' in un'interfaccia, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -77,9 +77,14 @@
         <target state="translated">Evitare assegnazioni di valori non necessarie nel codice perché indicano probabilmente calcoli di valori ridondanti. Se il calcolo del valore non è ridondante e si intende mantenere l'assegnazione, modificare la destinazione dell'assegnazione in una variabile locale il cui nome inizia con un carattere di sottolineatura e, facoltativamente, è seguito da un numero intero, ad esempio '_', '_1', '_2' e così via. Questi vengono considerati come nomi di simboli speciali di rimozione.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
-        <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="translated">Evitare parametri inutilizzati nel codice. Se non è possibile rimuovere il parametro, modificarne il nome in modo che inizi con un carattere di sottolineatura e, facoltativamente, sia seguito da un numero intero, seguito da un numero intero, ad esempio '_', '_1', '_1', '_2' e così via. Questi vengono considerati come nomi di simboli speciali di rimozione.</target>
+      <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotApplyChangesUnexpectedError">
+        <source>Cannot apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">Non è possibile applicare le modifiche. Errore imprevisto: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -92,14 +97,24 @@
         <target state="translated">Passa allo spazio dei nomi globale</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesDisallowedWhileStoppedAtException">
+        <source>Changes are not allowed while stopped at exception</source>
+        <target state="translated">Le modifiche non sono consentite in caso di arresto in corrispondenza dell'eccezione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesNotAppliedWhileRunning">
+        <source>Changes made in project '{0}' will not be applied while the application is running</source>
+        <target state="translated">Le modifiche apportate al progetto '{0}' non verranno applicate mentre l'applicazione è in esecuzione</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
         <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
-        <target state="new">Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</target>
+        <target state="translated">Se si modifica '{0}' da asincrono a sincrono, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
-        <target state="new">Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</target>
+        <target state="translated">Se si modifica '{0}' in '{1}', la sessione di debug non potrà continuare perché modifica la forma della macchina a stati.</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Quality">
@@ -109,12 +124,12 @@
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
-        <target state="new">Configure {0} code style</target>
+        <target state="translated">Configura lo stile del codice di {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
-        <target state="new">Configure {0} severity</target>
+        <target state="translated">Configura la gravità di {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -170,6 +185,31 @@
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
         <target state="translated">Elimina gli oggetti prima che siano esterni all'ambito</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
+        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
+        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">Modifica e continuazione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByModule">
+        <source>Edit and Continue disallowed by module</source>
+        <target state="translated">Modifica e continuazione non consentito dal modulo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByProject">
+        <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
+        <target state="translated">Le modifiche apportate al progetto '{0}' impediranno la continuazione della sessione di debug: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ErrorReadingFile">
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="translated">Si è verificato un errore durante la lettura del file '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -299,7 +339,7 @@
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="new">Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</target>
+        <target state="translated">Se si modifica '{0}' che contiene un'espressione switch, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -417,6 +457,11 @@
         <target state="translated">Sostituisci '{0}' con '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="RudeEdit">
+        <source>Rude edit</source>
+        <target state="translated">Modifica non applicabile</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
         <target state="translated">Dividi in istruzioni '{0}' consecutive</target>
@@ -434,7 +479,7 @@
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
-        <target state="new">Suppress {0}</target>
+        <target state="translated">Elimina {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -479,7 +524,7 @@
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="new">Unwrap call chain</target>
+        <target state="translated">Annulla ritorno a capo per la catena di chiamate</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -494,12 +539,12 @@
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="new">Updating a '{0}' around an active statement will prevent the debug session from continuing.</target>
+        <target state="translated">Se si aggiorna '{0}' in prossimità di un'istruzione attiva, la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
-        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="translated">Usare il criterio dispose consigliato per garantire che gli oggetti eliminabili con ambito locale vengano eliminati in tutti i percorsi. Se possibile, eseguire il wrapping della creazione in un'istruzione 'using' o una dichiarazione 'using'. In caso contrario, usare un criterio try-finally, con una variabile locale dedicata dichiarata prima dell'area try e una chiamata Dispose non condizionale al valore non Null nell'area 'finally', ad esempio 'x?.Dispose()'. Se l'oggetto viene eliminato in modo esplicito nell'area try oppure la proprietà di dispose viene trasferita a un altro oggetto o metodo, assegnare 'null' alla variabile locale subito dopo una tale operazione per evitare di raddoppiare dispose in 'finally'.</target>
+        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
+        <target state="needs-review-translation">Usare il criterio dispose consigliato per garantire che gli oggetti eliminabili con ambito locale vengano eliminati in tutti i percorsi. Se possibile, eseguire il wrapping della creazione in un'istruzione 'using' o una dichiarazione 'using'. In caso contrario, usare un criterio try-finally, con una variabile locale dedicata dichiarata prima dell'area try e una chiamata Dispose non condizionale al valore non Null nell'area 'finally', ad esempio 'x?.Dispose()'. Se l'oggetto viene eliminato in modo esplicito nell'area try oppure la proprietà di dispose viene trasferita a un altro oggetto o metodo, assegnare 'null' alla variabile locale subito dopo una tale operazione per evitare di raddoppiare dispose in 'finally'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -572,29 +617,29 @@
         <target state="translated">Avviso: la modifica dello spazio dei nomi può comportare la creazione di codice non valido e modificare il significato del codice.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_and_align_call_chain">
-        <source>Wrap and align call chain</source>
-        <target state="new">Wrap and align call chain</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
         <source>Warning: Semantics may change when converting statement.</source>
-        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <target state="translated">Avviso: durante la conversione dell'istruzione la semantica può cambiare.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="translated">Applica ritorno a capo e allinea la catena di chiamate</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
-        <target state="translated">Esegui il wrapping e allinea l'espressione</target>
+        <target state="translated">Applica ritorno a capo e allinea l'espressione</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
         <source>Wrap and align long call chain</source>
-        <target state="new">Wrap and align long call chain</target>
+        <target state="translated">Applica ritorno a capo e allinea la catena di chiamate lunga</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_call_chain">
         <source>Wrap call chain</source>
-        <target state="new">Wrap call chain</target>
+        <target state="translated">Applica ritorno a capo alla catena di chiamate</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -619,7 +664,7 @@
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
-        <target state="new">Wrap long call chain</target>
+        <target state="translated">Applica ritorno a capo alla catena di chiamate lunga</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -1478,11 +1523,6 @@ Continuare?</target>
         <target state="translated">Rimuovi qualificazione</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue1">
-        <source>Edit and Continue</source>
-        <target state="translated">Modifica e continuazione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
         <source>This signature does not contain parameters that can be changed.</source>
         <target state="translated">Questa firma non contiene parametri modificabili.</target>
@@ -1568,11 +1608,6 @@ Continuare?</target>
         <target state="translated">Compilatore</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue2">
-        <source>Edit and Continue</source>
-        <target state="translated">Modifica e continuazione</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Style">
         <source>Style</source>
         <target state="translated">Stile</target>
@@ -1646,11 +1681,6 @@ Continuare?</target>
       <trans-unit id="Compiler2">
         <source>Compiler</source>
         <target state="translated">Compilatore</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_And_Continue">
-        <source>Edit And Continue</source>
-        <target state="translated">Modifica e continuazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Live">

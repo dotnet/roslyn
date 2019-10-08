@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             var workspace = new AdhocWorkspace(VisualStudioMefHostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic));
 
-            var language = Workspaces.NoCompilationConstants.LanguageName;
+            var language = NoCompilationConstants.LanguageName;
 
             var project = workspace.AddProject(
                            ProjectInfo.Create(
@@ -275,13 +276,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
             var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
 
-            Assert.Equal(analyzers[0].GetType(), typeof(CSharpCompilerDiagnosticAnalyzer));
-            Assert.Equal(analyzers[1].GetType(), typeof(Analyzer));
-            Assert.Equal(analyzers[2].GetType(), typeof(Priority0Analyzer));
-            Assert.Equal(analyzers[3].GetType(), typeof(Priority1Analyzer));
-            Assert.Equal(analyzers[4].GetType(), typeof(Priority10Analyzer));
-            Assert.Equal(analyzers[5].GetType(), typeof(Priority15Analyzer));
-            Assert.Equal(analyzers[6].GetType(), typeof(Priority20Analyzer));
+            Assert.Equal(typeof(CSharpCompilerDiagnosticAnalyzer), analyzers[0].GetType());
+            Assert.Equal(typeof(Analyzer), analyzers[1].GetType());
+            Assert.Equal(typeof(Priority0Analyzer), analyzers[2].GetType());
+            Assert.Equal(typeof(Priority1Analyzer), analyzers[3].GetType());
+            Assert.Equal(typeof(Priority10Analyzer), analyzers[4].GetType());
+            Assert.Equal(typeof(Priority15Analyzer), analyzers[5].GetType());
+            Assert.Equal(typeof(Priority20Analyzer), analyzers[6].GetType());
         }
 
         [Fact]
@@ -322,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 }
 
                 var liveId = (LiveDiagnosticUpdateArgsId)e.Id;
-                Assert.IsNotType<ProjectDiagnosticAnalyzer>(liveId.Analyzer);
+                Assert.False(liveId.Analyzer is ProjectDiagnosticAnalyzer);
 
                 called = true;
             };

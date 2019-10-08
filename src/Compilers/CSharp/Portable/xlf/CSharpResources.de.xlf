@@ -37,6 +37,11 @@
         <target state="translated">Es ist unzulässig, den Nullable-Verweistyp "{0}?" in einem as-Ausdruck zu verwenden. Verwenden Sie stattdessen den zugrunde liegenden Typ "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="translated">Das Attribut "{0}" ist für Ereignisaccessoren nicht gültig. Es gilt nur für {1}-Deklarationen.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">Die automatisch implementierte Eigenschaft "{0}" kann nicht als "readonly" markiert werden, weil sie einen set-Accessor aufweist.</target>
@@ -45,11 +50,6 @@
       <trans-unit id="ERR_AutoSetterCantBeReadOnly">
         <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
         <target state="translated">Der automatisch implementierte set-Accessor "{0}" kann nicht als "readonly" markiert werden.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotOnEventAccessor">
-        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
-        <target state="translated">Das Attribut "{0}" ist für Ereignisaccessoren nicht gültig. Es gilt nur für {1}-Deklarationen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
         <source>Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</source>
-        <target state="new">Invalid option '{0}' for /nullable; must be 'disable', 'enable', 'warnings' or 'annotations'</target>
+        <target state="translated">Ungültige Option "{0}" für "/nullable". Zulässig sind nur "disable", "enable", "warnings" oder "annotations".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableTypeof">
@@ -80,6 +80,11 @@
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Ungültiger Operand für die Musterübereinstimmung. Ein Wert ist erforderlich, gefunden wurde aber "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -129,7 +134,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
-        <target state="new">Duplicate null suppression operator ('!')</target>
+        <target state="translated">Operator zum Unterdrücken von doppelten NULL-Werten ("!")</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
@@ -227,6 +232,11 @@
         <target state="translated">"{0}" kann den Schnittstellenmember "{1}" in Typ "{2}" nicht implementieren, weil er einen __arglist-Parameter umfasst.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InternalError">
+        <source>Internal error in the C# compiler.</source>
+        <target state="new">Internal error in the C# compiler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Ungültiger Name für Hashalgorithmus: "{0}"</target>
@@ -304,7 +314,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
-        <target state="new">Expected 'warnings', 'annotations', or end of directive</target>
+        <target state="translated">Erwartet wurde "warnings", "annotations" oder das Ende der Anweisung.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
@@ -547,8 +557,11 @@
 -nowarn:&lt;warn list&gt;           Disable specific warning messages
 -ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                               diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Specify a file to log all compiler and analyzer
                               diagnostics.
+                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                              both mean SARIF version 2.1.0.
 -reportanalyzer               Report additional analyzer information, such as
                               execution time.
 
@@ -622,156 +635,158 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
         <target state="translated">
-                             Visual C#-Compileroptionen 
+                             Visual C#-Compileroptionen
 
-                        – AUSGABEDATEIEN –
+                       – AUSGABEDATEIEN –
 -out:&lt;Datei&gt;                   Gibt den Namen der Ausgabedatei an (Standardeinstellung: Basisname der
-                               Datei mit der Hauptklasse oder der ersten Datei)
--target:exe                   Erstellt eine ausführbare Konsolendatei (Standardeinstellung) (Kurzform:
-                               -t:exe)
--target:winexe                Erstellt eine ausführbare Windows-Datei (Kurzform:
-                               -t:winexe)
--target:library               Erstellt eine Bibliothek (Kurzform: -t:library)
+                              Datei mit der Hauptklasse oder der ersten Datei).
+-target:exe                   Erstellt eine ausführbare Konsolendatei (Standardeinstellung)
+                              (Kurzform: -t:exe).
+-target:winexe                Erstellt eine ausführbare Windows-Datei
+                              (Kurzform: -t:winexe).
+-target:library               Erstellt eine Bibliothek (Kurzform: -t:library).
 -target:module                Erstellt ein Modul, das einer anderen Assembly
-                               hinzugefügt werden kann (Kurzform: -t:module)
--target:appcontainerexe       Erstellt eine ausführbare App-Containerdatei (Kurzform:
-                               -t:appcontainerexe)
--target:winmdobj              Erstellt eine temporäre Windows-Runtime-Zwischendatei, die
-                               von WinMDExp verwendet wird (Kurzform: -t:winmdobj)
--doc:&lt;Datei&gt;                   Die zu generierende XML-Dokumentationsdatei
--refout:&lt;Datei&gt;                Die zu generierende Verweisassemblyausgabe
+                              hinzugefügt werden kann (Kurzform: -t:module).
+-target:appcontainerexe       Erstellt eine ausführbare App-Containerdatei
+                              (Kurzform: -t:appcontainerexe).
+-target:winmdobj              Erstellt eine Windows-Runtime-Zwischendatei, die
+                              von WinMDExp verwendet wird (Kurzform: -t:winmdobj).
+-doc:&lt;Datei&gt;                   Die zu generierende XML-Dokumentationsdatei.
+-refout:&lt;Datei&gt;                Die zu generierende Verweisassemblyausgabe.
 -platform:&lt;Zeichenfolge&gt;            Schränkt ein, auf welchen Plattformen dieser Code ausgeführt werden kann: x86,
-                               Itanium, x64, arm, arm64, anycpu32bitpreferred oder
-                               anycpu. Die Standardeinstellung ist "anycpu".
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred oder
+                              anycpu. Die Standardeinstellung ist "anycpu".
 
-                        – EINGABEDATEIEN –
+                       – EINGABEDATEIEN –
 -recurse:&lt;Platzhalter&gt;           Schließt alle Dateien im aktuellen Verzeichnis und
-                               in Unterverzeichnissen gemäß Platzhalter-
-                               spezifikationen ein.
+                              in Unterverzeichnissen gemäß Platzhalter-
+                              spezifikationen ein.
 -reference:&lt;Alias&gt;=&lt;Datei&gt;     Verweist auf Metadaten aus der angegebenen Assembly-
-                               datei mithilfe eines angegebenen Alias (Kurzform: -r)
--reference:&lt;Dateiliste&gt;        Verweist auf Metadaten aus angegebenen Assembly-
-                               dateien (Kurzform: -r)
+                              datei mithilfe eines angegebenen Alias (Kurzform: -r).
+-reference:&lt;Dateiliste&gt;        Verweist auf Metadaten aus den angegebenen Assembly-
+                              dateien (Kurzform: -r).
 -addmodule:&lt;Dateiliste&gt;        Verknüpft die angegebenen Module in dieser Assembly.
 -link:&lt;Dateiliste&gt;             Bettet Metadaten der angegebenen Interop-
-                               assemblydateien ein (Kurzform: -l)
--analyzer:&lt;Dateiliste&gt;         Führt die Analyse aus dieser Assembly aus.
-                               (Kurzform: -a)
+                              assemblydateien ein (Kurzform: -l).
+-analyzer:&lt;Dateiliste&gt;         Führt die Analyse aus dieser Assembly aus
+                              (Kurzform: -a).
 -additionalfile:&lt;Dateiliste&gt;   Zusätzliche Dateien, die sich nicht direkt auf die Code-
-                               generierung auswirken, aber von der Analyse zum Generieren von
-                               Fehlern oder Warnungen verwendet werden können.
+                              generierung auswirken, aber von der Analyse zum Generieren von
+                              Fehlern oder Warnungen verwendet werden können.
 -embed                        Bettet alle Quelldateien in die PDB-Datei ein.
 -embed:&lt;Dateiliste&gt;            Bettet bestimmte Dateien in die PDB-Datei ein.
 
-                        – RESSOURCEN –
+                       – RESSOURCEN –
 -win32res:&lt;Datei&gt;              Gibt eine Win32-Ressourcendatei (RES-Datei) an.
 -win32icon:&lt;Datei&gt;             Verwendet dieses Symbol für die Ausgabe.
 -win32manifest:&lt;Datei&gt;         Gibt eine Win32-Manifestdatei (XML-Datei) an.
 -nowin32manifest              Schließt das Win32-Standardmanifest nicht ein.
--resource:&lt;resinfo&gt;           Bettet die angegebene Ressource ein (Kurzform: -res)
+-resource:&lt;resinfo&gt;           Bettet die angegebene Ressource ein (Kurzform: -res).
 -linkresource:&lt;resinfo&gt;       Verknüpft die angegebene Ressource mit dieser Assembly
-                               (Kurzform: -linkres). Dabei lautet das resinfo-Format
-                               &lt;Datei&gt;[,&lt;Zeichenfolgenname&gt;[,public|private]]
+                              (Kurzform: -linkres). Dabei lautet das resinfo-Format
+                              &lt;Datei&gt;[,&lt;Zeichenfolgenname&gt;[,public|private]]
 
-                        – CODEGENERIERUNG –
+                       – CODEGENERIERUNG –
 -debug[+|-]                   Gibt Debuginformationen aus.
 -debug:{full|pdbonly|portable|embedded}
-                               Gibt den Debugtyp an ("full" ist der Standardwert,
-                               "portable" ist ein plattformübergreifendes Format,
-                               "embedded" ist ein plattformübergreifendes Format, das in die
-                               Ziel-DLL oder -EXE eingebettet ist).
+                              Gibt den Debugtyp an ("full" ist der Standardwert,
+                              "portable" ist ein plattformübergreifendes Format,
+                              "embedded" ist ein plattformübergreifendes Format, das in die
+                              Ziel-DLL oder -EXE eingebettet ist).
 -optimize[+|-]                Aktiviert Optimierungen (Kurzform: -o)
--deterministic                Generiert eine deterministische Assembly 
-                               (einschließlich Modulversion-GUID und Zeitstempel)
--refonly                      Erstellt eine Referenzassembly anstelle der Hauptausgabe.
--instrument:TestCoverage      Generiert eine Assembly, die für die
-                               Erfassung von Code Coverage-Informationen instrumentiert ist.
+-deterministic                Generiert eine deterministische Assembly
+                              (einschließlich Modulversion-GUID und Zeitstempel).
+-refonly                      Generiert eine Referenzassembly anstelle der Hauptausgabe.
+-instrument:TestCoverage      Generiert eine Assembly, die für die Erfassung
+                              von Code Coverage-Informationen instrumentiert ist.
 -sourcelink:&lt;Datei&gt;            Quelllinkinformationen zum Einbetten in PDB-Dateien.
 
-                        – FEHLER UND WARNUNGEN –
+                       – FEHLER UND WARNUNGEN –
 -warnaserror[+|-]             Meldet alle Warnungen als Fehler.
 -warnaserror[+|-]:&lt;Warnungsliste&gt; Meldet bestimmte Warnungen als Fehler.
--warn:&lt;n&gt;                     Legt die Warnstufe fest (0–4) (Kurzform: -w)
+-warn:&lt;n&gt;                     Legt die Warnstufe fest (0–4) (Kurzform: -w).
 -nowarn:&lt;Warnungsliste&gt;           Deaktiviert bestimmte Warnmeldungen.
--ruleset:&lt;Datei&gt;               Gibt eine Rulesetdatei an, die bestimmte Diagnosevorgänge
-                               deaktiviert.
+-ruleset:&lt;Datei&gt;               Gibt eine Regelsatzdatei an, die bestimmte Diagnosevorgänge
+                              deaktiviert.
 -errorlog:&lt;Datei&gt;              Gibt eine Datei zur Protokollierung aller Diagnosevorgänge von Compiler und
-                               Analyzer an.
--reportanalyzer               Berichtet zusätzliche Analyseinformationen wie etwa die
-                               Ausführungszeit.
+                              Analyzer an.
+-reportanalyzer               Meldet zusätzliche Analyseinformationen wie etwa die
+                              Ausführungszeit.
 
-                        – SPRACHE –
--checked[+|-]                 Generiert Überlaufüberprüfungen
+                       – SPRACHE –
+-checked[+|-]                 Generiert Überlaufüberprüfungen.
 -unsafe[+|-]                  Lässt "unsicheren" Code zu.
 -define:&lt;Symbolliste&gt;         Definiert bedingte Kompilationssymbole (Kurz-
-                               form: -d)
+                              form: -d).
 -langversion:?                Zeigt die zulässigen Werte für die Sprachversion an.
 -langversion:&lt;Zeichenfolge&gt;         Gibt die Sprachversion an:
-                              "default" (neueste Hauptversion) oder
-                              "latest" (neueste Version, einschließlich Nebenversionen)
-                              oder bestimmte Versionen wie "6" oder "7.1"
+                              "latest" (neueste Version, einschließlich Nebenversionen),
+                              "default" (die gleiche Version wie bei "latest"),
+                              "latestmajor" (neueste Version, außer Nebenversionen),
+                              "preview" (neueste Version, einschließlich Features in der nicht unterstützten Vorschauversion)
+                              oder bestimmte Versionen wie "6" oder "7.1".
 -nullable[+|-]                Legt die Option für Nullwerte zulassenden Kontext fest: enable|disable.
--nullable:{enable|disable|warnings}
-                              Legt die Option für Nullwerte zulassenden Kontext fest: enable|disable|warnings.
+-nullable:{enable|disable|warnings|annotations}
+                              Legt die Option für Nullwerte zulassenden Kontext fest: enable|disable|warnings|annotations.
 
                        – SICHERHEIT –
 -delaysign[+|-]               Signiert die Assembly verzögert nur mit dem öffentlichen
-                               Teil des starken Namensschlüssels.
+                              Teil des starken Namensschlüssels.
 -publicsign[+|-]              Signiert die Assembly öffentlich nur mit dem öffentlichen
-                               Teil des starken Namensschlüssels.
+                              Teil des starken Namensschlüssels.
 -keyfile:&lt;Datei&gt;               Gibt eine Datei für den starken Namensschlüssel an.
 -keycontainer:&lt;Zeichenfolge&gt;        Gibt einen Container für den starken Namensschlüssel an.
 -highentropyva[+|-]           Aktiviert ASLR mit hoher Entropie.
 
-                        – VERSCHIEDENES –
- @&lt;Datei&gt;                       Weitere Optionen finden Sie in der Antwortdatei.
--help                         Zeigt diese Syntaxmeldung an (Kurzform: -?)
+                       – VERSCHIEDENES –
+@&lt;Datei&gt;                       Weitere Optionen finden Sie in der Antwortdatei.
+-help                         Zeigt diese Syntaxmeldung an (Kurzform: -?).
 -nologo                       Unterdrückt die Copyrightmeldung des Compilers.
 -noconfig                     Schließt die CSC.RSP-Datei nicht automatisch ein.
--parallel[+|-]                Gleichzeitige Erstellung.
+-parallel[+|-]                Paralleler Build.
 -version                      Zeigt die Compilerversionsnummer und die Beendigung an.
 
-                        – ERWEITERT –
+                       – ERWEITERT –
 -baseaddress:&lt;Adresse&gt;        Die Basisadresse für die zu erstellende Bibliothek.
 -checksumalgorithm:&lt;alg&gt;      Gibt einen Algorithmus für das Berechnen der Quelldatei-
-                               prüfsumme an, die in der PDB-Datei gespeichert ist. Unterstützte Werte:
-                               SHA1 oder SHA256 (Standard).
+                              prüfsumme an, die in der PDB-Datei gespeichert ist. Unterstützte Werte:
+                              SHA1 oder SHA256 (Standard).
 -codepage:&lt;n&gt;                 Gibt die beim Öffnen von Quelldateien zu verwendende
-                               Codepage an.
--utf8output                   Ausgabecompilermeldungen in UTF-8-Codierung
+                              Codepage an.
+-utf8output                   Gibt Compilermeldungen in UTF-8-Codierung aus.
 -main:&lt;Typ&gt;                  Gibt den Typ an, der den Einstiegspunkt enthält
-                               (alle anderen möglichen Einstiegspunkte werden ignoriert) (Kurz-
-                               form: -m)
+                              (alle anderen möglichen Einstiegspunkte werden ignoriert) (Kurz-
+                              form: -m).
 -fullpaths                    Der Compiler generiert vollqualifizierte Pfade.
 -filealign:&lt;n&gt;                Gibt die Ausrichtung an, die für Ausgabedateiabschnitte
-                               verwendet werden soll.
+                              verwendet werden soll.
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               Gibt eine Zuordnung für die Quellpfadnamen an, die vom 
-                               Compiler ausgegeben werden.
+                              Gibt eine Zuordnung für die Quellpfadnamen an, die vom
+                              Compiler ausgegeben werden.
 -pdb:&lt;Datei&gt;                   Gibt den Namen der Debuginformationsdatei an (Standard:
-                               Ausgabe des Dateinamens mit PDB-Erweiterung)
--errorendlocation             Gibt für jeden Fehler die Zeile und Spalte 
-                               des Endpunkts aus.
+                              Ausgabe des Dateinamens mit PDB-Erweiterung).
+-errorendlocation             Gibt für jeden Fehler die Zeile und Spalte
+                              des Endpunkts aus.
 -preferreduilang              Gibt den Namen der bevorzugten Ausgabesprache an.
 -nosdkpath                    Deaktiviert die Suche nach dem SDK-Standardpfad für Standardbibliotheksassemblys.
 -nostdlib[+|-]                Kein Verweis auf die Standardbibliothek (mscorlib.dll).
 -subsystemversion:&lt;Zeichenfolge&gt;    Gibt die Subsystemversion dieser Assembly an.
 -lib:&lt;Dateiliste&gt;              Gibt zusätzliche Verzeichnisse an, in denen nach Verweisen
-                               gesucht werden soll.
+                              gesucht werden soll.
 -errorreport:&lt;Zeichenfolge&gt;         Gibt die Verarbeitung interner Compilerfehler an:
-                               "prompt", "send", "queue" oder "none". Der Standardwert lautet
-                               "queue".
+                              "prompt", "send", "queue" oder "none". Der Standardwert lautet
+                              "queue".
 -appconfig:&lt;Datei&gt;             Gibt eine Anwendungskonfigurationsdatei
-                               mit Assemblybindungseinstellungen an.
+                              mit Assemblybindungseinstellungen an.
 -moduleassemblyname:&lt;Zeichenfolge&gt;  Der Name der Assembly, zu der dieses Modul
-                               gehören wird.
+                              gehören wird.
 -modulename:&lt;Zeichenfolge&gt;          Gibt den Quellmodulnamen an.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="IDS_DefaultInterfaceImplementation">
         <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
+        <target state="translated">Standardschnittstellenimplementierung</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
@@ -896,7 +911,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSwitchExpression">
         <source>&lt;switch expression&gt;</source>
-        <target state="new">&lt;switch expression&gt;</target>
+        <target state="translated">&lt;switch-Ausdruck&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
@@ -1360,13 +1375,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">Ein möglicher NULL-Wert darf nicht an ein Ziel übergeben werden, das mit dem [DisallowNull]-Attribut markiert ist.</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">Ein möglicher NULL-Wert darf nicht an ein Ziel übergeben werden, das mit dem [DisallowNull]-Attribut markiert ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be passed to a target marked with the [DisallowNull] attribute</source>
-        <target state="translated">Ein möglicher NULL-Wert darf nicht an ein Ziel übergeben werden, das mit dem [DisallowNull]-Attribut markiert ist.</target>
+        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <target state="needs-review-translation">Ein möglicher NULL-Wert darf nicht an ein Ziel übergeben werden, das mit dem [DisallowNull]-Attribut markiert ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList">
@@ -1377,6 +1392,16 @@
       <trans-unit id="WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList_Title">
         <source>Interface is already listed in the interface list with different nullability of reference types.</source>
         <target state="translated">Die Schnittstelle wird bereits mit einer anderen NULL-Zulässigkeit oder abweichenden Verweistypen in der Schnittstellenliste aufgeführt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExpressionMayIntroduceNullT">
+        <source>A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A member returning a [MaybeNull] value introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExpressionMayIntroduceNullT_Title">
+        <source>A member returning a [MaybeNull] value introduces a null value for a type parameter.</source>
+        <target state="new">A member returning a [MaybeNull] value introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
@@ -1421,7 +1446,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">Die Anmerkung für Nullable-Verweistypen darf nur in Code innerhalb eines #nullable-Anmerkungskontexts verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode">
@@ -1436,7 +1461,7 @@
       </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation_Title">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
-        <target state="new">The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</target>
+        <target state="translated">Die Anmerkung für Nullable-Verweistypen darf nur in Code innerhalb eines #nullable-Anmerkungskontexts verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
@@ -1477,6 +1502,16 @@
       <trans-unit id="WRN_NullReferenceAssignment_Title">
         <source>Possible null reference assignment.</source>
         <target state="translated">Mögliche Nullverweiszuweisung.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer">
+        <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullReferenceInitializer_Title">
+        <source>Object or collection initializer implicitly dereferences possibly null member.</source>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceIterationVariable">
@@ -1601,7 +1636,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</source>
-        <target state="new">Nullability of reference types in type of parameter '{0}' of '{1}' doesn't match implicitly implemented member '{2}'.</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ des Parameters "{0}" von "{1}" entspricht nicht dem implizit implementierten Member "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation_Title">
@@ -1651,7 +1686,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation">
         <source>Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in return type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Rückgabetyp von "{0}" entspricht nicht dem implizit implementierten Member "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation_Title">
@@ -1681,7 +1716,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation">
         <source>Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</source>
-        <target state="new">Nullability of reference types in type of '{0}' doesn't match implicitly implemented member '{1}'.</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ "{0}" entspricht nicht dem implizit implementierten Member "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnImplicitImplementation_Title">
@@ -1691,12 +1726,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ entspricht nicht dem außer Kraft gesetzten Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnOverride_Title">
         <source>Nullability of reference types in type doesn't match overridden member.</source>
-        <target state="new">Nullability of reference types in type doesn't match overridden member.</target>
+        <target state="translated">Die NULL-Zulässigkeit von Verweistypen im Typ entspricht nicht dem außer Kraft gesetzten Member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeParameterConstraint">
@@ -1740,8 +1775,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">Der switch-Ausdruck verarbeitet nicht alle möglichen Eingaben (nicht umfassend).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">Der switch-Ausdruck verarbeitet nicht alle möglichen Eingaben (nicht umfassend).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
@@ -1755,8 +1790,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="translated">Der switch-Ausdruck verarbeitet nicht alle möglichen Eingaben (nicht umfassend).</target>
+        <source>The switch expression does not handle all possible values of its input type (it is not exhaustive).</source>
+        <target state="needs-review-translation">Der switch-Ausdruck verarbeitet nicht alle möglichen Eingaben (nicht umfassend).</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -1821,12 +1856,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' is uninitialized. Consider declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Nicht-Nullable-{0} "{1}" wurde nicht initialisiert.</target>
+        <target state="translated">Das {0} "{1}" lässt keine NULL-Werte zu und ist nicht initialisiert. Deklarieren Sie das {0} ggf. als "Nullable".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field is uninitialized. Consider declaring as nullable.</source>
-        <target state="needs-review-translation">Das Nicht-Nullable-Feld wurde nicht initialisiert.</target>
+        <target state="translated">Das Feld lässt keine NULL-Werte zu und ist nicht initialisiert. Deklarieren Sie das Feld ggf. als "Nullable".</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5849,12 +5884,12 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected 'disable' or 'restore'</source>
-        <target state="needs-review-translation">"disable", "restore", "enable" oder "safeonly" erwartet</target>
+        <target state="translated">"disable" oder "restore" erwartet.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected 'disable' or 'restore' after #pragma warning</source>
-        <target state="needs-review-translation">Nach "#pragma warning" wurde "disable", "restore", "enable" oder "safeonly" erwartet</target>
+        <target state="translated">"disable" oder " restore" erwartet nach #pragma-Warnung</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">

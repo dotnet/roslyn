@@ -11,12 +11,14 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
@@ -81,6 +83,96 @@ internal class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code);
+        }
+
+        [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public Task GroupUsings()
+        {
+            var code = @"using M;
+using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello World!"");
+
+        new Goo();
+    }
+}
+
+namespace M
+{
+    public class Goo { }
+}
+";
+
+            var expected = @"using M;
+
+using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello World!"");
+
+        new Goo();
+    }
+}
+
+namespace M
+{
+    public class Goo { }
+}
+";
+            return AssertCodeCleanupResult(expected, code, systemUsingsFirst: false, separateUsingGroups: true);
+        }
+
+        [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public Task SortAndGroupUsings()
+        {
+            var code = @"using M;
+using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello World!"");
+
+        new Goo();
+    }
+}
+
+namespace M
+{
+    public class Goo { }
+}
+";
+
+            var expected = @"using System;
+
+using M;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello World!"");
+
+        new Goo();
+    }
+}
+
+namespace M
+{
+    public class Goo { }
+}
+";
+            return AssertCodeCleanupResult(expected, code, systemUsingsFirst: true, separateUsingGroups: true);
         }
 
         [Fact]
@@ -156,7 +248,7 @@ internal class Program
             return AssertCodeCleanupResult(expected, code);
         }
 
-        protected static async Task AssertCodeCleanupResult(string expected, string code)
+        protected static async Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false)
         {
             var exportProvider = ExportProviderCache
                 .GetOrCreateExportProviderFactory(
@@ -164,6 +256,9 @@ internal class Program
                 .CreateExportProvider();
 
             using var workspace = TestWorkspace.CreateCSharp(code, exportProvider: exportProvider);
+            workspace.Options = workspace.Options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst);
+            workspace.Options = workspace.Options.WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups);
+
             // register this workspace to solution crawler so that analyzer service associate itself with given workspace
             var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
             incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);

@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #region Document Analysis 
 
         public async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
-            Project baseProjectOpt,
+            Document oldDocumentOpt,
             ImmutableArray<ActiveStatement> baseActiveStatements,
             Document document,
             IActiveStatementTrackingService trackingServiceOpt,
@@ -371,7 +371,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SyntaxNode oldRoot;
                 SourceText oldText;
 
-                var oldDocumentOpt = baseProjectOpt?.GetDocument(document.Id);
                 if (oldDocumentOpt != null)
                 {
                     oldTreeOpt = await oldDocumentOpt.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -547,7 +546,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var location = firstDeclaratingErrorOpt.Location;
                         DocumentAnalysisResults.Log.Write("Declaration errors, first: {0}", location.IsInSource ? location.SourceTree.FilePath : location.MetadataModule.Name);
 
-                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray.Create<RudeEditDiagnostic>(), hasSemanticErrors: true);
+                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), ImmutableArray<RudeEditDiagnostic>.Empty, hasSemanticErrors: true);
                     }
 
                     if (diagnostics.Count > 0)
@@ -1565,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (exceptionHandlingAncestors.Count == 0)
             {
-                return ImmutableArray.Create<LinePositionSpan>();
+                return ImmutableArray<LinePositionSpan>.Empty;
             }
 
             var result = ArrayBuilder<LinePositionSpan>.GetInstance();
