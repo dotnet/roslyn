@@ -955,54 +955,59 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
         {
-            return _lazySuppressedAnalyzersForTreeMap.GetOrAdd(tree, computeSuppressedAnalyzersForTree).Contains(analyzer);
-
-            ImmutableHashSet<DiagnosticAnalyzer> computeSuppressedAnalyzersForTree(SyntaxTree tree)
+            if (!_lazySuppressedAnalyzersForTreeMap.TryGetValue(tree, out var suppressedAnalyzers))
             {
-                if (tree.DiagnosticOptions.IsEmpty)
-                {
-                    return ImmutableHashSet<DiagnosticAnalyzer>.Empty;
-                }
-
-                ImmutableHashSet<DiagnosticAnalyzer>.Builder suppressedAnalyzersBuilderOpt = null;
-                foreach (var analyzer in _unsuppressedAnalyzers)
-                {
-                    if (_nonConfigurableAnalyzers.Contains(analyzer))
-                    {
-                        // Analyzers reporting non-configurable diagnostics cannot be suppressed as user configuration is ignored for these analyzers.
-                        continue;
-                    }
-
-                    if ((_symbolStartAnalyzers.Contains(analyzer) || _compilationEndActionsMap.ContainsKey(analyzer)) &&
-                        !ShouldSkipAnalysisOnGeneratedCode(analyzer))
-                    {
-                        // SymbolStart/End analyzers and CompilationStart/End analyzers that analyze generated code
-                        // cannot have any of their callbacks suppressed as they need to analyze the entire compilation for correctness.
-                        continue;
-                    }
-
-                    var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor);
-                    var hasUnsuppressedDiagnostic = false;
-                    foreach (var descriptor in descriptors)
-                    {
-                        if (!tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredSeverity) ||
-                            configuredSeverity != ReportDiagnostic.Suppress)
-                        {
-                            // Analyzer reports a diagnostic that is not suppressed by the diagnostic options for this tree.
-                            hasUnsuppressedDiagnostic = true;
-                            break;
-                        }
-                    }
-
-                    if (!hasUnsuppressedDiagnostic)
-                    {
-                        suppressedAnalyzersBuilderOpt ??= ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
-                        suppressedAnalyzersBuilderOpt.Add(analyzer);
-                    }
-                }
-
-                return suppressedAnalyzersBuilderOpt != null ? suppressedAnalyzersBuilderOpt.ToImmutable() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+                suppressedAnalyzers = _lazySuppressedAnalyzersForTreeMap.GetOrAdd(tree, ComputeSuppressedAnalyzersForTree(tree));
             }
+
+            return suppressedAnalyzers.Contains(analyzer);
+        }
+
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeSuppressedAnalyzersForTree(SyntaxTree tree)
+        {
+            if (tree.DiagnosticOptions.IsEmpty)
+            {
+                return ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+            }
+
+            ImmutableHashSet<DiagnosticAnalyzer>.Builder suppressedAnalyzersBuilderOpt = null;
+            foreach (var analyzer in _unsuppressedAnalyzers)
+            {
+                if (_nonConfigurableAnalyzers.Contains(analyzer))
+                {
+                    // Analyzers reporting non-configurable diagnostics cannot be suppressed as user configuration is ignored for these analyzers.
+                    continue;
+                }
+
+                if ((_symbolStartAnalyzers.Contains(analyzer) || _compilationEndActionsMap.ContainsKey(analyzer)) &&
+                    !ShouldSkipAnalysisOnGeneratedCode(analyzer))
+                {
+                    // SymbolStart/End analyzers and CompilationStart/End analyzers that analyze generated code
+                    // cannot have any of their callbacks suppressed as they need to analyze the entire compilation for correctness.
+                    continue;
+                }
+
+                var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor);
+                var hasUnsuppressedDiagnostic = false;
+                foreach (var descriptor in descriptors)
+                {
+                    if (!tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredSeverity) ||
+                        configuredSeverity != ReportDiagnostic.Suppress)
+                    {
+                        // Analyzer reports a diagnostic that is not suppressed by the diagnostic options for this tree.
+                        hasUnsuppressedDiagnostic = true;
+                        break;
+                    }
+                }
+
+                if (!hasUnsuppressedDiagnostic)
+                {
+                    suppressedAnalyzersBuilderOpt ??= ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
+                    suppressedAnalyzersBuilderOpt.Add(analyzer);
+                }
+            }
+
+            return suppressedAnalyzersBuilderOpt != null ? suppressedAnalyzersBuilderOpt.ToImmutable() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
         }
 
         /// <summary>
