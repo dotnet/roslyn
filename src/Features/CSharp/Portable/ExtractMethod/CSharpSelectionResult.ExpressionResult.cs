@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // 2. if it doesn't, even if the cast itself wasn't included in the selection, we will treat it 
                     //    as it was in the selection
                     var regularType = GetRegularExpressionType(model, node);
-                    if (regularType != null && !regularType.IsObjectType())
+                    if (regularType != null)
                     {
                         return regularType;
                     }
 
                     if (node.Parent is CastExpressionSyntax castExpression)
                     {
-                        return model.GetTypeInfo(castExpression.Type).GetTypeWithAnnotatedNullability();
+                        return model.GetTypeInfo(castExpression).GetTypeWithAnnotatedNullability();
                     }
                 }
 
