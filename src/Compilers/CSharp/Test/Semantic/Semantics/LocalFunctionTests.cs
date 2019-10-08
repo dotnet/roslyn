@@ -363,7 +363,7 @@ class C
         }
 
         [Fact]
-        public void LocalFunctionAttribute()
+        public void LocalFunctionAttribute_TypeParameter()
         {
             const string text = @"
 using System;
@@ -454,7 +454,61 @@ class C
         }
 
         [Fact]
-        public void LocalFunctionAttribute_OnReturn()
+        public void LocalFunctionAttribute_OnFunction_Argument()
+        {
+            const string text = @"
+using System;
+class A : Attribute
+{
+    internal A(int i) { }
+}
+
+class C
+{
+    void M()
+    {
+        [A(42)]
+        void local() { }
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,14): warning CS8321: The local function 'local' is declared but never used
+                //         void local() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(13, 14));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var localFunction = tree.GetRoot().DescendantNodes()
+                .OfType<LocalFunctionStatementSyntax>()
+                .Single();
+
+            var attributeList = localFunction.AttributeLists.Single();
+            Assert.Null(attributeList.Target);
+
+            var attribute = attributeList.Attributes.Single();
+            Assert.Equal("A", ((SimpleNameSyntax)attribute.Name).Identifier.ValueText);
+
+            var symbol = (IMethodSymbol)model.GetDeclaredSymbol(localFunction);
+            Assert.NotNull(symbol);
+
+            var attributes = symbol.GetAttributes();
+            Assert.Single(attributes);
+
+            var attributeData = attributes[0];
+            var aAttribute = comp.GetTypeByMetadataName("A");
+            Assert.Equal(aAttribute, attributeData.AttributeClass);
+            Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor);
+            Assert.Equal(42, attributeData.ConstructorArguments.Single().Value);
+
+            var returnAttributes = symbol.GetReturnTypeAttributes();
+            Assert.Empty(returnAttributes);
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute_Return()
         {
             const string text = @"
 using System;
@@ -501,6 +555,39 @@ class C
 
             var attributes = symbol.GetAttributes();
             Assert.Empty(attributes);
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute_Parameter()
+        {
+            var source = @"
+using System;
+class A : Attribute { }
+
+class C
+{
+    void M()
+    {
+        int local([A] int i) => i;
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                    // (9,13): warning CS8321: The local function 'local' is declared but never used
+                    //         int local([A] int i) => i;
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(9, 13));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var parameter = localFunction.ParameterList.Parameters.Single();
+            var paramSymbol = model.GetDeclaredSymbol(parameter);
+
+            var attrs = paramSymbol.GetAttributes();
+            Assert.Single(attrs);
+            Assert.Equal(comp.GetTypeByMetadataName("A"), attrs[0].AttributeClass);
         }
 
         [Fact]
@@ -553,6 +640,72 @@ class C
                 // (17,21): error CS8652: The feature 'local function attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         void local4<[A] T>() { }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("local function attributes").WithLocation(17, 21));
+        }
+
+        [Fact]
+        public void LocalFunctionAttribute_BadAttributeLocation()
+        {
+            const string text = @"
+using System;
+
+[AttributeUsage(AttributeTargets.Property)]
+class PropAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Method)]
+class MethodAttribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.ReturnValue)]
+class ReturnAttribute : Attribute { }
+
+public class C {
+    public void M() {
+        [Prop] // 1
+        [Return] // 2
+        [Method]
+        [return: Prop] // 3
+        [return: Return]
+        [return: Method] // 4
+        void local() { } // 5
+    }
+}
+";
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (15,10): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                //         [Prop] // 1
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Prop").WithArguments("Prop", "property, indexer").WithLocation(15, 10),
+                // (16,10): error CS0592: Attribute 'Return' is not valid on this declaration type. It is only valid on 'return' declarations.
+                //         [Return] // 2
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Return").WithArguments("Return", "return").WithLocation(16, 10),
+                // (18,18): error CS0592: Attribute 'Prop' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                //         [return: Prop] // 3
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Prop").WithArguments("Prop", "property, indexer").WithLocation(18, 18),
+                // (20,18): error CS0592: Attribute 'Method' is not valid on this declaration type. It is only valid on 'method' declarations.
+                //         [return: Method] // 4
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Method").WithArguments("Method", "method").WithLocation(20, 18),
+                // (21,14): warning CS8321: The local function 'local' is declared but never used
+                //         void local() { } // 5
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(21, 14));
+
+            var tree = comp.SyntaxTrees.Single();
+            var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var symbol = (IMethodSymbol)model.GetDeclaredSymbol(localFunction);
+            Assert.NotNull(symbol);
+
+            var attributes = symbol.GetAttributes();
+            Assert.Equal(3, attributes.Length);
+            Assert.Equal(comp.GetTypeByMetadataName("PropAttribute"), attributes[0].AttributeClass);
+            Assert.Equal(comp.GetTypeByMetadataName("ReturnAttribute"), attributes[1].AttributeClass);
+            Assert.Equal(comp.GetTypeByMetadataName("MethodAttribute"), attributes[2].AttributeClass);
+
+            var returnAttributes = symbol.GetReturnTypeAttributes();
+            Assert.Equal(3, returnAttributes.Length);
+            Assert.Equal(comp.GetTypeByMetadataName("PropAttribute"), returnAttributes[0].AttributeClass);
+            Assert.Equal(comp.GetTypeByMetadataName("ReturnAttribute"), returnAttributes[1].AttributeClass);
+            Assert.Equal(comp.GetTypeByMetadataName("MethodAttribute"), returnAttributes[2].AttributeClass);
         }
 
         [Fact]
@@ -1023,7 +1176,7 @@ class C
         }
 
         [Fact]
-        public void LocalFunctionAttributeOnTypeParameter()
+        public void LocalFunctionAttribute_TypeParameter_Errors()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(@"
 using System;
@@ -1080,7 +1233,7 @@ class C
         }
 
         [Fact]
-        public void LocalFunctionAttributeOnParameters()
+        public void LocalFunctionAttribute_Parameter_Errors()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(@"
 using System;
