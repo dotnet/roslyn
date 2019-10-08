@@ -397,6 +397,16 @@
         <target state="translated">Um padrão de desconstrução de elemento único requer alguma outra sintaxe para desambiguação. É recomendado adicionar um designador de descarte '_' após o parêntese de fechamento ')'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureThis">
+        <source>A static anonymous function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="new">A static anonymous function cannot contain a reference to 'this' or 'base'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureVariable">
+        <source>A static anonymous function cannot contain a reference to '{0}'.</source>
+        <target state="new">A static anonymous function cannot contain a reference to '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
         <source>A static local function cannot contain a reference to 'this' or 'base'.</source>
         <target state="translated">Uma função local estática não pode conter uma referência a 'this' ou a 'base'.</target>

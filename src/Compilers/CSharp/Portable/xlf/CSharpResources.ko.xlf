@@ -397,6 +397,16 @@
         <target state="translated">단일 요소 분해 패턴은 명확성을 위해 다른 구문이 필요합니다. 닫는 괄호 ')' 뒤에 무시 항목 지정자 '_'을 추가하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureThis">
+        <source>A static anonymous function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="new">A static anonymous function cannot contain a reference to 'this' or 'base'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureVariable">
+        <source>A static anonymous function cannot contain a reference to '{0}'.</source>
+        <target state="new">A static anonymous function cannot contain a reference to '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
         <source>A static local function cannot contain a reference to 'this' or 'base'.</source>
         <target state="translated">정적 로컬 함수는 'this' 또는 'base'에 대한 참조를 포함할 수 없습니다.</target>

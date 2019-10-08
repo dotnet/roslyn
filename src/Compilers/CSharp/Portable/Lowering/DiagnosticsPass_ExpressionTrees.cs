@@ -17,9 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DiagnosticBag _diagnostics;
         private readonly CSharpCompilation _compilation;
         private bool _inExpressionLambda;
-        private LocalFunctionSymbol _staticLocalFunction;
         private bool _reportedUnsafe;
         private readonly MethodSymbol _containingSymbol;
+
+        // Containg static local function or static local anonymous function (anonymous method,
+        // lambda, etc.)
+        private SourceMethodSymbol _staticLocalOrAnonymousFunction;
 
         public static void IssueDiagnostics(CSharpCompilation compilation, BoundNode node, DiagnosticBag diagnostics, MethodSymbol containingSymbol)
         {
@@ -89,13 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            var outerLocalFunction = _staticLocalFunction;
+            var outerLocalFunction = _staticLocalOrAnonymousFunction;
             if (node.Symbol.IsStatic)
             {
-                _staticLocalFunction = node.Symbol;
+                _staticLocalOrAnonymousFunction = node.Symbol;
             }
             var result = base.VisitLocalFunctionStatement(node);
-            _staticLocalFunction = outerLocalFunction;
+            _staticLocalOrAnonymousFunction = outerLocalFunction;
             return result;
         }
 
@@ -129,9 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckReferenceToThisOrBase(BoundExpression node)
         {
-            if ((object)_staticLocalFunction != null)
+            if (_staticLocalOrAnonymousFunction is object)
             {
-                Error(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, node);
+                var diagnostic = _staticLocalOrAnonymousFunction.MethodKind == MethodKind.LocalFunction
+                    ? ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis
+                    : ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis;
+
+                Error(diagnostic, node);
             }
         }
 
@@ -139,9 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol is LocalFunctionSymbol);
 
-            if (_staticLocalFunction is object && Symbol.IsCaptured(symbol, _staticLocalFunction))
+            if (_staticLocalOrAnonymousFunction is object && Symbol.IsCaptured(symbol, _staticLocalOrAnonymousFunction))
             {
-                Error(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, node, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
+                var diagnostic = _staticLocalOrAnonymousFunction.MethodKind == MethodKind.LocalFunction
+                    ? ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable
+                    : ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable;
+
+                Error(diagnostic, node, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
             }
         }
 
@@ -480,7 +491,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return base.VisitLambda(node);
+            var outerLocalFunction = _staticLocalOrAnonymousFunction;
+            if (node.Symbol.IsStatic)
+            {
+                _staticLocalOrAnonymousFunction = node.Symbol;
+            }
+            var result = base.VisitLambda(node);
+            _staticLocalOrAnonymousFunction = outerLocalFunction;
+            return result;
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)

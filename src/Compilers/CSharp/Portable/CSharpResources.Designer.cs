@@ -9727,6 +9727,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A static anonymous function cannot contain a reference to &apos;this&apos; or &apos;base&apos;..
+        /// </summary>
+        internal static string ERR_StaticAnonymousFunctionCannotCaptureThis {
+            get {
+                return ResourceManager.GetString("ERR_StaticAnonymousFunctionCannotCaptureThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A static anonymous function cannot contain a reference to &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_StaticAnonymousFunctionCannotCaptureVariable {
+            get {
+                return ResourceManager.GetString("ERR_StaticAnonymousFunctionCannotCaptureVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{1}&apos;: cannot derive from static class &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_StaticBaseClass {

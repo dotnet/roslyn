@@ -5954,4 +5954,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureStaticAnonymousFunction" xml:space="preserve">
     <value>static anonymous function</value>
   </data>
+  <data name="ERR_StaticAnonymousFunctionCannotCaptureThis" xml:space="preserve">
+    <value>A static anonymous function cannot contain a reference to 'this' or 'base'.</value>
+  </data>
+  <data name="ERR_StaticAnonymousFunctionCannotCaptureVariable" xml:space="preserve">
+    <value>A static anonymous function cannot contain a reference to '{0}'.</value>
+  </data>
 </root>

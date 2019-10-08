@@ -397,6 +397,16 @@
         <target state="translated">单元素解构模式需要一些其他语法来消除歧义。建议在关闭 paren ")" 之后添加放弃指示符 "_"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureThis">
+        <source>A static anonymous function cannot contain a reference to 'this' or 'base'.</source>
+        <target state="new">A static anonymous function cannot contain a reference to 'this' or 'base'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticAnonymousFunctionCannotCaptureVariable">
+        <source>A static anonymous function cannot contain a reference to '{0}'.</source>
+        <target state="new">A static anonymous function cannot contain a reference to '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureThis">
         <source>A static local function cannot contain a reference to 'this' or 'base'.</source>
         <target state="translated">静态本地函数不能包含对 "this" 或 "base" 的引用。</target>
