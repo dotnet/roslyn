@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private readonly struct ExtensionMethodInfo
         {
-            // We devide extension methods into two categories, simple and complex, for filtering purpose.
+            // We divide extension methods into two categories, simple and complex, for filtering purpose.
             // Whether a method is simple is determined based on if we can determine it's target type easily
             // with a pure text matching. For complex methods, we will need to rely on symbol to decide if it's 
             // feasible.
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             /// <summary>
             /// Name of the simple method's target type name to the index of its DeclaredSymbolInfo in `_declarationInfo`.
-            /// All predefind types are converted to its metadata form. e.g. int => Int32. For generic types, type parameters are ignored.
+            /// All predefined types are converted to its metadata form. e.g. int => Int32. For generic types, type parameters are ignored.
             /// </summary>
             public readonly ImmutableDictionary<string, ImmutableArray<int>> SimpleExtensionMethodInfo { get; }
 
@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             public readonly ImmutableArray<int> ComplexExtensionMethodInfo { get; }
 
-            public ExtensionMethodInfo(ImmutableDictionary<string, ImmutableArray<int>> simpleExtensionMethodInfo, ImmutableArray<int> complexExtensionMethodInfo)
+            public ExtensionMethodInfo(
+                ImmutableDictionary<string, ImmutableArray<int>> simpleExtensionMethodInfo,
+                ImmutableArray<int> complexExtensionMethodInfo)
             {
                 SimpleExtensionMethodInfo = simpleExtensionMethodInfo;
                 ComplexExtensionMethodInfo = complexExtensionMethodInfo;

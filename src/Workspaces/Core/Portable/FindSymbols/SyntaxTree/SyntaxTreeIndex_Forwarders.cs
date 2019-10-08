@@ -9,11 +9,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos => _declarationInfo.DeclaredSymbolInfos;
 
-        public ImmutableDictionary<string, ImmutableArray<int>> SimpleExtensionMethodInfo 
+        public ImmutableDictionary<string, ImmutableArray<int>> SimpleExtensionMethodInfo
             => _extensionMethodInfo.SimpleExtensionMethodInfo;
+
         public ImmutableArray<int> ComplexExtensionMethodInfo
             => _extensionMethodInfo.ComplexExtensionMethodInfo;
+
         public bool ContainsExtensionMethod => SimpleExtensionMethodInfo.Count > 0 || ComplexExtensionMethodInfo.Length > 0;
+
         public bool TryGetDeclaredSymbolInfo(int index, out DeclaredSymbolInfo declaredSymbolInfo)
         {
             if (index >= DeclaredSymbolInfos.Length)

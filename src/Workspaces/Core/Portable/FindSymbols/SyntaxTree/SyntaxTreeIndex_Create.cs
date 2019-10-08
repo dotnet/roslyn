@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         bool TryGetTargetTypeName(SyntaxNode node, out string instanceTypeName);
 
-        string GetRootNamspace(CompilationOptions compilationOptions);
+        string GetRootNamespace(CompilationOptions compilationOptions);
     }
 
     internal sealed partial class SyntaxTreeIndex
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
             var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
 
-            var rootNamespace = infoFactory.GetRootNamspace(project.CompilationOptions);
+            var rootNamespace = infoFactory.GetRootNamespace(project.CompilationOptions);
 
             try
             {
@@ -133,7 +133,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     var declaredSymbolInfoIndex = declaredSymbolInfos.Count;
                                     declaredSymbolInfos.Add(declaredSymbolInfo);
 
-                                    AddExtensionMethodInfo(infoFactory, node, containsUsingAliasDirective, declaredSymbolInfoIndex, declaredSymbolInfo, simpleExtensionMethodInfoBuilder, complexExtensionMethodInfoBuilder);
+                                    AddExtensionMethodInfo(
+                                        infoFactory,
+                                        node,
+                                        containsUsingAliasDirective,
+                                        declaredSymbolInfoIndex,
+                                        declaredSymbolInfo,
+                                        simpleExtensionMethodInfoBuilder,
+                                        complexExtensionMethodInfoBuilder);
                                 }
                                 else
                                 {
@@ -251,7 +258,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 int declaredSymbolInfoIndex,
                 DeclaredSymbolInfo declaredSymbolInfo,
                 PooledDictionary<string, ArrayBuilder<int>> simpleInfoBuilder,
-                ArrayBuilder<int> complextInfoBuilder)
+                ArrayBuilder<int> complexInfoBuilder)
             {
                 if (declaredSymbolInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
                 {
@@ -262,27 +269,27 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 // to the target type, simply treated it as complex type.
                 if (containsUsingAliasDirective || declaredSymbolInfo.TypeParameterCount > 0)
                 {
-                    complextInfoBuilder.Add(declaredSymbolInfoIndex);
+                    complexInfoBuilder.Add(declaredSymbolInfoIndex);
                     return;
                 }
 
-                if (!infoFactory.TryGetTargetTypeName(node, out var instanceTypeName))
+                if (!infoFactory.TryGetTargetTypeName(node, out var targetTypeName))
                 {
                     return;
                 }
 
                 // complex type
-                if (instanceTypeName == null)
+                if (targetTypeName == null)
                 {
-                    complextInfoBuilder.Add(declaredSymbolInfoIndex);
+                    complexInfoBuilder.Add(declaredSymbolInfoIndex);
                     return;
                 }
 
                 // simple type
-                if (!simpleInfoBuilder.TryGetValue(instanceTypeName, out var arrayBuilder))
+                if (!simpleInfoBuilder.TryGetValue(targetTypeName, out var arrayBuilder))
                 {
                     arrayBuilder = ArrayBuilder<int>.GetInstance();
-                    simpleInfoBuilder[instanceTypeName] = arrayBuilder;
+                    simpleInfoBuilder[targetTypeName] = arrayBuilder;
                 }
 
                 arrayBuilder.Add(declaredSymbolInfoIndex);

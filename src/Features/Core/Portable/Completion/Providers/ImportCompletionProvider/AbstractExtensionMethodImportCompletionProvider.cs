@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractExtensionMethodImportCompletionProvider : AbstractImportCompletionProvider
     {
-        protected abstract bool TryGetReceiverTypeSymbol(SyntaxContext syntaxContext, out ITypeSymbol receiverTypeSymbol);
+        protected abstract bool TryGetReceiverTypeSymbol(SyntaxContext syntaxContext, [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol);
 
         protected override bool ShouldProvideCompletion(Document document, SyntaxContext syntaxContext)
             => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(document);
@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var tick = Environment.TickCount;
                 using var allTypeNamesDisposer = PooledHashSet<string>.GetInstance(out var allTypeNames);
-                allTypeNames.Add(GetSimpleTypeName(receiverTypeSymbol));
-                allTypeNames.AddRange(receiverTypeSymbol.GetBaseTypes().Concat(receiverTypeSymbol.GetAllInterfacesIncludingThis()).Select(t => t.MetadataName));
+                allTypeNames.Add(receiverTypeSymbol.MetadataName);
+                allTypeNames.AddRange(receiverTypeSymbol.GetBaseTypes().Concat(receiverTypeSymbol.GetAllInterfacesIncludingThis()).Select(s => s.MetadataName));
 
                 // interface doesn't inherit from object, but is implicitly convertable to object type.
                 if (receiverTypeSymbol.IsInterfaceType())
@@ -66,14 +66,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 telemetryCounter.TotalExtensionMethodsProvided = items.Count;
             }
 
-            static string GetSimpleTypeName(ITypeSymbol typeSymbol)
+            static string GetMetadataNameWithoutBackticks(ITypeSymbol typeSymbol)
             {
-                if (typeSymbol is IArrayTypeSymbol arraySymbol)
-                {
-                    return GetSimpleTypeName(arraySymbol.ElementType);
-                }
-
-                return typeSymbol.MetadataName;
+                var name = typeSymbol.MetadataName;
+                var backtickIndex = name.IndexOf('`');
+                return backtickIndex == -1
+                    ? name
+                    : name.Substring(0, backtickIndex);
             }
         }
 
@@ -231,7 +230,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
-                // Add simple extension methods with matching target type name
                 foreach (var targetTypeName in targetTypeNames)
                 {
                     foreach (var methodInfo in info.GetMatchingExtensionMethodInfo(targetTypeName))

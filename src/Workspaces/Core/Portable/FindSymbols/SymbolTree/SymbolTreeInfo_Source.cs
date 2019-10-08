@@ -119,8 +119,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return CreateSymbolTreeInfo(
                 project.Solution, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
-                null,
-                ImmutableArray<ExtensionMethodInfo>.Empty);
+                simpleMethods: null,
+                complexMethods: ImmutableArray<ExtensionMethodInfo>.Empty);
         }
 
         // generate nodes for the global namespace an all descendants

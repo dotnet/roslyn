@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly MultiDictionary<string, ExtensionMethodInfo> _simpleTypeNameToExtensionMethodMap;
 
         /// <summary>
-        /// A list of <see cref="ExtensionMethodInfo" /> for compelx methods.
+        /// A list of <see cref="ExtensionMethodInfo" /> for complex methods.
         /// </summary>
         private readonly ImmutableArray<ExtensionMethodInfo> _extensionMethodOfComplexType;
 

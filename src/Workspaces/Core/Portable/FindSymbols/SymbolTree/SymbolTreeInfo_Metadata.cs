@@ -697,8 +697,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return unsortedNodes.ToImmutableAndFree();
             }
 
-            private void AddUnsortedNodes(
-                ArrayBuilder<BuilderNode> unsortedNodes, MultiDictionary<string, ExtensionMethodInfo> simpleBuilder, ArrayBuilder<ExtensionMethodInfo> complexBuilder, MetadataNode parentNode, int parentIndex, string fullyQualifiedContainerName)
+            private void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
+                MultiDictionary<string, ExtensionMethodInfo> simpleBuilder,
+                ArrayBuilder<ExtensionMethodInfo> complexBuilder,
+                MetadataNode parentNode,
+                int parentIndex,
+                string fullyQualifiedContainerName)
             {
                 foreach (var child in _parentToChildren[parentNode])
                 {
