@@ -87,61 +87,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             End If
         End Sub
 
-        Private Function GetTypeName(typeSyntax As TypeSyntax, Optional onlyHandleNameSyntax As Boolean = True) As String
+        Private Function GetTypeName(typeSyntax As TypeSyntax) As String
             If TypeOf typeSyntax Is SimpleNameSyntax Then
                 Return GetSimpleName(DirectCast(typeSyntax, SimpleNameSyntax))
             ElseIf TypeOf typeSyntax Is QualifiedNameSyntax Then
                 Return GetSimpleName(DirectCast(typeSyntax, QualifiedNameSyntax).Right)
             End If
 
-            If Not onlyHandleNameSyntax Then
-                If TypeOf typeSyntax Is NullableTypeSyntax Then
-                    Return GetTypeName(DirectCast(typeSyntax, NullableTypeSyntax).ElementType)
-                ElseIf TypeOf typeSyntax Is PredefinedTypeSyntax Then
-                    Return GetSpecialTypeName(DirectCast(typeSyntax, PredefinedTypeSyntax))
-                End If
-            End If
-
             Return Nothing
-        End Function
-
-        Private Function GetSpecialTypeName(predefinedTypeNode As PredefinedTypeSyntax) As String
-            Select Case predefinedTypeNode.Keyword.Kind()
-                Case SyntaxKind.BooleanKeyword
-                    Return "Boolean"
-                Case SyntaxKind.ByteKeyword
-                    Return "Byte"
-                Case SyntaxKind.CharKeyword
-                    Return "Char"
-                Case SyntaxKind.DateKeyword
-                    Return "DateTime"
-                Case SyntaxKind.DecimalKeyword
-                    Return "Decimal"
-                Case SyntaxKind.DoubleKeyword
-                    Return "Double"
-                Case SyntaxKind.IntegerKeyword
-                    Return "Int32"
-                Case SyntaxKind.LongKeyword
-                    Return "Int64"
-                Case SyntaxKind.ObjectKeyword
-                    Return "Object"
-                Case SyntaxKind.SByteKeyword
-                    Return "SByte"
-                Case SyntaxKind.ShortKeyword
-                    Return "Int16"
-                Case SyntaxKind.SingleKeyword
-                    Return "Single"
-                Case SyntaxKind.StringKeyword
-                    Return "String"
-                Case SyntaxKind.UIntegerKeyword
-                    Return "UInt32"
-                Case SyntaxKind.ULongKeyword
-                    Return "UInt64"
-                Case SyntaxKind.UShortKeyword
-                    Return "UInt16"
-                Case Else
-                    Return Nothing
-            End Select
         End Function
 
         Private Function GetSimpleName(simpleName As SimpleNameSyntax) As String
@@ -497,19 +450,84 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Next
         End Sub
 
-        Public Overrides Function TryGetTargetTypeName(node As SyntaxNode, ByRef instanceTypeName As String) As Boolean
+        Public Overrides Function TryGetTargetTypeName(node As SyntaxNode, ByRef targetTypeName As String) As Boolean
             Dim funcDecl = TryCast(node, MethodBlockSyntax)
             'TODO: don't call `IsExtensionMethod` again
             If funcDecl IsNot Nothing And IsExtensionMethod(funcDecl) Then
-                instanceTypeName = GetTypeName(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, onlyHandleNameSyntax:=False)
+                targetTypeName = GetTargetTypeName(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type)
                 Return True
             End If
 
-            instanceTypeName = Nothing
+            targetTypeName = Nothing
             Return False
         End Function
 
-        Public Overrides Function GetRootNamspace(compilationOptions As CompilationOptions) As String
+        Private Function GetTargetTypeName(typeSyntax As TypeSyntax) As String
+
+            If TypeOf typeSyntax Is IdentifierNameSyntax Then
+                Dim identifierName = DirectCast(typeSyntax, IdentifierNameSyntax)
+                Return identifierName.Identifier.Text
+
+            ElseIf TypeOf typeSyntax Is GenericNameSyntax Then
+                Dim genericName = DirectCast(typeSyntax, GenericNameSyntax)
+                Dim name = genericName.Identifier.Text
+                Dim arity = genericName.Arity
+                Return If(arity = 0, name, name + GetMetadataAritySuffix(arity))
+
+            ElseIf TypeOf typeSyntax Is QualifiedNameSyntax Then
+                Dim qualifiedName = DirectCast(typeSyntax, QualifiedNameSyntax)
+                Return GetTargetTypeName(qualifiedName.Right)
+
+            ElseIf TypeOf typeSyntax Is NullableTypeSyntax Then
+                Return GetTypeName(DirectCast(typeSyntax, NullableTypeSyntax).ElementType)
+
+            ElseIf TypeOf typeSyntax Is PredefinedTypeSyntax Then
+                Return GetSpecialTypeName(DirectCast(typeSyntax, PredefinedTypeSyntax))
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Function GetSpecialTypeName(predefinedTypeNode As PredefinedTypeSyntax) As String
+            Select Case predefinedTypeNode.Keyword.Kind()
+                Case SyntaxKind.BooleanKeyword
+                    Return "Boolean"
+                Case SyntaxKind.ByteKeyword
+                    Return "Byte"
+                Case SyntaxKind.CharKeyword
+                    Return "Char"
+                Case SyntaxKind.DateKeyword
+                    Return "DateTime"
+                Case SyntaxKind.DecimalKeyword
+                    Return "Decimal"
+                Case SyntaxKind.DoubleKeyword
+                    Return "Double"
+                Case SyntaxKind.IntegerKeyword
+                    Return "Int32"
+                Case SyntaxKind.LongKeyword
+                    Return "Int64"
+                Case SyntaxKind.ObjectKeyword
+                    Return "Object"
+                Case SyntaxKind.SByteKeyword
+                    Return "SByte"
+                Case SyntaxKind.ShortKeyword
+                    Return "Int16"
+                Case SyntaxKind.SingleKeyword
+                    Return "Single"
+                Case SyntaxKind.StringKeyword
+                    Return "String"
+                Case SyntaxKind.UIntegerKeyword
+                    Return "UInt32"
+                Case SyntaxKind.ULongKeyword
+                    Return "UInt64"
+                Case SyntaxKind.UShortKeyword
+                    Return "UInt16"
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
+
+        Public Overrides Function GetRootNamespace(compilationOptions As CompilationOptions) As String
             Return DirectCast(compilationOptions, VisualBasicCompilationOptions).RootNamespace
         End Function
     End Class

@@ -603,6 +603,47 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
+        [MemberData(nameof(ReferenceTypeData))]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task UserDefinedGenericType(ReferenceType refType)
+        {
+            var file1 = $@"
+using System;
+
+public class MyGeneric<T>
+{{
+}}
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod(this MyGeneric<int> x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(MyGeneric<int> x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+            var markup = GetMarkup(file2, file1, refType);
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
         {
             return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);

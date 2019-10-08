@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             => method.ParameterList.Parameters.Count > 0 &&
                method.ParameterList.Parameters[0].Modifiers.Any(SyntaxKind.ThisKeyword);
 
-        public override string GetRootNamspace(CompilationOptions compilationOptions)
+        public override string GetRootNamespace(CompilationOptions compilationOptions)
             => string.Empty;
 
         public override bool TryGetTargetTypeName(SyntaxNode node, out string targetTypeName)
@@ -511,19 +511,21 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             {
                 switch (typeNode)
                 {
-                    case SimpleNameSyntax simpleNameNode:
-                        return simpleNameNode.Identifier.Text;
+                    case IdentifierNameSyntax identifierNameNode:
+                        return identifierNameNode.Identifier.Text;
+
+                    case GenericNameSyntax genericNameNode:
+                        var name = genericNameNode.Identifier.Text;
+                        var arity = genericNameNode.Arity;
+                        return arity == 0
+                            ? name
+                            : name + GetMetadataAritySuffix(arity);
 
                     case PredefinedTypeSyntax predefinedTypeNode:
                         return GetSpecialTypeName(predefinedTypeNode);
 
                     case AliasQualifiedNameSyntax aliasQualifiedNameNode:
                         return GetTypeName(aliasQualifiedNameNode.Name);
-
-                    // TODO: Revisit this if we see a lot of extention methods for array types.
-                    //       For now treat it as complex type.
-                    //case ArrayTypeSyntax arrayNode:
-                    //    return GetTypeName(arrayNode.ElementType);
 
                     case QualifiedNameSyntax qualifiedNameNode:
                         return GetTypeName(qualifiedNameNode.Right);

@@ -3,9 +3,9 @@
 #nullable enable
 
 using System.Diagnostics;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal static class ImportCompletionItem
     {
         private const string SortTextFormat = "~{0} {1}";
-        private const string GenericTypeNameManglingString = "`";
-        private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
         private const string AttributeFullName = nameof(AttributeFullName);
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (arity > 0)
             {
                 propertyBuilder = PooledDictionary<string, string>.GetInstance();
-                propertyBuilder.Add(TypeAritySuffixName, GetAritySuffix(arity));
+                propertyBuilder.Add(TypeAritySuffixName, AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(arity));
             }
 
             // Add tildes (ASCII: 126) to name and namespace as sort text:
@@ -117,14 +115,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return CompletionDescription.Empty;
-        }
-
-        private static string GetAritySuffix(int arity)
-        {
-            Debug.Assert(arity > 0);
-            return (arity <= s_aritySuffixesOneToNine.Length)
-                ? s_aritySuffixesOneToNine[arity - 1]
-                : string.Concat(GenericTypeNameManglingString, arity.ToString(CultureInfo.InvariantCulture));
         }
 
         private static string GetFullyQualifiedName(string namespaceName, string typeName)

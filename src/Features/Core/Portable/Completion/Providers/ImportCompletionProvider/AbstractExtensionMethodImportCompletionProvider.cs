@@ -65,15 +65,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 telemetryCounter.TotalExtensionMethodsProvided = items.Count;
             }
-
-            static string GetMetadataNameWithoutBackticks(ITypeSymbol typeSymbol)
-            {
-                var name = typeSymbol.MetadataName;
-                var backtickIndex = name.IndexOf('`');
-                return backtickIndex == -1
-                    ? name
-                    : name.Substring(0, backtickIndex);
-            }
         }
 
         private static void VisitNamespaceSymbol(

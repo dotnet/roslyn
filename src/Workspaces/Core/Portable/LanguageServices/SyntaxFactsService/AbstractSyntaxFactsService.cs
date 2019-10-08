@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,6 +19,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract class AbstractDeclaredSymbolInfoFactoryService : IDeclaredSymbolInfoFactoryService
     {
+        private const string GenericTypeNameManglingString = "`";
+        private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
+
         private readonly static ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool =
             new ObjectPool<List<Dictionary<string, string>>>(() => new List<Dictionary<string, string>>());
 
@@ -79,9 +83,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
         }
 
+        public static string GetMetadataAritySuffix(int arity)
+        {
+            Debug.Assert(arity > 0);
+            return (arity <= s_aritySuffixesOneToNine.Length)
+                ? s_aritySuffixesOneToNine[arity - 1]
+                : string.Concat(GenericTypeNameManglingString, arity.ToString(CultureInfo.InvariantCulture));
+        }
+
         public abstract bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo);
-        public abstract bool TryGetTargetTypeName(SyntaxNode node, out string InstanceTypeName);
-        public abstract string GetRootNamspace(CompilationOptions compilationOptions);
+        public abstract bool TryGetTargetTypeName(SyntaxNode node, out string targetTypeName);
+        public abstract string GetRootNamespace(CompilationOptions compilationOptions);
     }
 
     internal abstract class AbstractSyntaxFactsService
