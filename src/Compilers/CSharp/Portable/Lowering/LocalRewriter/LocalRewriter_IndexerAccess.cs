@@ -256,9 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Used to construct a pattern index offset expression, of the form
-        ///     `unloweredExpr.GetOffset(lengthExpr)`
+        ///     `unloweredExpr.GetOffset(lengthAccess)`
         /// where unloweredExpr is an expression of type System.Index and the
-        /// lengthExpr retrieves the length of the indexing target.
+        /// lengthAccess retrieves the length of the indexing target.
         /// </summary>
         /// <param name="unloweredExpr">The unlowered argument to the indexing expression</param>
         /// <param name="lengthAccess">
