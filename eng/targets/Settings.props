@@ -58,7 +58,7 @@
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
     <!--
       Choose default target frameworks to use for testing on Mono and Core.
-      These may be overriden by projects that need to be skipped.
+      These may be overridden by projects that need to be skipped.
     -->
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp2.1</TestTargetFrameworks>

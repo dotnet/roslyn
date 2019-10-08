@@ -19,27 +19,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         internal readonly struct Arg
         {
-            public readonly string String;
+            public readonly object Object;
             public readonly int Int32;
 
-            public Arg(string value)
+            public Arg(object value)
             {
                 Int32 = 0;
-                String = value ?? "<null>";
+                Object = value ?? "<null>";
             }
 
             public Arg(int value)
             {
                 Int32 = value;
-                String = null;
+                Object = null;
             }
 
-            public override string ToString() => String ?? Int32.ToString();
+            public override string ToString() => (Object is null) ? Int32.ToString() : Object.ToString();
 
             public static implicit operator Arg(string value) => new Arg(value);
             public static implicit operator Arg(int value) => new Arg(value);
             public static implicit operator Arg(ProjectId value) => new Arg(value.Id.GetHashCode());
             public static implicit operator Arg(ProjectAnalysisSummary value) => new Arg(ToString(value));
+            public static implicit operator Arg(Diagnostic value) => new Arg(value);
 
             private static string ToString(ProjectAnalysisSummary summary)
             {
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         internal readonly struct Entry
         {
             public readonly string MessageFormat;
@@ -66,8 +68,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 ArgsOpt = argsOpt;
             }
 
-            public override string ToString() =>
-                string.Format(MessageFormat, ArgsOpt?.Select(a => (object)a).ToArray() ?? Array.Empty<object>());
+            internal string GetDebuggerDisplay() =>
+                (MessageFormat == null) ? "" : string.Format(MessageFormat, ArgsOpt?.Select(a => (object)a).ToArray() ?? Array.Empty<object>());
         }
 
         private readonly Entry[] _log;

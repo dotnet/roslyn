@@ -727,7 +727,7 @@ Public Class C1
    Public Sub $$New()
    End Sub
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionConstructor)
@@ -743,7 +743,7 @@ Public Class C1
       MyBase.Finalize()
    End Sub
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionDestructor)
@@ -758,7 +758,7 @@ Public Class C1
    Private Sub $$M()
    End Sub
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionSub)
@@ -773,7 +773,7 @@ Public Class C1
    Private Function $$M() As Integer
    End Sub
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)
@@ -787,7 +787,7 @@ Public Class C1
 
    Private Declare Sub $$MethodB Lib "MyDll.dll" ()
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionSub)
@@ -801,7 +801,7 @@ Public Class C1
 
    Private Declare Function $$MethodC Lib "MyDll.dll" () As Integer
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionFunction)

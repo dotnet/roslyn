@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         {
             try
             {
-                // dynamic is wierd. it can't see internal type with public interface even if callee is
+                // dynamic is weird. it can't see internal type with public interface even if callee is
                 // implementation of the public interface in internal type. so we can't use dynamic here
 
                 var builder = ImmutableArray.CreateBuilder<HostDiagnosticAnalyzerPackage>();

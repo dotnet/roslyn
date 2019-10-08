@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Classification
+namespace Microsoft.CodeAnalysis.Internal.Log
 {
     internal sealed class RequestLatencyTracker : IDisposable
     {

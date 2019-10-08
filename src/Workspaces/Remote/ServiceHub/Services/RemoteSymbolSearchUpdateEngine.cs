@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +28,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(() =>
             {
-                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
+                // In non-test scenarios, we're not cancellable.  Our lifetime will simply be that
+                // of the OOP process itself.  i.e. when it goes away, it will just tear down our
+                // update-loop itself.  So we don't need any additional controls over it.
+                return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, CancellationToken.None);
             }, CancellationToken.None);
         }
 
@@ -68,23 +70,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
         #region Messages to forward from here to VS
 
-        public Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, cancellationToken);
+        public Task LogExceptionAsync(string exception, string text)
+            => this.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, CancellationToken.None);
 
-        public Task LogInfoAsync(string text, CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, cancellationToken);
+        public Task LogInfoAsync(string text)
+            => this.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, CancellationToken.None);
 
-        public Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, cancellationToken);
+        public Task OnDownloadFullDatabaseStartedAsync(string title)
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, CancellationToken.None);
 
-        public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), cancellationToken);
+        public Task OnDownloadFullDatabaseSucceededAsync()
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), CancellationToken.None);
 
-        public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), cancellationToken);
+        public Task OnDownloadFullDatabaseCanceledAsync()
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), CancellationToken.None);
 
-        public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, cancellationToken);
+        public Task OnDownloadFullDatabaseFailedAsync(string message)
+            => this.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, CancellationToken.None);
 
         #endregion
     }

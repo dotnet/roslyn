@@ -119,14 +119,32 @@ namespace CSharpSyntaxGenerator
 
         protected static string GetFieldType(Field field, bool green)
         {
-            if (IsAnyList(field.Type))
-            {
-                return green
-                    ? "GreenNode"
-                    : "SyntaxNode";
-            }
+            // Fields in red trees are lazily initialized, with null as the uninitialized value
+            return getNullableAwareType(field.Type, optionalOrLazy: IsOptional(field) || !green, green);
 
-            return field.Type;
+            static string getNullableAwareType(string fieldType, bool optionalOrLazy, bool green)
+            {
+                if (IsAnyList(fieldType))
+                {
+                    if (optionalOrLazy)
+                        return green ? "GreenNode?" : "SyntaxNode?";
+                    else
+                        return green ? "GreenNode?" : "SyntaxNode";
+                }
+
+                switch (fieldType)
+                {
+                    case var _ when !optionalOrLazy:
+                        return fieldType;
+
+                    case "bool":
+                    case "SyntaxToken" when !green:
+                        return fieldType;
+
+                    default:
+                        return fieldType + "?";
+                }
+            }
         }
 
         protected bool IsDerivedOrListOfDerived(string baseType, string derivedType)

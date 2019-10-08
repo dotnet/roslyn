@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using ICSharpCode.Decompiler.DebugInfo;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1390,6 +1389,42 @@ struct S : System.IAsyncDisposable
         }
 
         [Fact]
+        public void Struct_ExplicitImplementation()
+        {
+            string source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    internal bool _disposed;
+}
+struct S : IAsyncDisposable
+{
+    C _c;
+    S(C c)
+    {
+        _c = c;
+    }
+    static async Task Main()
+    {
+        var s = new S(new C());
+        await using (s)
+        {
+        }
+        Console.WriteLine(s._c._disposed);
+    }
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        _c._disposed = true;
+        return new ValueTask(Task.CompletedTask);
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True");
+        }
+
+        [Fact]
         public void TestWithNullableExpression()
         {
             string source = @"
@@ -1617,19 +1652,27 @@ public class D
             var getAwaiter1 = (MethodSymbol)comp.GetMember("C.GetAwaiter");
             var isCompleted1 = (PropertySymbol)comp.GetMember("C.IsCompleted");
             var getResult1 = (MethodSymbol)comp.GetMember("C.GetResult");
-            var first = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, getResult1));
+            var first = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult1, false);
 
-            var nulls1 = new AwaitExpressionInfo(new AwaitableInfo(null, isCompleted1, getResult1));
-            var nulls2 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, null, getResult1));
-            var nulls3 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, null));
+            var nulls1 = new AwaitExpressionInfo(null, isCompleted1, getResult1, false);
+            var nulls2 = new AwaitExpressionInfo(getAwaiter1, null, getResult1, false);
+            var nulls3 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, null, false);
+            var nulls4 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, null, true);
 
             Assert.False(first.Equals(nulls1));
             Assert.False(first.Equals(nulls2));
             Assert.False(first.Equals(nulls3));
+            Assert.False(first.Equals(nulls4));
 
             Assert.False(nulls1.Equals(first));
             Assert.False(nulls2.Equals(first));
             Assert.False(nulls3.Equals(first));
+            Assert.False(nulls4.Equals(first));
+
+            _ = nulls1.GetHashCode();
+            _ = nulls2.GetHashCode();
+            _ = nulls3.GetHashCode();
+            _ = nulls4.GetHashCode();
 
             object nullObj = null;
             Assert.False(first.Equals(nullObj));
@@ -1637,10 +1680,10 @@ public class D
             var getAwaiter2 = (MethodSymbol)comp.GetMember("D.GetAwaiter");
             var isCompleted2 = (PropertySymbol)comp.GetMember("D.IsCompleted");
             var getResult2 = (MethodSymbol)comp.GetMember("D.GetResult");
-            var second1 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter2, isCompleted1, getResult1));
-            var second2 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted2, getResult1));
-            var second3 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, getResult2));
-            var second4 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter2, isCompleted2, getResult2));
+            var second1 = new AwaitExpressionInfo(getAwaiter2, isCompleted1, getResult1, false);
+            var second2 = new AwaitExpressionInfo(getAwaiter1, isCompleted2, getResult1, false);
+            var second3 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult2, false);
+            var second4 = new AwaitExpressionInfo(getAwaiter2, isCompleted2, getResult2, false);
 
             Assert.False(first.Equals(second1));
             Assert.False(first.Equals(second2));
@@ -1655,7 +1698,7 @@ public class D
             Assert.True(first.Equals(first));
             Assert.True(first.Equals((object)first));
 
-            var another = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, getResult1));
+            var another = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult1, false);
             Assert.True(first.GetHashCode() == another.GetHashCode());
         }
 
@@ -2314,6 +2357,45 @@ class C
                 //         await using (var y = new object()) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var y = new object()").WithArguments("object").WithLocation(7, 22)
                 );
+        }
+
+        [Fact]
+        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
+        public void GetAwaiterBoxingConversion()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+struct StructAwaitable { }
+
+class Disposable
+{
+    public StructAwaitable DisposeAsync() => new StructAwaitable();
+}
+
+static class Extensions
+{
+    public static TaskAwaiter GetAwaiter(this object x)
+    {
+        if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
+        return Task.CompletedTask.GetAwaiter();
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        await using (new Disposable())
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
     }
 }
