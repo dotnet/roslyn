@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
             }
 
+            foreach (var param in syntax.ParameterList.Parameters)
+            {
+                ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
+            }
+
             if (syntax.ReturnType.Kind() == SyntaxKind.RefType)
             {
                 var returnType = (RefTypeSyntax)syntax.ReturnType;
@@ -92,11 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _binder = binder;
-
-            foreach (var param in syntax.ParameterList.Parameters)
-            {
-                ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
-            }
         }
 
         /// <summary>
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
         {
-            var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfoOpt(_binder.Compilation);
+            var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfoOpt(ScopeBinder.Compilation);
             if (diagnosticInfo is object)
             {
                 foreach (var attrList in attributes)
