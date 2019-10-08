@@ -262,13 +262,6 @@ namespace Baz
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
-        private static string GetMarkupWithReference(string currentFile, string referencedFile, bool isProjectReference, string alias = null)
-        {
-            return isProjectReference
-                ? CreateMarkupForProjecWithProjectReference(currentFile, referencedFile, LanguageNames.CSharp, LanguageNames.CSharp)
-                : CreateMarkupForProjectWithMetadataReference(currentFile, referencedFile, LanguageNames.CSharp, LanguageNames.CSharp);
-        }
-
         [InlineData(true)]
         [InlineData(false)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -288,7 +281,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
 
@@ -312,7 +305,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
@@ -335,7 +328,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
         }
 
@@ -361,7 +354,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "", inlineDescription: "Foo");
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
@@ -389,7 +382,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "", inlineDescription: "Foo");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
@@ -418,7 +411,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
@@ -448,7 +441,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
@@ -478,7 +471,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
         }
@@ -508,7 +501,7 @@ namespace Foo.Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Foo");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", displayTextSuffix: "<>", inlineDescription: "Foo");
         }
@@ -540,7 +533,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
         }
@@ -566,7 +559,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassInternal, inlineDescription: "Foo");
         }
 
@@ -720,7 +713,7 @@ namespace NS
          $$
     }
 }";
-            var markup = GetMarkupWithReference(file2, file1, isProjectReference);
+            var markup = GetMarkupWithReference(file2, file1, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo");
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Baz");

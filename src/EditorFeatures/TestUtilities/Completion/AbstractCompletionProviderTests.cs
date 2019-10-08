@@ -578,6 +578,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
+        protected static string GetMarkupWithReference(string currentFile, string referencedFile, string sourceLanguage, string referenceLanguage, bool isProjectReference, string alias = null)
+        {
+            return isProjectReference
+                ? CreateMarkupForProjecWithProjectReference(currentFile, referencedFile, sourceLanguage, referenceLanguage)
+                : CreateMarkupForProjectWithMetadataReference(currentFile, referencedFile, sourceLanguage, referenceLanguage);
+        }
+
         protected static string CreateMarkupForProjectWithMetadataReference(string markup, string metadataReferenceCode, string sourceLanguage, string referencedLanguage)
         {
             return string.Format(@"
@@ -586,6 +593,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         <Document FilePath=""SourceDocument"">{1}</Document>
         <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
             <Document FilePath=""ReferencedDocument"">{3}</Document>
+            <MetadataReference>" + typeof(ValueTuple<>).Assembly.Location + @"</MetadataReference>
         </MetadataReferenceFromSource>
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode));
@@ -606,8 +614,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 <Workspace>
     <Project Language=""{0}"" CommonReferences=""true"" AssemblyName=""Project1"">
         <Document FilePath=""SourceDocument"">{1}</Document>
+        <MetadataReference>" + typeof(ValueTuple<>).Assembly.Location + @"</MetadataReference>
         <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" Aliases=""{3}"" IncludeXmlDocComments=""true"" DocumentationMode=""Diagnose"">
             <Document FilePath=""ReferencedDocument"">{4}</Document>
+            <MetadataReference>" + typeof(ValueTuple<>).Assembly.Location + @"</MetadataReference>
         </MetadataReferenceFromSource>
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), SecurityElement.Escape(referencedCode));
