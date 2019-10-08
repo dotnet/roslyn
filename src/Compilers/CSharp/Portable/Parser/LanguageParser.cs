@@ -10851,7 +10851,10 @@ tryAgain:
             AnonymousMethodExpressionSyntax parseAnonymousMethodExpressionWorker()
             {
                 var modifiers = ParseAnonymousFunctionModifiers();
-                this.IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
+                if (modifiers.Any((int)SyntaxKind.AsyncKeyword))
+                {
+                    this.IsInAsync = true;
+                }
 
                 var @delegate = this.EatToken(SyntaxKind.DelegateKeyword);
                 @delegate = CheckFeatureAvailability(@delegate, MessageID.IDS_FeatureAnonDelegates);
@@ -10932,7 +10935,10 @@ tryAgain:
             LambdaExpressionSyntax parseLambdaExpressionWorker()
             {
                 var modifiers = ParseAnonymousFunctionModifiers();
-                this.IsInAsync = modifiers.Any((int)SyntaxKind.AsyncKeyword);
+                if (modifiers.Any((int)SyntaxKind.AsyncKeyword))
+                {
+                    this.IsInAsync = true;
+                }
 
                 if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
                 {
