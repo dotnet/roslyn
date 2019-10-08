@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
+using ICSharpCode.Decompiler.IL;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -697,6 +700,40 @@ public class C
                 // (12,17): error CS8428: A static anonymous function cannot contain a reference to 'this' or 'base'.
                 //                 this.Goo();
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "this").WithLocation(12, 17));
+        }
+
+        [Fact]
+        public void TestSymbols()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void Goo()
+    {
+        Action<int> a = static delegate(int i) { };
+        Action<int> b = static a => { };
+        Action<int> c = static (a) => { };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            var syntaxTree = compilation.SyntaxTrees.Single();
+
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+            var root = syntaxTree.GetRoot();
+
+            var anonymousMethodSyntax = root.DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+            var simpleLambdaSyntax = root.DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
+            var parenthesizedLambdaSyntax = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var anonymousMethod = (IMethodSymbol)semanticModel.GetSymbolInfo(anonymousMethodSyntax).Symbol;
+            var simpleLambda = (IMethodSymbol)semanticModel.GetSymbolInfo(simpleLambdaSyntax).Symbol;
+            var parenthesizedLambda = (IMethodSymbol)semanticModel.GetSymbolInfo(parenthesizedLambdaSyntax).Symbol;
+
+            Assert.True(anonymousMethod.IsStatic);
+            Assert.True(simpleLambda.IsStatic);
+            Assert.True(parenthesizedLambda.IsStatic);
         }
     }
 }
