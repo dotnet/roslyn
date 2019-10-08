@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestTwoValuesWrappingCases()
+        public async Task TestWrappingShortInitializerExpression()
         {
             await TestAllWrappingCasesAsync(
 @"class C {
@@ -67,6 +67,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             1, 2};
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestWrappingLongIntializerExpression()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Bar() {
+        var test = new[] [||]{ ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog"" };
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new[] {""the"",
+                          ""quick"",
+                          ""brown"",
+                          ""fox"",
+                          ""jumps"",
+                          ""over"",
+                          ""the"",
+                          ""lazy"",
+                          ""dog""};
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new[] {
+            ""the"",
+            ""quick"",
+            ""brown"",
+            ""fox"",
+            ""jumps"",
+            ""over"",
+            ""the"",
+            ""lazy"",
+            ""dog""};
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new[] {""the"",
+            ""quick"",
+            ""brown"",
+            ""fox"",
+            ""jumps"",
+            ""over"",
+            ""the"",
+            ""lazy"",
+            ""dog""};
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new[] {
+            ""the"",""quick"",""brown"",""fox"",""jumps"",""over"",""the"",""lazy"",""dog""};
+     }
+}",
+@"class C {
+    void Bar() {
+        var test = new[] {
+            ""the"", ""quick"", ""brown"", ""fox"", ""jumps"", ""over"", ""the"", ""lazy"", ""dog""};
+     }
+}"
+);
         }
     }
 }
