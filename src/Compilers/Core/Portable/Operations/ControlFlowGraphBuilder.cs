@@ -6149,7 +6149,7 @@ oneMoreTime:
         private IOperation VisitNoneOperationStatement(IOperation operation)
         {
             Debug.Assert(_currentStatement == operation);
-            VisitStatements(operation.Children.ToList());
+            VisitStatements(operation.Children.ToImmutableArray());
             return new NoneOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.ConstantValue, IsImplicit(operation));
         }
 
