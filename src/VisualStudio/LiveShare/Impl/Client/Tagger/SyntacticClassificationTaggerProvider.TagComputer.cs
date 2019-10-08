@@ -179,8 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                     return;
                 }
 
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var snapshot = text.FindCorrespondingEditorTextSnapshot();
                 if (snapshot == null)
                 {
@@ -188,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
                 }
 
                 var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-                await classificationService.AddRemoteSyntacticClassificationsAsync(document, TextSpan.FromBounds(0, tree.Length), classifiedSpans, cancellationToken).ConfigureAwait(false);
+                await classificationService.AddRemoteSyntacticClassificationsAsync(document, TextSpan.FromBounds(0, text.Length), classifiedSpans, cancellationToken).ConfigureAwait(false);
 
                 using var tagSpans = SharedPools.Default<List<ITagSpan<IClassificationTag>>>().GetPooledObject();
                 ClassificationUtilities.Convert(_typeMap, snapshot, classifiedSpans, tagSpans.Object.Add);
