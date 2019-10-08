@@ -1,3 +1,7 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+#nullable enable
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +26,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// Fetches a <see cref="IDocumentOptions"/> for the given document. Any asynchronous work (looking for config files, etc.)
         /// should be done here. Can return a null-valued task to mean there is no options being provided for this document.
         /// </summary>
-        Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken);
+        Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken);
     }
 }
