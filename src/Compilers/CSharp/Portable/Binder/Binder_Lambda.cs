@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // then the modifiers array is non-null and not empty.
 
         private (ImmutableArray<RefKind>, ImmutableArray<TypeWithAnnotations>, ImmutableArray<string>, bool) AnalyzeAnonymousFunction(
-            CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+            AnonymousFunctionExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private UnboundLambda BindAnonymousFunction(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private UnboundLambda BindAnonymousFunction(AnonymousFunctionExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
@@ -228,6 +228,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            var modifiers = ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics);
+            ModifierUtils.CheckModifiers(
+                modifiers,
+                allowedModifiers: DeclarationModifiers.Static | DeclarationModifiers.Async,
+                GetLocationForDiagnostics(syntax),
+                diagnostics,
+                syntax.Modifiers,
+                out _);
 
             var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync);
             if (!names.IsDefault)

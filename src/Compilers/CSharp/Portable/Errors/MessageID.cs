@@ -289,6 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                case MessageID.IDS_FeatureStaticAnonymousFunction:
+                    return LanguageVersion.Preview;
+
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
                 case MessageID.IDS_FeatureCoalesceAssignmentExpression:

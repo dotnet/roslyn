@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
-                    return BindAnonymousFunction(node, diagnostics);
+                    return BindAnonymousFunction((AnonymousFunctionExpressionSyntax)node, diagnostics);
                 case SyntaxKind.ThisExpression:
                     return BindThis((ThisExpressionSyntax)node, diagnostics);
                 case SyntaxKind.BaseExpression:

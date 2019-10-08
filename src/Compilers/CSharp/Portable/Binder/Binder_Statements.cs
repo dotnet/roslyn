@@ -2978,7 +2978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = this.ContainingMemberOrLambda as LambdaSymbol;
             if ((object)lambda != null)
             {
-                Location location = getLocationForDiagnostics(syntax);
+                Location location = GetLocationForDiagnostics(syntax);
                 if (IsInAsyncMethod())
                 {
                     // Cannot convert async {0} to intended delegate type. An async {0} may return void, Task or Task<T>, none of which are convertible to '{1}'.
@@ -2994,23 +2994,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lambda.MessageID.Localize());
                 }
             }
+        }
 
-            Location getLocationForDiagnostics(SyntaxNode node)
+        private static Location GetLocationForDiagnostics(SyntaxNode node)
+        {
+            switch (node)
             {
-                switch (node)
-                {
-                    case LambdaExpressionSyntax lambdaSyntax:
-                        return Location.Create(lambdaSyntax.SyntaxTree,
-                            Text.TextSpan.FromBounds(lambdaSyntax.SpanStart, lambdaSyntax.ArrowToken.Span.End));
+                case LambdaExpressionSyntax lambdaSyntax:
+                    return Location.Create(lambdaSyntax.SyntaxTree,
+                        Text.TextSpan.FromBounds(lambdaSyntax.SpanStart, lambdaSyntax.ArrowToken.Span.End));
 
-                    case AnonymousMethodExpressionSyntax anonymousMethodSyntax:
-                        return Location.Create(anonymousMethodSyntax.SyntaxTree,
-                            Text.TextSpan.FromBounds(anonymousMethodSyntax.SpanStart,
-                                anonymousMethodSyntax.ParameterList?.Span.End ?? anonymousMethodSyntax.DelegateKeyword.Span.End));
-                }
-
-                return node.Location;
+                case AnonymousMethodExpressionSyntax anonymousMethodSyntax:
+                    return Location.Create(anonymousMethodSyntax.SyntaxTree,
+                        Text.TextSpan.FromBounds(anonymousMethodSyntax.SpanStart,
+                            anonymousMethodSyntax.ParameterList?.Span.End ?? anonymousMethodSyntax.DelegateKeyword.Span.End));
             }
+
+            return node.Location;
         }
 
         private static bool IsValidStatementExpression(SyntaxNode syntax, BoundExpression expression)
