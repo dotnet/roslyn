@@ -1411,6 +1411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var optimizations = compilation.Options.OptimizationLevel;
 
             ILBuilder builder = new ILBuilder(moduleBuilder, localSlotManager, optimizations, method.AreLocalsZeroed);
+            bool hasStackalloc = false;
             DiagnosticBag diagnosticsForThisMethod = DiagnosticBag.GetInstance();
             try
             {
@@ -1468,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    codeGen.Generate();
+                    codeGen.Generate(out hasStackalloc);
 
                     if ((object)kickoffMethod != null)
                     {
@@ -1531,6 +1532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     debugDocumentProvider,
                     builder.RealizedExceptionHandlers,
                     builder.AreLocalsZeroed,
+                    hasStackalloc,
                     builder.GetAllScopes(),
                     builder.HasDynamicLocal,
                     importScopeOpt,

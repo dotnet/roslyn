@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             DebugDocumentProvider debugDocumentProvider,
             ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers,
             bool areLocalsZeroed,
+            bool hasStackalloc,
             ImmutableArray<Cci.LocalScope> localScopes,
             bool hasDynamicLocalVariables,
             Cci.IImportScope importScopeOpt,
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _locals = locals;
             _exceptionHandlers = exceptionHandlers;
             _areLocalsZeroed = areLocalsZeroed;
+            HasStackalloc = hasStackalloc;
             _localScopes = localScopes;
             _hasDynamicLocalVariables = hasDynamicLocalVariables;
             _importScopeOpt = importScopeOpt;
@@ -144,5 +146,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => _lambdaDebugInfo;
 
         public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo => _closureDebugInfo;
+
+        /// <summary>
+        /// True if there's a stackalloc somewhere in the method.
+        /// </summary>
+        public bool HasStackalloc { get; }
     }
 }

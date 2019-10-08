@@ -64,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private LocalDefinition _returnTemp;
 
+        /// <summary>
+        /// True if there was a localloc anywhere in the method. This will affect
+        /// whether or not we require the locals init flag to be marked, since locals
+        /// init affects localloc.
+        /// </summary>
+        private bool _sawStackalloc;
+
         public CodeGenerator(
             MethodSymbol method,
             BoundStatement boundBody,
@@ -188,9 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool IsStackLocal(LocalSymbol local) => IsStackLocal(local, _stackLocals);
 
-        public void Generate()
+        public void Generate(out bool hasStackalloc)
         {
             this.GenerateImpl();
+            hasStackalloc = _sawStackalloc;
 
             Debug.Assert(_asyncCatchHandlerOffset < 0);
             Debug.Assert(_asyncYieldPoints == null);

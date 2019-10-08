@@ -1910,6 +1910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConvertedStackAllocExpression(BoundConvertedStackAllocExpression expression, bool used)
         {
+            _sawStackalloc = true;
             EmitExpression(expression.Count, used);
 
             // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,19 +21,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public static class WellKnownAttributeTestsUtil
     {
-        public static bool? HasLocalsInit(this CompilationVerifier verifier, string methodName, bool realIL = false)
+        public static bool? HasLocalsInit(this CompilationVerifier verifier, string qualifiedMethodName, bool realIL = false)
         {
-            var il = verifier.VisualizeIL(methodName, realIL);
+            if (realIL)
+            {
+                var peReader = new PEReader(verifier.EmittedAssemblyData);
+                var metadataReader = peReader.GetMetadataReader();
 
-            if (il.Contains(".locals init ("))
-            {
-                return true;
+                int lastDotIndex = qualifiedMethodName.LastIndexOf('.');
+                var spanName = qualifiedMethodName.AsSpan();
+                var typeName = spanName.Slice(0, lastDotIndex);
+                var methodName = spanName.Slice(lastDotIndex + 1);
+
+                TypeDefinition typeDef = default;
+
+                foreach (var typeHandle in metadataReader.TypeDefinitions)
+                {
+                    var type = metadataReader.GetTypeDefinition(typeHandle);
+                    var name = metadataReader.GetString(type.Name);
+
+                    if (name.AsSpan().Equals(typeName, StringComparison.Ordinal))
+                    {
+                        typeDef = type;
+                        break;
+                    }
+                }
+
+                Assert.NotEqual(default, typeDef);
+
+                MethodDefinition methodDef = default;
+
+                foreach (var methodHandle in typeDef.GetMethods())
+                {
+                    var method = metadataReader.GetMethodDefinition(methodHandle);
+                    var name = metadataReader.GetString(method.Name);
+
+                    if (name.AsSpan().Equals(methodName, StringComparison.Ordinal))
+                    {
+                        methodDef = method;
+                        break;
+                    }
+                }
+
+                Assert.NotEqual(default, methodDef);
+
+                var block = peReader.GetMethodBody(methodDef.RelativeVirtualAddress);
+                return block.LocalVariablesInitialized;
             }
-            if (il.Contains(".locals ("))
+            else
             {
-                return false;
+                var il = verifier.VisualizeIL(qualifiedMethodName, realIL);
+
+                if (il.Contains(".locals init ("))
+                {
+                    return true;
+                }
+                if (il.Contains(".locals ("))
+                {
+                    return false;
+                }
+                return null;
             }
-            return null;
         }
     }
 
@@ -8929,6 +8978,20 @@ public class C
 
         #region SkipLocalsInitAttribute
 
+        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src)
+        {
+            const string skipLocalsInitDef = @"
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}";
+
+            var comp = CreateCompilation(new[] { src, skipLocalsInitDef }, options: TestOptions.UnsafeReleaseDll);
+            return CompileAndVerify(comp, verify: Verification.Fails);
+        }
+
         [Fact]
         public void SkipLocalsInitRequiresUnsafe()
         {
@@ -9038,6 +9101,32 @@ partial class C
             var comp = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             Assert.False(comp.HasLocalsInit("C.M"));
+        }
+
+        [Fact]
+        public unsafe void StackallocWithSkipLocalsInit()
+        {
+            var src = @"
+public class C
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public unsafe void M1()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+
+    public unsafe void M2()
+    {
+        int *ptr = stackalloc int[10];
+        System.Console.WriteLine(ptr[0]);
+    }
+}";
+            var verifier = CompileAndVerifyWithSkipLocalsInit(src);
+            Assert.Null(verifier.HasLocalsInit("C.M1")); // no locals
+            Assert.False(verifier.HasLocalsInit("C.M1", realIL: true));
+            Assert.Null(verifier.HasLocalsInit("C.M2")); // no locals
+            Assert.True(verifier.HasLocalsInit("C.M2", realIL: true));
         }
 
         [Fact]

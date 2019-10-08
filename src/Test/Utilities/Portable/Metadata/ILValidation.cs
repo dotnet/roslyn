@@ -300,6 +300,22 @@ namespace Roslyn.Test.Utilities
             return result.ToString();
         }
 
+        public static unsafe MethodBodyBlock GetMethodBodyBlock(this ImmutableArray<byte> ilArray)
+        {
+            fixed (byte* ilPtr = ilArray.AsSpan())
+            {
+                int offset = 0;
+                // skip padding:
+                while (offset < ilArray.Length && ilArray[offset] == 0)
+                {
+                    offset++;
+                }
+
+                var reader = new BlobReader(ilPtr + offset, ilArray.Length - offset);
+                return MethodBodyBlock.Create(reader);
+            }
+        }
+
         public static Dictionary<int, string> GetSequencePointMarkers(string pdbXml, string source = null)
         {
             var doc = new XmlDocument() { XmlResolver = null };
