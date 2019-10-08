@@ -768,6 +768,21 @@ namespace Microsoft.Cci
             }
         }
 
+        /// <summary>
+        /// Add document entries for all debug documents that does not yet have an entry.
+        /// </summary>
+        /// <remarks>
+        /// This is done after serializing method debug info to ensure that we embed all requested
+        /// text even if there are no corresponding sequence points.
+        /// </remarks>
+        public void AddRemainingDebugDocuments(IEnumerable<DebugSourceDocument> documents)
+        {
+            foreach (var document in documents)
+            {
+                GetOrAddDocument(document, _documentIndex);
+            }
+        }
+
         #endregion
 
         #region Edit and Continue

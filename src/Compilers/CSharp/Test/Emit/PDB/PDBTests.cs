@@ -11037,5 +11037,76 @@ class Program
                     Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1));
             }
         }
+
+        [Fact]
+        [WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")]
+        public void FilesOneWithNoMethodBody()
+        {
+            string source1 = WithWindowsLineBreaks(@"
+using System;
+
+class C
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+");
+            string source2 = WithWindowsLineBreaks(@"
+// no code
+");
+
+            var tree1 = Parse(source1, "f:/build/goo.cs");
+            var tree2 = Parse(source2, "f:/build/nocode.cs");
+            var c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F"" />
+    <file id=""2"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x7"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x8"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [Fact]
+        [WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")]
+        public void SingleFileWithNoMethodBody()
+        {
+            string source = WithWindowsLineBreaks(@"
+// no code
+");
+
+            var tree = Parse(source, "f:/build/nocode.cs");
+            var c = CreateCompilation(new[] { tree }, options: TestOptions.DebugDll);
+
+            c.VerifyPdb(@"
+<symbols>
+  <files>
+    <file id=""1"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42"" />
+  </files>
+  <methods />
+</symbols>
+");
+        }
     }
 }

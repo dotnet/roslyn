@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.Emit
             _debugDocuments.Add(document.Location, document);
         }
 
+        internal ImmutableArray<Cci.DebugSourceDocument> GetAllDebugDocuments()
+            => _debugDocuments.Values.ToImmutableArray();
+
         internal Cci.DebugSourceDocument TryGetDebugDocument(string path, string basePath)
         {
             return TryGetDebugDocumentForNormalizedPath(NormalizeDebugDocumentPath(path, basePath));

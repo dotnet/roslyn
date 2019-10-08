@@ -104,6 +104,7 @@ namespace Microsoft.Cci
                 }
 
                 nativePdbWriterOpt.WriteRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
+                nativePdbWriterOpt.WriteRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.GetAllDebugDocuments());
             }
 
             Stream peStream = getPeStream();
@@ -152,6 +153,7 @@ namespace Microsoft.Cci
             if (mdWriter.EmitPortableDebugMetadata)
             {
                 mdWriter.AddRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
+                mdWriter.AddRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.GetAllDebugDocuments());
 
                 // The algorithm must be specified for deterministic builds (checked earlier).
                 Debug.Assert(!isDeterministic || context.Module.PdbChecksumAlgorithm.Name != null);

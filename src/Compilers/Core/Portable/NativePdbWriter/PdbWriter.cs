@@ -756,5 +756,20 @@ namespace Microsoft.Cci
                 GetDocumentIndex(document);
             }
         }
+
+        /// <summary>
+        /// Write document entries for all debug documents that does not yet have an entry.
+        /// </summary>
+        /// <remarks>
+        /// This is done after serializing method debug info to ensure that we embed all requested
+        /// text even if there are no corresponding sequence points.
+        /// </remarks>
+        public void WriteRemainingDebugDocuments(IEnumerable<DebugSourceDocument> documents)
+        {
+            foreach (var document in documents)
+            {
+                GetDocumentIndex(document);
+            }
+        }
     }
 }
