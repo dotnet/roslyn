@@ -87,9 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _componentModel.GetExtensions<IOptionPersister>();
 
             _analyzerConfigDocumentAsSolutionItemHandler = this.ComponentModel.GetService<AnalyzerConfigDocumentAsSolutionItemHandler>();
-            _solutionUserOptionsProvider = this.ComponentModel.GetService<SolutionUserOptionsProvider>();
-            var vsSolution = (IVsSolution)await this.GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-            _solutionUserOptionsProvider.Initialize(vsSolution);
 
             RoslynTelemetrySetup.Initialize(this);
 
@@ -202,12 +199,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 _solutionEventMonitor = null;
             }
 
-            _solutionUserOptionsProvider?.Dispose();
-            _solutionUserOptionsProvider = null;
-
-            _analyzerConfigDocumentAsSolutionItemHandler?.Dispose();
-            _analyzerConfigDocumentAsSolutionItemHandler = null;
-
             base.Dispose(disposing);
         }
 
@@ -256,6 +247,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override void OnLoadOptions(string key, Stream stream)
         {
+            if (_solutionUserOptionsProvider == null)
+            {
+                // NOTE: This method is called before Initialize, so we cannot use "this.ComponentModel"
+                var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
+                _solutionUserOptionsProvider = componentModel.GetService<SolutionUserOptionsProvider>();
+                _solutionUserOptionsProvider.Initialize((IVsSolution)this.GetService(typeof(SVsSolution)));
+            }
+
             _solutionUserOptionsProvider?.OnLoadOption(key, stream);
             base.OnLoadOptions(key, stream);
         }

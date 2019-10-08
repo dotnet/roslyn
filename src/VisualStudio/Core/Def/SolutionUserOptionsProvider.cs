@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             _vsSolution?.UnadviseSolutionEvents(_solutionEventsCookie);
         }

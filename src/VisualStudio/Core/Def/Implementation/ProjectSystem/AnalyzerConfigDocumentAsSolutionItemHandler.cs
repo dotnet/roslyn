@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             _vsSolution?.UnadviseSolutionEvents(_solutionEventsCookie);
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
