@@ -2,154 +2,124 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../AnalyzersResources.resx">
     <body>
-      <trans-unit id="AnonymousNewObjectRuleTitleAndMessage">
-        <source>Explicit new anonymous object allocation</source>
-        <target state="new">Explicit new anonymous object allocation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ClosureCaptureRuleMessage">
         <source>The compiler will emit a class that will hold this as a field to allow capturing of this closure</source>
-        <target state="new">The compiler will emit a class that will hold this as a field to allow capturing of this closure</target>
+        <target state="translated">Le compilateur va émettre une classe qui conservera ceci en tant que champ pour permettre la capture de cette fermeture</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureCaptureRuleTitle">
         <source>Display class allocation to capture closure</source>
-        <target state="new">Display class allocation to capture closure</target>
+        <target state="translated">Afficher l'allocation de classe pour capturer la fermeture</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureDriverRuleMessage">
         <source>Heap allocation of closure Captures: {0}</source>
-        <target state="new">Heap allocation of closure Captures: {0}</target>
+        <target state="translated">Allocation de tas des captures de fermeture : {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureDriverRuleTitle">
         <source>Closure Allocation Source</source>
-        <target state="new">Closure Allocation Source</target>
+        <target state="translated">Source d'allocation de fermeture</target>
         <note />
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleMessage">
         <source>Struct instance method being used for delegate creation, this will result in a boxing instruction</source>
-        <target state="new">Struct instance method being used for delegate creation, this will result in a boxing instruction</target>
+        <target state="translated">Dans la mesure où la méthode d'instance de struct est utilisée pour la création de délégué, cela va donner lieu à une instruction boxing</target>
         <note />
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleTitle">
         <source>Delegate on struct instance caused a boxing allocation</source>
-        <target state="new">Delegate on struct instance caused a boxing allocation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ImplicitArrayCreationRuleTitleAndMessage">
-        <source>Implicit new array creation allocation</source>
-        <target state="new">Implicit new array creation allocation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InitializerCreationRuleTitleAndMessage">
-        <source>Initializer reference type allocation</source>
-        <target state="new">Initializer reference type allocation</target>
+        <target state="translated">Le délégué sur l'instance de struct a entraîné une allocation boxing</target>
         <note />
       </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleMessage">
         <source>Considering moving this out of the generic method</source>
-        <target state="new">Considering moving this out of the generic method</target>
+        <target state="translated">Envisager de sortir ceci de la méthode générique</target>
         <note />
       </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleTitle">
         <source>Lambda or anonymous method in a generic method allocates a delegate instance</source>
-        <target state="new">Lambda or anonymous method in a generic method allocates a delegate instance</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="LetCauseRuleTitleAndMessage">
-        <source>Let clause induced allocation</source>
-        <target state="new">Let clause induced allocation</target>
+        <target state="translated">Une expression lambda ou une méthode anonyme dans une méthode générique alloue une instance de délégué</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
-        <target state="new">This will allocate a delegate instance</target>
+        <target state="translated">Ceci va allouer une instance de délégué</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleTitle">
         <source>Delegate allocation from a method group</source>
-        <target state="new">Delegate allocation from a method group</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NewArrayRuleTitleAndMessage">
-        <source>Explicit new array type allocation</source>
-        <target state="new">Explicit new array type allocation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NewObjectRuleTitleAndMessage">
-        <source>Explicit new reference type allocation</source>
-        <target state="new">Explicit new reference type allocation</target>
+        <target state="translated">Allocation de délégué à partir d'un groupe de méthodes</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="new">This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</target>
+        <target state="translated">Ce site d'appel appelle une fonction avec un paramètre 'params'. Cela se traduit par une allocation de tableau même si aucun paramètre n'est passé pour le paramètre params</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
         <source>Array allocation for params parameter</source>
-        <target state="new">Array allocation for params parameter</target>
+        <target state="translated">Allocation de tableau pour le paramètre params</target>
         <note />
       </trans-unit>
       <trans-unit id="ReadonlyMethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
-        <target state="new">This will allocate a delegate instance</target>
+        <target state="translated">Ceci va allouer une instance de délégué</target>
         <note />
       </trans-unit>
       <trans-unit id="ReadonlyMethodGroupAllocationRuleTitle">
         <source>Delegate allocation from a method group</source>
-        <target state="new">Delegate allocation from a method group</target>
+        <target state="translated">Allocation de délégué à partir d'un groupe de méthodes</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceTypeEnumeratorRuleMessage">
         <source>Non-ValueType enumerator may result in a heap allocation</source>
-        <target state="new">Non-ValueType enumerator may result in a heap allocation</target>
+        <target state="translated">Un énumérateur non ValueType peut entraîner une allocation de tas</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceTypeEnumeratorRuleTitle">
         <source>Possible allocation of reference type enumerator</source>
-        <target state="new">Possible allocation of reference type enumerator</target>
+        <target state="translated">Allocation possible d'un énumérateur de type référence</target>
         <note />
       </trans-unit>
       <trans-unit id="StringConcatenationAllocationRuleMessage">
         <source>Considering using StringBuilder</source>
-        <target state="new">Considering using StringBuilder</target>
+        <target state="translated">Utilisation envisagée de StringBuilder</target>
         <note />
       </trans-unit>
       <trans-unit id="StringConcatenationAllocationRuleTitle">
         <source>Implicit string concatenation allocation</source>
-        <target state="new">Implicit string concatenation allocation</target>
+        <target state="translated">Allocation implicite de concaténation de chaînes</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleMessage">
         <source>Non-overridden virtual method call on a value type adds a boxing or constrained instruction</source>
-        <target state="new">Non-overridden virtual method call on a value type adds a boxing or constrained instruction</target>
+        <target state="translated">Un appel de méthode virtuelle non substituée sur un type valeur ajoute une instruction boxing ou contrainte</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleTitle">
         <source>Non-overridden virtual method call on value type</source>
-        <target state="new">Non-overridden virtual method call on value type</target>
+        <target state="translated">Appel de méthode virtuelle non substituée sur le type valeur</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
         <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</source>
-        <target state="new">Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</target>
+        <target state="translated">La conversion d'un type valeur en type référence entraîne un boxing sur le site d'appel (ici), et une conversion unboxing sur le site appelé. Utiliser des génériques, le cas échéant</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
         <source>Value type to reference type conversion causing boxing allocation</source>
-        <target state="new">Value type to reference type conversion causing boxing allocation</target>
+        <target state="translated">La conversion d'un type valeur en type référence entraîne une allocation boxing</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
         <source>Value type ({0}) is being boxed to a reference type for a string concatenation.</source>
-        <target state="new">Value type ({0}) is being boxed to a reference type for a string concatenation.</target>
+        <target state="translated">Le type valeur ({0}) est converti (boxed) en type référence pour une concaténation de chaîne.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">
         <source>Value type to reference type conversion allocation for string concatenation</source>
-        <target state="new">Value type to reference type conversion allocation for string concatenation</target>
+        <target state="translated">Allocation de conversion de type valeur en type référence pour la concaténation de chaînes</target>
         <note />
       </trans-unit>
     </body>

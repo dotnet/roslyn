@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -92,8 +91,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void SetValueForParameterOnEntry(IParameterSymbol parameter, AnalysisEntity analysisEntity, ArgumentInfo<TAbstractAnalysisValue> assignedValueOpt)
         {
-            Debug.Assert(analysisEntity.SymbolOpt == parameter);
-            if (TryGetPointsToAbstractValueAtEntryBlockEnd(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
+            // Only set the value for non-interprocedural case.
+            // For interprocedural case, we have already initialized values for the underlying locations
+            // of arguments from the input analysis data.
+            Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
+            if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null &&
+                TryGetPointsToAbstractValueAtEntryBlockEnd(analysisEntity, out PointsToAbstractValue pointsToAbstractValue))
             {
                 SetValueForParameterPointsToLocationOnEntry(parameter, pointsToAbstractValue);
             }
@@ -101,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
         {
-            Debug.Assert(analysisEntity.SymbolOpt == parameter);
+            Debug.Assert(Equals(analysisEntity.SymbolOpt, parameter));
             var escapedLocationsForParameter = GetEscapedLocations(analysisEntity);
             if (!escapedLocationsForParameter.IsEmpty)
             {
@@ -178,7 +181,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(operation);
             return HandleInstanceCreation(operation, instanceLocation, value);
         }
-
         #endregion
     }
 }

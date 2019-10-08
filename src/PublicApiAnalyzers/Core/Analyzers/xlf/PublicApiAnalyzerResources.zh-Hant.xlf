@@ -4,87 +4,107 @@
     <body>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</target>
+        <target state="translated">符號 '{0}' 違反回溯相容性需求:「請勿新增具備選擇性參數的多項多載」。請參閱 '{1}' 以取得詳細資料。</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
         <source>Do not add multiple public overloads with optional parameters</source>
-        <target state="new">Do not add multiple public overloads with optional parameters</target>
+        <target state="translated">無法新增多個具有選擇性參數的公用多載</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiDescription">
         <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">應在 PublicAPI.txt 中宣告所有公用類型與成員。此舉會讓您注意到程式碼檢閱與原始檔控制歷程記錄中的 API 變更，同時有助於避免發生中斷性變更。</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared API.</source>
-        <target state="new">Symbol '{0}' is not part of the declared API.</target>
+        <target state="translated">符號 '{0}' 並非宣告 API 的一部分。</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
         <source>Add public types and members to the declared API</source>
-        <target state="new">Add public types and members to the declared API</target>
+        <target state="translated">為宣告的 API 新增公用類型與成員</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files.</source>
-        <target state="new">The symbol '{0}' appears more than once in the public API files.</target>
+        <target state="translated">公用 API 檔案中出現一次以上的符號 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
         <source>Do not duplicate symbols in public API files</source>
-        <target state="new">Do not duplicate symbols in public API files</target>
+        <target state="translated">請勿在公用 API 檔案中使用重複的符號</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
-        <target state="new">Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</target>
+        <target state="translated">建構函式會使無法繼承的基底類別變成可繼承，進而公開其受保護的成員。</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
-        <target state="new">Constructor make noninheritable base class inheritable</target>
+        <target state="translated">建構函式可將無法繼承的基底類別變成為可繼承</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</target>
+        <target state="translated">符號 '{0}' 違反回溯相容性需求:「具有選擇性參數的公用 API，大部分的參數應位於其公用多載之間。」。請參閱 '{1}' 以取得詳細資料。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
-        <target state="new">Public API with optional parameter(s) should have the most parameters amongst its public overloads.</target>
+        <target state="translated">具有選擇性參數的公用 API，大部分的參數應位於其公用多載之間。</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
-        <target state="new">The contents of the public API files are invalid: {0}</target>
+        <target state="translated">公用 API 檔案的內容無效: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
-        <target state="new">The contents of the public API files are invalid</target>
+        <target state="translated">公用 API 檔案的內容無效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesMissingMessage">
+        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
+        <target state="translated">解決方案必須包含兩個類型為 "AdditionalFiles" 的檔案: PublicAPI.Unshipped.txt 與 PublicAPI.Shipped.txt。其中至少缺少一個檔案或檔案類型錯誤。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesMissingTitle">
+        <source>One or both of the public API files are missing</source>
+        <target state="translated">缺少兩個公用 API 檔案的其中一個或兩者</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for {0}</source>
-        <target state="new">implicit constructor for {0}</target>
+        <target state="translated">{0} 的隱含建構函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicImplicitGetAccessor">
+        <source>implicit get-accessor for {0}</source>
+        <target state="translated">{0} 的隱含 get 存取子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicImplicitSetAccessor">
+        <source>implicit set-accessor for {0}</source>
+        <target state="translated">{0} 的隱含 set 存取子</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
         <source>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">移除公用類型或成員時，也應一併移除 PublicAPI.txt 中的對應項目。如此會讓您注意到在程式碼檢閱以及原始檔控制歷程記錄中有關於 API 的變更，同時有助於避免發生中斷性變更。</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
-        <target state="new">Symbol '{0}' is part of the declared API, but is either not public or could not be found</target>
+        <target state="translated">符號 '{0}' 是宣告 API 的一部分，但可能找不到或並非公用</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiTitle">
         <source>Remove deleted types and members from the declared API</source>
-        <target state="new">Remove deleted types and members from the declared API</target>
+        <target state="translated">從宣告的 API 移除已刪除的類型與成員</target>
         <note />
       </trans-unit>
     </body>

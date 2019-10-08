@@ -97,6 +97,47 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 OnSymbolActionCore(symbolContext.Symbol, symbolContext.ReportDiagnostic);
             }
 
+            internal void OnPropertyAction(SymbolAnalysisContext symbolContext)
+            {
+                // If a property is non-implicit, but it's accessors *are* implicit,
+                // then we will not get called back for the accessor methods.  Add
+                // those methods explicitly in this case.  This happens, for example,
+                // in VB with properties like:
+                //
+                //      public readonly property A as Integer
+                //
+                // In this case, the getter/setters are both implicit, and will not
+                // trigger the callback to analyze them.  So we manually do it ourselves.
+                var property = (IPropertySymbol)symbolContext.Symbol;
+                if (!property.IsImplicitlyDeclared)
+                {
+                    this.CheckPropertyAccessor(symbolContext, property.GetMethod);
+                    this.CheckPropertyAccessor(symbolContext, property.SetMethod);
+                }
+            }
+
+            private void CheckPropertyAccessor(SymbolAnalysisContext symbolContext, IMethodSymbol accessor)
+            {
+                if (accessor == null)
+                {
+                    return;
+                }
+
+                // Only process implicit accessors.  We won't get callbacks for them
+                // normally with RegisterSymbolAction.
+                if (!accessor.IsImplicitlyDeclared)
+                {
+                    return;
+                }
+
+                if (!this.IsPublicAPI(accessor))
+                {
+                    return;
+                }
+
+                this.OnSymbolActionCore(accessor, symbolContext.ReportDiagnostic, isImplicitlyDeclaredConstructor: false);
+            }
+
             /// <param name="symbol">The symbol to analyze. Will also analyze implicit constructors too.</param>
             /// <param name="reportDiagnostic">Action called to actually report a diagnostic.</param>
             /// <param name="explicitLocation">A location to report the diagnostics for a symbol at. If null, then
@@ -149,14 +190,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     var locations = isImplicitlyDeclaredConstructor ? symbol.ContainingType.Locations : symbol.Locations;
                     locationsToReport.AddRange(locations.Where(l => l.IsInSource));
-                }
-
-                void reportDiagnosticAtLocations(DiagnosticDescriptor descriptor, ImmutableDictionary<string, string> propertyBag, params object[] args)
-                {
-                    foreach (Location location in locationsToReport)
-                    {
-                        reportDiagnostic(Diagnostic.Create(descriptor, location, propertyBag, args));
-                    }
                 }
 
                 var hasPublicApiEntry = _publicApiMap.TryGetValue(publicApiName, out ApiLine apiLine);
@@ -253,10 +286,32 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         }
                     }
                 }
+
+                return;
+
+                // local functions
+                void reportDiagnosticAtLocations(DiagnosticDescriptor descriptor, ImmutableDictionary<string, string> propertyBag, params object[] args)
+                {
+                    foreach (Location location in locationsToReport)
+                    {
+                        reportDiagnostic(Diagnostic.Create(descriptor, location, propertyBag, args));
+                    }
+                }
             }
 
             private static string GetErrorMessageName(ISymbol symbol, bool isImplicitlyDeclaredConstructor)
             {
+                if (symbol.IsImplicitlyDeclared &&
+                    symbol is IMethodSymbol methodSymbol &&
+                    methodSymbol.AssociatedSymbol is IPropertySymbol property)
+                {
+                    var formatString = symbol.Equals(property.GetMethod)
+                        ? PublicApiAnalyzerResources.PublicImplicitGetAccessor
+                        : PublicApiAnalyzerResources.PublicImplicitSetAccessor;
+
+                    return string.Format(formatString, property.Name);
+                }
+
                 return isImplicitlyDeclaredConstructor ?
                     string.Format(PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, symbol.ContainingSymbol.ToDisplayString(ShortSymbolNameFormat)) :
                     symbol.ToDisplayString(ShortSymbolNameFormat);
@@ -438,7 +493,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private void ProcessTypeForwardedAttributes(Compilation compilation, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
             {
-                var typeForwardedToAttribute = compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.TypeForwardedToAttribute");
+                var typeForwardedToAttribute = compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesTypeForwardedToAttribute);
 
                 if (typeForwardedToAttribute != null)
                 {

@@ -124,9 +124,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasFinalizer(this INamedTypeSymbol symbol)
         {
             return symbol.GetMembers()
-                .Where(m => m.Kind == SymbolKind.Method)
-                .Cast<IMethodSymbol>()
-                .Any(m => m.IsFinalizer());
+                .Any(m => m is IMethodSymbol method && method.IsFinalizer());
         }
 
         /// <summary>
@@ -166,9 +164,28 @@ namespace Analyzer.Utilities.Extensions
                 return false;
             }
 
-            IEnumerable<ISymbol> declaredMembers = symbol.GetMembers().Where(m => !m.IsImplicitlyDeclared);
+            // Same as
+            // return declaredMembers.Any(IsQualifyingMember) && !declaredMembers.Any(IsDisqualifyingMember);
+            // but with less enumerations
+            var hasQualifyingMembers = false;
+            foreach (var member in symbol.GetMembers())
+            {
+                if (!member.IsImplicitlyDeclared)
+                {
+                    if (!hasQualifyingMembers && IsQualifyingMember(member))
+                    {
+                        hasQualifyingMembers = true;
+                    }
 
-            return declaredMembers.Any(IsQualifyingMember) && !declaredMembers.Any(IsDisqualifyingMember);
+                    if (IsDisqualifyingMember(member))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+
+            return hasQualifyingMembers;
         }
 
         /// <summary>
@@ -261,21 +278,6 @@ namespace Analyzer.Utilities.Extensions
             // Any instance member other than a default constructor disqualifies a class
             // from being considered a static holder class.
             return !member.IsStatic && !member.IsDefaultConstructor();
-        }
-
-        public static IPropertySymbol GetProperty(this INamedTypeSymbol namedType, string propertyName)
-        {
-            if (namedType == null)
-            {
-                throw new ArgumentNullException(nameof(namedType));
-            }
-
-            if (propertyName == null)
-            {
-                throw new ArgumentNullException(nameof(propertyName));
-            }
-
-            return (IPropertySymbol)namedType.GetMembers(propertyName).Single();
         }
     }
 }

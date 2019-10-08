@@ -30,7 +30,6 @@ namespace Test.Utilities
                 TestCode = source,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
@@ -49,7 +48,6 @@ namespace Test.Utilities
                 FixedCode = fixedSource,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }

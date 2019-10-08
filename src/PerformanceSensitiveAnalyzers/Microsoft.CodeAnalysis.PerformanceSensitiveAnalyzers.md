@@ -12,10 +12,8 @@ Sr. No. | Rule ID | Title | Category | Enabled | CodeFix | Description |
 9 | HAA0501 | Explicit new array type allocation | Performance | True | False | Explicit new array type allocation |
 10 | HAA0502 | Explicit new reference type allocation | Performance | True | False | Explicit new reference type allocation |
 11 | [HAA0503](http://msdn.microsoft.com/en-us/library/bb397696.aspx) | Explicit new anonymous object allocation | Performance | True | False | Explicit new anonymous object allocation |
-12 | HAA0504 | Implicit new array creation allocation | Performance | True | False | Implicit new array creation allocation |
-13 | HAA0505 | Initializer reference type allocation | Performance | True | False | Initializer reference type allocation |
-14 | HAA0506 | Let clause induced allocation | Performance | True | False | Let clause induced allocation |
-15 | HAA0601 | Value type to reference type conversion causing boxing allocation | Performance | True | False | Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable |
-16 | HAA0602 | Delegate on struct instance caused a boxing allocation | Performance | True | False | Struct instance method being used for delegate creation, this will result in a boxing instruction |
-17 | HAA0603 | Delegate allocation from a method group | Performance | True | False | This will allocate a delegate instance |
-18 | HeapAnalyzerReadonlyMethodGroupAllocationRule | Delegate allocation from a method group | Performance | True | False | This will allocate a delegate instance |
+12 | HAA0506 | Let clause induced allocation | Performance | True | False | Let clause induced allocation |
+13 | HAA0601 | Value type to reference type conversion causing boxing allocation | Performance | True | False | Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable |
+14 | HAA0602 | Delegate on struct instance caused a boxing allocation | Performance | True | False | Struct instance method being used for delegate creation, this will result in a boxing instruction |
+15 | HAA0603 | Delegate allocation from a method group | Performance | True | False | This will allocate a delegate instance |
+16 | HeapAnalyzerReadonlyMethodGroupAllocationRule | Delegate allocation from a method group | Performance | True | False | This will allocate a delegate instance |

@@ -4,87 +4,107 @@
     <body>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</target>
+        <target state="translated">El símbolo "{0}" infringe el requisito de compatibilidad con versiones anteriores: "No agregar varias sobrecargas con los parámetros opcionales". Consulte "{1}" para obtener más detalles.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
         <source>Do not add multiple public overloads with optional parameters</source>
-        <target state="new">Do not add multiple public overloads with optional parameters</target>
+        <target state="translated">No agregar varias sobrecargas públicas con los parámetros opcionales</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiDescription">
         <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">Todos los tipos y miembros públicos deben declararse en PublicAPI.txt. Esto atrae la atención a los cambios de la API en las revisiones de código y el historial de control de código fuente; además, ayuda a evitar cambios importantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared API.</source>
-        <target state="new">Symbol '{0}' is not part of the declared API.</target>
+        <target state="translated">El símbolo "{0}" no forma parte de la API declarada.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
         <source>Add public types and members to the declared API</source>
-        <target state="new">Add public types and members to the declared API</target>
+        <target state="translated">Agregar miembros y tipos públicos a la API declarada</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files.</source>
-        <target state="new">The symbol '{0}' appears more than once in the public API files.</target>
+        <target state="translated">El símbolo "{0}" aparece más de una vez en los archivos de la API pública.</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
         <source>Do not duplicate symbols in public API files</source>
-        <target state="new">Do not duplicate symbols in public API files</target>
+        <target state="translated">No duplicar símbolos en los archivos de la API pública</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
-        <target state="new">Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</target>
+        <target state="translated">El constructor convierte su clase base no heredable en heredable, por lo que expone sus miembros protegidos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
-        <target state="new">Constructor make noninheritable base class inheritable</target>
+        <target state="translated">El constructor convierte en heredable su clase base no heredable</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</target>
+        <target state="translated">El símbolo "{0}" infringe el requisito de compatibilidad con versiones anteriores: "La API pública con parámetros opcionales debe tener la mayoría de los parámetros entre sus sobrecargas públicas". Consulte "{1}" para obtener más detalles.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
-        <target state="new">Public API with optional parameter(s) should have the most parameters amongst its public overloads.</target>
+        <target state="translated">La API pública con parámetros opcionales debe tener la mayoría de los parámetros entre sus sobrecargas públicas</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
-        <target state="new">The contents of the public API files are invalid: {0}</target>
+        <target state="translated">El contenido de los archivos de la API pública no es válido: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
-        <target state="new">The contents of the public API files are invalid</target>
+        <target state="translated">El contenido de los archivos de la API pública no es válido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesMissingMessage">
+        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
+        <target state="translated">La solución debe contener dos archivos con el tipo "AdditionalFiles": PublicAPI.Unshipped.txt y PublicAPI.Shipped.txt. Al menos uno de estos archivos falta o tiene un tipo incorrecto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesMissingTitle">
+        <source>One or both of the public API files are missing</source>
+        <target state="translated">Faltan los dos archivos de la API pública o uno de ellos</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for {0}</source>
-        <target state="new">implicit constructor for {0}</target>
+        <target state="translated">constructor implícito para {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicImplicitGetAccessor">
+        <source>implicit get-accessor for {0}</source>
+        <target state="translated">descriptor de acceso get implícito para {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicImplicitSetAccessor">
+        <source>implicit set-accessor for {0}</source>
+        <target state="translated">descriptor de acceso set implícito para {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
         <source>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">Al quitar un miembro o un tipo público, también debe quitarse la entrada correspondiente en PublicAPI.txt. Esto atrae la atención a los cambios de la API en las revisiones de código y el historial de control de código fuente; además, ayuda a evitar cambios importantes.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
-        <target state="new">Symbol '{0}' is part of the declared API, but is either not public or could not be found</target>
+        <target state="translated">El símbolo "{0}" forma parte de la API declarada, pero no es pública o no se encontró.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiTitle">
         <source>Remove deleted types and members from the declared API</source>
-        <target state="new">Remove deleted types and members from the declared API</target>
+        <target state="translated">Quitar tipos y miembros eliminados de la API declarada</target>
         <note />
       </trans-unit>
     </body>

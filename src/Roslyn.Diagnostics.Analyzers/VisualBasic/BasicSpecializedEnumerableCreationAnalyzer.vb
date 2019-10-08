@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Diagnostics
-Imports System.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -85,7 +82,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
 
                     ' Check for explicit specification of empty or singleton array
                     Dim literalRankSpecifier = DirectCast(arrayCreationExpression.RankSpecifiers(0).ChildNodes() _
-                        .SingleOrDefault(Function(n) n.Kind() = SyntaxKind.NumericLiteralExpression),
+                        .FirstOrDefault(Function(n) n.Kind() = SyntaxKind.NumericLiteralExpression),
                         LiteralExpressionSyntax)
 
                     If literalRankSpecifier IsNot Nothing Then

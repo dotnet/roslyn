@@ -41,23 +41,25 @@ namespace Roslyn.Diagnostics.Analyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var mefV1ExportAttribute = WellKnownTypes.MEFV1ExportAttribute(compilationContext.Compilation);
-                var mefV2ExportAttribute = WellKnownTypes.MEFV2ExportAttribute(compilationContext.Compilation);
+                var mefV1ExportAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemComponentModelCompositionExportAttribute);
+                var mefV2ExportAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCompositionExportAttribute);
                 if (mefV1ExportAttribute == null || mefV2ExportAttribute == null)
                 {
                     // We don't need to check assemblies unless they're referencing both versions of MEF, so we're done
                     return;
                 };
 
+                var attributeUsageAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
+
                 var exportAttributes = new List<INamedTypeSymbol>() { mefV1ExportAttribute, mefV2ExportAttribute };
-                compilationContext.RegisterSymbolAction(c => AnalyzeSymbol(c, exportAttributes), SymbolKind.NamedType);
+                compilationContext.RegisterSymbolAction(c => AnalyzeSymbol(c, exportAttributes, attributeUsageAttribute), SymbolKind.NamedType);
             });
         }
 
-        private static void AnalyzeSymbol(SymbolAnalysisContext symbolContext, IEnumerable<INamedTypeSymbol> exportAttributes)
+        private static void AnalyzeSymbol(SymbolAnalysisContext symbolContext, IEnumerable<INamedTypeSymbol> exportAttributes, INamedTypeSymbol attributeUsageAttribute)
         {
             var namedType = (INamedTypeSymbol)symbolContext.Symbol;
-            var namedTypeAttributes = namedType.GetApplicableAttributes();
+            var namedTypeAttributes = namedType.GetApplicableAttributes(attributeUsageAttribute);
 
             // Figure out which export attributes are being used here
             var appliedExportAttributes = exportAttributes.Where(e => namedTypeAttributes.Any(ad => ad.AttributeClass.DerivesFrom(e))).ToList();
@@ -74,7 +76,7 @@ namespace Roslyn.Diagnostics.Analyzers
             // Now look at all attributes and see if any are metadata attributes from badNamespaces, but none from good namepaces.
             foreach (var namedTypeAttribute in namedTypeAttributes)
             {
-                var appliedMetadataAttributes = namedTypeAttribute.AttributeClass.GetApplicableAttributes()
+                var appliedMetadataAttributes = namedTypeAttribute.AttributeClass.GetApplicableAttributes(attributeUsageAttribute)
                     .Where(ad => ad.AttributeClass.Name.Equals("MetadataAttributeAttribute", StringComparison.Ordinal));
                 if (appliedMetadataAttributes.Any(ad => badNamespaces.Contains(ad.AttributeClass.ContainingNamespace)) &&
                     !appliedMetadataAttributes.Any(ad => goodNamespaces.Contains(ad.AttributeClass.ContainingNamespace)))

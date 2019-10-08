@@ -18,5 +18,18 @@ namespace Analyzer.Utilities
                 SymbolDisplayLocalOptions.IncludeType,
                 SymbolDisplayKindOptions.None,
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+        public static readonly SymbolDisplayFormat QualifiedTypeAndNamespaceSymbolDisplayFormat = new SymbolDisplayFormat(
+                SymbolDisplayGlobalNamespaceStyle.Omitted,
+                SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                SymbolDisplayMemberOptions.IncludeContainingType,
+                SymbolDisplayDelegateStyle.NameOnly,
+                SymbolDisplayExtensionMethodStyle.InstanceMethod,
+                SymbolDisplayParameterOptions.None,
+                SymbolDisplayPropertyStyle.NameOnly,
+                SymbolDisplayLocalOptions.IncludeType,
+                SymbolDisplayKindOptions.None,
+                SymbolDisplayMiscellaneousOptions.None);
     }
 }

@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     }
                     else
                     {
-                        ITypeParameterSymbol typeParam = method.TypeParameters.SingleOrDefault(t => t.Name == TLanguageKindEnumName);
+                        ITypeParameterSymbol typeParam = method.TypeParameters.FirstOrDefault(t => t.Name == TLanguageKindEnumName);
                         if (typeParam != null)
                         {
                             int index = method.TypeParameters.IndexOf(typeParam);
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             {
                 if (IsContextType(parameter.Type, _compilationStartAnalysisContext, _codeBlockStartAnalysisContext, _operationBlockStartAnalysisContext))
                 {
-                    _declaredStartAnalysisContextParams = _declaredStartAnalysisContextParams ?? new HashSet<IParameterSymbol>();
+                    _declaredStartAnalysisContextParams ??= new HashSet<IParameterSymbol>();
                     _declaredStartAnalysisContextParams.Add(parameter);
                 }
             }
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 // This is to avoid false positives, as the registration responsibility is not on the current method.
                 if (IsContextType(parameter.Type, _compilationStartAnalysisContext, _codeBlockStartAnalysisContext, _operationBlockStartAnalysisContext))
                 {
-                    _startAnalysisContextParamsToSkip = _startAnalysisContextParamsToSkip ?? new HashSet<IParameterSymbol>();
+                    _startAnalysisContextParamsToSkip ??= new HashSet<IParameterSymbol>();
                     _startAnalysisContextParamsToSkip.Add(parameter);
                 }
             }
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                _nestedActionsMap = _nestedActionsMap ?? new Dictionary<IParameterSymbol, List<NodeAndSymbol>>();
+                _nestedActionsMap ??= new Dictionary<IParameterSymbol, List<NodeAndSymbol>>();
                 if (!_nestedActionsMap.TryGetValue(contextParameter, out List<NodeAndSymbol> registerInvocations))
                 {
                     registerInvocations = new List<NodeAndSymbol>();

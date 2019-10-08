@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,8 +10,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
-
     /// <summary>
     /// Abstract tainted data value shared by a set of one of more <see cref="AnalysisEntity"/> instances tracked by <see cref="TaintedDataAnalysis"/>.
     /// </summary>
@@ -35,10 +34,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ImmutableHashSet<SymbolAccess> SourceOrigins { get; }
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(HashUtilities.Combine(SourceOrigins));
-            builder.Add(Kind.GetHashCode());
+            addPart(HashUtilities.Combine(SourceOrigins));
+            addPart(Kind.GetHashCode());
         }
 
         /// <summary>

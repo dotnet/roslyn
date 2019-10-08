@@ -10,6 +10,7 @@
     <ReleaseNotes>PerformanceSensitive Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp Diagnostic Analyzers Syntax Semantics Performance</PackageTags>
     <AnalyzerDocumentationFileDir>$(RepoRoot)src\PerformanceSensitiveAnalyzers</AnalyzerDocumentationFileDir>
+    <AnalyzerSarifFileDir>$(RepoRoot)src\PerformanceSensitiveAnalyzers</AnalyzerSarifFileDir>
   </PropertyGroup>
 
   <ItemGroup>

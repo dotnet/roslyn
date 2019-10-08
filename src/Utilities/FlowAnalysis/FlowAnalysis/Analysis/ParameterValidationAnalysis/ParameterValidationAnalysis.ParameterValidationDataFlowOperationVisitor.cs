@@ -36,11 +36,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 }
             }
 
-            public override int GetHashCode()
-            {
-                return HashUtilities.Combine(_hazardousParameterUsageBuilderOpt.GetHashCodeOrDefault(), base.GetHashCode());
-            }
-
             public ImmutableDictionary<IParameterSymbol, SyntaxNode> HazardousParameterUsages
             {
                 get
@@ -64,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 return CurrentAnalysisData.ContainsKey(location) ||
                     location.SymbolOpt is IParameterSymbol parameter &&
                     parameter.Type.IsReferenceType &&
-                    parameter.ContainingSymbol == GetBottomOfStackOwningSymbol();
+                    Equals(parameter.ContainingSymbol, GetBottomOfStackOwningSymbol());
 
                 ISymbol GetBottomOfStackOwningSymbol()
                 {
@@ -156,19 +151,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     return false;
                 }
 
-                switch (operation.Parent)
+                return operation.Parent switch
                 {
-                    case IMemberReferenceOperation memberReference:
-                        return memberReference.Instance == operation;
+                    IMemberReferenceOperation memberReference => memberReference.Instance == operation,
 
-                    case IArrayElementReferenceOperation arrayElementReference:
-                        return arrayElementReference.ArrayReference == operation;
+                    IArrayElementReferenceOperation arrayElementReference => arrayElementReference.ArrayReference == operation,
 
-                    case IInvocationOperation invocation:
-                        return invocation.Instance == operation;
-                }
+                    IInvocationOperation invocation => invocation.Instance == operation,
 
-                return false;
+                    _ => false,
+                };
             }
 
             private void HandlePotentiallyHazardousOperation(IOperation operation, IEnumerable<AbstractLocation> nonValidatedLocations)
@@ -279,26 +271,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             {
                 Debug.Assert(!targetMethod.IsLambdaOrLocalFunctionOrDelegate());
 
-                if (targetMethod.ContainingType.SpecialType == SpecialType.System_String)
+                if (targetMethod.IsArgumentNullCheckMethod())
                 {
-                    if (targetMethod.IsStatic &&
-                        targetMethod.Name.StartsWith("IsNull", StringComparison.Ordinal) &&
-                        targetMethod.Parameters.Length == 1 &&
-                        arguments.Length == 1)
+                    if (arguments.Length == 1)
                     {
-                        // string.IsNullOrXXX check.
+                        // "static bool SomeType.IsNullXXX(obj)" check.
                         MarkValidatedLocations(arguments[0]);
                     }
                 }
                 else if (targetMethod.Parameters.Length > 0 &&
                          arguments.Length > 0 &&
-                         WellKnownTypeProvider.Exception != null &&
-                         targetMethod.ContainingType.DerivesFrom(WellKnownTypeProvider.Exception))
+                         ExceptionNamedType != null &&
+                         targetMethod.ContainingType.DerivesFrom(ExceptionNamedType))
                 {
                     // FxCop compat: special cases handled by FxCop.
                     //  1. First argument of type System.Runtime.Serialization.SerializationInfo to System.Exception.GetObjectData or its override is validated.
                     //  2. First argument of type System.Runtime.Serialization.SerializationInfo to constructor of System.Exception or its subtype is validated.
-                    if (targetMethod.Parameters[0].Type == WellKnownTypeProvider.SerializationInfo)
+                    if (Equals(targetMethod.Parameters[0].Type, SerializationInfoNamedType))
                     {
                         switch (targetMethod.MethodKind)
                         {
@@ -340,6 +329,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                         }
                     }
                 }
+
+
+                // Mark arguments passed to parameters of null check validation methods as validated.
+                // Also mark arguments passed to parameters with ValidatedNotNullAttribute as validated.
+                var isNullCheckValidationMethod = DataFlowAnalysisContext.IsNullCheckValidationMethod(targetMethod.OriginalDefinition);
+                foreach (var argument in arguments)
+                {
+                    var notValidatedLocations = GetNotValidatedLocations(argument);
+                    if (notValidatedLocations.Any())
+                    {
+                        if (isNullCheckValidationMethod || HasValidatedNotNullAttribute(argument.Parameter))
+                        {
+                            MarkValidatedLocations(argument);
+                        }
+                    }
+                }
             }
 
             private void ProcessLambdaOrLocalFunctionInvocation(IMethodSymbol targetMethod, IOperation invocation)
@@ -360,7 +365,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                             var syntaxNode = kvp.Value;
                             if (!_hazardousParameterUsageBuilderOpt.ContainsKey(parameter))
                             {
-                                HandleHazardousOperation(syntaxNode, notValidatedLocations.Where(l => l.SymbolOpt == parameter));
+                                HandleHazardousOperation(syntaxNode, notValidatedLocations.Where(l => Equals(l.SymbolOpt, parameter)));
                             }
                         }
                     }
@@ -413,11 +418,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             {
                 var value = base.VisitIsNull(operation, argument);
 
-                // Mark a location as validated on paths where we know it is non-null.
+                // Mark a location as validated on paths where user has performed an IsNull check.
                 // See comments in VisitBinaryOperatorCore override above for further details.
-                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse)
+                MarkValidatedLocations(operation.Operand);
+
+                return value;
+            }
+
+            public override ParameterValidationAbstractValue VisitIsType(IIsTypeOperation operation, object argument)
+            {
+                var value = base.VisitIsType(operation, argument);
+
+                // Mark a location as validated on paths where user has performed an IsType check, for example 'x is object'.
+                // See comments in VisitBinaryOperatorCore override above for further details.
+                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue)
                 {
-                    MarkValidatedLocations(operation.Operand);
+                    MarkValidatedLocations(operation.ValueOperand);
                 }
 
                 return value;

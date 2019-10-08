@@ -4,87 +4,107 @@
     <body>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</target>
+        <target state="translated">'{0}' 기호가 backcompat 요구 사항인 '선택적 매개 변수가 있는 여러 오버로드를 추가하지 마세요.'를 위반합니다. 자세한 내용은 '{1}'을(를) 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersTitle">
         <source>Do not add multiple public overloads with optional parameters</source>
-        <target state="new">Do not add multiple public overloads with optional parameters</target>
+        <target state="translated">선택적 매개 변수가 있는 여러 공용 오버로드를 추가하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiDescription">
         <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">모든 public 형식 및 멤버는 PublicAPI.txt에서 선언해야 합니다. 이로 인해 코드 검토 및 소스 제어 기록에서 API 변경 내용을 쉽게 확인할 수 있고 큰 변경을 방지할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared API.</source>
-        <target state="new">Symbol '{0}' is not part of the declared API.</target>
+        <target state="translated">'{0}' 기호가 선언된 API의 일부가 아닙니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
         <source>Add public types and members to the declared API</source>
-        <target state="new">Add public types and members to the declared API</target>
+        <target state="translated">선언된 API에 공용 형식 및 멤버 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files.</source>
-        <target state="new">The symbol '{0}' appears more than once in the public API files.</target>
+        <target state="translated">'{0}' 기호가 공용 API 파일에 두 번 이상 나타납니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
         <source>Do not duplicate symbols in public API files</source>
-        <target state="new">Do not duplicate symbols in public API files</target>
+        <target state="translated">공용 API 파일에서 기호를 복제하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
-        <target state="new">Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</target>
+        <target state="translated">생성자는 해당 상속할 수 없는 기본 클래스를 상속할 수 있도록 만들어 보호된 멤버가 공개됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
         <source>Constructor make noninheritable base class inheritable</source>
-        <target state="new">Constructor make noninheritable base class inheritable</target>
+        <target state="translated">생성자가 상속할 수 없는 기본 클래스를 상속할 수 있도록 만듭니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
-        <target state="new">Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</target>
+        <target state="translated">'{0}' 기호가 backcompat 요구 사항인 '선택적 매개 변수가 있는 공용 API에는 공용 오버로드 중 가장 많은 매개 변수를 보유해야 합니다.'를 위반합니다. 자세한 내용은 '{1}'을(를) 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
-        <target state="new">Public API with optional parameter(s) should have the most parameters amongst its public overloads.</target>
+        <target state="translated">선택적 매개 변수가 있는 공용 API에는 공용 오버로드 중 대부분의 매개 변수가 포함되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
         <source>The contents of the public API files are invalid: {0}</source>
-        <target state="new">The contents of the public API files are invalid: {0}</target>
+        <target state="translated">공용 API 파일의 콘텐츠가 유효하지 않습니다. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidTitle">
         <source>The contents of the public API files are invalid</source>
-        <target state="new">The contents of the public API files are invalid</target>
+        <target state="translated">공용 API 파일의 콘텐츠가 유효하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesMissingMessage">
+        <source>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</source>
+        <target state="translated">솔루션에 "AdditionalFiles": PublicAPI.Unshipped.txt 및 PublicAPI.Shipped.txt 형식의 파일이 두 개 포함되어야 합니다. 이러한 파일 중 하나 이상이 없거나 형식이 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFilesMissingTitle">
+        <source>One or both of the public API files are missing</source>
+        <target state="translated">공용 API 파일 중 하나 또는 둘 다 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for {0}</source>
-        <target state="new">implicit constructor for {0}</target>
+        <target state="translated">{0}의 암시적 생성자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicImplicitGetAccessor">
+        <source>implicit get-accessor for {0}</source>
+        <target state="translated">{0}의 암시적 get 접근자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicImplicitSetAccessor">
+        <source>implicit set-accessor for {0}</source>
+        <target state="translated">{0}의 암시적 set 접근자</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
         <source>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="new">When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</target>
+        <target state="translated">public 형식 및 멤버를 제거하면 PublicAPI.txt의 해당 항목도 제거되어야 합니다. 이로 인해 코드 검토 및 소스 제어 기록에서 API 변경 내용을 쉽게 확인할 수 있고 큰 변경을 방지할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
-        <target state="new">Symbol '{0}' is part of the declared API, but is either not public or could not be found</target>
+        <target state="translated">'{0}' 기호가 선언된 API의 일부이지만, 공용이 아니거나 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiTitle">
         <source>Remove deleted types and members from the declared API</source>
-        <target state="new">Remove deleted types and members from the declared API</target>
+        <target state="translated">선언된 API에서 삭제된 형식 및 멤버 제거</target>
         <note />
       </trans-unit>
     </body>

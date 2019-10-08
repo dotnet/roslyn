@@ -54,11 +54,11 @@ namespace Test.Utilities
 
             // A stack of span starts along with their associated annotation name.  [||] spans simply
             // have empty string for their annotation name.
-            var spanStartStack = new Stack<Tuple<int, string>>();
+            var spanStartStack = new Stack<(int index, string value)>();
 
             while (true)
             {
-                var matches = new List<Tuple<int, string>>();
+                var matches = new List<(int index, string value)>();
                 AddMatch(input, PositionString, currentIndexInInput, matches);
                 AddMatch(input, SpanStartString, currentIndexInInput, matches);
                 AddMatch(input, SpanEndString, currentIndexInInput, matches);
@@ -67,7 +67,7 @@ namespace Test.Utilities
                 Match namedSpanStartMatch = s_namedSpanStartRegex.Match(input, currentIndexInInput);
                 if (namedSpanStartMatch.Success)
                 {
-                    matches.Add(Tuple.Create(namedSpanStartMatch.Index, namedSpanStartMatch.Value));
+                    matches.Add((namedSpanStartMatch.Index, namedSpanStartMatch.Value));
                 }
 
                 if (matches.Count == 0)
@@ -76,10 +76,10 @@ namespace Test.Utilities
                     break;
                 }
 
-                List<Tuple<int, string>> orderedMatches = matches.OrderBy((t1, t2) => t1.Item1 - t2.Item1).ToList();
+                var orderedMatches = matches.OrderBy(match => match.index).ToList();
                 if (orderedMatches.Count >= 2 &&
                     spanStartStack.Count > 0 &&
-                    matches[0].Item1 == matches[1].Item1 - 1)
+                    matches[0].index == matches[1].index - 1)
                 {
                     // We have a slight ambiguity with cases like these:
                     //
@@ -89,8 +89,8 @@ namespace Test.Utilities
                     // special case these and consider it ending a match if we have something on the
                     // stack already.
 #pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/2180
-                    if ((matches[0].Item2 == SpanStartString && matches[1].Item2 == SpanEndString && spanStartStack.Peek().Item2.Length == 0) ||
-                        (matches[0].Item2 == SpanStartString && matches[1].Item2 == NamedSpanEndString && spanStartStack.Peek().Item2.Length > 0))
+                    if ((matches[0].value == SpanStartString && matches[1].value == SpanEndString && spanStartStack.Peek().value.Length == 0) ||
+                        (matches[0].value == SpanStartString && matches[1].value == NamedSpanEndString && spanStartStack.Peek().value.Length > 0))
                     {
                         orderedMatches.RemoveAt(0);
                     }
@@ -98,10 +98,7 @@ namespace Test.Utilities
                 }
 
                 // Order the matches by their index
-                Tuple<int, string> firstMatch = orderedMatches.First();
-
-                int matchIndexInInput = firstMatch.Item1;
-                string matchString = firstMatch.Item2;
+                var (matchIndexInInput, matchString) = orderedMatches.First();
 
                 int matchIndexInOutput = matchIndexInInput - inputOutputOffset;
                 outputBuilder.Append(input.Substring(currentIndexInInput, matchIndexInInput - currentIndexInInput));
@@ -121,7 +118,7 @@ namespace Test.Utilities
                         break;
 
                     case SpanStartString:
-                        spanStartStack.Push(Tuple.Create(matchIndexInOutput, string.Empty));
+                        spanStartStack.Push((matchIndexInOutput, string.Empty));
                         break;
 
                     case SpanEndString:
@@ -130,7 +127,7 @@ namespace Test.Utilities
                             throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanEndString, SpanStartString));
                         }
 
-                        if (spanStartStack.Peek().Item2.Length > 0)
+                        if (spanStartStack.Peek().value.Length > 0)
                         {
                             throw new ArgumentException(string.Format("Saw {0} without matching {1}", NamedSpanStartString, NamedSpanEndString));
                         }
@@ -140,7 +137,7 @@ namespace Test.Utilities
 
                     case NamedSpanStartString:
                         string name = namedSpanStartMatch.Groups[1].Value;
-                        spanStartStack.Push(Tuple.Create(matchIndexInOutput, name));
+                        spanStartStack.Push((matchIndexInOutput, name));
                         break;
 
                     case NamedSpanEndString:
@@ -149,7 +146,7 @@ namespace Test.Utilities
                             throw new ArgumentException(string.Format("Saw {0} without matching {1}", NamedSpanEndString, NamedSpanStartString));
                         }
 
-                        if (spanStartStack.Peek().Item2.Length == 0)
+                        if (spanStartStack.Peek().value.Length == 0)
                         {
                             throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanStartString, SpanEndString));
                         }
@@ -184,22 +181,22 @@ namespace Test.Utilities
         }
 
         private static void PopSpan(
-            Stack<Tuple<int, string>> spanStartStack,
+            Stack<(int index, string value)> spanStartStack,
             IDictionary<string, IList<TextSpan>> spans,
             int finalIndex)
         {
-            Tuple<int, string> spanStartTuple = spanStartStack.Pop();
+            var (index, value) = spanStartStack.Pop();
 
-            TextSpan span = TextSpan.FromBounds(spanStartTuple.Item1, finalIndex);
-            GetOrAdd(spans, spanStartTuple.Item2, _ => new List<TextSpan>()).Add(span);
+            TextSpan span = TextSpan.FromBounds(index, finalIndex);
+            GetOrAdd(spans, value, _ => new List<TextSpan>()).Add(span);
         }
 
-        private static void AddMatch(string input, string value, int currentIndex, List<Tuple<int, string>> matches)
+        private static void AddMatch(string input, string value, int currentIndex, List<(int index, string value)> matches)
         {
             int index = input.IndexOf(value, currentIndex, StringComparison.Ordinal);
             if (index >= 0)
             {
-                matches.Add(Tuple.Create(index, value));
+                matches.Add((index, value));
             }
         }
 
@@ -210,52 +207,11 @@ namespace Test.Utilities
             spans = GetOrAdd(dictionary, string.Empty, _ => new List<TextSpan>());
         }
 
-        public static void GetPositionAndSpans(string input, out string output, out int? cursorPositionOpt, out IDictionary<string, IList<TextSpan>> spans)
-        {
-            Parse(input, out output, out cursorPositionOpt, out spans);
-        }
-
-        public static void GetSpans(string input, out string output, out IDictionary<string, IList<TextSpan>> spans)
-        {
-            GetPositionAndSpans(input, out output, out _, out spans);
-        }
-
-        public static void GetPositionAndSpans(string input, out string output, out int cursorPosition, out IList<TextSpan> spans)
-        {
-            GetPositionAndSpans(input, out output, out int? pos, out spans);
-
-            cursorPosition = pos.Value;
-        }
-
-        public static void GetPosition(string input, out string output, out int cursorPosition)
-        {
-            GetPositionAndSpans(input, out output, out cursorPosition, out _);
-        }
-
         public static void GetPositionAndSpan(string input, out string output, out int? cursorPosition, out TextSpan? textSpan)
         {
             GetPositionAndSpans(input, out output, out cursorPosition, out IList<TextSpan> spans);
 
             textSpan = spans.Count == 0 ? null : (TextSpan?)spans.Single();
-        }
-
-        public static void GetPositionAndSpan(string input, out string output, out int cursorPosition, out TextSpan textSpan)
-        {
-            GetPositionAndSpans(input, out output, out cursorPosition, out IList<TextSpan> spans);
-
-            textSpan = spans.Single();
-        }
-
-        public static void GetSpans(string input, out string output, out IList<TextSpan> spans)
-        {
-            GetPositionAndSpans(input, out output, out int? _, out spans);
-        }
-
-        public static void GetSpan(string input, out string output, out TextSpan textSpan)
-        {
-            GetSpans(input, out output, out IList<TextSpan> spans);
-
-            textSpan = spans.Single();
         }
     }
 }

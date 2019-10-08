@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using System.Collections.Immutable;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -36,7 +37,7 @@ namespace Analyzer.Utilities.Extensions
         {
             return methods.Where(candidateMethod =>
             {
-                if (selectedOverload.Parameters.Count() + 1 != candidateMethod.Parameters.Count())
+                if (!candidateMethod.Parameters.HasExactly(selectedOverload.Parameters.Count() + 1))
                 {
                     return false;
                 }
@@ -99,10 +100,10 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="members"></param>
         /// <param name="expectedParameterTypesInOrder"></param>
         /// <returns></returns>
-        public static IMethodSymbol GetSingleOrDefaultMemberWithParameterInfos(this IEnumerable<IMethodSymbol> members, params ParameterInfo[] expectedParameterTypesInOrder)
+        public static IMethodSymbol GetFirstOrDefaultMemberWithParameterInfos(this IEnumerable<IMethodSymbol> members, params ParameterInfo[] expectedParameterTypesInOrder)
         {
-            var expectedParameterCount = expectedParameterTypesInOrder.Count();
-            return members?.Where(member =>
+            var expectedParameterCount = expectedParameterTypesInOrder.Length;
+            return members?.FirstOrDefault(member =>
             {
                 if (member.Parameters.Count() != expectedParameterCount)
                 {
@@ -137,7 +138,7 @@ namespace Analyzer.Utilities.Extensions
                 }
 
                 return true;
-            }).SingleOrDefault();
+            });
         }
     }
 

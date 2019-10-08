@@ -1,0 +1,585 @@
+﻿{
+  "$schema": "http://json.schemastore.org/sarif-1.0.0",
+  "version": "1.0.0",
+  "runs": [
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
+        "version": "2.9.6",
+        "language": "en-US"
+      },
+      "rules": {
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers",
+        "version": "2.9.6",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0030": {
+          "id": "RS0030",
+          "shortDescription": "Do not used banned APIs",
+          "fullDescription": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSymbolIsBannedAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0031": {
+          "id": "RS0031",
+          "shortDescription": "The list of banned symbols contains a duplicate",
+          "fullDescription": "The list of banned symbols contains a duplicate.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSymbolIsBannedAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0035": {
+          "id": "RS0035",
+          "shortDescription": "External access to internal symbols outside the restricted namespace(s) is prohibited",
+          "fullDescription": "RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpRestrictedInternalsVisibleToAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
+        "version": "2.9.6",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0016": {
+          "id": "RS0016",
+          "shortDescription": "Add public types and members to the declared API",
+          "fullDescription": "All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0017": {
+          "id": "RS0017",
+          "shortDescription": "Remove deleted types and members from the declared API",
+          "fullDescription": "When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0022": {
+          "id": "RS0022",
+          "shortDescription": "Constructor make noninheritable base class inheritable",
+          "fullDescription": "Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0024": {
+          "id": "RS0024",
+          "shortDescription": "The contents of the public API files are invalid",
+          "fullDescription": "The contents of the public API files are invalid: {0}",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0025": {
+          "id": "RS0025",
+          "shortDescription": "Do not duplicate symbols in public API files",
+          "fullDescription": "The symbol '{0}' appears more than once in the public API files.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0026": {
+          "id": "RS0026",
+          "shortDescription": "Do not add multiple public overloads with optional parameters",
+          "fullDescription": "Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0027": {
+          "id": "RS0027",
+          "shortDescription": "Public API with optional parameter(s) should have the most parameters amongst its public overloads.",
+          "fullDescription": "Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers",
+        "version": "2.9.6",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0030": {
+          "id": "RS0030",
+          "shortDescription": "Do not used banned APIs",
+          "fullDescription": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "BasicSymbolIsBannedAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0031": {
+          "id": "RS0031",
+          "shortDescription": "The list of banned symbols contains a duplicate",
+          "fullDescription": "The list of banned symbols contains a duplicate.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "BasicSymbolIsBannedAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0035": {
+          "id": "RS0035",
+          "shortDescription": "External access to internal symbols outside the restricted namespace(s) is prohibited",
+          "fullDescription": "RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "BasicRestrictedInternalsVisibleToAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Roslyn.Diagnostics.Analyzers",
+        "version": "2.9.6",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0006": {
+          "id": "RS0006",
+          "shortDescription": "Do not mix attributes from different versions of MEF",
+          "fullDescription": "Do not mix attributes from different versions of MEF",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0023": {
+          "id": "RS0023",
+          "shortDescription": "Parts exported with MEFv2 must be marked as Shared",
+          "fullDescription": "Part exported with MEFv2 must be marked with the Shared attribute.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0032": {
+          "id": "RS0032",
+          "shortDescription": "Test exports should not be discoverable",
+          "fullDescription": "Test exports should not be discoverable",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsReliability",
+            "isEnabledByDefault": false,
+            "typeName": "TestExportsShouldNotBeDiscoverable",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0033": {
+          "id": "RS0033",
+          "shortDescription": "Importing constructor should be [Obsolete]",
+          "fullDescription": "Importing constructor should be [Obsolete]",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "ImportingConstructorShouldBeObsolete",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0034": {
+          "id": "RS0034",
+          "shortDescription": "Exported parts should have [ImportingConstructor]",
+          "fullDescription": "Exported parts should have [ImportingConstructor]",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "ExportedPartsShouldHaveImportingConstructor",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Roslyn.Diagnostics.CSharp.Analyzers",
+        "version": "2.9.6",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0001": {
+          "id": "RS0001",
+          "shortDescription": "Use SpecializedCollections.EmptyEnumerable()",
+          "fullDescription": "Use SpecializedCollections.EmptyEnumerable()",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSpecializedEnumerableCreationAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0002": {
+          "id": "RS0002",
+          "shortDescription": "Use SpecializedCollections.SingletonEnumerable()",
+          "fullDescription": "Use SpecializedCollections.SingletonEnumerable()",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSpecializedEnumerableCreationAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0005": {
+          "id": "RS0005",
+          "shortDescription": "Do not use generic CodeAction.Create to create CodeAction",
+          "fullDescription": "Do not use generic CodeAction.Create to create CodeAction",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpCodeActionCreateAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0013": {
+          "id": "RS0013",
+          "shortDescription": "Do not invoke Diagnostic.Descriptor",
+          "fullDescription": "Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsPerformance",
+            "isEnabledByDefault": false,
+            "typeName": "CSharpDiagnosticDescriptorAccessAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0019": {
+          "id": "RS0019",
+          "shortDescription": "SymbolDeclaredEvent must be generated for source symbols",
+          "fullDescription": "Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "RoslyDiagnosticsReliability",
+            "isEnabledByDefault": false,
+            "typeName": "CSharpSymbolDeclaredEventAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Roslyn.Diagnostics.VisualBasic.Analyzers",
+        "version": "2.9.6",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0001": {
+          "id": "RS0001",
+          "shortDescription": "Use SpecializedCollections.EmptyEnumerable()",
+          "fullDescription": "Use SpecializedCollections.EmptyEnumerable()",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "BasicSpecializedEnumerableCreationAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0002": {
+          "id": "RS0002",
+          "shortDescription": "Use SpecializedCollections.SingletonEnumerable()",
+          "fullDescription": "Use SpecializedCollections.SingletonEnumerable()",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "BasicSpecializedEnumerableCreationAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0004": {
+          "id": "RS0004",
+          "shortDescription": "Invoke the correct property to ensure correct use site diagnostics.",
+          "fullDescription": "Invoke the correct property to ensure correct use site diagnostics.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "Usage",
+            "isEnabledByDefault": false,
+            "typeName": "BasicInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0005": {
+          "id": "RS0005",
+          "shortDescription": "Do not use generic CodeAction.Create to create CodeAction",
+          "fullDescription": "Do not use generic CodeAction.Create to create CodeAction",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "BasicCodeActionCreateAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0013": {
+          "id": "RS0013",
+          "shortDescription": "Do not invoke Diagnostic.Descriptor",
+          "fullDescription": "Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslyDiagnosticsPerformance",
+            "isEnabledByDefault": false,
+            "typeName": "BasicDiagnosticDescriptorAccessAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0019": {
+          "id": "RS0019",
+          "shortDescription": "SymbolDeclaredEvent must be generated for source symbols",
+          "fullDescription": "Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "RoslyDiagnosticsReliability",
+            "isEnabledByDefault": false,
+            "typeName": "BasicSymbolDeclaredEventAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

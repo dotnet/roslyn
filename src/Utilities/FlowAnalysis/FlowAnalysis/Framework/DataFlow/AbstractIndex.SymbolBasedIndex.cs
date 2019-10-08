@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
-
-using Analyzer.Utilities.PooledObjects;
+using System;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -18,10 +16,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             public AnalysisEntity AnalysisEntity { get; }
 
 #pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
-            protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+            protected override void ComputeHashCodeParts(Action<int> addPart)
             {
-                builder.Add(AnalysisEntity.GetHashCode());
-                builder.Add(nameof(AnalysisEntityBasedIndex).GetHashCode());
+                addPart(AnalysisEntity.GetHashCode());
+                addPart(nameof(AnalysisEntityBasedIndex).GetHashCode());
             }
 #pragma warning restore CA1307 // Specify StringComparison
         }

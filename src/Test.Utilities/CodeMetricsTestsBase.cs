@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -75,13 +76,36 @@ namespace Test.Utilities.CodeMetrics
             var project = CreateProject(sources, language);
             var compilation = project.GetCompilationAsync(CancellationToken.None).Result;
             var diagnostics = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Warning || d.Severity == DiagnosticSeverity.Error);
-            Assert.Equal(expectDiagnostics, diagnostics.Count() != 0);
+            Assert.Equal(expectDiagnostics, diagnostics.Any());
 
             var actualMetricsText = GetMetricsDataString(compilation).Trim();
             expectedMetricsText = expectedMetricsText.Trim();
-            if (actualMetricsText != expectedMetricsText)
+            var actualMetricsTextLines = actualMetricsText.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            var expectedMetricsTextLines = expectedMetricsText.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+
+            var success = true;
+            if (actualMetricsTextLines.Length != expectedMetricsTextLines.Length)
             {
-                Assert.False(false, $"Expected:\r\n{0}\r\n\r\nActual:\r\n{1}");
+                success = false;
+            }
+            else
+            {
+                for (int i = 0; i < actualMetricsTextLines.Length; i++)
+                {
+                    var actual = actualMetricsTextLines[i].Trim();
+                    var expected = expectedMetricsTextLines[i].Trim();
+                    if (actual != expected)
+                    {
+                        success = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!success)
+            {
+                // Dump the entire expected and actual lines for easy update to baseline.
+                Assert.True(false, $"Expected:\r\n{expectedMetricsText}\r\n\r\nActual:\r\n{actualMetricsText}");
             }
         }
     }

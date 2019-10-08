@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                         else
                         {
-                            if (key1.SymbolOpt == null || key1.SymbolOpt != key2.SymbolOpt)
+                            if (key1.SymbolOpt == null || !Equals(key1.SymbolOpt, key2.SymbolOpt))
                             {
                                 // PERF: Do not add a new key-value pair to the resultMap for unrelated entities or non-symbol based entities.
                                 continue;
@@ -190,8 +189,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             AssertValidAnalysisData(resultMap);
 
             return resultMap;
-
-            bool IsAnalysisEntityForFieldOrProperty(AnalysisEntity entity)
+            static bool IsAnalysisEntityForFieldOrProperty(AnalysisEntity entity)
                 => entity.SymbolOpt?.Kind == SymbolKind.Field || entity.SymbolOpt?.Kind == SymbolKind.Property;
         }
     }

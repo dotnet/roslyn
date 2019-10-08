@@ -175,6 +175,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 SymbolKind.Event,
                 SymbolKind.Field,
                 SymbolKind.Method);
+            compilationContext.RegisterSymbolAction(
+                impl.OnPropertyAction,
+                SymbolKind.Property);
             compilationContext.RegisterCompilationEndAction(impl.OnCompilationEnd);
         }
 

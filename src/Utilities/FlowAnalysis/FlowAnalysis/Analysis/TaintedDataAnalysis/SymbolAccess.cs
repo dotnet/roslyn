@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
-
     /// <summary>
     /// Represents an access to a symbol.
     /// </summary>
@@ -50,11 +46,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ISymbol AccessingMethod { get; }
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(Location.GetHashCode());
-            builder.Add(Symbol.GetHashCode());
-            builder.Add(AccessingMethod.GetHashCode());
+            addPart(Location.GetHashCode());
+            addPart(Symbol.GetHashCode());
+            addPart(AccessingMethod.GetHashCode());
         }
     }
 }

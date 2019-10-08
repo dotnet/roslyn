@@ -2,7 +2,6 @@
 
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
@@ -10,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class AddLanguageSupportToAnalyzerRuleTests : CodeFixTestBase
+    public class AddLanguageSupportToAnalyzerRuleTests : DiagnosticAnalyzerTestBase
     {
         [Fact]
         public void CSharp_VerifyDiagnostic()
@@ -168,16 +167,6 @@ End Class
 ";
             VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
             VerifyBasic(source, referenceFlags: ReferenceFlags.None);
-        }
-
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return null;
-        }
-
-        protected override CodeFixProvider GetBasicCodeFixProvider()
-        {
-            return null;
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()

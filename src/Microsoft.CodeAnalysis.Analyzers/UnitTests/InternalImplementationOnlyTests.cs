@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
-using System.Linq;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
@@ -224,28 +221,6 @@ End Class
 
             // Verify that IOperation is not implementable.
             VerifyBasic(source, referenceFlags: ReferenceFlags.None, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
-        }
-
-        private void VerifyAcrossTwoAssemblies(string source1, string source2, string language, params DiagnosticResult[] expected)
-        {
-            Debug.Assert(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic);
-
-            Project project1 = CreateProject(new[] { source1 }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
-            Project project2 = CreateProject(new[] { source2 }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, addToSolution: project1.Solution)
-                           .AddProjectReference(new ProjectReference(project1.Id));
-
-            DiagnosticAnalyzer analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
-            GetSortedDiagnostics(analyzer, project2.Documents.ToArray()).Verify(analyzer, GetDefaultPath(language), expected);
-        }
-
-        private void VerifyCSharpAcrossTwoAssemblies(string source1, string source2, params DiagnosticResult[] expected)
-        {
-            VerifyAcrossTwoAssemblies(source1, source2, LanguageNames.CSharp, expected);
-        }
-
-        private void VerifyBasicAcrossTwoAssemblies(string source1, string source2, params DiagnosticResult[] expected)
-        {
-            VerifyAcrossTwoAssemblies(source1, source2, LanguageNames.VisualBasic, expected);
         }
 
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()

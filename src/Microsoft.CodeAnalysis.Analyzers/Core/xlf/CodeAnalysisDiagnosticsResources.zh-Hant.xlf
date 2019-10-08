@@ -2,6 +2,66 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CodeAnalysisDiagnosticsResources.resx">
     <body>
+      <trans-unit id="CompareSymbolsCorrectlyCodeFix">
+        <source>Compare symbols correctly</source>
+        <target state="translated">正確比較符號</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyDescription">
+        <source>Symbols should be compared for equality, not identity.</source>
+        <target state="needs-review-translation">應比較符號是否相等，而非比較身分識別。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyMessage">
+        <source>Compare symbols correctly</source>
+        <target state="translated">正確比較符號</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyTitle">
+        <source>Compare symbols correctly</source>
+        <target state="translated">正確比較符號</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisDescription">
+        <source>Configure generated code analysis</source>
+        <target state="translated">設定產生的程式碼分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
+        <source>Configure generated code analysis</source>
+        <target state="translated">設定產生的程式碼分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisMessage">
+        <source>Configure generated code analysis</source>
+        <target state="translated">設定產生的程式碼分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
+        <source>Configure generated code analysis</source>
+        <target state="translated">設定產生的程式碼分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionDescription">
+        <source>Enable concurrent execution</source>
+        <target state="translated">啟用同時執行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionFix">
+        <source>Enable concurrent execution</source>
+        <target state="translated">啟用同時執行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionMessage">
+        <source>Enable concurrent execution</source>
+        <target state="translated">啟用同時執行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionTitle">
+        <source>Enable concurrent execution</source>
+        <target state="translated">啟用同時執行</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MissingAttributeMessage">
         <source>Missing '{0}' attribute.</source>
         <target state="translated">遺漏 '{0}' 屬性。</target>
@@ -364,7 +424,7 @@
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceMessage">
         <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
-        <target state="translated">請將套件參考新增至 Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 套件，來升級 MSBuildWorkspace。如需成功使用 MSBuildWorkspace 的詳細資料，請參閱 https://docs.microsoft.com/zh-tw/dotnet/csharp/roslyn-sdk/。</target>
+        <target state="translated">請將套件參考新增至 Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 套件，來升級 MSBuildWorkspace。如需成功使用 MSBuildWorkspace 的詳細資料，請參閱 https://go.microsoft.com/fwlink/?linkid=874285。</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceTitle">

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly TAbstractAnalysisValue _defaultUnknownValue;
         private readonly object _analysisDataForUnhandledThrowOperationsOpt;
 
-        public DataFlowAnalysisResult(
+        internal DataFlowAnalysisResult(
             ImmutableDictionary<BasicBlock, TBlockAnalysisResult> basicBlockStateMap,
             ImmutableDictionary<IOperation, TAbstractAnalysisValue> operationStateMap,
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             TBlockAnalysisResult exceptionPathsExitBlockOutputOpt,
             TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt,
             object analysisDataForUnhandledThrowOperationsOpt,
+            Dictionary<PointsToAbstractValue, TAbstractAnalysisValue> taskWrappedValuesMapOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
         {
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ExceptionPathsExitBlockOutputOpt = exceptionPathsExitBlockOutputOpt;
             MergedStateForUnhandledThrowOperationsOpt = mergedStateForUnhandledThrowOperationsOpt;
             _analysisDataForUnhandledThrowOperationsOpt = analysisDataForUnhandledThrowOperationsOpt;
+            TaskWrappedValuesMapOpt = taskWrappedValuesMapOpt;
             ControlFlowGraph = cfg;
             _defaultUnknownValue = defaultUnknownValue;
         }
@@ -63,7 +66,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected DataFlowAnalysisResult(DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> other)
             : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap, other.ReturnValueAndPredicateKindOpt,
                    other._interproceduralResultsMap, other.EntryBlockOutput, other.ExitBlockOutput, other.ExceptionPathsExitBlockOutputOpt,
-                   other.MergedStateForUnhandledThrowOperationsOpt, other._analysisDataForUnhandledThrowOperationsOpt, other.ControlFlowGraph, other._defaultUnknownValue)
+                   other.MergedStateForUnhandledThrowOperationsOpt, other._analysisDataForUnhandledThrowOperationsOpt, other.TaskWrappedValuesMapOpt,
+                   other.ControlFlowGraph, other._defaultUnknownValue)
         {
         }
 
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(
                 _basicBlockStateMap, _operationStateMap, _predicateValueKindMap, ReturnValueAndPredicateKindOpt,
                 _interproceduralResultsMap, EntryBlockOutput, ExitBlockOutput, ExceptionPathsExitBlockOutputOpt, mergedStateForUnhandledThrowOperationsOpt,
-                analysisDataForUnhandledThrowOperations, ControlFlowGraph, _defaultUnknownValue);
+                analysisDataForUnhandledThrowOperations, TaskWrappedValuesMapOpt, ControlFlowGraph, _defaultUnknownValue);
         }
 
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
@@ -142,7 +146,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         object IDataFlowAnalysisResult<TAbstractAnalysisValue>.AnalysisDataForUnhandledThrowOperationsOpt
             => _analysisDataForUnhandledThrowOperationsOpt;
 
+        object IDataFlowAnalysisResult<TAbstractAnalysisValue>.TaskWrappedValuesMapOpt
+            => TaskWrappedValuesMapOpt;
+
         public TBlockAnalysisResult MergedStateForUnhandledThrowOperationsOpt { get; }
         public PredicateValueKind GetPredicateKind(IOperation operation) => _predicateValueKindMap.TryGetValue(operation, out var valueKind) ? valueKind : PredicateValueKind.Unknown;
+        internal Dictionary<PointsToAbstractValue, TAbstractAnalysisValue> TaskWrappedValuesMapOpt { get; }
     }
 }

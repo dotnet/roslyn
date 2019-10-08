@@ -108,7 +108,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsPropertyWithBackingField(this ISymbol symbol)
         {
             return symbol is IPropertySymbol propertySymbol &&
-                propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && f.AssociatedSymbol == symbol);
+                propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && Equals(f.AssociatedSymbol, symbol));
         }
 
         public static bool IsUserDefinedOperator(this ISymbol symbol)
@@ -144,7 +144,66 @@ namespace Analyzer.Utilities.Extensions
             SymbolVisibilityGroup defaultRequiredVisibility = SymbolVisibilityGroup.Public)
         {
             var allowedVisibilities = options.GetSymbolVisibilityGroupOption(rule, defaultRequiredVisibility, cancellationToken);
-            return allowedVisibilities.Contains(symbol.GetResultantVisibility());
+            return allowedVisibilities == SymbolVisibilityGroup.All ||
+                allowedVisibilities.Contains(symbol.GetResultantVisibility());
+        }
+
+        /// <summary>
+        /// Returns true if the given symbol has been configured to be excluded from analysis by options.
+        /// </summary>
+        public static bool IsConfiguredToSkipAnalysis(
+            this ISymbol symbol,
+            AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            var excludedSymbols = options.GetExcludedSymbolNamesOption(rule, compilation, cancellationToken);
+            var excludedTypeNamesWithDerivedTypes = options.GetExcludedTypeNamesWithDerivedTypesOption(rule, compilation, cancellationToken);
+            if (excludedSymbols.IsEmpty && excludedTypeNamesWithDerivedTypes.IsEmpty)
+            {
+                return false;
+            }
+
+            while (symbol != null)
+            {
+                if (excludedSymbols.Contains(symbol))
+                {
+                    return true;
+                }
+
+                if (symbol is INamedTypeSymbol namedType && !excludedTypeNamesWithDerivedTypes.IsEmpty)
+                {
+                    foreach (var type in namedType.GetBaseTypesAndThis())
+                    {
+                        if (excludedTypeNamesWithDerivedTypes.Contains(type))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                symbol = symbol.ContainingSymbol;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the given symbol has required symbol modifiers based on options:
+        ///   1. If user has explicitly configured candidate <see cref="SymbolModifiers"/> in editor config options and
+        ///      given symbol has all the required modifiers.
+        ///   2. Otherwise, if user has not configured modifiers.
+        /// </summary>
+        public static bool MatchesConfiguredModifiers(
+            this ISymbol symbol,
+            AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            CancellationToken cancellationToken,
+            SymbolModifiers defaultRequiredModifiers = SymbolModifiers.None)
+        {
+            var requiredModifiers = options.GetRequiredModifiersOption(rule, defaultRequiredModifiers, cancellationToken);
+            return symbol.GetSymbolModifiers().Contains(requiredModifiers);
         }
 
         /// <summary>
@@ -202,7 +261,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool MatchMemberDerivedByName(this ISymbol member, INamedTypeSymbol type, string name)
         {
-            return member != null && member.ContainingType.DerivesFrom(type) && member.MetadataName == name;
+            return member != null && member.MetadataName == name && member.ContainingType.DerivesFrom(type);
         }
 
         public static bool MatchMethodDerivedByName(this IMethodSymbol method, INamedTypeSymbol type, string name)
@@ -227,7 +286,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool MatchMemberByName(this ISymbol member, INamedTypeSymbol type, string name)
         {
-            return member != null && member.ContainingType == type && member.MetadataName == name;
+            return member != null && Equals(member.ContainingType, type) && member.MetadataName == name;
         }
 
         public static bool MatchPropertyByName(this ISymbol member, INamedTypeSymbol type, string name)
@@ -389,7 +448,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsFromMscorlib(this ISymbol symbol, Compilation compilation)
         {
-            var @object = WellKnownTypes.Object(compilation);
+            var @object = compilation.GetSpecialType(SpecialType.System_Object);
             return symbol.ContainingAssembly?.Equals(@object.ContainingAssembly) == true;
         }
 
@@ -484,7 +543,7 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return symbol.IsOverride &&
-                symbol.GetOverriddenMember().IsOverrideOrImplementationOfInterfaceMember(interfaceMember);
+                symbol.GetOverriddenMember()?.IsOverrideOrImplementationOfInterfaceMember(interfaceMember) == true;
         }
 
         /// <summary>
@@ -496,20 +555,16 @@ namespace Analyzer.Utilities.Extensions
             Debug.Assert(symbol != null);
             Debug.Assert(symbol.IsOverride);
 
-            switch (symbol)
+            return symbol switch
             {
-                case IMethodSymbol methodSymbol:
-                    return methodSymbol.OverriddenMethod;
+                IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod,
 
-                case IPropertySymbol propertySymbol:
-                    return propertySymbol.OverriddenProperty;
+                IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty,
 
-                case IEventSymbol eventSymbol:
-                    return eventSymbol.OverriddenEvent;
+                IEventSymbol eventSymbol => eventSymbol.OverriddenEvent,
 
-                default:
-                    throw new NotImplementedException();
-            }
+                _ => throw new NotImplementedException(),
+            };
         }
 
         /// <summary>
@@ -535,31 +590,44 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
-        public static ITypeSymbol GetMemerOrLocalOrParameterType(this ISymbol symbol)
+        public static ITypeSymbol GetMemberOrLocalOrParameterType(this ISymbol symbol)
         {
-            switch (symbol.Kind)
+            return symbol.Kind switch
             {
-                case SymbolKind.Event:
-                    return ((IEventSymbol)symbol).Type;
+                SymbolKind.Local => ((ILocalSymbol)symbol).Type,
 
-                case SymbolKind.Field:
-                    return ((IFieldSymbol)symbol).Type;
+                SymbolKind.Parameter => ((IParameterSymbol)symbol).Type,
 
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)symbol).ReturnType;
+                _ => GetMemberType(symbol),
+            };
+        }
 
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)symbol).Type;
+        public static ITypeSymbol GetMemberType(this ISymbol symbol)
+        {
+            return symbol.Kind switch
+            {
+                SymbolKind.Event => ((IEventSymbol)symbol).Type,
 
-                case SymbolKind.Local:
-                    return ((ILocalSymbol)symbol).Type;
+                SymbolKind.Field => ((IFieldSymbol)symbol).Type,
 
-                case SymbolKind.Parameter:
-                    return ((IParameterSymbol)symbol).Type;
+                SymbolKind.Method => ((IMethodSymbol)symbol).ReturnType,
 
-                default:
-                    return null;
-            }
+                SymbolKind.Property => ((IPropertySymbol)symbol).Type,
+
+                _ => null,
+            };
+        }
+
+        public static bool IsReadOnlyFieldOrProperty(this ISymbol symbol)
+        {
+            return symbol switch
+            {
+                IFieldSymbol field => field.IsReadOnly,
+
+                IPropertySymbol property => property.IsReadOnly,
+
+                _ => false,
+            };
         }
 
         /// <summary>
@@ -595,5 +663,41 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsLambdaOrLocalFunction(this ISymbol symbol)
             => (symbol as IMethodSymbol)?.IsLambdaOrLocalFunction() == true;
+
+        /// <summary>
+        /// Returns true for symbols whose name starts with an underscore and
+        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// These symbols can be treated as special discard symbol names.
+        /// </summary>
+        public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
+            => symbol?.Name.StartsWith("_", StringComparison.Ordinal) == true &&
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
+
+        public static bool IsConst(this ISymbol symbol)
+        {
+            return symbol switch
+            {
+                IFieldSymbol field => field.IsConst,
+
+                ILocalSymbol local => local.IsConst,
+
+                _ => false,
+            };
+        }
+
+        public static bool IsReadOnly(this ISymbol symbol)
+        {
+            return symbol switch
+            {
+                IFieldSymbol field => field.IsReadOnly,
+
+                IPropertySymbol property => property.IsReadOnly,
+
+                // TODO: IMethodSymbol and ITypeSymbol also have IsReadOnly in Microsoft.CodeAnalysis 3.x
+                //       Add these cases once we move to the required Microsoft.CodeAnalysis.nupkg.
+
+                _ => false,
+            };
+        }
     }
 }

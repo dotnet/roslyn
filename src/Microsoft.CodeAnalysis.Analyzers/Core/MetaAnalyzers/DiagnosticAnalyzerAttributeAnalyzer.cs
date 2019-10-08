@@ -42,10 +42,20 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(MissingDiagnosticAnalyzerAttributeRule, AddLanguageSupportToAnalyzerRule);
 
+#pragma warning disable RS1025 // Configure generated code analysis
+        public override void Initialize(AnalysisContext context)
+#pragma warning restore RS1025 // Configure generated code analysis
+        {
+            context.EnableConcurrentExecution();
+
+            base.Initialize(context);
+        }
+
         [SuppressMessage("AnalyzerPerformance", "RS1012:Start action has no registered actions.", Justification = "Method returns an analyzer that is registered by the caller.")]
         protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
-            return new AttributeAnalyzer(diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+            var attributeUsageAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
+            return new AttributeAnalyzer(diagnosticAnalyzer, diagnosticAnalyzerAttribute, attributeUsageAttribute);
         }
 
         private sealed class AttributeAnalyzer : DiagnosticAnalyzerSymbolAnalyzer
@@ -53,9 +63,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private const string CSharpCompilationFullName = @"Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
             private const string BasicCompilationFullName = @"Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
 
-            public AttributeAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            private readonly INamedTypeSymbol _attributeUsageAttribute;
+
+            public AttributeAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute, INamedTypeSymbol attributeUsageAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
+                _attributeUsageAttribute = attributeUsageAttribute;
             }
 
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
@@ -74,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 bool supportsCSharp = false;
                 bool supportsVB = false;
 
-                var namedTypeAttributes = namedType.GetApplicableAttributes();
+                var namedTypeAttributes = namedType.GetApplicableAttributes(_attributeUsageAttribute);
 
                 foreach (AttributeData attribute in namedTypeAttributes)
                 {
@@ -116,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 {
                     Debug.Assert(attributeSyntax != null);
 
-                    // If the analyzer assembly doesn't reference either C# or VB CodeAnalysis assemblies, 
+                    // If the analyzer assembly doesn't reference either C# or VB CodeAnalysis assemblies,
                     // then the analyzer is pretty likely a language-agnostic analyzer.
                     Compilation compilation = symbolContext.Compilation;
                     string compilationTypeNameToCheck = supportsCSharp ? CSharpCompilationFullName : BasicCompilationFullName;

@@ -2,154 +2,124 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../AnalyzersResources.resx">
     <body>
-      <trans-unit id="AnonymousNewObjectRuleTitleAndMessage">
-        <source>Explicit new anonymous object allocation</source>
-        <target state="new">Explicit new anonymous object allocation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ClosureCaptureRuleMessage">
         <source>The compiler will emit a class that will hold this as a field to allow capturing of this closure</source>
-        <target state="new">The compiler will emit a class that will hold this as a field to allow capturing of this closure</target>
+        <target state="translated">컴파일러는 이 Closure의 캡처를 허용하도록 이 항목을 필드로 포함할 클래스를 내보냅니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureCaptureRuleTitle">
         <source>Display class allocation to capture closure</source>
-        <target state="new">Display class allocation to capture closure</target>
+        <target state="translated">Closure를 캡처하기 위한 클래스 할당 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureDriverRuleMessage">
         <source>Heap allocation of closure Captures: {0}</source>
-        <target state="new">Heap allocation of closure Captures: {0}</target>
+        <target state="translated">Closure 캡처의 힙 할당: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ClosureDriverRuleTitle">
         <source>Closure Allocation Source</source>
-        <target state="new">Closure Allocation Source</target>
+        <target state="translated">Closure 할당 소스</target>
         <note />
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleMessage">
         <source>Struct instance method being used for delegate creation, this will result in a boxing instruction</source>
-        <target state="new">Struct instance method being used for delegate creation, this will result in a boxing instruction</target>
+        <target state="translated">대리자 생성에 사용되는 구조체 인스턴스 메서드, 이로 인해 boxing 지침이 발생함</target>
         <note />
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleTitle">
         <source>Delegate on struct instance caused a boxing allocation</source>
-        <target state="new">Delegate on struct instance caused a boxing allocation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ImplicitArrayCreationRuleTitleAndMessage">
-        <source>Implicit new array creation allocation</source>
-        <target state="new">Implicit new array creation allocation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="InitializerCreationRuleTitleAndMessage">
-        <source>Initializer reference type allocation</source>
-        <target state="new">Initializer reference type allocation</target>
+        <target state="translated">구조체 인스턴스의 대리자로 인해 Boxing 할당이 발생함</target>
         <note />
       </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleMessage">
         <source>Considering moving this out of the generic method</source>
-        <target state="new">Considering moving this out of the generic method</target>
+        <target state="translated">제네릭 메서드 외부로 이동 고려</target>
         <note />
       </trans-unit>
       <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleTitle">
         <source>Lambda or anonymous method in a generic method allocates a delegate instance</source>
-        <target state="new">Lambda or anonymous method in a generic method allocates a delegate instance</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="LetCauseRuleTitleAndMessage">
-        <source>Let clause induced allocation</source>
-        <target state="new">Let clause induced allocation</target>
+        <target state="translated">제네릭 메서드의 람다 또는 무명 메서드는 대리자 인스턴스를 할당합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
-        <target state="new">This will allocate a delegate instance</target>
+        <target state="translated">이렇게 하면 대리자 인스턴스가 할당됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleTitle">
         <source>Delegate allocation from a method group</source>
-        <target state="new">Delegate allocation from a method group</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NewArrayRuleTitleAndMessage">
-        <source>Explicit new array type allocation</source>
-        <target state="new">Explicit new array type allocation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="NewObjectRuleTitleAndMessage">
-        <source>Explicit new reference type allocation</source>
-        <target state="new">Explicit new reference type allocation</target>
+        <target state="translated">메서드 그룹의 대리자 할당</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleMessage">
         <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</source>
-        <target state="new">This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter</target>
+        <target state="translated">이 호출 사이트가 'params' 매개 변수가 있는 함수를 호출하고 있습니다. 이로 인해 params 매개 변수에 대해 매개 변수가 전달되지 않는 경우에도 배열 할당이 발생합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ParamsParameterRuleTitle">
         <source>Array allocation for params parameter</source>
-        <target state="new">Array allocation for params parameter</target>
+        <target state="translated">params 매개 변수의 배열 할당</target>
         <note />
       </trans-unit>
       <trans-unit id="ReadonlyMethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
-        <target state="new">This will allocate a delegate instance</target>
+        <target state="translated">이렇게 하면 대리자 인스턴스가 할당됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReadonlyMethodGroupAllocationRuleTitle">
         <source>Delegate allocation from a method group</source>
-        <target state="new">Delegate allocation from a method group</target>
+        <target state="translated">메서드 그룹의 대리자 할당</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceTypeEnumeratorRuleMessage">
         <source>Non-ValueType enumerator may result in a heap allocation</source>
-        <target state="new">Non-ValueType enumerator may result in a heap allocation</target>
+        <target state="translated">비 ValueType 열거자를 사용하면 힙 할당이 발생할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReferenceTypeEnumeratorRuleTitle">
         <source>Possible allocation of reference type enumerator</source>
-        <target state="new">Possible allocation of reference type enumerator</target>
+        <target state="translated">참조 형식 열거자의 가능한 할당</target>
         <note />
       </trans-unit>
       <trans-unit id="StringConcatenationAllocationRuleMessage">
         <source>Considering using StringBuilder</source>
-        <target state="new">Considering using StringBuilder</target>
+        <target state="translated">StringBuilder 사용 고려</target>
         <note />
       </trans-unit>
       <trans-unit id="StringConcatenationAllocationRuleTitle">
         <source>Implicit string concatenation allocation</source>
-        <target state="new">Implicit string concatenation allocation</target>
+        <target state="translated">암시적 문자열 연결 할당</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleMessage">
         <source>Non-overridden virtual method call on a value type adds a boxing or constrained instruction</source>
-        <target state="new">Non-overridden virtual method call on a value type adds a boxing or constrained instruction</target>
+        <target state="translated">값 형식에 대한 재정의되지 않은 가상 메서드 호출은 boxing 또는 제한된 지침을 추가합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeNonOverridenCallRuleTitle">
         <source>Non-overridden virtual method call on value type</source>
-        <target state="new">Non-overridden virtual method call on value type</target>
+        <target state="translated">값 형식에 대한 재정의되지 않은 가상 메서드 호출</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
         <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</source>
-        <target state="new">Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable</target>
+        <target state="translated">값 형식에서 참조 형식으로 변환하면 호출 사이트(여기)에서 boxing되고 호출 수신자 사이트에서 unboxing됩니다. 해당하는 경우 제네릭을 사용하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
         <source>Value type to reference type conversion causing boxing allocation</source>
-        <target state="new">Value type to reference type conversion causing boxing allocation</target>
+        <target state="translated">boxing 할당을 초래하는 값 형식에서 참조 형식으로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
         <source>Value type ({0}) is being boxed to a reference type for a string concatenation.</source>
-        <target state="new">Value type ({0}) is being boxed to a reference type for a string concatenation.</target>
+        <target state="translated">값 형식({0})이 문자열 연결을 위해 참조 형식으로 boxing됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">
         <source>Value type to reference type conversion allocation for string concatenation</source>
-        <target state="new">Value type to reference type conversion allocation for string concatenation</target>
+        <target state="translated">문자열 연결을 위한 값 형식에서 참조 형식으로 변환 할당</target>
         <note />
       </trans-unit>
     </body>

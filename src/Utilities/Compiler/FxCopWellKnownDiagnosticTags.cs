@@ -9,15 +9,15 @@ namespace Analyzer.Utilities
 {
     internal static class FxCopWellKnownDiagnosticTags
     {
-        private const string PortedFxCopRuleTag = nameof(PortedFxCopRuleTag);
+        public const string PortedFromFxCop = nameof(PortedFromFxCop);
 
-        public static readonly string[] PortedFxCopRule = new string[] { PortedFxCopRuleTag, WellKnownDiagnosticTags.Telemetry };
+        public static readonly string[] PortedFxCopRule = new string[] { PortedFromFxCop, WellKnownDiagnosticTags.Telemetry };
 
-        public static readonly string[] PortedFxCopDataflowRule = new string[] { PortedFxCopRuleTag, WellKnownDiagnosticTagsExtensions.Dataflow, WellKnownDiagnosticTags.Telemetry };
+        public static readonly string[] PortedFxCopDataflowRule = new string[] { PortedFromFxCop, WellKnownDiagnosticTagsExtensions.Dataflow, WellKnownDiagnosticTags.Telemetry };
 
         public static bool IsPortedFxCopRule(DiagnosticDescriptor diagnosticDescriptor)
         {
-            var result = diagnosticDescriptor.CustomTags.Any(t => t == PortedFxCopRuleTag);
+            var result = diagnosticDescriptor.CustomTags.Any(t => t == PortedFromFxCop);
             Debug.Assert(!result || diagnosticDescriptor.Id.StartsWith("CA", StringComparison.OrdinalIgnoreCase));
             return result;
         }

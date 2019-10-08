@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 IEnumerable<SyntaxNode> arguments = GetArgumentExpressions(invocation);
-                if (arguments.Count() == 1)
+                if (arguments.HasExactly(1))
                 {
                     SyntaxNode argument = arguments.First();
                     ITypeSymbol type = semanticModel.GetTypeInfo(argument, symbolContext.CancellationToken).ConvertedType;

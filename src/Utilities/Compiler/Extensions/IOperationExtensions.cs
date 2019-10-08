@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -345,16 +344,23 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate)
         {
+            return operationBlock.HasAnyOperationDescendant(predicate, out _);
+        }
+
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, out IOperation foundOperation)
+        {
             Debug.Assert(operationBlock != null);
             Debug.Assert(predicate != null);
             foreach (var descendant in operationBlock.DescendantsAndSelf())
             {
                 if (predicate(descendant))
                 {
+                    foundOperation = descendant;
                     return true;
                 }
             }
 
+            foundOperation = null;
             return false;
         }
 
@@ -408,14 +414,23 @@ namespace Analyzer.Utilities.Extensions
         /// across analyzers and analyzer callbacks to re-use the control flow graph.
         /// </summary>
         /// <remarks>Also see <see cref="IMethodSymbolExtensions.s_methodToTopmostOperationBlockCache"/></remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>> s_operationToCfgCache
-            = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>>();
+        private static readonly BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>> s_operationToCfgCache
+            = new BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph>>();
 
-        public static ControlFlowGraph GetEnclosingControlFlowGraph(this IOperation operation)
+        public static bool TryGetEnclosingControlFlowGraph(this IOperation operation, out ControlFlowGraph cfg)
         {
             operation = operation.GetRoot();
             var operationToCfgMap = s_operationToCfgCache.GetOrCreateValue(operation.SemanticModel.Compilation);
-            return operationToCfgMap.GetOrAdd(operation, CreateControlFlowGraph);
+            cfg = operationToCfgMap.GetOrAdd(operation, CreateControlFlowGraph);
+            return cfg != null;
+        }
+
+        public static ControlFlowGraph GetEnclosingControlFlowGraph(this IBlockOperation blockOperation)
+        {
+            var success = blockOperation.TryGetEnclosingControlFlowGraph(out var cfg);
+            Debug.Assert(success);
+            Debug.Assert(cfg != null);
+            return cfg;
         }
 
         private static ControlFlowGraph CreateControlFlowGraph(IOperation operation)
@@ -441,7 +456,11 @@ namespace Analyzer.Utilities.Extensions
                     return ControlFlowGraph.Create(parameterInitializerOperation);
 
                 default:
-                    throw new NotSupportedException($"Unexpected root operation kind: {operation.Kind.ToString()}");
+                    // Attribute blocks have OperationKind.None, but ControlFlowGraph.Create does not
+                    // have an overload for such operation roots.
+                    // Gracefully return null for this case and fire an assert for any other OperationKind.
+                    Debug.Assert(operation.Kind == OperationKind.None, $"Unexpected root operation kind: {operation.Kind.ToString()}");
+                    return null;
             }
         }
 
@@ -513,32 +532,21 @@ namespace Analyzer.Utilities.Extensions
 
         public static ITypeSymbol GetPatternType(this IPatternOperation pattern)
         {
-            switch (pattern)
+            return pattern switch
             {
-                case IDeclarationPatternOperation declarationPattern:
-                    switch (declarationPattern.DeclaredSymbol)
-                    {
-                        case ILocalSymbol local:
-                            return local.Type;
+                IDeclarationPatternOperation declarationPattern => declarationPattern.DeclaredSymbol switch
+                {
+                    ILocalSymbol local => local.Type,
 
-                        case IDiscardSymbol discard:
-                            return discard.Type;
+                    IDiscardSymbol discard => discard.Type,
 
-                        default:
-                            // TODO use the new IOperation API 'IDeclarationPatternOperation.MatchedType' when we move the repo
-                            // to use Microsoft.CodeAnalysis 3.0 or greater.
-                            return null;
-                    }
+                    _ => null,
+                },
 
-                case IConstantPatternOperation constantPattern:
-                    return constantPattern.Value.Type;
+                IConstantPatternOperation constantPattern => constantPattern.Value.Type,
 
-                default:
-                    // Below assert fires for IDiscardPatternOperation.
-                    // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
-                    //Debug.Fail($"Unhandled pattern kind '{pattern.Kind}'");
-                    return null;
-            }
+                _ => null,
+            };
         }
 
         /// <summary>
@@ -577,6 +585,110 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsExtensionMethodAndHasNoInstance(this IInvocationOperation invocationOperation)
+        {
+            // This method exists to abstract away the language specific differences between IInvocationOperation implementations
+            // See https://github.com/dotnet/roslyn/issues/23625 for more details
+            return invocationOperation.TargetMethod.IsExtensionMethod && (invocationOperation.Language != LanguageNames.VisualBasic || invocationOperation.Instance == null);
+        }
+
+        public static SyntaxNode GetInstance(this IInvocationOperation invocationOperation)
+        {
+            return invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value.Syntax : invocationOperation.Instance.Syntax;
+        }
+
+        public static ISymbol GetReferencedMemberOrLocalOrParameter(this IOperation operation)
+        {
+            return operation switch
+            {
+                IMemberReferenceOperation memberReference => memberReference.Member,
+
+                IParameterReferenceOperation parameterReference => parameterReference.Parameter,
+
+                ILocalReferenceOperation localReference => localReference.Local,
+
+                IParenthesizedOperation parenthesized => parenthesized.Operand.GetReferencedMemberOrLocalOrParameter(),
+
+                IConversionOperation conversion => conversion.Operand.GetReferencedMemberOrLocalOrParameter(),
+
+                _ => null,
+            };
+        }
+
+        /// <summary>
+        /// Walks down consequtive parenthesized operations until an operand is reached that isn't a parenthesized operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
+        public static IOperation WalkDownParenthesis(this IOperation operation)
+        {
+            while (operation is IParenthesizedOperation parenthesizedOperation)
+            {
+                operation = parenthesizedOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks up consequtive parenthesized operations until a parent is reached that isn't a parenthesized operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The outer non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
+        public static IOperation WalkUpParenthesis(this IOperation operation)
+        {
+            while (operation is IParenthesizedOperation parenthesizedOperation)
+            {
+                operation = parenthesizedOperation.Parent;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks down consequtive conversion operations until an operand is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation WalkDownConversion(this IOperation operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
+
+        /// <summary>
+        /// Walks up consequtive conversion operations until a parent is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The outer non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation WalkUpConversion(this IOperation operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Parent;
+            }
+
+            return operation;
+        }
+
+        public static ITypeSymbol GetThrownExceptionType(this IThrowOperation operation)
+        {
+            var thrownObject = operation.Exception;
+
+            // Starting C# 8.0, C# compiler wraps the thrown operation within an implicit conversion to System.Exception type.
+            if (thrownObject is IConversionOperation conversion &&
+                conversion.IsImplicit)
+            {
+                thrownObject = conversion.Operand;
+            }
+
+            return thrownObject?.Type;
         }
     }
 }

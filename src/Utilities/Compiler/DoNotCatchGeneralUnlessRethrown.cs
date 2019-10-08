@@ -2,9 +2,12 @@
 
 #if HAS_IOPERATION
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -24,7 +27,11 @@ namespace Analyzer.Utilities
             _enablingMethodAttributeFullyQualifiedName = enablingMethodAttributeFullyQualifiedName;
         }
 
-        protected abstract Diagnostic CreateDiagnostic(IMethodSymbol containingMethod, SyntaxNode catchNode);
+        protected abstract Diagnostic CreateDiagnostic(IMethodSymbol containingMethod, SyntaxToken catchKeyword);
+        protected virtual bool IsConfiguredDisallowedExceptionType(INamedTypeSymbol namedTypeSymbol, Compilation compilation, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+        {
+            return false;
+        }
 
         public override void Initialize(AnalysisContext analysisContext)
         {
@@ -40,6 +47,10 @@ namespace Analyzer.Utilities
                 }
 
                 var disallowedCatchTypes = GetDisallowedCatchTypes(compilationStartAnalysisContext.Compilation);
+                bool IsDisallowedCatchType(INamedTypeSymbol type) =>
+                    disallowedCatchTypes.Contains(type) ||
+                    IsConfiguredDisallowedExceptionType(type, compilationStartAnalysisContext.Compilation,
+                        compilationStartAnalysisContext.Options, compilationStartAnalysisContext.CancellationToken);
 
                 compilationStartAnalysisContext.RegisterOperationBlockAction(operationBlockAnalysisContext =>
                 {
@@ -57,12 +68,12 @@ namespace Analyzer.Utilities
 
                     foreach (var operation in operationBlockAnalysisContext.OperationBlocks)
                     {
-                        var walker = new DisallowGeneralCatchUnlessRethrowWalker(disallowedCatchTypes, _shouldCheckLambdas);
+                        var walker = new DisallowGeneralCatchUnlessRethrowWalker(IsDisallowedCatchType, _shouldCheckLambdas);
                         walker.Visit(operation);
 
                         foreach (var catchClause in walker.CatchClausesForDisallowedTypesWithoutRethrow)
                         {
-                            operationBlockAnalysisContext.ReportDiagnostic(CreateDiagnostic(method, catchClause.Syntax));
+                            operationBlockAnalysisContext.ReportDiagnostic(CreateDiagnostic(method, catchClause.Syntax.GetFirstToken()));
                         }
                     }
                 });
@@ -83,9 +94,9 @@ namespace Analyzer.Utilities
         {
             return ImmutableHashSet.CreateRange(
                 new[] {
-                    WellKnownTypes.Object(compilation),
-                    WellKnownTypes.Exception(compilation),
-                    WellKnownTypes.SystemException(compilation)
+                    compilation.GetSpecialType(SpecialType.System_Object),
+                    compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException),
+                    compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemSystemException)
                 }.Where(x => x != null));
         }
 
@@ -94,15 +105,15 @@ namespace Analyzer.Utilities
         /// </summary>
         private class DisallowGeneralCatchUnlessRethrowWalker : OperationWalker
         {
-            private readonly IReadOnlyCollection<INamedTypeSymbol> _disallowedCatchTypes;
+            private readonly Func<INamedTypeSymbol, bool> _isDisallowedCatchType;
             private readonly bool _checkAnonymousFunctions;
             private readonly Stack<bool> _seenRethrowInCatchClauses = new Stack<bool>();
 
             public ISet<ICatchClauseOperation> CatchClausesForDisallowedTypesWithoutRethrow { get; } = new HashSet<ICatchClauseOperation>();
 
-            public DisallowGeneralCatchUnlessRethrowWalker(IReadOnlyCollection<INamedTypeSymbol> disallowedCatchTypes, bool checkAnonymousFunctions)
+            public DisallowGeneralCatchUnlessRethrowWalker(Func<INamedTypeSymbol, bool> isDisallowedCatchType, bool checkAnonymousFunctions)
             {
-                _disallowedCatchTypes = disallowedCatchTypes;
+                _isDisallowedCatchType = isDisallowedCatchType;
                 _checkAnonymousFunctions = checkAnonymousFunctions;
             }
 
@@ -123,7 +134,7 @@ namespace Analyzer.Utilities
 
                 bool seenRethrow = _seenRethrowInCatchClauses.Pop();
 
-                if (!seenRethrow && IsCatchTooGeneral(operation) && !MightBeFilteringBasedOnTheCaughtException(operation))
+                if (!seenRethrow && IsDisallowedCatch(operation) && !MightBeFilteringBasedOnTheCaughtException(operation))
                 {
                     CatchClausesForDisallowedTypesWithoutRethrow.Add(operation);
                 }
@@ -131,7 +142,7 @@ namespace Analyzer.Utilities
 
             public override void VisitThrow(IThrowOperation operation)
             {
-                if (operation.Exception == null && _seenRethrowInCatchClauses.Count > 0 && !_seenRethrowInCatchClauses.Peek())
+                if (_seenRethrowInCatchClauses.Count > 0 && !_seenRethrowInCatchClauses.Peek())
                 {
                     _seenRethrowInCatchClauses.Pop();
                     _seenRethrowInCatchClauses.Push(true);
@@ -140,14 +151,10 @@ namespace Analyzer.Utilities
                 base.VisitThrow(operation);
             }
 
-            private bool IsCatchTooGeneral(ICatchClauseOperation operation)
+            private bool IsDisallowedCatch(ICatchClauseOperation operation)
             {
-                return IsGenericCatch(operation) || _disallowedCatchTypes.Any(type => operation.ExceptionType.Equals(type));
-            }
-
-            private static bool IsGenericCatch(ICatchClauseOperation operation)
-            {
-                return operation.ExceptionType == null;
+                return operation.ExceptionType is INamedTypeSymbol exceptionType &&
+                    _isDisallowedCatchType(exceptionType);
             }
 
             private static bool MightBeFilteringBasedOnTheCaughtException(ICatchClauseOperation operation)

@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing;
 
 namespace Test.Utilities
 {
@@ -11,6 +12,11 @@ namespace Test.Utilities
     {
         public class Test : VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix>.Test
         {
+            public Test()
+            {
+                // These analyzers run on generated code by default.
+                TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
+            }
         }
     }
 }

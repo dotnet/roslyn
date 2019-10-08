@@ -34,8 +34,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            // TODO: Make the analyzer thread-safe
-            //context.EnableConcurrentExecution();
+            context.EnableConcurrentExecution();
 
             // We need to analyze generated code, but don't intend to report diagnostics on generated code.
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
@@ -85,7 +84,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     _hasMemberNamedSymbolDeclaredEvent = true;
 
                     // If the below assert fire then probably the definition of "SymbolDeclaredEvent" has changed and we need to fix this analyzer.
-                    Debug.Assert(symbolDeclaredEvent.GetParameters().Count() == 1);
+                    Debug.Assert(symbolDeclaredEvent.GetParameters().HasExactly(1));
                 }
             }
 

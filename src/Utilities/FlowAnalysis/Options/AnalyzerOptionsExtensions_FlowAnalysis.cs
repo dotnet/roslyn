@@ -30,6 +30,13 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetBoolOptionValue(EditorConfigOptionNames.DisposeOwnershipTransferAtConstructor, rule, defaultValue, cancellationToken);
 
+        public static bool GetDisposeOwnershipTransferAtMethodCall(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            bool defaultValue,
+            CancellationToken cancellationToken)
+            => options.GetBoolOptionValue(EditorConfigOptionNames.DisposeOwnershipTransferAtMethodCall, rule, defaultValue, cancellationToken);
+
         public static bool GetCopyAnalysisOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,

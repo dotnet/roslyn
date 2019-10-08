@@ -1,19 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers;
-using Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers;
-using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Xunit;
 
-using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.CSharpSymbolIsBannedAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
-using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.BasicSymbolIsBannedAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
@@ -39,32 +34,32 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 
         private static async Task VerifyBasicAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
         {
-            var test = new VisualBasicCodeFixTest<BasicSymbolIsBannedAnalyzer, EmptyCodeFixProvider, XUnitVerifier>
+            var test = new VerifyVB.Test
             {
                 TestState =
                 {
                     Sources = { source },
                     AdditionalFiles = { (SymbolIsBannedAnalyzer.BannedSymbolsFileName, bannedApiText) },
                 },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
 
         private static async Task VerifyCSharpAsync(string source, string bannedApiText, params DiagnosticResult[] expected)
         {
-            var test = new CSharpCodeFixTest<CSharpSymbolIsBannedAnalyzer, EmptyCodeFixProvider, XUnitVerifier>
+            var test = new VerifyCS.Test
             {
                 TestState =
                 {
                     Sources = { source },
                     AdditionalFiles = { (SymbolIsBannedAnalyzer.BannedSymbolsFileName, bannedApiText) },
                 },
+                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
-            test.Exclusions &= ~AnalysisExclusions.GeneratedCode;
             test.ExpectedDiagnostics.AddRange(expected);
             await test.RunAsync();
         }
@@ -248,6 +243,44 @@ T:System.Collections.Generic.List`1";
         }
 
         [Fact]
+        public async Task CSharp_BannedType_AsTypeArgument()
+        {
+            var source = @"
+struct C {}
+
+class G<T>
+{
+    class N<U>
+    { }
+
+    unsafe void M()
+    {
+        var b = new G<C>();
+        var c = new G<C>.N<int>();
+        var d = new G<int>.N<C>();
+        var e = new G<G<int>.N<C>>.N<int>();
+        var f = new G<G<C>.N<int>>.N<int>();
+        var g = new C[42];
+        var h = new G<C[]>();
+        fixed (C* i = &g[0]) { }
+    }
+}";
+
+            var bannedText = @"
+T:C";
+
+            await VerifyCSharpAsync(source, bannedText,
+                GetCSharpResultAt(11, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(12, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(13, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(14, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(15, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(16, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(17, 17, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(18, 23, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
+        }
+
+        [Fact]
         public async Task CSharp_BannedNestedType_Constructor()
         {
             var source = @"
@@ -311,6 +344,39 @@ class C
             var bannedText = @"T:I";
 
             await VerifyCSharpAsync(source, bannedText, GetCSharpResultAt(12, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedClass_Operators()
+        {
+            var source = @"
+class C
+{
+    public static implicit operator C(int i) => new C();
+    public static explicit operator C(float f) => new C();
+    public static C operator +(C c, int i) => c;
+    public static C operator ++(C c) => c;
+    public static C operator -(C c) => c;
+
+    void M()
+    {
+        C c = 0;        // implicit conversion.
+        c = (C)1.0f;    // Explicit conversion.
+        c = c + 1;      // Binary operator.
+        c++;            // Increment or decrement.
+        c = -c;         // Unary operator.
+    }
+}";
+            var bannedText = @"T:C";
+
+            await VerifyCSharpAsync(source, bannedText,
+                GetCSharpResultAt(4, 49, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(5, 51, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(12, 15, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(13, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(14, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(15, 9, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
+                GetCSharpResultAt(16, 13, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
         }
 
         [Fact]

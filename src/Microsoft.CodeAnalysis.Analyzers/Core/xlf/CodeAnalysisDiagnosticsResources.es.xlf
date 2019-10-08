@@ -2,6 +2,66 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CodeAnalysisDiagnosticsResources.resx">
     <body>
+      <trans-unit id="CompareSymbolsCorrectlyCodeFix">
+        <source>Compare symbols correctly</source>
+        <target state="translated">Comparar los símbolos correctamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyDescription">
+        <source>Symbols should be compared for equality, not identity.</source>
+        <target state="needs-review-translation">Solo se debe realizar una comparación de igualdad de los símbolos, no de identidad.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyMessage">
+        <source>Compare symbols correctly</source>
+        <target state="translated">Comparar los símbolos correctamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyTitle">
+        <source>Compare symbols correctly</source>
+        <target state="translated">Comparar los símbolos correctamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisDescription">
+        <source>Configure generated code analysis</source>
+        <target state="translated">Configurar análisis de código generado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
+        <source>Configure generated code analysis</source>
+        <target state="translated">Configurar análisis de código generado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisMessage">
+        <source>Configure generated code analysis</source>
+        <target state="translated">Configurar análisis de código generado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
+        <source>Configure generated code analysis</source>
+        <target state="translated">Configurar análisis de código generado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionDescription">
+        <source>Enable concurrent execution</source>
+        <target state="translated">Habilitar la ejecución simultánea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionFix">
+        <source>Enable concurrent execution</source>
+        <target state="translated">Habilitar la ejecución simultánea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionMessage">
+        <source>Enable concurrent execution</source>
+        <target state="translated">Habilitar la ejecución simultánea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableConcurrentExecutionTitle">
+        <source>Enable concurrent execution</source>
+        <target state="translated">Habilitar la ejecución simultánea</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MissingAttributeMessage">
         <source>Missing '{0}' attribute.</source>
         <target state="translated">Falta el atributo “{0}”.</target>

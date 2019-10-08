@@ -2,6 +2,96 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
+        <source>Explicitly define the importing constructor</source>
+        <target state="translated">Importierenden Konstruktor explizit definieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_MissingAttribute">
+        <source>Add 'ImportingConstructor' attribute</source>
+        <target state="translated">Attribut "ImportingConstructor" hinzufügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_NonPublicConstructor">
+        <source>Make constructor public</source>
+        <target state="translated">Konstruktor als öffentlich festlegen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
+        <source>Exported parts should have [ImportingConstructor]</source>
+        <target state="translated">Exportierte Teile müssen "[ImportingConstructor]" umfassen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
+        <source>'{0}' is MEF-exported and should have a single importing constructor of the correct form</source>
+        <target state="translated">"{0}" ist MEF-exportiert und muss einen einzelnen importierenden Konstruktor der richtigen Form aufweisen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
+        <source>Exported parts should have [ImportingConstructor]</source>
+        <target state="translated">Exportierte Teile müssen "[ImportingConstructor]" umfassen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
+        <source>Set ObsoleteAttribute.Error to true</source>
+        <target state="translated">Legen Sie "ObsoleteAttribute.Error" auf TRUE fest.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_IncorrectDescription">
+        <source>Use correct ObsoleteAttribute message</source>
+        <target state="translated">Korrekte ObsoleteAttribute-Nachricht verwenden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingAttribute">
+        <source>Add ObsoleteAttribute</source>
+        <target state="translated">"ObsoleteAttribute" hinzufügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingDescription">
+        <source>Configure ObsoleteAttribute for importing constructor</source>
+        <target state="translated">"ObsoleteAttribute" für importierenden Konstruktor konfigurieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_MissingError">
+        <source>Set ObsoleteAttribute.Error to true</source>
+        <target state="translated">Legen Sie "ObsoleteAttribute.Error" auf TRUE fest.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
+        <source>Importing constructor should be [Obsolete]</source>
+        <target state="translated">Importierender Konstruktor muss "[Obsolete]" lauten</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
+        <source>Importing constructor should be [Obsolete]</source>
+        <target state="translated">Importierender Konstruktor muss "[Obsolete]" lauten</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
+        <source>Importing constructor should be [Obsolete]</source>
+        <target state="translated">Importierender Konstruktor muss "[Obsolete]" lauten</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
+        <source>Apply PartNotDiscoverableAttribute</source>
+        <target state="translated">"PartNotDiscoverableAttribute" anwenden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
+        <source>Test exports should not be discoverable</source>
+        <target state="translated">Testexporte dürfen nicht ermittelbar sein</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
+        <source>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</source>
+        <target state="translated">"{0}" wird zu Testzwecken exportiert und muss als "PartNotDiscoverable" gekennzeichnet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
+        <source>Test exports should not be discoverable</source>
+        <target state="translated">Testexporte dürfen nicht ermittelbar sein</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
         <source>Use SpecializedCollections.EmptyEnumerable()</source>
         <target state="translated">SpecializedCollections.EmptyEnumerable() verwenden</target>

@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             {
             }
 
-            protected override void AddTrackedEntities(ValueContentAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+            protected override void AddTrackedEntities(ValueContentAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
                 => analysisData.AddTrackedEntities(builder);
 
             protected override void ResetAbstractValue(AnalysisEntity analysisEntity)
@@ -55,7 +53,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
 
             protected override ValueContentAbstractValue GetAbstractDefaultValue(ITypeSymbol type)
-                => ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState;
+                => type != null ?
+                   ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState :
+                   ValueContentAbstractValue.ContainsNullLiteralState;
 
             protected override bool HasAnyAbstractValue(ValueContentAnalysisData data)
                 => data.HasAnyAbstractValue;
@@ -160,28 +160,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 _ = base.DefaultVisit(operation, argument);
                 if (operation.Type == null)
                 {
-                    return ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState;
+                    return ValueContentAbstractValue.ContainsNullLiteralState;
                 }
 
                 if (ValueContentAbstractValue.IsSupportedType(operation.Type, out ITypeSymbol valueTypeSymbol))
                 {
-                    if (operation.ConstantValue.HasValue && operation.ConstantValue.Value != null)
+                    if (operation.ConstantValue.HasValue)
                     {
-                        return ValueContentAbstractValue.Create(operation.ConstantValue.Value, valueTypeSymbol);
+                        return operation.ConstantValue.Value != null ?
+                            ValueContentAbstractValue.Create(operation.ConstantValue.Value, valueTypeSymbol) :
+                            ValueContentAbstractValue.ContainsNullLiteralState;
                     }
                     else
                     {
-                        switch (GetNullAbstractValue(operation))
+                        return (GetNullAbstractValue(operation)) switch
                         {
-                            case PointsToAnalysis.NullAbstractValue.Invalid:
-                                return ValueContentAbstractValue.InvalidState;
+                            PointsToAnalysis.NullAbstractValue.Invalid => ValueContentAbstractValue.InvalidState,
 
-                            case PointsToAnalysis.NullAbstractValue.Null:
-                                return ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState;
+                            PointsToAnalysis.NullAbstractValue.Null => ValueContentAbstractValue.ContainsNullLiteralState,
 
-                            default:
-                                return ValueContentAbstractValue.MayBeContainsNonLiteralState;
-                        }
+                            _ => ValueContentAbstractValue.MayBeContainsNonLiteralState,
+                        };
                     }
                 }
 

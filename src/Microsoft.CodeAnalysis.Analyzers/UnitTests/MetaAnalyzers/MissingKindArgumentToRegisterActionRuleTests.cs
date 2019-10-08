@@ -2,7 +2,6 @@
 
 using System;
 using Analyzer.Utilities;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
@@ -12,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class MissingKindArgumentToRegisterActionRuleTests : CodeFixTestBase
+    public class MissingKindArgumentToRegisterActionRuleTests : DiagnosticAnalyzerTestBase
     {
         [Fact]
         public void CSharp_VerifyRegisterSymbolActionDiagnostic()
@@ -219,16 +218,6 @@ End Class
             VerifyBasic(source, expected);
         }
 
-        protected override CodeFixProvider GetCSharpCodeFixProvider()
-        {
-            return null;
-        }
-
-        protected override CodeFixProvider GetBasicCodeFixProvider()
-        {
-            return null;
-        }
-
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
             return new CSharpRegisterActionAnalyzer();
@@ -251,24 +240,16 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(int line, int column, MissingKindArgument kind)
         {
-            string message;
-            switch (kind)
+            var message = kind switch
             {
-                case MissingKindArgument.SymbolKind:
-                    message = CodeAnalysisDiagnosticsResources.MissingSymbolKindArgumentToRegisterActionMessage;
-                    break;
+                MissingKindArgument.SymbolKind => CodeAnalysisDiagnosticsResources.MissingSymbolKindArgumentToRegisterActionMessage,
 
-                case MissingKindArgument.SyntaxKind:
-                    message = CodeAnalysisDiagnosticsResources.MissingSyntaxKindArgumentToRegisterActionMessage;
-                    break;
+                MissingKindArgument.SyntaxKind => CodeAnalysisDiagnosticsResources.MissingSyntaxKindArgumentToRegisterActionMessage,
 
-                case MissingKindArgument.OperationKind:
-                    message = CodeAnalysisDiagnosticsResources.MissingOperationKindArgumentToRegisterActionMessage;
-                    break;
+                MissingKindArgument.OperationKind => CodeAnalysisDiagnosticsResources.MissingOperationKindArgumentToRegisterActionMessage,
 
-                default:
-                    throw new ArgumentException("Unsupported argument kind", nameof(kind));
-            }
+                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
+            };
 
             return new DiagnosticResult(DiagnosticIds.MissingKindArgumentToRegisterActionRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
                 .WithLocation(line, column)

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         {
         }
 
-        public static DisposeAnalysisResult GetOrComputeResult(
+        public static DisposeAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
@@ -46,51 +46,69 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
             bool performCopyAnalysisIfNotUserConfigured = false,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null,
-            bool defaultDisposeOwnershipTransferAtConstructor = false)
+            bool defaultDisposeOwnershipTransferAtConstructor = false,
+            bool defaultDisposeOwnershipTransferAtMethodCall = false)
         {
+            Debug.Assert(!owningSymbol.IsConfiguredToSkipAnalysis(analyzerOptions, rule, wellKnownTypeProvider.Compilation, cancellationToken));
+
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
             var disposeOwnershipTransferAtConstructor = analyzerOptions.GetDisposeOwnershipTransferAtConstructorOption(
                 rule, defaultValue: defaultDisposeOwnershipTransferAtConstructor, cancellationToken);
-            return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+            var disposeOwnershipTransferAtMethodCall = analyzerOptions.GetDisposeOwnershipTransferAtMethodCall(
+                rule, defaultValue: defaultDisposeOwnershipTransferAtMethodCall, cancellationToken);
+            return TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
-                disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor, trackInstanceFields, exceptionPathsAnalysis,
+                disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor,
+                disposeOwnershipTransferAtMethodCall, trackInstanceFields, exceptionPathsAnalysis,
                 performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
                 out pointsToAnalysisResult);
         }
 
-        private static DisposeAnalysisResult GetOrComputeResult(
+        private static DisposeAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
             bool disposeOwnershipTransferAtConstructor,
+            bool disposeOwnershipTransferAtMethodCall,
             bool trackInstanceFields,
             bool exceptionPathsAnalysis,
             bool performCopyAnalysis,
             out PointsToAnalysisResult pointsToAnalysisResult)
         {
-            Debug.Assert(cfg != null);
-            Debug.Assert(wellKnownTypeProvider.IDisposable != null);
+            Debug.Assert(wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable, out _));
             Debug.Assert(owningSymbol != null);
 
-            pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
-                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig,
+            pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(
+                cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
                 interproceduralAnalysisPredicateOpt, PessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
+            if (pointsToAnalysisResult == null)
+            {
+                return null;
+            }
+
+            if (cfg == null)
+            {
+                Debug.Fail("Expected non-null CFG");
+                return null;
+            }
+
             var analysisContext = DisposeAnalysisContext.Create(
-                DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
-                PessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext,
-                disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor, trackInstanceFields);
-            return GetOrComputeResultForAnalysisContext(analysisContext);
+                DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
+                PessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext,
+                disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor, disposeOwnershipTransferAtMethodCall, trackInstanceFields);
+            return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        private static DisposeAnalysisResult GetOrComputeResultForAnalysisContext(DisposeAnalysisContext disposeAnalysisContext)
+        private static DisposeAnalysisResult TryGetOrComputeResultForAnalysisContext(DisposeAnalysisContext disposeAnalysisContext)
         {
             var operationVisitor = new DisposeDataFlowOperationVisitor(disposeAnalysisContext);
             var disposeAnalysis = new DisposeAnalysis(DisposeAnalysisDomainInstance, operationVisitor);
-            return disposeAnalysis.GetOrComputeResultCore(disposeAnalysisContext, cacheResult: false);
+            return disposeAnalysis.TryGetOrComputeResultCore(disposeAnalysisContext, cacheResult: false);
         }
 
         protected override DisposeAnalysisResult ToResult(DisposeAnalysisContext analysisContext, DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue> dataFlowAnalysisResult)

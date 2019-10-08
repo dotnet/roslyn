@@ -33,8 +33,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         internal static ThrownExceptionInfo CreateDefaultInfoForExceptionsPathAnalysis(BasicBlock block, WellKnownTypeProvider wellKnownTypeProvider, ImmutableStack<IOperation> interproceduralCallStackOpt)
         {
-            Debug.Assert(wellKnownTypeProvider.Exception != null);
-            return new ThrownExceptionInfo(block, wellKnownTypeProvider.Exception, interproceduralCallStackOpt, isDefaultExceptionForExceptionsPathAnalysis: true);
+            var exceptionNamedType = wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException);
+            Debug.Assert(exceptionNamedType != null);
+            return new ThrownExceptionInfo(block, exceptionNamedType, interproceduralCallStackOpt, isDefaultExceptionForExceptionsPathAnalysis: true);
         }
 
         private static ControlFlowRegion GetHandlerRegion(BasicBlock block, INamedTypeSymbol exceptionType)
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 BasicBlockOrdinal == other.BasicBlockOrdinal &&
                 HandlingCatchRegionOpt == other.HandlingCatchRegionOpt &&
                 ContainingFinallyRegionOpt == other.ContainingFinallyRegionOpt &&
-                ExceptionType == other.ExceptionType &&
+                Equals(ExceptionType, other.ExceptionType) &&
                 InterproceduralCallStack.SequenceEqual(other.InterproceduralCallStack) &&
                 IsDefaultExceptionForExceptionsPathAnalysis == other.IsDefaultExceptionForExceptionsPathAnalysis;
         }

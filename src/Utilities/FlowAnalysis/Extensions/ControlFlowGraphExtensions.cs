@@ -3,10 +3,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
-    public static class ControlFlowGraphExtensions
+    internal static class ControlFlowGraphExtensions
     {
         public static BasicBlock GetEntry(this ControlFlowGraph cfg) => cfg.Blocks.Single(b => b.Kind == BasicBlockKind.Entry);
         public static BasicBlock GetExit(this ControlFlowGraph cfg) => cfg.Blocks.Single(b => b.Kind == BasicBlockKind.Exit);
@@ -33,6 +35,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     yield return (T)descendant;
                 }
             }
+        }
+
+        internal static bool SupportsFlowAnalysis(this ControlFlowGraph cfg)
+        {
+            // Skip flow analysis for following root operation blocks:
+            // 1. Null root operation (error case)
+            // 2. OperationKind.None (used for attributes).
+            // 3. OperationKind.ParameterInitialzer (default parameter values).
+            if (cfg.OriginalOperation == null ||
+                cfg.OriginalOperation.Kind == OperationKind.None ||
+                cfg.OriginalOperation.Kind == OperationKind.ParameterInitializer)
+            {
+                return false;
+            }
+
+            // Skip flow analysis for code with syntax/semantic errors
+            if (cfg.OriginalOperation.Syntax.GetDiagnostics().Any(d => d.DefaultSeverity == DiagnosticSeverity.Error) ||
+                cfg.OriginalOperation.HasAnyOperationDescendant(o => o is IInvalidOperation))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

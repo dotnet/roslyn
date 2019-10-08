@@ -4,9 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
-
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 {
@@ -47,8 +44,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(Kind != DisposeAbstractValueKind.NotDisposable);
             Debug.Assert(Kind != DisposeAbstractValueKind.Unknown);
 
-            var kind = this.Kind > DisposeAbstractValueKind.Escaped ? this.Kind : DisposeAbstractValueKind.Escaped;
-            return new DisposeAbstractValue(DisposingOrEscapingOperations.Add(escapingOperation), kind);
+            return new DisposeAbstractValue(ImmutableHashSet.Create(escapingOperation), DisposeAbstractValueKind.Escaped);
         }
 
         [Conditional("DEBUG")]
@@ -76,10 +72,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         public ImmutableHashSet<IOperation> DisposingOrEscapingOperations { get; }
         public DisposeAbstractValueKind Kind { get; }
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(HashUtilities.Combine(DisposingOrEscapingOperations));
-            builder.Add(Kind.GetHashCode());
+            addPart(HashUtilities.Combine(DisposingOrEscapingOperations));
+            addPart(Kind.GetHashCode());
         }
     }
 }

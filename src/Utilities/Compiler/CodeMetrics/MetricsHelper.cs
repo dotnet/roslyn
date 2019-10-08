@@ -9,8 +9,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+
+#if LEGACY_CODE_METRICS_MODE
+using Analyzer.Utilities.Extensions;
+#endif
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
@@ -92,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             if (declSyntax.Language == LanguageNames.VisualBasic)
             {
                 SemanticModel model = semanticModelProvider.GetSemanticModel(declSyntax);
-                while (declSyntax.Parent != null && model.GetDeclaredSymbol(declSyntax.Parent, cancellationToken) == declaredSymbol)
+                while (declSyntax.Parent != null && Equals(model.GetDeclaredSymbol(declSyntax.Parent, cancellationToken), declaredSymbol))
                 {
                     declSyntax = declSyntax.Parent;
                 }
@@ -112,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ComputationalComplexityMetrics computationalComplexityMetrics = ComputationalComplexityMetrics.Default;
 
             var nodesToProcess = new Queue<SyntaxNode>();
+            using var applicableAttributeNodes = PooledHashSet<SyntaxNode>.GetInstance();
 
             foreach (var declaration in declarations)
             {
@@ -138,10 +143,14 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
                 foreach (var attribute in attributes)
                 {
-                    if (attribute.ApplicationSyntaxReference != null)
+                    if (attribute.ApplicationSyntaxReference != null &&
+                        attribute.ApplicationSyntaxReference.SyntaxTree == declaration.SyntaxTree)
                     {
                         var attributeSyntax = await attribute.ApplicationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                        nodesToProcess.Enqueue(attributeSyntax);
+                        if (applicableAttributeNodes.Add(attributeSyntax))
+                        {
+                            nodesToProcess.Enqueue(attributeSyntax);
+                        }
                     }
                 }
 
@@ -153,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     if (!ReferenceEquals(node, syntax))
                     {
                         var declaredSymbol = model.GetDeclaredSymbol(node, cancellationToken);
-                        if (declaredSymbol != null && symbol != declaredSymbol && declaredSymbol.Kind != SymbolKind.Parameter)
+                        if (declaredSymbol != null && !Equals(symbol, declaredSymbol) && declaredSymbol.Kind != SymbolKind.Parameter)
                         {
                             // Skip member declarations.
                             continue;
@@ -172,6 +181,15 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                             case OperationKind.MethodBodyOperation:
                             case OperationKind.ConstructorBodyOperation:
                                 cyclomaticComplexity += 1;
+                                break;
+
+                            case OperationKind.None:
+                                // Skip non-applicable attributes.
+                                if (!applicableAttributeNodes.Contains(node))
+                                {
+                                    continue;
+                                }
+
                                 break;
                         }
 
@@ -220,8 +238,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             return (cyclomaticComplexity, computationalComplexityMetrics);
-
-            bool hasConditionalLogic(IOperation operation)
+            static bool hasConditionalLogic(IOperation operation)
             {
                 switch (operation.Kind)
                 {
@@ -261,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             }
 
             // Compat
-            bool isIgnoreableType(INamedTypeSymbol namedType)
+            static bool isIgnoreableType(INamedTypeSymbol namedType)
             {
                 switch (namedType.SpecialType)
                 {
@@ -303,15 +320,12 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
         internal static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol member)
         {
-            switch (member.Kind)
+            return member.Kind switch
             {
-                case SymbolKind.Method:
-                    return ((IMethodSymbol)member).Parameters;
-                case SymbolKind.Property:
-                    return ((IPropertySymbol)member).Parameters;
-                default:
-                    return ImmutableArray<IParameterSymbol>.Empty;
-            }
+                SymbolKind.Method => ((IMethodSymbol)member).Parameters,
+                SymbolKind.Property => ((IPropertySymbol)member).Parameters,
+                _ => ImmutableArray<IParameterSymbol>.Empty,
+            };
         }
     }
 }

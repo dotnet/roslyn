@@ -4,32 +4,47 @@
     <body>
       <trans-unit id="DuplicateBannedSymbolDescription">
         <source>The list of banned symbols contains a duplicate.</source>
-        <target state="new">The list of banned symbols contains a duplicate.</target>
+        <target state="translated">Список запрещенных символов содержит дубликат.</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolMessage">
         <source>The symbol '{0}' is listed multiple times in the list of banned APIs</source>
-        <target state="new">The symbol '{0}' is listed multiple times in the list of banned APIs</target>
+        <target state="translated">Символ "{0}" указан несколько раз в списке запрещенных API</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateBannedSymbolTitle">
         <source>The list of banned symbols contains a duplicate</source>
-        <target state="new">The list of banned symbols contains a duplicate</target>
+        <target state="translated">Список запрещенных символов содержит дубликат</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToDescription">
+        <source>RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.</source>
+        <target state="translated">RestrictedInternalsVisibleToAttribute включает ограниченную версию InternalsVisibleToAttribute, которая разрешает доступ только к внутренним символам, входящим в заданные пространства имен. Каждая ссылочная сборка может обращаться только к внутренним символам, определенным в ограниченных пространствах имен, допускаемых сборкой, на которую указывает ссылка.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToMessage">
+        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</source>
+        <target state="translated">Внешний доступ к внутреннему символу "{0}" запрещен. Сборка "{1}" разрешает доступ только к внутренним символам, определенным в следующих пространствах имен: "{2}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RestrictedInternalsVisibleToTitle">
+        <source>External access to internal symbols outside the restricted namespace(s) is prohibited</source>
+        <target state="translated">Внешний доступ к внутренним символам за пределами ограниченных пространств имен запрещен</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedDescription">
         <source>The symbol has been marked as banned in this project, and an alternate should be used instead.</source>
-        <target state="new">The symbol has been marked as banned in this project, and an alternate should be used instead.</target>
+        <target state="translated">Символ был помечен как запрещенный в этом проекте, вместо него следует использовать альтернативный вариант.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedMessage">
         <source>The symbol '{0}' is banned in this project{1}</source>
-        <target state="new">The symbol '{0}' is banned in this project{1}</target>
+        <target state="translated">Символ "{0}" не может использоваться в этом проекте {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolIsBannedTitle">
         <source>Do not used banned APIs</source>
-        <target state="new">Do not used banned APIs</target>
+        <target state="translated">Не использовать запрещенные API</target>
         <note />
       </trans-unit>
     </body>

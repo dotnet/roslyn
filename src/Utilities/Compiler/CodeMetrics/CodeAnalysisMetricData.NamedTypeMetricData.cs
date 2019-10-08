@@ -7,11 +7,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
-    internal abstract partial class CodeAnalysisMetricData
+    public abstract partial class CodeAnalysisMetricData
     {
         private sealed class NamedTypeMetricData : CodeAnalysisMetricData
         {
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                             break;
                         }
 
-                        builderOpt = builderOpt ?? ImmutableHashSet.CreateBuilder<IFieldSymbol>();
+                        builderOpt ??= ImmutableHashSet.CreateBuilder<IFieldSymbol>();
                         builderOpt.Add((IFieldSymbol)fieldData.Symbol);
                         indexThreshold -= 4;
                     }

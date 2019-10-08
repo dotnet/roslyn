@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
-using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -25,55 +23,63 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
         }
 
-        public static PointsToAnalysisResult GetOrComputeResult(
+        public static PointsToAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
             bool pessimisticAnalysis = true,
-            bool performCopyAnalysis = true,
+            bool performCopyAnalysis = false,
             bool exceptionPathsAnalysis = false)
         {
-            return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
+            return TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
                 out var _, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
                 pessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
         }
 
-        public static PointsToAnalysisResult GetOrComputeResult(
+        public static PointsToAnalysisResult TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
+            AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
             out CopyAnalysisResult copyAnalysisResultOpt,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
             bool pessimisticAnalysis = true,
-            bool performCopyAnalysis = true,
+            bool performCopyAnalysis = false,
             bool exceptionPathsAnalysis = false)
         {
             copyAnalysisResultOpt = performCopyAnalysis ?
-                CopyAnalysis.CopyAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig,
+                CopyAnalysis.CopyAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider, interproceduralAnalysisConfig,
                     interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performPointsToAnalysis: true, exceptionPathsAnalysis) :
                 null;
-            var analysisContext = PointsToAnalysisContext.Create(PointsToAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
-                owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt,
-                GetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
-            return GetOrComputeResultForAnalysisContext(analysisContext);
-        }
 
-        private static PointsToAnalysisResult GetOrComputeResultForAnalysisContext(PointsToAnalysisContext analysisContext)
-        {
-            using (var trackedEntitiesBuilder = new TrackedEntitiesBuilder())
+            if (cfg == null)
             {
-                var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator(trackedEntitiesBuilder);
-                var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
-                var operationVisitor = new PointsToDataFlowOperationVisitor(trackedEntitiesBuilder, defaultPointsToValueGenerator, analysisDomain, analysisContext);
-                var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
-                return pointsToAnalysis.GetOrComputeResultCore(analysisContext, cacheResult: true);
+                Debug.Fail("Expected non-null CFG");
+                return null;
             }
+
+            var analysisContext = PointsToAnalysisContext.Create(PointsToAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
+                owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt,
+                TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
+            return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        internal static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType();
+        private static PointsToAnalysisResult TryGetOrComputeResultForAnalysisContext(PointsToAnalysisContext analysisContext)
+        {
+            using var trackedEntitiesBuilder = new TrackedEntitiesBuilder();
+            var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator(trackedEntitiesBuilder);
+            var analysisDomain = new PointsToAnalysisDomain(defaultPointsToValueGenerator);
+            var operationVisitor = new PointsToDataFlowOperationVisitor(trackedEntitiesBuilder, defaultPointsToValueGenerator, analysisDomain, analysisContext);
+            var pointsToAnalysis = new PointsToAnalysis(analysisDomain, operationVisitor);
+            return pointsToAnalysis.TryGetOrComputeResultCore(analysisContext, cacheResult: true);
+        }
+
+        internal static bool ShouldBeTracked(ITypeSymbol typeSymbol) => typeSymbol.IsReferenceTypeOrNullableValueType() ||
+            typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
 
         internal static bool ShouldBeTracked(AnalysisEntity analysisEntity)
             => ShouldBeTracked(analysisEntity.Type) || analysisEntity.IsLValueFlowCaptureEntity || analysisEntity.IsThisOrMeInstance;

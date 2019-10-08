@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 copyAnalysisData.AssertValidCopyAnalysisData(GetDefaultCopyValue);
             }
 
-            protected override void AddTrackedEntities(CopyAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+            protected override void AddTrackedEntities(CopyAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
                 => analysisData.AddTrackedEntities(builder);
 
             protected override bool HasAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.HasAbstractValue(analysisEntity);
@@ -442,7 +444,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 if (throwBranchWithExceptionType.IsDefaultExceptionForExceptionsPathAnalysis)
                 {
                     // Only tracking non-child analysis entities for exceptions path analysis for now.
-                    Debug.Assert(throwBranchWithExceptionType.ExceptionType.Equals(WellKnownTypeProvider.Exception));
+                    Debug.Assert(throwBranchWithExceptionType.ExceptionType.Equals(ExceptionNamedType));
                     predicateOpt = e => !e.IsChildOrInstanceMember;
                 }
 
@@ -512,12 +514,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override void ApplyInterproceduralAnalysisResultCore(CopyAnalysisData resultData)
             {
-                using (var mergedData = GetClonedAnalysisData(resultData))
-                {
-                    ApplyMissingCurrentAnalysisDataCore(mergedData, predicateOpt: null);
-                    CurrentAnalysisData.CoreAnalysisData.Clear();
-                    CurrentAnalysisData.CoreAnalysisData.AddRange(mergedData.CoreAnalysisData);
-                }
+                using var mergedData = GetClonedAnalysisData(resultData);
+                ApplyMissingCurrentAnalysisDataCore(mergedData, predicateOpt: null);
+                CurrentAnalysisData.CoreAnalysisData.Clear();
+                CurrentAnalysisData.CoreAnalysisData.AddRange(mergedData.CoreAnalysisData);
             }
 
             private void ApplyMissingCurrentAnalysisDataCore(CopyAnalysisData mergedData, Func<AnalysisEntity, bool> predicateOpt)
@@ -588,15 +588,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 IMethodSymbol invokedMethod,
                 (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
                 (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
-                ImmutableArray<ArgumentInfo<CopyAbstractValue>> argumentValues,
+                ImmutableDictionary<IParameterSymbol, ArgumentInfo<CopyAbstractValue>> argumentValuesMap,
                 IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
                 IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+                IDictionary<AnalysisEntity, ValueContentAbstractValue> valueContentValuesOpt,
                 bool isLambdaOrLocalFunction,
                 bool hasParameterWithDelegateType)
             {
                 copyValuesOpt = CurrentAnalysisData.CoreAnalysisData;
                 var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt,
-                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
+                    thisOrMeInstanceForCallerOpt, argumentValuesMap, pointsToValuesOpt, copyValuesOpt, valueContentValuesOpt,
+                    isLambdaOrLocalFunction, hasParameterWithDelegateType);
                 AssertValidCopyAnalysisData(initialAnalysisData);
                 return initialAnalysisData;
             }

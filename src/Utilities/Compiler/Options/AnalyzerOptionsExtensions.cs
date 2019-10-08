@@ -27,6 +27,13 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.ApiSurface, rule, defaultValue, cancellationToken);
 
+        public static SymbolModifiers GetRequiredModifiersOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            SymbolModifiers defaultValue,
+            CancellationToken cancellationToken)
+            => options.GetFlagsEnumOptionValue(EditorConfigOptionNames.RequiredModifiers, rule, defaultValue, cancellationToken);
+
         public static ImmutableHashSet<OutputKind> GetOutputKindsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
@@ -58,8 +65,7 @@ namespace Analyzer.Utilities
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParseValue, defaultValue);
-
-            bool TryParseValue(string value, out ImmutableHashSet<TEnum> result)
+            static bool TryParseValue(string value, out ImmutableHashSet<TEnum> result)
             {
                 var builder = ImmutableHashSet.CreateBuilder<TEnum>();
                 foreach (var kindStr in value.Split(','))
@@ -112,6 +118,67 @@ namespace Analyzer.Utilities
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetOptionValue(optionName, rule, uint.TryParse, defaultValue);
+        }
+
+        public static SymbolNamesOption GetNullCheckValidationMethodsOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.NullCheckValidationMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
+
+        public static SymbolNamesOption GetAdditionalStringFormattingMethodsOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.AdditionalStringFormattingMethods, namePrefixOpt: "M:", rule, compilation, cancellationToken);
+
+        public static SymbolNamesOption GetExcludedSymbolNamesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
+
+        public static SymbolNamesOption GetExcludedTypeNamesWithDerivedTypesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.ExcludedTypeNamesWithDerivedTypes, namePrefixOpt: "T:", rule, compilation, cancellationToken);
+
+        public static SymbolNamesOption GetDisallowedSymbolNamesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+            => options.GetSymbolNamesOption(EditorConfigOptionNames.DisallowedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
+
+        private static SymbolNamesOption GetSymbolNamesOption(
+            this AnalyzerOptions options,
+            string optionName,
+            string namePrefixOpt,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
+            return analyzerConfigOptions.GetOptionValue(optionName, rule, TryParse, defaultValue: SymbolNamesOption.Empty);
+
+            // Local functions.
+            bool TryParse(string s, out SymbolNamesOption option)
+            {
+                if (string.IsNullOrEmpty(s))
+                {
+                    option = SymbolNamesOption.Empty;
+                    return false;
+                }
+
+                var names = s.Split('|').ToImmutableArray();
+                option = SymbolNamesOption.Create(names, compilation, namePrefixOpt);
+                return true;
+            }
         }
 
         private static CategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(

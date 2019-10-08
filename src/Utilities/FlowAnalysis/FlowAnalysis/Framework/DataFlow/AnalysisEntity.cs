@@ -10,8 +10,6 @@ using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
-
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>
@@ -79,9 +77,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(instanceReferenceOperation != null);
         }
 
-        private AnalysisEntity(InterproceduralCaptureId captureId, ITypeSymbol capturedType)
+        private AnalysisEntity(InterproceduralCaptureId captureId, ITypeSymbol capturedType, PointsToAbstractValue location)
             : this(symbolOpt: null, indices: ImmutableArray<AbstractIndex>.Empty, instanceReferenceOperationSyntaxOpt: null,
-                  captureIdOpt: captureId, location: PointsToAbstractValue.NoLocation, type: capturedType, parentOpt: null, isThisOrMeInstance: false)
+                  captureIdOpt: captureId, location: location, type: capturedType, parentOpt: null, isThisOrMeInstance: false)
         {
         }
 
@@ -111,13 +109,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         public static AnalysisEntity Create(
-            CaptureId captureId,
+            InterproceduralCaptureId interproceduralCaptureId,
             ITypeSymbol type,
-            ControlFlowGraph controlFlowGraph,
-            bool isLValueFlowCapture)
+            PointsToAbstractValue instanceLocation)
         {
-            var interproceduralCaptureId = new InterproceduralCaptureId(captureId, controlFlowGraph, isLValueFlowCapture);
-            return new AnalysisEntity(interproceduralCaptureId, type);
+            return new AnalysisEntity(interproceduralCaptureId, type, instanceLocation);
         }
 
         public static AnalysisEntity CreateThisOrMeInstance(INamedTypeSymbol typeSymbol, PointsToAbstractValue instanceLocation)
@@ -126,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(instanceLocation != null);
             Debug.Assert(instanceLocation.Locations.Count == 1);
             Debug.Assert(instanceLocation.Locations.Single().CreationOpt == null);
-            Debug.Assert(instanceLocation.Locations.Single().SymbolOpt == typeSymbol);
+            Debug.Assert(Equals(instanceLocation.Locations.Single().SymbolOpt, typeSymbol));
 
             return new AnalysisEntity(typeSymbol, instanceLocation, isThisOrMeInstance: true);
         }
@@ -175,17 +171,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                switch (SymbolOpt)
+                return SymbolOpt switch
                 {
-                    case IFieldSymbol field:
-                        return field.HasConstantValue;
+                    IFieldSymbol field => field.HasConstantValue,
 
-                    case ILocalSymbol local:
-                        return local.HasConstantValue;
+                    ILocalSymbol local => local.HasConstantValue,
 
-                    default:
-                        return false;
-                }
+                    _ => false,
+                };
             }
         }
 
@@ -237,27 +230,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public int EqualsIgnoringInstanceLocationId => _ignoringLocationHashCode;
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(InstanceLocation.GetHashCode());
-            ComputeHashCodePartsIgnoringLocation(builder);
+            addPart(InstanceLocation.GetHashCode());
+            ComputeHashCodePartsIgnoringLocation(addPart);
         }
 
-        private void ComputeHashCodePartsIgnoringLocation(ArrayBuilder<int> builder)
+        private void ComputeHashCodePartsIgnoringLocation(Action<int> addPart)
         {
-            builder.Add(SymbolOpt.GetHashCodeOrDefault());
-            builder.Add(HashUtilities.Combine(Indices));
-            builder.Add(InstanceReferenceOperationSyntaxOpt.GetHashCodeOrDefault());
-            builder.Add(CaptureIdOpt.GetHashCodeOrDefault());
-            builder.Add(Type.GetHashCode());
-            builder.Add(ParentOpt.GetHashCodeOrDefault());
-            builder.Add(IsThisOrMeInstance.GetHashCode());
+            addPart(SymbolOpt.GetHashCodeOrDefault());
+            addPart(HashUtilities.Combine(Indices));
+            addPart(InstanceReferenceOperationSyntaxOpt.GetHashCodeOrDefault());
+            addPart(CaptureIdOpt.GetHashCodeOrDefault());
+            addPart(Type.GetHashCode());
+            addPart(ParentOpt.GetHashCodeOrDefault());
+            addPart(IsThisOrMeInstance.GetHashCode());
         }
 
         private ImmutableArray<int> ComputeIgnoringLocationHashCodeParts()
         {
             var builder = ArrayBuilder<int>.GetInstance(7);
-            ComputeHashCodePartsIgnoringLocation(builder);
+            ComputeHashCodePartsIgnoringLocation(builder.Add);
             return builder.ToImmutableAndFree();
         }
 
@@ -278,5 +271,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return false;
         }
+
+        internal bool IsCandidatePredicateEntity()
+            => Type.SpecialType == SpecialType.System_Boolean ||
+               Type.IsNullableOfBoolean() ||
+               Type.Language == LanguageNames.VisualBasic && Type.SpecialType == SpecialType.System_Object;
     }
 }

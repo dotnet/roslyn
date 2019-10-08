@@ -21,22 +21,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         /// <param name="constructorMethodSymbol">Invoked constructor.</param>
         /// <param name="argumentValueContentAbstractValues"><see cref="ValueContentAbstractValue"/>s for the constructor's arguments.</param>
-        /// <param name="argumentNullAbstractValues"><see cref="NullAbstractValue"/>s for the constructor's arguments.</param>
+        /// <param name="argumentPointsToAbstractValues"><see cref="PointsToAbstractValue"/>s for the constructor's arguments.</param>
         /// <returns>Abstract value for PropertySetAnalysis, with <see cref="PropertySetAbstractValueKind"/>s in the same order as the <see cref="PropertyMapper"/>s in the <see cref="PropertyMapperCollection"/>.</returns>
         public delegate PropertySetAbstractValue ValueContentAbstractValueCallback(
             IMethodSymbol constructorMethodSymbol,
             IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues,
-            IReadOnlyList<NullAbstractValue> argumentNullAbstractValues);
+            IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues);
 
         /// <summary>
         /// Mapping a constructor's arguments to a <see cref="PropertySetAbstractValue"/>.
         /// </summary>
         /// <param name="constructorMethodSymbol">Invoked constructor.</param>
-        /// <param name="argumentNullAbstractValues"><see cref="NullAbstractValue"/>s for the constructor's arguments.</param>
+        /// <param name="argumentPointsToAbstractValues"><see cref="PointsToAbstractValue"/>s for the constructor's arguments.</param>
         /// <returns>Abstract value for PropertySetAnalysis, with <see cref="PropertySetAbstractValueKind"/>s in the same order as the <see cref="PropertyMapper"/>s in the <see cref="PropertyMapperCollection"/>.</returns>
-        public delegate PropertySetAbstractValue NullAbstractValueCallback(
+        public delegate PropertySetAbstractValue PointsToAbstractValueCallback(
             IMethodSymbol constructorMethodSymbol,
-            IReadOnlyList<NullAbstractValue> argumentNullAbstractValues);
+            IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues);
 
         /// <summary>
         /// Initializes a <see cref="ConstructorMapper"/> using constant <see cref="PropertySetAbstractValueKind"/>s whenever the type being tracked by PropertySetAnalysis is instantiated.
@@ -51,19 +51,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// Initializes a <see cref="ConstructorMapper"/> that maps a constructor invocation's arguments' <see cref="ValueContentAbstractValue"/>s to <see cref="PropertySetAbstractValueKind"/>s for the properties being tracked by PropertySetAnalysis.
         /// </summary>
         /// <param name="mapFromValueContentAbstractValueCallback">Callback that implements the mapping.</param>
-        public ConstructorMapper(ValueContentAbstractValueCallback mapFromValueContentAbstractValue)
+        public ConstructorMapper(ValueContentAbstractValueCallback mapFromValueContentAbstractValueCallback)
         {
-            this.MapFromValueContentAbstractValue = mapFromValueContentAbstractValue ?? throw new ArgumentNullException(nameof(mapFromValueContentAbstractValue));
+            this.MapFromValueContentAbstractValue = mapFromValueContentAbstractValueCallback ?? throw new ArgumentNullException(nameof(mapFromValueContentAbstractValueCallback));
             this.PropertyAbstractValues = ImmutableArray<PropertySetAbstractValueKind>.Empty;
         }
 
         /// <summary>
         /// Initializes a <see cref="ConstructorMapper"/> that maps a constructor invocation's arguments' <see cref="NullAbstractValue"/>s to <see cref="PropertySetAbstractValueKind"/>s for the properties being tracked by PropertySetAnalysis.
         /// </summary>
-        /// <param name="mapFromNullAbstractValueCallback">Callback that implements the mapping.</param>
-        public ConstructorMapper(NullAbstractValueCallback mapFromNullAbstractValue)
+        /// <param name="mapFromPointsToAbstractValueCallback">Callback that implements the mapping.</param>
+        public ConstructorMapper(PointsToAbstractValueCallback mapFromPointsToAbstractValueCallback)
         {
-            this.MapFromNullAbstractValue = mapFromNullAbstractValue ?? throw new ArgumentNullException(nameof(mapFromNullAbstractValue));
+            this.MapFromPointsToAbstractValue = mapFromPointsToAbstractValueCallback ?? throw new ArgumentNullException(nameof(mapFromPointsToAbstractValueCallback));
             this.PropertyAbstractValues = ImmutableArray<PropertySetAbstractValueKind>.Empty;
         }
 
@@ -76,7 +76,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         internal ValueContentAbstractValueCallback MapFromValueContentAbstractValue { get; }
 
-        internal NullAbstractValueCallback MapFromNullAbstractValue { get; }
+        internal PointsToAbstractValueCallback MapFromPointsToAbstractValue { get; }
 
         internal ImmutableArray<PropertySetAbstractValueKind> PropertyAbstractValues { get; }
 
@@ -100,7 +100,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             return HashUtilities.Combine(this.PropertyAbstractValues,
                 HashUtilities.Combine(this.MapFromValueContentAbstractValue.GetHashCodeOrDefault(),
-                this.MapFromNullAbstractValue.GetHashCodeOrDefault()));
+                this.MapFromPointsToAbstractValue.GetHashCodeOrDefault()));
         }
 
         public override bool Equals(object obj)
@@ -112,7 +112,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
             return other != null
                 && this.MapFromValueContentAbstractValue == other.MapFromValueContentAbstractValue
-                && this.MapFromNullAbstractValue == other.MapFromNullAbstractValue
+                && this.MapFromPointsToAbstractValue == other.MapFromPointsToAbstractValue
                 && this.PropertyAbstractValues == other.PropertyAbstractValues;
         }
     }

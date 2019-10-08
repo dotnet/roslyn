@@ -34,22 +34,22 @@
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMemberParameter">
         <source>In method {0}, correct the spelling of '{1}' in parameter name {2} or remove it entirely if it represents any sort of Hungarian notation.</source>
-        <target state="translated">在方法 {0} 中，更正参数名称 {2} 中“{1\}”的拼写；如果它代表任何类型的匈牙利表示法，可完全删除它。</target>
+        <target state="translated">在方法 {0} 中，更正参数名称 {2} 中“{1}”的拼写；如果它代表任何类型的匈牙利表示法，可完全删除它。</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageDelegateParameter">
         <source>In delegate {0}, correct the spelling of '{1}' in parameter name {2} or remove it entirely if it represents any sort of Hungarian notation.</source>
-        <target state="translated">在委托 {0} 中，更正参数名称 {2} 中“{1\}”的拼写；如果它代表任何类型的匈牙利表示法，可完全删除它。</target>
+        <target state="translated">在委托 {0} 中，更正参数名称 {2} 中“{1}”的拼写；如果它代表任何类型的匈牙利表示法，可完全删除它。</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageTypeTypeParameter">
         <source>On type {0}, correct the spelling of '{1}' in generic type parameter name {2}.</source>
-        <target state="translated">在类型 {0} 中，更正泛型类型参数名称 {2} 中“{1\}”的拼写。</target>
+        <target state="translated">在类型 {0} 中，更正泛型类型参数名称 {2} 中“{1}”的拼写。</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameter">
         <source>On method {0}, correct the spelling of '{1}' in generic type parameter name {2}.</source>
-        <target state="translated">在方法 {0} 中，更正泛型类型参数名称 {2} 中“{1\}”的拼写。</target>
+        <target state="translated">在方法 {0} 中，更正泛型类型参数名称 {2} 中“{1}”的拼写。</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssemblyMoreMeaningfulName">

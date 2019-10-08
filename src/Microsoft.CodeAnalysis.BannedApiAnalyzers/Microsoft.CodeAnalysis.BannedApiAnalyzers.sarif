@@ -1,0 +1,139 @@
+﻿{
+  "$schema": "http://json.schemastore.org/sarif-1.0.0",
+  "version": "1.0.0",
+  "runs": [
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
+        "version": "2.9.6",
+        "language": "en-US"
+      },
+      "rules": {
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers",
+        "version": "2.9.6",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0030": {
+          "id": "RS0030",
+          "shortDescription": "Do not used banned APIs",
+          "fullDescription": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSymbolIsBannedAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0031": {
+          "id": "RS0031",
+          "shortDescription": "The list of banned symbols contains a duplicate",
+          "fullDescription": "The list of banned symbols contains a duplicate.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSymbolIsBannedAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0035": {
+          "id": "RS0035",
+          "shortDescription": "External access to internal symbols outside the restricted namespace(s) is prohibited",
+          "fullDescription": "RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpRestrictedInternalsVisibleToAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers",
+        "version": "2.9.6",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS0030": {
+          "id": "RS0030",
+          "shortDescription": "Do not used banned APIs",
+          "fullDescription": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "BasicSymbolIsBannedAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0031": {
+          "id": "RS0031",
+          "shortDescription": "The list of banned symbols contains a duplicate",
+          "fullDescription": "The list of banned symbols contains a duplicate.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "BasicSymbolIsBannedAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0035": {
+          "id": "RS0035",
+          "shortDescription": "External access to internal symbols outside the restricted namespace(s) is prohibited",
+          "fullDescription": "RestrictedInternalsVisibleToAttribute enables a restricted version of InternalsVisibleToAttribute that limits access to internal symbols to those within specified namespaces. Each referencing assembly can only access internal symbols defined in the restricted namespaces that the referenced assembly allows.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "BasicRestrictedInternalsVisibleToAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

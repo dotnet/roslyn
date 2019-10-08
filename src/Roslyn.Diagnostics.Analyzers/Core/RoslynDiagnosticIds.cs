@@ -35,5 +35,9 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string RoslynAnalyzerMustUseCategoriesFromSpecifiedRangeRuleId = "RS0029";
         public const string SymbolIsBannedRuleId = "RS0030";
         public const string DuplicateBannedSymbolRuleId = "RS0031";
+        public const string TestExportsShouldNotBeDiscoverableRuleId = "RS0032";
+        public const string ImportingConstructorShouldBeObsoleteRuleId = "RS0033";
+        public const string ExportedPartsShouldHaveImportingConstructorRuleId = "RS0034";
+        public const string RestrictedInternalsVisibleToRuleId = "RS0035";
     }
 }

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -10,8 +9,6 @@ using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
-
-#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
@@ -27,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         public static ValueContentAbstractValue InvalidState { get; } = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Invalid);
         public static ValueContentAbstractValue MayBeContainsNonLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.Maybe);
         public static ValueContentAbstractValue DoesNotContainLiteralOrNonLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet<object>.Empty, ValueContainsNonLiteralState.No);
+        public static ValueContentAbstractValue ContainsNullLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create((object)null), ValueContainsNonLiteralState.No);
         public static ValueContentAbstractValue ContainsEmptyStringLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(string.Empty), ValueContainsNonLiteralState.No);
         public static ValueContentAbstractValue ContainsZeroIntergralLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(0), ValueContainsNonLiteralState.No);
         public static ValueContentAbstractValue ContainsOneIntergralLiteralState { get; } = new ValueContentAbstractValue(ImmutableHashSet.Create<object>(1), ValueContainsNonLiteralState.No);
@@ -41,6 +39,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         internal static ValueContentAbstractValue Create(object literal, ITypeSymbol type)
         {
+            Debug.Assert(literal != null);
+
             switch (type.SpecialType)
             {
                 case SpecialType.System_Byte:
@@ -80,17 +80,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         {
             if (literalValues.IsEmpty)
             {
-                switch (nonLiteralState)
+                return nonLiteralState switch
                 {
-                    case ValueContainsNonLiteralState.Undefined:
-                        return UndefinedState;
-                    case ValueContainsNonLiteralState.Invalid:
-                        return InvalidState;
-                    case ValueContainsNonLiteralState.No:
-                        return DoesNotContainLiteralOrNonLiteralState;
-                    default:
-                        return MayBeContainsNonLiteralState;
-                }
+                    ValueContainsNonLiteralState.Undefined => UndefinedState,
+                    ValueContainsNonLiteralState.Invalid => InvalidState,
+                    ValueContainsNonLiteralState.No => DoesNotContainLiteralOrNonLiteralState,
+                    _ => MayBeContainsNonLiteralState,
+                };
             }
             else if (literalValues.Count == 1 && nonLiteralState == ValueContainsNonLiteralState.No)
             {
@@ -123,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
         internal static bool IsSupportedType(ITypeSymbol type, out ITypeSymbol valueTypeSymbol)
         {
-            if (type.IsPrimitiveType() || type.SpecialType == SpecialType.System_String)
+            if (type.IsPrimitiveType())
             {
                 valueTypeSymbol = type;
                 return true;
@@ -151,10 +147,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         public ImmutableHashSet<object> LiteralValues { get; }
 
-        protected override void ComputeHashCodeParts(ArrayBuilder<int> builder)
+        protected override void ComputeHashCodeParts(Action<int> addPart)
         {
-            builder.Add(HashUtilities.Combine(LiteralValues));
-            builder.Add(NonLiteralState.GetHashCode());
+            addPart(HashUtilities.Combine(LiteralValues));
+            addPart(NonLiteralState.GetHashCode());
         }
 
         /// <summary>
@@ -204,6 +200,34 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         }
 
         public bool IsLiteralState => !LiteralValues.IsEmpty && NonLiteralState == ValueContainsNonLiteralState.No;
+
+        /// <summary>
+        /// For super simple cases: If this abstract value is a single non-null literal, then get that literal value.
+        /// </summary>
+        /// <typeparam name="T">Type of the expected literal value.</typeparam>
+        /// <param name="literalValue">Literal value, or its default if not a single non-null literal value.</param>
+        /// <returns>True if a non-null literal value was found, false otherwise.</returns>
+        /// <remarks>If you're looking for null, you should be looking at <see cref="PointsToAnalysis"/>.</remarks>
+        public bool TryGetSingleNonNullLiteral<T>(out T literalValue)
+        {
+            if (!IsLiteralState || LiteralValues.Count != 1)
+            {
+                literalValue = default;
+                return false;
+            }
+
+            object o = LiteralValues.First();
+            if (o is T v)
+            {
+                literalValue = v;
+                return true;
+            }
+            else
+            {
+                literalValue = default;
+                return false;
+            }
+        }
 
         internal ValueContentAbstractValue IntersectLiteralValues(ValueContentAbstractValue value2)
         {

@@ -9,6 +9,8 @@ using Analyzer.Utilities.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
+#pragma warning disable CA2000 // Dispose objects before losing scope - https://github.com/dotnet/roslyn-analyzers/issues/2715
+
     /// <summary>
     /// Base class for all the predicated analysis data.
     /// It tracks <see cref="_lazyPredicateDataMap"/>, which contains the true/false <see cref="PerEntityPredicatedAnalysisData"/> for every predicated <see cref="AnalysisEntity"/>, and
@@ -80,14 +82,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private void EnsurePredicatedData()
         {
-            _lazyPredicateDataMap = _lazyPredicateDataMap ?? new DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>();
+            _lazyPredicateDataMap ??= new DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>();
         }
 
         protected void StartTrackingPredicatedData(AnalysisEntity predicatedEntity, DictionaryAnalysisData<TKey, TValue> truePredicatedData, DictionaryAnalysisData<TKey, TValue> falsePredicatedData)
         {
-            Debug.Assert(predicatedEntity.Type.SpecialType == SpecialType.System_Boolean ||
-                predicatedEntity.Type.IsNullableOfBoolean() ||
-                predicatedEntity.Type.Language == LanguageNames.VisualBasic && predicatedEntity.Type.SpecialType == SpecialType.System_Object);
+            Debug.Assert(predicatedEntity.IsCandidatePredicateEntity());
             Debug.Assert(predicatedEntity.CaptureIdOpt != null, "Currently we only support predicated data tracking for flow captures");
 
             AssertValidAnalysisData();

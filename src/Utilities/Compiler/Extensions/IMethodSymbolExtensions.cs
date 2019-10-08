@@ -1,15 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using Microsoft.CodeAnalysis;
+using System.Diagnostics;
 
 #if HAS_IOPERATION
+using System.Collections.Concurrent;
+using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 #endif
 
@@ -142,14 +142,14 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Checks if the given method is an implementation of the given interface method 
+        /// Checks if the given method is an implementation of the given interface method
         /// Substituted with the given typeargument.
         /// </summary>
         public static bool IsImplementationOfInterfaceMethod(this IMethodSymbol method, ITypeSymbol typeArgument, INamedTypeSymbol interfaceType, string interfaceMethodName)
         {
             INamedTypeSymbol constructedInterface = typeArgument != null ? interfaceType?.Construct(typeArgument) : interfaceType;
 
-            return constructedInterface?.GetMembers(interfaceMethodName).Single() is IMethodSymbol interfaceMethod && method.Equals(method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
+            return constructedInterface?.GetMembers(interfaceMethodName).FirstOrDefault() is IMethodSymbol interfaceMethod && method.Equals(method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsDisposeImplementation(this IMethodSymbol method, Compilation compilation)
         {
-            INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
+            INamedTypeSymbol iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             return method.IsDisposeImplementation(iDisposable);
         }
 
@@ -247,8 +247,8 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
         {
-            INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
-            INamedTypeSymbol task = WellKnownTypes.Task(compilation);
+            INamedTypeSymbol iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            INamedTypeSymbol task = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
             return method.GetDisposeMethodKind(iDisposable, task);
         }
 
@@ -263,7 +263,7 @@ namespace Analyzer.Utilities.Extensions
             if (method.ContainingType.IsDisposable(iDisposable))
             {
                 if (IsDisposeImplementation(method, iDisposable) ||
-                    (method.ContainingType == iDisposable &&
+                    (Equals(method.ContainingType, iDisposable) &&
                      method.HasDisposeMethodSignature()))
                 {
                     return DisposeMethodKind.Dispose;
@@ -389,10 +389,21 @@ namespace Analyzer.Utilities.Extensions
         /// Determine if the specific method is a Task.FromResult method that wraps a result in a task.
         /// </summary>
         /// <param name="method">The method to test.</param>
-        /// <param name="taskType">Task types.</param>
+        /// <param name="taskType">Task type.</param>
         public static bool IsTaskFromResultMethod(this IMethodSymbol method, INamedTypeSymbol taskType)
             => method.Name.Equals("FromResult", StringComparison.Ordinal) &&
                method.ContainingType.Equals(taskType);
+
+        /// <summary>
+        /// Determine if the specific method is a Task.ConfigureAwait(bool) method.
+        /// </summary>
+        /// <param name="method">The method to test.</param>
+        /// <param name="genericTaskType">Generic task type.</param>
+        public static bool IsTaskConfigureAwaitMethod(this IMethodSymbol method, INamedTypeSymbol genericTaskType)
+            => method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
+               method.Parameters.Length == 1 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean &&
+               method.ContainingType.OriginalDefinition.Equals(genericTaskType);
 
 #if HAS_IOPERATION
         /// <summary>
@@ -400,8 +411,8 @@ namespace Analyzer.Utilities.Extensions
         /// across analyzers and analyzer callbacks to re-use the operations, semanticModel and control flow graph.
         /// </summary>
         /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>> s_methodToTopmostOperationBlockCache
-            = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>>();
+        private static readonly BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>> s_methodToTopmostOperationBlockCache
+            = new BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>>();
 
         /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
@@ -414,7 +425,7 @@ namespace Analyzer.Utilities.Extensions
             // Local functions.
             IBlockOperation ComputeTopmostOperationBlock(IMethodSymbol unused)
             {
-                if (method.ContainingAssembly != compilation.Assembly)
+                if (!Equals(method.ContainingAssembly, compilation.Assembly))
                 {
                     return null;
                 }
@@ -477,7 +488,7 @@ namespace Analyzer.Utilities.Extensions
         {
             for (var i = 0; i < methodSymbol.Parameters.Length; i++)
             {
-                if (parameterSymbol == methodSymbol.Parameters[i])
+                if (Equals(parameterSymbol, methodSymbol.Parameters[i]))
                 {
                     return i;
                 }
@@ -507,7 +518,73 @@ namespace Analyzer.Utilities.Extensions
                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
         }
 
+
+        public static bool IsInterlockedExchangeMethod(this IMethodSymbol method, INamedTypeSymbol systemThreadingInterlocked)
+        {
+            Debug.Assert(method.ContainingType.OriginalDefinition.Equals(systemThreadingInterlocked));
+
+            // "System.Threading.Interlocked.Exchange(ref T, T)"
+            return method.Name == "Exchange" &&
+                   method.Parameters.Length == 2 &&
+                   method.Parameters[0].RefKind == RefKind.Ref &&
+                   method.Parameters[1].RefKind != RefKind.Ref &&
+                   method.Parameters[0].Type.Equals(method.Parameters[1].Type);
+        }
+
+        public static bool IsInterlockedCompareExchangeMethod(this IMethodSymbol method, INamedTypeSymbol systemThreadingInterlocked)
+        {
+            Debug.Assert(method.ContainingType.OriginalDefinition.Equals(systemThreadingInterlocked));
+
+            // "System.Threading.Interlocked.CompareExchange(ref T, T, T)"
+            return method.Name == "CompareExchange" &&
+                   method.Parameters.Length == 3 &&
+                   method.Parameters[0].RefKind == RefKind.Ref &&
+                   method.Parameters[1].RefKind != RefKind.Ref &&
+                   method.Parameters[2].RefKind != RefKind.Ref &&
+                   method.Parameters[0].Type.Equals(method.Parameters[1].Type) &&
+                   method.Parameters[1].Type.Equals(method.Parameters[2].Type);
+        }
+
         public static bool HasParameterWithDelegateType(this IMethodSymbol methodSymbol)
             => methodSymbol.Parameters.Any(p => p.Type.TypeKind == TypeKind.Delegate);
+
+        /// <summary>
+        /// Find out if the method overrides from target virtual method of a certain type
+        /// or it is the virtual method itself.
+        /// </summary>
+        /// <param name="methodSymbol">The method</param>
+        /// <param name="typeSymbol">The type has virtual method</param>
+        public static bool IsOverrideOrVirtualMethodOf(this IMethodSymbol methodSymbol, INamedTypeSymbol typeSymbol)
+        {
+            if (methodSymbol == null)
+            {
+                return false;
+            }
+            else
+            {
+                if (methodSymbol.ContainingType.Equals(typeSymbol))
+                {
+                    return true;
+                }
+                else
+                {
+                    return IsOverrideOrVirtualMethodOf(methodSymbol.OverriddenMethod, typeSymbol);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true if this is a bool returning static method whose name starts with "IsNull"
+        /// with a single parameter whose type is not a value type.
+        /// For example, "static bool string.IsNullOrEmpty()"
+        /// </summary>
+        public static bool IsArgumentNullCheckMethod(this IMethodSymbol method)
+        {
+            return method.IsStatic &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Name.StartsWith("IsNull", StringComparison.Ordinal) &&
+                method.Parameters.Length == 1 &&
+                !method.Parameters[0].Type.IsValueType;
+        }
     }
 }

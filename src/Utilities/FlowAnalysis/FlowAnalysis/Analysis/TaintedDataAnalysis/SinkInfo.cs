@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -52,6 +51,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Mapping of method name to parameter names that are sinks.
         /// </summary>
         public ImmutableDictionary<string, ImmutableHashSet<string>> SinkMethodParameters { get; }
+
+        /// <summary>
+        /// Indicates that this <see cref="SinkInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
+        /// </summary>
+        public bool RequiresValueContentAnalysis => false;
 
         public override int GetHashCode()
         {

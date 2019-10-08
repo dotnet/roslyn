@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return result;
             }
 
-            protected override void AddTrackedEntities(PointsToAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+            protected override void AddTrackedEntities(PointsToAnalysisData analysisData, HashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
             {
                 if (!analysisData.HasAnyAbstractValue &&
                     (forInterproceduralAnalysis || !_defaultPointsToValueGenerator.HasAnyTrackedEntity))
@@ -226,24 +227,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     existingValue = defaultPointsToValueGenerator.GetOrCreateDefaultValue(analysisEntity);
                 }
 
-                PointsToAbstractValue newPointsToValue;
-                switch (nullState)
+                var newPointsToValue = nullState switch
                 {
-                    case NullAbstractValue.Null:
-                        newPointsToValue = existingValue.MakeNull();
-                        break;
+                    NullAbstractValue.Null => existingValue.MakeNull(),
 
-                    case NullAbstractValue.NotNull:
-                        newPointsToValue = existingValue.MakeNonNull();
-                        break;
+                    NullAbstractValue.NotNull => existingValue.MakeNonNull(),
 
-                    case NullAbstractValue.Invalid:
-                        newPointsToValue = PointsToAbstractValue.Invalid;
-                        break;
+                    NullAbstractValue.Invalid => PointsToAbstractValue.Invalid,
 
-                    default:
-                        throw new InvalidProgramException();
-                }
+                    _ => throw new InvalidProgramException(),
+                };
 
                 targetAnalysisData.SetAbstractValue(analysisEntity, newPointsToValue);
                 AssertValidPointsToAnalysisData(targetAnalysisData);
@@ -254,7 +247,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 => ShouldBeTracked(parameter.Type) ?
                     PointsToAbstractValue.Create(
                         AbstractLocation.CreateSymbolLocation(parameter, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack),
-                        mayBeNull: true) :
+                        mayBeNull: !parameter.IsParams) :
                     PointsToAbstractValue.NoLocation;
 
             protected override void EscapeValueForParameterOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity)
@@ -323,14 +316,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                         if (analysisEntity.SymbolOpt?.Kind == SymbolKind.Field)
                         {
                             // Ref/Out field argument is considered escaped.
-                            HandleEscapingOperation(operation, operation.Value);
+                            HandleEscapingOperation(operation, operation);
                         }
                     }
                 }
-                else if (operation.Parameter.RefKind == RefKind.Ref)
+                else if (operation.Parameter.RefKind == RefKind.Ref || operation.Parameter.RefKind == RefKind.Out)
                 {
-                    // By-ref argument is considered escaped in non-interprocedural analysis case.
-                    HandleEscapingOperation(operation, operation.Value);
+                    if (operation.Parameter.RefKind == RefKind.Ref)
+                    {
+                        // Input by-ref argument passed to invoked method is considered escaped in non-interprocedural analysis case.
+                        HandleEscapingOperation(operation, operation.Value);
+                    }
+
+                    // Output by-ref or out argument might be escaped if assigned to a field.
+                    HandlePossibleEscapingForAssignment(target: operation.Value, value: operation, operation: operation);
                 }
             }
 
@@ -338,11 +337,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 base.ProcessReturnValue(returnValue);
 
-                // Escape the return value, if not currently analyzing an invoked method.
-                if (returnValue != null && DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
+                // Escape the return value if we are not analyzing an invoked method during interprocedural analysis.
+                if (returnValue != null &&
+                    DataFlowAnalysisContext.InterproceduralAnalysisDataOpt == null)
                 {
                     HandleEscapingOperation(escapingOperation: returnValue, escapedInstance: returnValue, _escapedReturnValueLocationsBuilder);
                 }
+            }
+
+            private protected override PointsToAbstractValue GetAbstractValueForImplicitWrappingTaskCreation(IOperation returnValueOperation, PointsToAbstractValue returnValue, PointsToAbstractValue implicitTaskPointsToValue)
+            {
+                return implicitTaskPointsToValue;
             }
 
             #region Predicate analysis
@@ -501,17 +506,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 Debug.Assert(IsValidValueForPredicateAnalysis(value));
 
-                switch (value)
+                return value switch
                 {
-                    case NullAbstractValue.Null:
-                        return NullAbstractValue.NotNull;
+                    NullAbstractValue.Null => NullAbstractValue.NotNull,
 
-                    case NullAbstractValue.NotNull:
-                        return NullAbstractValue.Null;
+                    NullAbstractValue.NotNull => NullAbstractValue.Null,
 
-                    default:
-                        throw new InvalidProgramException();
-                }
+                    _ => throw new InvalidProgramException(),
+                };
             }
             #endregion
 
@@ -551,15 +553,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 IMethodSymbol invokedMethod,
                 (AnalysisEntity InstanceOpt, PointsToAbstractValue PointsToValue)? invocationInstanceOpt,
                 (AnalysisEntity Instance, PointsToAbstractValue PointsToValue)? thisOrMeInstanceForCallerOpt,
-                ImmutableArray<ArgumentInfo<PointsToAbstractValue>> argumentValues,
+                ImmutableDictionary<IParameterSymbol, ArgumentInfo<PointsToAbstractValue>> argumentValuesMap,
                 IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
                 IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
+                IDictionary<AnalysisEntity, ValueContentAbstractValue> valueContentValuesOpt,
                 bool isLambdaOrLocalFunction,
                 bool hasParameterWithDelegateType)
             {
                 pointsToValuesOpt = CurrentAnalysisData.CoreAnalysisData;
-                var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt, thisOrMeInstanceForCallerOpt,
-                    argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
+                var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod,
+                    invocationInstanceOpt, thisOrMeInstanceForCallerOpt, argumentValuesMap, pointsToValuesOpt,
+                    copyValuesOpt, valueContentValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
                 AssertValidPointsToAnalysisData(initialAnalysisData);
                 return initialAnalysisData;
             }
@@ -574,16 +578,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 Debug.Assert(escapingOperation != null);
                 Debug.Assert(escapedInstance != null);
 
-                PointsToAbstractValue escapedInstancePointsToValue;
-                if (AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt))
+                PointsToAbstractValue escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
+                if (escapedInstancePointsToValue.Kind == PointsToAbstractValueKind.KnownLValueCaptures)
                 {
-                    escapedInstancePointsToValue = GetAbstractValue(escapedEntityOpt);
-                }
-                else
-                {
-                    escapedInstancePointsToValue = GetPointsToAbstractValue(escapedInstance);
+                    foreach (var capturedOperation in escapedInstancePointsToValue.LValueCapturedOperations)
+                    {
+                        HandleEscapingOperation(escapingOperation, capturedOperation, builder);
+                    }
+
+                    return;
                 }
 
+                AnalysisEntityFactory.TryCreate(escapedInstance, out var escapedEntityOpt);
                 HandleEscapingLocations(escapingOperation, builder, escapedEntityOpt, escapedInstancePointsToValue);
             }
 
@@ -636,6 +642,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     var pointsToValueOfEscapedChild = GetAbstractValue(childEntity);
                     HandleEscapingLocations(pointsToValueOfEscapedChild, builder);
                 }
+
+                if (TryGetTaskWrappedValue(pointsToValueOfEscapedInstance, out var wrappedValue))
+                {
+                    HandleEscapingLocations(key, escapedLocationsBuilder, wrappedValue);
+                }
             }
 
             private static void HandleEscapingLocations(PointsToAbstractValue pointsToValueOfEscapedInstance, ImmutableHashSet<AbstractLocation>.Builder builder)
@@ -677,7 +688,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 base.SetAbstractValueForArrayElementInitializer(arrayCreation, indices, elementType, initializer, value);
 
-                HandleEscapingOperation(arrayCreation, initializer);
+                // We use the array initializer as the escaping operation instead of arrayCreation
+                // to ensure we have a unique escaping operation key for each initializer.
+                HandleEscapingOperation(initializer, initializer);
             }
 
             #region Visitor methods
@@ -707,12 +720,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
 
                 return ValueDomain.UnknownOrMayBeValue;
-            }
-
-            public override PointsToAbstractValue VisitAwait(IAwaitOperation operation, object argument)
-            {
-                _ = base.VisitAwait(operation, argument);
-                return PointsToAbstractValue.Unknown;
             }
 
             public override PointsToAbstractValue VisitIsType(IIsTypeOperation operation, object argument)
@@ -789,8 +796,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             {
                 _ = base.VisitArrayInitializer(operation, argument);
 
-                // We should have created a new PointsTo value for the associated array creation operation.
-                return GetCachedAbstractValue(operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation));
+                // We should have created a new PointsTo value for the associated array creation operation in non-error code.
+                // Bail out otherwise.
+                var arrayCreation = operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation);
+                return arrayCreation != null ? GetCachedAbstractValue(arrayCreation) : ValueDomain.UnknownOrMayBeValue;
             }
 
             public override PointsToAbstractValue VisitArrayCreation(IArrayCreationOperation operation, object argument)
@@ -858,20 +867,61 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 _ = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
 
                 if (visitedArguments.Length > 0 &&
-                    method.IsCollectionAddMethod(WellKnownTypeProvider.CollectionTypes))
+                    method.IsCollectionAddMethod(CollectionNamedTypes))
                 {
                     // FxCop compat: The object added to a collection is considered escaped.
                     var lastArgument = visitedArguments[visitedArguments.Length - 1];
                     HandleEscapingOperation(originalOperation, lastArgument.Value);
                 }
-                else if (visitedArguments.Length == 1 &&
-                    method.IsTaskFromResultMethod(WellKnownTypeProvider.Task))
+
+                var value = VisitInvocationCommon(originalOperation, visitedInstance);
+
+                if (IsSpecialEmptyOrFactoryMethod(method) &&
+                    !TryGetInterproceduralAnalysisResult(originalOperation, out _))
                 {
-                    // Object wrapped within a task is considered escaped.
-                    HandleEscapingOperation(originalOperation, visitedArguments[0].Value);
+                    return value.MakeNonNull();
                 }
 
-                return VisitInvocationCommon(originalOperation, visitedInstance);
+                return value;
+            }
+
+            private static bool IsSpecialEmptyOrFactoryMethod(IMethodSymbol method)
+                => IsSpecialFactoryMethod(method) || IsSpecialEmptyMember(method);
+
+            /// <summary>
+            /// Returns true if this special static factory method whose name starts with "Create", such that
+            /// method's containing type is static OR a special type OR derives from or is same as the type of the field/property/method return.
+            /// For example: class SomeType { static SomeType CreateXXX(...); }
+            /// </summary>
+            private static bool IsSpecialFactoryMethod(IMethodSymbol method)
+            {
+                return method.IsStatic &&
+                    method.Name.StartsWith("Create", StringComparison.Ordinal) &&
+                    (method.ContainingType.IsStatic ||
+                     method.ContainingType.SpecialType != SpecialType.None ||
+                     method.ReturnType is INamedTypeSymbol namedType &&
+                     method.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition));
+            }
+
+            /// <summary>
+            /// Returns true if this special member symbol named "Empty", such that one of the following is true:
+            ///  1. It is a static method with no parameters or
+            ///  2. It is a static readonly property or
+            ///  3. It is static readonly field
+            /// and symbol's containing type is a special type or derives from or is same as the type of the field/property/method return.
+            /// For example:
+            ///  1. class SomeType { static readonly SomeType Empty; }
+            ///  2. class SomeType { static readonly SomeType Empty { get; } }
+            ///  3. class SomeType { static SomeType Empty(); }
+            /// </summary>
+            private static bool IsSpecialEmptyMember(ISymbol symbol)
+            {
+                return symbol.IsStatic &&
+                    symbol.Name.Equals("Empty", StringComparison.Ordinal) &&
+                    (symbol.IsReadOnlyFieldOrProperty() || symbol.Kind == SymbolKind.Method) &&
+                    (symbol.ContainingType.SpecialType != SpecialType.None ||
+                     symbol.GetMemberType() is INamedTypeSymbol namedType &&
+                     symbol.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition));
             }
 
             public override PointsToAbstractValue VisitInvocation_LocalFunction(
@@ -922,31 +972,43 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             private PointsToAbstractValue GetValueBasedOnInstanceOrReferenceValue(IOperation referenceOrInstance, IOperation operation, PointsToAbstractValue defaultValue)
             {
                 NullAbstractValue nullState = GetNullStateBasedOnInstanceOrReferenceValue(referenceOrInstance, operation.Type, defaultValue.NullState);
-                switch (nullState)
+                return nullState switch
                 {
-                    case NullAbstractValue.NotNull:
-                        return defaultValue.MakeNonNull();
+                    NullAbstractValue.NotNull => defaultValue.MakeNonNull(),
 
-                    case NullAbstractValue.Null:
-                        return defaultValue.MakeNull();
+                    NullAbstractValue.Null => defaultValue.MakeNull(),
 
-                    case NullAbstractValue.Invalid:
-                        return PointsToAbstractValue.Invalid;
+                    NullAbstractValue.Invalid => PointsToAbstractValue.Invalid,
 
-                    default:
-                        return defaultValue;
-                }
+                    _ => defaultValue,
+                };
             }
 
             public override PointsToAbstractValue VisitFieldReference(IFieldReferenceOperation operation, object argument)
             {
                 var value = base.VisitFieldReference(operation, argument);
+
+                // "class SomeType { static readonly SomeType Empty; }"
+                if (IsSpecialEmptyMember(operation.Field) &&
+                    value.NullState != NullAbstractValue.Null)
+                {
+                    return value.MakeNonNull();
+                }
+
                 return GetValueBasedOnInstanceOrReferenceValue(operation.Instance, operation, value);
             }
 
             public override PointsToAbstractValue VisitPropertyReference(IPropertyReferenceOperation operation, object argument)
             {
                 var value = base.VisitPropertyReference(operation, argument);
+
+                // "class SomeType { static SomeType Empty { get; } }"
+                if (IsSpecialEmptyMember(operation.Property) &&
+                    value.NullState != NullAbstractValue.Null)
+                {
+                    return value.MakeNonNull();
+                }
+
                 return GetValueBasedOnInstanceOrReferenceValue(operation.Instance, operation, value);
             }
 
@@ -1069,7 +1131,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAbstractValue VisitFlowCapture(IFlowCaptureOperation operation, object argument)
             {
                 var value = base.VisitFlowCapture(operation, argument);
-                if (IsLValueFlowCapture(operation.Id) &&
+                if (IsLValueFlowCapture(operation) &&
                     AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity flowCaptureEntity))
                 {
                     value = PointsToAbstractValue.Create(operation.Value);
@@ -1082,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             public override PointsToAbstractValue VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object argument)
             {
                 var value = base.VisitFlowCaptureReference(operation, argument);
-                if (IsLValueFlowCapture(operation.Id) &&
+                if (IsLValueFlowCaptureReference(operation) &&
                     AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity flowCaptureEntity))
                 {
                     return GetAbstractValue(flowCaptureEntity);
