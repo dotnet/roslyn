@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
-using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Formatting;
@@ -37,31 +37,42 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken);
 
+        internal override bool IsExpandItemProvider => true;
+
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             var cancellationToken = completionContext.CancellationToken;
             var document = completionContext.Document;
             var workspace = document.Project.Solution.Workspace;
 
-            var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
-
-            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-            if (importCompletionOptionValue == false ||
-                (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(workspace)))
-            {
-                return;
-            }
-
+            // We need to check for context before option values, so we can tell completion service that we are in a context to provide expanded items
+            // even though import completion might be disabled. This would show the expander in completion list which user can then use to explicitly ask for unimported items.
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
             if (!syntaxContext.IsTypeContext)
             {
                 return;
             }
 
+            completionContext.ExpandItemsAvailable = true;
+
+            // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via expander in completion list)
+            var isExpandedCompletion = completionContext.Options.GetOption(CompletionServiceOptions.IsExpandedCompletion);
+            if (!isExpandedCompletion)
+            {
+                var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
+
+                // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
+                if (importCompletionOptionValue == false ||
+                    (importCompletionOptionValue == null && !IsTypeImportCompletionExperimentEnabled(workspace)))
+                {
+                    return;
+                }
+            }
+
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
             using (var telemetryCounter = new TelemetryCounter())
             {
-                await AddCompletionItemsAsync(completionContext, syntaxContext, telemetryCounter, cancellationToken).ConfigureAwait(false);
+                await AddCompletionItemsAsync(completionContext, syntaxContext, isExpandedCompletion, telemetryCounter, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -76,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return _isTypeImportCompletionExperimentEnabled == true;
         }
 
-        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
+        private async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, bool isExpandedCompletion, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
         {
             var document = completionContext.Document;
             var project = document.Project;
@@ -98,21 +109,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cancellationToken)));
 
             // Get declarations from directly referenced projects and PEs.
+            // For script compilation, we don't want previous submissions returned as referenced assemblies,
+            // there's no need to check for unimported type from them since namespace declaration is not allowed in script.
+            var referencedAssemblySymbols = compilation.GetReferencedAssemblySymbols(excludePreviousSubmissions: true);
+
             // This can be parallelized because we don't add items to CompletionContext
             // until all the collected tasks are completed.
-            var referencedAssemblySymbols = compilation.GetReferencedAssemblySymbols();
             tasksToGetCompletionItems.AddRange(
                 referencedAssemblySymbols.Select(symbol => Task.Run(() => HandleReferenceAsync(symbol))));
 
-            // We want to timebox the operation that might need to traverse all the type symbols and populate the cache, 
-            // the idea is not to block completion for too long (likely to happen the first time import completion is triggered).
+            // We want to timebox the operation that might need to traverse all the type symbols and populate the cache. 
+            // The idea is not to block completion for too long (likely to happen the first time import completion is triggered).
             // The trade-off is we might not provide unimported types until the cache is warmed up.
             var timeoutInMilliseconds = completionContext.Options.GetOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion);
             var combinedTask = Task.WhenAll(tasksToGetCompletionItems.ToImmutableAndFree());
 
-            if (timeoutInMilliseconds != 0 && await Task.WhenAny(combinedTask, Task.Delay(timeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
+            if (isExpandedCompletion ||
+                timeoutInMilliseconds != 0 && await Task.WhenAny(combinedTask, Task.Delay(timeoutInMilliseconds, cancellationToken)).ConfigureAwait(false) == combinedTask)
             {
-                // No timeout. We now have all completion items ready. 
+                // Either there's no timeout, and we now have all completion items ready,
+                // or user asked for unimported type explicitly so we need to wait until they are calculated.
                 var completionItemsToAdd = await combinedTask.ConfigureAwait(false);
                 foreach (var completionItems in completionItemsToAdd)
                 {
@@ -230,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var importNode = CreateImport(document, containingNamespace);
 
-                var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst);
+                var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst, cancellationToken);
                 var documentWithImport = document.WithSyntaxRoot(rootWithImport);
                 var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -272,8 +288,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 // During an EnC session, adding import is not supported.
-                var encService = workspace.Services.GetService<IDebuggingWorkspaceService>()?.EditAndContinueServiceOpt;
-                if (encService?.EditSession != null)
+                var encService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+                if (encService?.IsDebuggingSessionInProgress == true)
                 {
                     return true;
                 }

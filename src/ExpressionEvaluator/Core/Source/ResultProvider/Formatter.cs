@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly string _defaultFormat;
         private readonly string _nullString;
         private readonly string _thisString;
+        private string _hostValueNotFoundString => Resources.HostValueNotFound;
 
         internal Formatter(string defaultFormat, string nullString, string thisString)
         {

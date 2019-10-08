@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal static void ValidateChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
         {
-            if (!Cci.DebugSourceDocument.IsSupportedAlgorithm(checksumAlgorithm))
+            if (!SourceHashAlgorithms.IsSupportedAlgorithm(checksumAlgorithm))
             {
                 throw new ArgumentException(CodeAnalysisResources.UnsupportedHashAlgorithm, nameof(checksumAlgorithm));
             }

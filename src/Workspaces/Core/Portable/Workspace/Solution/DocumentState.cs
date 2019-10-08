@@ -786,7 +786,7 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfFalse(existingId == id);
         }
 
-        public static DocumentId GetDocumentIdForTree(SyntaxTree tree)
+        public static DocumentId? GetDocumentIdForTree(SyntaxTree tree)
         {
             s_syntaxTreeToIdMap.TryGetValue(tree, out var id);
             return id;

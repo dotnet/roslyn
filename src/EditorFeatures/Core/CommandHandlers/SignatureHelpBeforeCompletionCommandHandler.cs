@@ -13,7 +13,6 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -30,14 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// consider completion to have higher priority for those commands. In order to accomplish that,
     /// we introduced <see cref="SignatureHelpAfterCompletionCommandHandler"/>
     /// This command handler then delegates escape, up and down to those command handlers. 
-    /// It is called after <see cref="PredefinedCommandHandlerNames.Completion"/> or <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>
-    /// depending on the completion implemenetation.
+    /// It is called before <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>.
     /// </summary>
     [Export]
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.SignatureHelpBeforeCompletion)]
-    [Order(Before = PredefinedCommandHandlerNames.Completion)]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class SignatureHelpBeforeCompletionCommandHandler :
         AbstractSignatureHelpCommandHandler,
@@ -57,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
         }
 
-        private bool TryGetControllerCommandHandler<TCommandArgs>(TCommandArgs args, out VSCommanding.ICommandHandler commandHandler)
+        private bool TryGetControllerCommandHandler<TCommandArgs>(TCommandArgs args, out ICommandHandler commandHandler)
             where TCommandArgs : EditorCommandArgs
         {
             AssertIsForeground();
@@ -71,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             return true;
         }
 
-        private VSCommanding.CommandState GetCommandStateWorker<TCommandArgs>(
+        private CommandState GetCommandStateWorker<TCommandArgs>(
             TCommandArgs args,
-            Func<VSCommanding.CommandState> nextHandler)
+            Func<CommandState> nextHandler)
             where TCommandArgs : EditorCommandArgs
         {
             AssertIsForeground();
@@ -99,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             }
         }
 
-        VSCommanding.CommandState IChainedCommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        CommandState IChainedCommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
             return GetCommandStateWorker(args, nextHandler);
@@ -111,10 +108,10 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             ExecuteCommandWorker(args, nextHandler, context);
         }
 
-        VSCommanding.CommandState IChainedCommandHandler<InvokeSignatureHelpCommandArgs>.GetCommandState(InvokeSignatureHelpCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        CommandState IChainedCommandHandler<InvokeSignatureHelpCommandArgs>.GetCommandState(InvokeSignatureHelpCommandArgs args, Func<CommandState> nextHandler)
         {
             AssertIsForeground();
-            return GetCommandStateWorker(args, nextHandler);
+            return CommandState.Available;
         }
 
         void IChainedCommandHandler<InvokeSignatureHelpCommandArgs>.ExecuteCommand(InvokeSignatureHelpCommandArgs args, Action nextHandler, CommandExecutionContext context)

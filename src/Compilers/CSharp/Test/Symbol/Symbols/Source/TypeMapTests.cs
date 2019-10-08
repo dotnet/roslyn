@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private TypeSymbol TypeArg(TypeSymbol t)
         {
             var nts = t as NamedTypeSymbol;
-            Assert.NotEqual(null, nts);
+            Assert.NotNull(nts);
             Assert.Equal(1, nts.Arity);
             return nts.TypeArguments()[0];
         }

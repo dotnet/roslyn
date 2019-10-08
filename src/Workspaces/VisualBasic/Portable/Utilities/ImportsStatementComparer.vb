@@ -13,14 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     Friend Class ImportsStatementComparer
         Implements IComparer(Of ImportsStatementSyntax)
 
-        Public Shared ReadOnly SystemFirstInstance As IComparer(Of ImportsStatementSyntax) = New ImportsStatementComparer(NameSyntaxComparer.Create(TokenComparer.SystemFirstInstance))
-        Public Shared ReadOnly NormalInstance As IComparer(Of ImportsStatementSyntax) = New ImportsStatementComparer(NameSyntaxComparer.Create(TokenComparer.NormalInstance))
+        Public Shared ReadOnly SystemFirstInstance As IComparer(Of ImportsStatementSyntax) = New ImportsStatementComparer(TokenComparer.SystemFirstInstance)
+        Public Shared ReadOnly NormalInstance As IComparer(Of ImportsStatementSyntax) = New ImportsStatementComparer(TokenComparer.NormalInstance)
 
-        Private ReadOnly _nameComparer As IComparer(Of NameSyntax)
+        Private ReadOnly _importsClauseComparer As IComparer(Of ImportsClauseSyntax)
 
-        Private Sub New(nameComparer As IComparer(Of NameSyntax))
-            Debug.Assert(nameComparer IsNot Nothing)
-            Me._nameComparer = nameComparer
+        Public Sub New(tokenComparer As IComparer(Of SyntaxToken))
+            Debug.Assert(tokenComparer IsNot Nothing)
+            Me._importsClauseComparer = New ImportsClauseComparer(tokenComparer)
         End Sub
 
         Public Function Compare(directive1 As ImportsStatementSyntax, directive2 As ImportsStatementSyntax) As Integer Implements IComparer(Of ImportsStatementSyntax).Compare
@@ -36,12 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             ElseIf directive2.ImportsClauses.Count = 0 Then
                 Return 1
             Else
-                Return ImportsClauseComparer.CompareClauses(directive1.ImportsClauses(0), directive2.ImportsClauses(0), _nameComparer)
+                Return _importsClauseComparer.Compare(directive1.ImportsClauses(0), directive2.ImportsClauses(0))
             End If
-        End Function
-
-        Private Function CompareNames(nameSyntax1 As NameSyntax, nameSyntax2 As NameSyntax) As Integer
-            Return _nameComparer.Compare(nameSyntax1, nameSyntax2)
         End Function
     End Class
 End Namespace

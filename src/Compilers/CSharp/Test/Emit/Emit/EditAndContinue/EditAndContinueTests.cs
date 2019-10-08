@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             var reader1 = md1.Reader;
 
             var s = MetadataTokens.StringHandle(0);
-            Assert.Equal(reader1.GetString(s), "");
+            Assert.Equal("", reader1.GetString(s));
 
             var b = MetadataTokens.BlobHandle(0);
             Assert.Equal(0, reader1.GetBlobBytes(b).Length);
 
             var us = MetadataTokens.UserStringHandle(0);
-            Assert.Equal(reader1.GetUserString(us), "");
+            Assert.Equal("", reader1.GetUserString(us));
         }
 
         [Fact]
@@ -389,7 +389,7 @@ class Bad : Bad
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
             var methods = diff1.TestData.GetMethodsByName();
-            Assert.Equal(methods.Count, 1);
+            Assert.Equal(1, methods.Count);
             Assert.True(methods.ContainsKey("C.M2()"));
 
             using var md1 = diff1.GetMetadata();
@@ -2836,7 +2836,7 @@ class C
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
 
             var n = compilation0.GetMembers("C.M").Length;
-            Assert.Equal(n, 14);
+            Assert.Equal(14, n);
 
             //static void M(A<B>.B<object> a)
             //{
@@ -3383,24 +3383,25 @@ class C
             var methodData0 = testData0.GetMethodData("C.M");
 
             methodData0.VerifyIL(
-@"{
-  // Code size       29 (0x1d)
-  .maxstack  3
-  .locals init (int[] V_0) //a
-  IL_0000:  nop
-  IL_0001:  ldc.i4.3
-  IL_0002:  newarr     ""int""
-  IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
-  IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0012:  stloc.0
-  IL_0013:  ldloc.0
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldelem.i4
-  IL_0016:  call       ""void System.Console.WriteLine(int)""
-  IL_001b:  nop
-  IL_001c:  ret
-}");
+@"    {
+      // Code size       29 (0x1d)
+      .maxstack  3
+      .locals init (int[] V_0) //a
+      IL_0000:  nop
+      IL_0001:  ldc.i4.3
+      IL_0002:  newarr     ""int""
+      IL_0007:  dup
+      IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
+      IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+      IL_0012:  stloc.0
+      IL_0013:  ldloc.0
+      IL_0014:  ldc.i4.0
+      IL_0015:  ldelem.i4
+      IL_0016:  call       ""void System.Console.WriteLine(int)""
+      IL_001b:  nop
+      IL_001c:  ret
+    }
+");
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
@@ -7752,7 +7753,7 @@ public class C
     public static void F(dynamic d) { d.Bar(); }
 }";
 
-            var compilation0 = CreateCompilation(source0, targetFramework: TargetFramework.StandardAndCSharp, 
+            var compilation0 = CreateCompilation(source0, targetFramework: TargetFramework.StandardAndCSharp,
                 options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
 
             var compilation1 = compilation0.WithSource(source1);

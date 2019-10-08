@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
@@ -76,6 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static XElement CreateCompilationOptionsElement(CompilationOptions options)
         {
+            Contract.ThrowIfFalse(options.SpecificDiagnosticOptions.IsEmpty);
+
             var element = new XElement(CompilationOptionsElementName);
 
             if (options is CodeAnalysis.CSharp.CSharpCompilationOptions csOptions)
@@ -90,6 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     element.SetAttributeValue(RootNamespaceAttributeName, vbOptions.RootNamespace);
                 }
+            }
+
+            if (options.GeneralDiagnosticOption != ReportDiagnostic.Default)
+            {
+                element.SetAttributeValue(ReportDiagnosticAttributeName, options.GeneralDiagnosticOption);
             }
 
             if (options.CheckOverflow)

@@ -333,7 +333,7 @@ class Test
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  newobj     ""System.Span<int>..ctor(int[])""
   IL_0016:  stloc.0
@@ -391,7 +391,7 @@ class Test
   IL_0002:  ldc.i4.3
   IL_0003:  newarr     ""int""
   IL_0008:  dup
-  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0013:  call       ""System.Span<int>..ctor(int[])""
   IL_0018:  ldloc.0
@@ -448,7 +448,7 @@ class Test
   .maxstack  2
   .locals init (System.ReadOnlySpan<System.Color> V_0,
                 int V_1)
-  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.0C7A623FD2BBC05B06423BE359E4021D36E721AD""
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.AE4B3280E56E2FAF83F414A6E3DABE9D5FBE18976544C05FED121ACCB85B53FC""
   IL_0005:  ldc.i4.3
   IL_0006:  newobj     ""System.ReadOnlySpan<System.Color>..ctor(void*, int)""
   IL_000b:  stloc.0
@@ -547,7 +547,7 @@ class Test
   .maxstack  2
   .locals init (System.ReadOnlySpan<byte> V_0,
                 int V_1)
-  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.7037807198C22A7D2B0807371D763779A84FDFCF""
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.039058C6F2C0CB492C533B0A4D14EF77CC0F78ABCCCED5287D84A1A2011CFB81""
   IL_0005:  ldc.i4.3
   IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
   IL_000b:  stloc.0
@@ -602,7 +602,7 @@ class Test
   IL_0002:  ldc.i4.3
   IL_0003:  newarr     ""int""
   IL_0008:  dup
-  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0013:  call       ""System.Span<int>..ctor(int[])""
   IL_0018:  ldloca.s   V_0
@@ -699,7 +699,7 @@ namespace System
   IL_0002:  ldc.i4.3
   IL_0003:  newarr     ""int""
   IL_0008:  dup
-  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0009:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000e:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0013:  call       ""System.ReadOnlySpan<int>..ctor(int[])""
   IL_0018:  ldloca.s   V_0
@@ -745,7 +745,7 @@ class Test
   IL_0000:  ldc.i4.3
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  newobj     ""System.Span<int>..ctor(int[])""
   IL_0016:  stloc.0
@@ -875,7 +875,7 @@ class Test
   IL_0003:  ldc.i4.3
   IL_0004:  newarr     ""int""
   IL_0009:  dup
-  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_000a:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_000f:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0014:  call       ""System.Span<int>..ctor(int[])""
   IL_0019:  nop

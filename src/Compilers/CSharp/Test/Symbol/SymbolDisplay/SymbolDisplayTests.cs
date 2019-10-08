@@ -4300,7 +4300,7 @@ End Class
             Assert.Equal("1.5", SymbolDisplay.FormatPrimitive((decimal)1.5, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("null", SymbolDisplay.FormatPrimitive(null, quoteStrings: false, useHexadecimalNumbers: false));
             Assert.Equal("abc", SymbolDisplay.FormatPrimitive("abc", quoteStrings: false, useHexadecimalNumbers: false));
-            Assert.Equal(null, SymbolDisplay.FormatPrimitive(SymbolDisplayFormat.TestFormat, quoteStrings: false, useHexadecimalNumbers: false));
+            Assert.Null(SymbolDisplay.FormatPrimitive(SymbolDisplayFormat.TestFormat, quoteStrings: false, useHexadecimalNumbers: false));
         }
 
         [WorkItem(879984, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879984")]
@@ -7761,6 +7761,45 @@ class C
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.StructName);
+        }
+
+        [Fact]
+        [WorkItem(38794, "https://github.com/dotnet/roslyn/issues/38794")]
+        public void LinqGroupVariableDeclaration()
+        {
+            var source =
+@"using System.Linq;
+
+class C
+{
+    void M(string[] a)
+    {
+        var v = from x in a
+                group x by x.Length into g
+                select g;
+    }
+}";
+
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var continuation = tree.GetRoot().DescendantNodes().OfType<QueryContinuationSyntax>().Single();
+            var symbol = model.GetDeclaredSymbol(continuation);
+
+            Verify(
+                symbol.ToMinimalDisplayParts(model, continuation.Identifier.SpanStart),
+                "IGrouping<int, string> g",
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.RangeVariableName);
+
         }
     }
 }

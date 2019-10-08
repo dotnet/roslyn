@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -18,7 +17,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     [ExportSignatureHelpProvider("InvocationExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
-    internal partial class InvocationExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+    internal partial class InvocationExpressionSignatureHelpProvider : AbstractOrdinaryMethodSignatureHelpProvider
     {
         [ImportingConstructor]
         public InvocationExpressionSignatureHelpProvider()
@@ -99,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             if (methodGroup.Any())
             {
-                var (items, selectedItem) =
-                    GetMethodGroupItemsAndSelection(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, symbolInfo, cancellationToken);
+                var (items, selectedItem) = GetMethodGroupItemsAndSelection(
+                    document, invocationExpression, semanticModel, within, methodGroup, symbolInfo, cancellationToken);
 
                 return CreateSignatureHelpItems(
                     items,

@@ -59,7 +59,6 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testIOperation,
-  [switch]$testLegacyCompletion,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -91,7 +90,6 @@ function Print-Usage() {
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
-  Write-Host "  -testLegacyCompletion     Run integration tests with legacy completion"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -352,10 +350,6 @@ function TestUsingOptimizedRunner() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  if ($testLegacyCompletion) {
-    $env:ROSLYN_TEST_LEGACY_COMPLETION = "true"
-  }
-
   $secondaryLogDir = Join-Path (Join-Path $ArtifactsDir "log2") $configuration
   Create-Directory $secondaryLogDir
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
@@ -431,9 +425,6 @@ function TestUsingOptimizedRunner() {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
-    }
-    if ($testLegacyCompletion) {
-      Remove-Item env:\ROSLYN_TEST_LEGACY_COMPLETION
     }
   }
 }

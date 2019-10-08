@@ -816,7 +816,7 @@ End Structure
            </errors>)
     End Sub
 
-    ' old name - ParseStatementSeperatorOnSubDeclLine_ERR_MethodBodyNotAtLineStart
+    ' old name - ParseStatementSeparatorOnSubDeclLine_ERR_MethodBodyNotAtLineStart
     <WorkItem(905020, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC30040ERR_MethodBodyNotAtLineStart()

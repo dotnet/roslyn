@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractRecommendationServiceBasedCompletionProvider : AbstractSymbolCompletionProvider
     {
+        protected override bool ShouldCollectTelemetryForTargetTypeCompletion => true;
+
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();

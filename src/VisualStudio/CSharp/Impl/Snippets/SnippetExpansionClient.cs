@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
             var addImportService = document.GetLanguageService<IAddImportsService>();
             var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, placeSystemNamespaceFirst);
+            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, placeSystemNamespaceFirst, cancellationToken);
 
             var newDocument = document.WithSyntaxRoot(newRoot);
 

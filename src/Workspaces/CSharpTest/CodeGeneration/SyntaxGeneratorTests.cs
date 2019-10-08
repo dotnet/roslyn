@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
         private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
-            Assert.IsAssignableFrom(typeof(TSyntax), node);
+            Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.NormalizeWhitespace().ToFullString();
             Assert.Equal(expectedText, normalized);
         }
 
         private void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
-            Assert.IsAssignableFrom(typeof(TSyntax), node);
+            Assert.IsAssignableFrom<TSyntax>(node);
             var normalized = node.ToFullString();
             Assert.Equal(expectedText, normalized);
         }
@@ -2088,7 +2088,7 @@ public class C
         }
 
         [Fact]
-        public void TestWithAccessibilty()
+        public void TestWithAccessibility()
         {
             Assert.Equal(Accessibility.Private, Generator.GetAccessibility(Generator.WithAccessibility(Generator.ClassDeclaration("c", accessibility: Accessibility.Internal), Accessibility.Private)));
             Assert.Equal(Accessibility.Private, Generator.GetAccessibility(Generator.WithAccessibility(Generator.StructDeclaration("s", accessibility: Accessibility.Internal), Accessibility.Private)));

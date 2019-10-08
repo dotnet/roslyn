@@ -149,7 +149,7 @@ partial class Goo
 Class Program { FileStyleUriParser f; }", async w =>
             {
                 var items = await _aggregator.GetItemsAsync("FileStyleUriParser");
-                Assert.Equal(items.Count(), 0);
+                Assert.Equal(0, items.Count());
             });
         }
 
