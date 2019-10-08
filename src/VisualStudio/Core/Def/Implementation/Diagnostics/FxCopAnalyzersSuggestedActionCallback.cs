@@ -146,30 +146,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     return false;
                 }
 
-                var foundAnalyzerReference = false;
-                foreach (var analyzerReference in document.Project.AnalyzerReferences)
+                if (IsNuGetInstalled(document.Project.AnalyzerReferences, out hasUnresolvedAnalyzerReference))
                 {
-                    if (analyzerReference is UnresolvedAnalyzerReference)
-                    {
-                        hasUnresolvedAnalyzerReference = true;
-                        continue;
-                    }
-
-                    var display = analyzerReference.Display;
-                    if (display != null &&
-                        ChildAnalyzerNuGetPackageIds.Contains(display))
-                    {
-                        // We set installed to ensure we don't go through this again next time a
-                        // suggested action is called for any document in current solution.
-                        _nugetInstallStatusForCurrentSolution = FxCopAnalyzersInstallStatus.Installed;
-                        foundAnalyzerReference = true;
-                    }
+                    // We set installed to ensure we don't go through this again next time a
+                    // suggested action is called for any document in current solution.
+                    _nugetInstallStatusForCurrentSolution = FxCopAnalyzersInstallStatus.Installed;
+                    return true;
                 }
-
-                return foundAnalyzerReference;
             }
 
             return false;
+        }
+
+        // internal for testing purposes.
+        internal static bool IsNuGetInstalled(
+            IEnumerable<AnalyzerReference> analyzerReferences,
+            out bool hasUnresolvedAnalyzerReference)
+        {
+            var foundAnalyzerReference = false;
+            hasUnresolvedAnalyzerReference = false;
+            foreach (var analyzerReference in analyzerReferences)
+            {
+                if (analyzerReference is UnresolvedAnalyzerReference)
+                {
+                    hasUnresolvedAnalyzerReference = true;
+                    continue;
+                }
+
+                var display = analyzerReference.Display;
+                if (display != null &&
+                    ChildAnalyzerNuGetPackageIds.Contains(display))
+                {
+                    foundAnalyzerReference = true;
+                }
+            }
+
+            return foundAnalyzerReference;
         }
 
         private bool IsCandidate(SuggestedAction action)
