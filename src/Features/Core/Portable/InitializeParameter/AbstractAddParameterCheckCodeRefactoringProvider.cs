@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             // Min 2 parameters to offer the refactoring
-            if (listOfParametersOrdinals.Count() < 2)
+            if (listOfParametersOrdinals.Count < 2)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }

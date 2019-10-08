@@ -598,5 +598,35 @@ namespace Microsoft.CodeAnalysis
         {
             return items.IsEmpty ? Location.None : items[0];
         }
+
+        internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)
+        {
+            // The framework implementation of SequenceEqual forces a NullRef for default array1 and 2, so we
+            // maintain the same behavior in this extension
+            if (array1.IsDefault)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (array2.IsDefault)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (array1.Length != array2.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (!predicate(array1[i], array2[i], arg))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
