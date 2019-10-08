@@ -17,19 +17,18 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [Name(PredefinedCommandHandlerNames.OrganizeDocument)]
     internal class OrganizeDocumentCommandHandler :
-        VSCommanding.ICommandHandler<OrganizeDocumentCommandArgs>,
-        VSCommanding.ICommandHandler<SortImportsCommandArgs>,
-        VSCommanding.ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
+        ICommandHandler<OrganizeDocumentCommandArgs>,
+        ICommandHandler<SortImportsCommandArgs>,
+        ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
 
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
         public string DisplayName => EditorFeaturesResources.Organize_Document;
 
-        public VSCommanding.CommandState GetCommandState(OrganizeDocumentCommandArgs args)
+        public CommandState GetCommandState(OrganizeDocumentCommandArgs args)
         {
             return GetCommandState(args, _ => EditorFeaturesResources.Organize_Document, needsSemantics: true);
         }
@@ -66,26 +65,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             return true;
         }
 
-        public VSCommanding.CommandState GetCommandState(SortImportsCommandArgs args)
+        public CommandState GetCommandState(SortImportsCommandArgs args)
         {
             return GetCommandState(args, o => o.SortImportsDisplayStringWithAccelerator, needsSemantics: false);
         }
 
-        public VSCommanding.CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args)
+        public CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args)
         {
             return GetCommandState(args, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator, needsSemantics: true);
         }
 
-        private VSCommanding.CommandState GetCommandState(EditorCommandArgs args, Func<IOrganizeImportsService, string> descriptionString, bool needsSemantics)
+        private CommandState GetCommandState(EditorCommandArgs args, Func<IOrganizeImportsService, string> descriptionString, bool needsSemantics)
         {
             if (IsCommandSupported(args, needsSemantics, out var workspace))
             {
                 var organizeImportsService = workspace.Services.GetLanguageServices(args.SubjectBuffer).GetService<IOrganizeImportsService>();
-                return new VSCommanding.CommandState(isAvailable: true, displayText: descriptionString(organizeImportsService));
+                return new CommandState(isAvailable: true, displayText: descriptionString(organizeImportsService));
             }
             else
             {
-                return VSCommanding.CommandState.Unspecified;
+                return CommandState.Unspecified;
             }
         }
 

@@ -5,7 +5,6 @@
     <Copyright>$(CopyrightMicrosoft)</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 
-    <PackageIconUrl>https://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
 
@@ -59,7 +58,7 @@
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
     <!--
       Choose default target frameworks to use for testing on Mono and Core.
-      These may be overriden by projects that need to be skipped.
+      These may be overridden by projects that need to be skipped.
     -->
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp2.1</TestTargetFrameworks>
@@ -154,6 +153,7 @@
       <PropertyGroup>
         <LangVersion>15.5</LangVersion>
         <NoWarn>$(NoWarn);40057</NoWarn>
+        <VBRuntime>Embed</VBRuntime>
       </PropertyGroup>
       <ItemGroup>
         <Import Include="Microsoft.VisualBasic" />

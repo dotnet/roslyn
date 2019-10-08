@@ -50,13 +50,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return Tuple.Create(solution.GetDocument(hostdoc.Id), token.Span)
         End Function
 
-        Public Function StartSession(workspace As TestWorkspace, Optional fileRenameEnabled As Boolean = True) As InlineRenameSession
+        Public Function StartSession(workspace As TestWorkspace) As InlineRenameSession
             Dim renameService = workspace.GetService(Of IInlineRenameService)()
-
-            Dim experiment = workspace.Services.GetRequiredService(Of IExperimentationService)()
-            Dim fileExperiment = DirectCast(experiment, TestExperimentationService)
-            fileExperiment.SetExperimentOption(WellKnownExperimentNames.RoslynInlineRenameFile, fileRenameEnabled)
-
             Dim sessionInfo = GetSessionInfo(workspace)
 
             Return DirectCast(renameService.StartInlineSession(sessionInfo.Item1, sessionInfo.Item2).Session, InlineRenameSession)

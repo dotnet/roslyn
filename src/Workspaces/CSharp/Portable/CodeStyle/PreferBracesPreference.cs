@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <item><description>Braces may be omitted when the entire statement is placed on one line.</description></item>
         /// <item><description>For a statement that contains one or more embedded statements, braces may be omitted when
         /// every embedded statement fits on one line, and the part preceding the embedded statement is placed on one
-        /// line. If any embedded statement uses braces, braces are preferred for all embedded statments of the same
+        /// line. If any embedded statement uses braces, braces are preferred for all embedded statements of the same
         /// parent statement. For the purposes of evaluating this rule, if the embedded statement following an
         /// <c>else</c> keyword is an if statement, the embedded statements of the nested if statement are treated as
         /// children of the parent statement of the <c>else</c> keyword.</description></item>

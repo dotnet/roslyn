@@ -39,9 +39,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 cancellationToken)));
 
             // Get declarations from directly referenced projects and PEs.
+            // For script compilation, we don't want previous submissions returned as referenced assemblies,
+            // there's no need to check for unimported type from them since namespace declaration is not allowed in script.
+            var referencedAssemblySymbols = compilation.GetReferencedAssemblySymbols(excludePreviousSubmissions: true);
+
             // This can be parallelized because we don't add items to CompletionContext
             // until all the collected tasks are completed.
-            var referencedAssemblySymbols = compilation.GetReferencedAssemblySymbols();
             tasksToGetCompletionItems.AddRange(
                 referencedAssemblySymbols.Select(symbol => Task.Run(() => HandleReferenceAsync(symbol))));
 

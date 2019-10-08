@@ -3601,69 +3601,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Base Type.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_BaseType {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_BaseType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Construct.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_Construct {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Construct", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Declare.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_Declare {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Declare", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Import.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_Import {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Import", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Qualify.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_Qualify {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Qualify", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type Argument.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_TypeArgument {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeArgument", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type Constraint.
-        /// </summary>
-        internal static string TypeOrNamespaceUsageInfo_TypeConstraint {
-            get {
-                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeConstraint", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Types.
         /// </summary>
         internal static string Types {
@@ -3781,42 +3718,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Name.
-        /// </summary>
-        internal static string ValueUsageInfo_Name {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_Name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Read.
-        /// </summary>
-        internal static string ValueUsageInfo_Read {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_Read", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Reference.
-        /// </summary>
-        internal static string ValueUsageInfo_Reference {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_Reference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Write.
-        /// </summary>
-        internal static string ValueUsageInfo_Write {
-            get {
-                return ResourceManager.GetString("ValueUsageInfo_Write", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Variables captured:.
         /// </summary>
         internal static string Variables_captured_colon {
@@ -3840,6 +3741,16 @@ namespace Microsoft.CodeAnalysis {
         internal static string Warning {
             get {
                 return ResourceManager.GetString("Warning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding imports will bring an extension method into scope with the same name as &apos;{0}&apos;.
+        /// </summary>
+        internal static string Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access {
+            get {
+                return ResourceManager.GetString("Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_na" +
+                        "me_as_member_access", resourceCulture);
             }
         }
         

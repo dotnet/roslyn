@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // CONSIDER Handling badly targetted assembly attributes from netmodules
+            // CONSIDER Handling badly targeted assembly attributes from netmodules
             //if (!badDuplicateAttribute && ((attributeUsageInfo.ValidTargets & AttributeTargets.Assembly) == 0))
             //{
             //    // Error and skip

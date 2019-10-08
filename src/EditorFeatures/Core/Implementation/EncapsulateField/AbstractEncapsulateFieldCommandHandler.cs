@@ -13,11 +13,10 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 {
-    internal abstract class AbstractEncapsulateFieldCommandHandler : VSCommanding.ICommandHandler<EncapsulateFieldCommandArgs>
+    internal abstract class AbstractEncapsulateFieldCommandHandler : ICommandHandler<EncapsulateFieldCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferUndoManagerProvider _undoManager;
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
             return true;
         }
 
-        public VSCommanding.CommandState GetCommandState(EncapsulateFieldCommandArgs args)
-            => args.SubjectBuffer.SupportsRefactorings() ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+        public CommandState GetCommandState(EncapsulateFieldCommandArgs args)
+            => args.SubjectBuffer.SupportsRefactorings() ? CommandState.Available : CommandState.Unspecified;
     }
 }

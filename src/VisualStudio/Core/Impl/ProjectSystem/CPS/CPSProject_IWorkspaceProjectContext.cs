@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void SetRuleSetFile(string filePath)
         {
-            // This is now a no-op: we also recieve the rule set file through SetOptions, and we'll just use that one
+            // This is now a no-op: we also receive the rule set file through SetOptions, and we'll just use that one
         }
 
         private readonly ConcurrentQueue<VisualStudioProject.BatchScope> _batchScopes = new ConcurrentQueue<VisualStudioProject.BatchScope>();

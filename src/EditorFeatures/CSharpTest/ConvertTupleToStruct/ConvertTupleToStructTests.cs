@@ -1163,6 +1163,8 @@ class Test
 }
 ";
             var expected = @"
+using System.Collections.Generic;
+
 class Test
 {
     void Method()
@@ -1186,14 +1188,14 @@ internal struct NewStruct
     {
         return obj is NewStruct other &&
                a == other.a &&
-               System.Collections.Generic.EqualityComparer<object>.Default.Equals(b, other.b);
+               EqualityComparer<object>.Default.Equals(b, other.b);
     }
 
     public override int GetHashCode()
     {
         var hashCode = 2118541809;
         hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(b);
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(b);
         return hashCode;
     }
 
@@ -1229,6 +1231,8 @@ class Test
 }
 ";
             var expected = @"
+using System.Collections.Generic;
+
 class Test
 {
     void Method()
@@ -1252,14 +1256,14 @@ internal struct NewStruct
     {
         return obj is NewStruct other &&
                a == other.a &&
-               System.Collections.Generic.EqualityComparer<object>.Default.Equals(b, other.b);
+               EqualityComparer<object>.Default.Equals(b, other.b);
     }
 
     public override int GetHashCode()
     {
         var hashCode = 2118541809;
         hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(b);
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(b);
         return hashCode;
     }
 
@@ -2067,6 +2071,7 @@ class Test<T>
 ";
             var expected = @"
 using System;
+using System.Collections.Generic;
 
 class Test<T>
 {
@@ -2101,14 +2106,14 @@ internal struct NewStruct<T>
     public override bool Equals(object obj)
     {
         return obj is NewStruct<T> other &&
-               System.Collections.Generic.EqualityComparer<T>.Default.Equals(a, other.a) &&
+               EqualityComparer<T>.Default.Equals(a, other.a) &&
                b == other.b;
     }
 
     public override int GetHashCode()
     {
         var hashCode = 2118541809;
-        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<T>.Default.GetHashCode(a);
+        hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(a);
         hashCode = hashCode * -1521134295 + b.GetHashCode();
         return hashCode;
     }

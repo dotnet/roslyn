@@ -27,6 +27,9 @@
     <Compile Include="..\..\..\..\Dependencies\PooledObjects\PooledStringBuilder.cs">
       <Link>Compiler\Collections\PooledStringBuilder.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs">
+      <Link>Compiler\InternalUtilities\Debug.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
       <Link>Compiler\InternalUtilities\FailFast.cs</Link>
     </Compile>
@@ -38,6 +41,9 @@
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>Compiler\InternalUtilities\ExceptionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
+      <Link>Compiler\InternalUtilities\NullableAttributes.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>

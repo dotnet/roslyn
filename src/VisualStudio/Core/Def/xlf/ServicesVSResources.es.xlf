@@ -482,6 +482,11 @@
         <target state="translated">El valor sin usar se asigna explícitamente para descartar</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_severity">
+        <source>Updating severity</source>
+        <target state="new">Updating severity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
         <source>Use .editorconfig compatibility mode (requires restart)</source>
         <target state="translated">Usar el modo de compatibilidad .editorconfig (requiere reiniciar el equipo)</target>

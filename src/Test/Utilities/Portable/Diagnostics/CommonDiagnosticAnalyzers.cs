@@ -1923,5 +1923,54 @@ namespace Microsoft.CodeAnalysis
                 context.ReportSuppression(Suppression.Create(_descriptor2, nonReportedDiagnostic));
             }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithNoLocationDiagnostics : DiagnosticAnalyzer
+        {
+            public AnalyzerWithNoLocationDiagnostics(bool isEnabledByDefault)
+            {
+                Descriptor = new DiagnosticDescriptor(
+                    "ID0001",
+                    "Title1",
+                    "Message1",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCompilationAction(compilationContext =>
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None)));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class NamedTypeAnalyzerWithConfigurableEnabledByDefault : DiagnosticAnalyzer
+        {
+            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault)
+            {
+                Descriptor = new DiagnosticDescriptor(
+                    "ID0001",
+                    "Title1",
+                    "Message1",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(
+                    context => context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0])),
+                    SymbolKind.NamedType);
+            }
+        }
     }
 }
