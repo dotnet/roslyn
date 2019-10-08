@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static CompletionItem Create(ISymbol symbol, int arity, string containingNamespace, string genericTypeSuffix, CompletionItemFlags flags)
         {
-            PooledDictionary<string, string> propertyBuilder = null;
+            PooledDictionary<string, string>? propertyBuilder = null;
 
             if (arity > 0)
             {
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var metadataName = GetMetadataName(item);
             if (!string.IsNullOrEmpty(metadataName))
             {
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
                 var symbol = compilation.GetTypeByMetadataName(metadataName);
                 if (symbol != null)
                 {

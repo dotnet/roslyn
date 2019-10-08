@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (!_isImportCompletionExperimentEnabled.HasValue)
             {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
                 _isImportCompletionExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
             }
 
@@ -104,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem completionItem, TextSpan completionListSpan, char? commitKey, CancellationToken cancellationToken)
         {
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
-            Debug.Assert(containingNamespace != null);
 
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             else
             {
                 // Find context node so we can use it to decide where to insert using/imports.
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
                 var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 var addImportContextNode = root.FindToken(completionListSpan.Start, findInsideTrivia: true).Parent;
 
@@ -124,10 +124,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var addImportService = document.GetLanguageService<IAddImportsService>();
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
                 var importNode = CreateImport(document, containingNamespace);
 
-                var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst);
+                var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode, importNode, placeSystemNamespaceFirst, cancellationToken);
                 var documentWithImport = document.WithSyntaxRoot(rootWithImport);
                 var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // Certain documents, e.g. Razor document, don't support adding imports
-            var documentSupportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
+            var documentSupportsFeatureService = workspace.Services.GetRequiredService<IDocumentSupportsFeatureService>();
             if (!documentSupportsFeatureService.SupportsRefactorings(document))
             {
                 return false;

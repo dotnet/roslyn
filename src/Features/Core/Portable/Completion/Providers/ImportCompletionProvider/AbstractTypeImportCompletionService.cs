@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         internal AbstractTypeImportCompletionService(Workspace workspace)
         {
-            CacheService = workspace.Services.GetService<IImportCompletionCacheService>();
+            CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService>();
         }
 
         public async Task<ImmutableArray<CompletionItem>> GetTopLevelTypesAsync(
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 throw new ArgumentException(nameof(project));
             }
 
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = (await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
 
             // Since we only need top level types from source, therefore we only care if source symbol checksum changes.
             var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
@@ -142,12 +143,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             static void VisitNamespace(
                 INamespaceSymbol symbol,
-                string containingNamespace,
+                string? containingNamespace,
                 ReferenceCacheEntry.Builder builder,
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                containingNamespace = ConcatNamespace(containingNamespace, symbol.Name);
+                containingNamespace = CompletionHelper.ConcatNamespace(containingNamespace, symbol.Name);
 
                 foreach (var memberNamespace in symbol.GetNamespaceMembers())
                 {
@@ -196,17 +197,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
                 overloads.Free();
             }
-        }
-
-        private static string ConcatNamespace(string containingNamespace, string name)
-        {
-            Debug.Assert(name != null);
-            if (string.IsNullOrEmpty(containingNamespace))
-            {
-                return name;
-            }
-
-            return containingNamespace + "." + name;
         }
 
         private readonly struct TypeOverloadInfo

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static CompletionHelper GetHelper(Document document)
         {
-            return document.Project.Solution.Workspace.Services.GetService<ICompletionHelperService>()
+            return document.Project.Solution.Workspace.Services.GetRequiredService<ICompletionHelperService>()
                 .GetCompletionHelper(document);
         }
 
@@ -300,6 +302,16 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Non-expanded item is the only exact match, so we definitely prefer it.
             return isItem1Expanded ? 1 : -1;
+        }
+
+        public static string ConcatNamespace(string? containingNamespace, string name)
+        {
+            if (string.IsNullOrEmpty(containingNamespace))
+            {
+                return name;
+            }
+
+            return containingNamespace + "." + name;
         }
     }
 }
