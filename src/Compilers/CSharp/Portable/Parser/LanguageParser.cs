@@ -9162,6 +9162,8 @@ tryAgain:
                     // TODO: this should not be a compound name.. (disallow dots)
                     expr = this.ParseQualifiedName(NameOptions.InExpression);
                     break;
+                case SyntaxKind.EqualsGreaterThanToken:
+                    return this.ParseLambdaExpression();
                 case SyntaxKind.StaticKeyword:
                     if (this.IsPossibleAnonymousMethodExpression())
                     {
@@ -10124,108 +10126,111 @@ tryAgain:
                 return false;
             }
 
-            var definitelyStaticLambda = isDefinitelyStaticLambda();
-            if (definitelyStaticLambda != null)
+            // If we start with `static` or `async static` then just jump past those and do the
+            // analysis after that point.  Note, we don't just past `async` in `static async`
+            // because that `async` may not be a modifier (it may just be an identifier) and we have
+            // to figure out what it is.
+
+            var peekIndex = 0;
+            var seenStatic = false;
+            if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
             {
-                // we saw 'static'.  we figured out of this was then a static lambda or not.
-                return definitelyStaticLambda.Value;
+                peekIndex++;
+                seenStatic = true;
+            }
+            else if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
+                     this.PeekToken(1).Kind == SyntaxKind.StaticKeyword)
+            {
+                peekIndex += 2;
+                seenStatic = true;
             }
 
-            // We didn't see 'static'.  So we must have seen an identifier.
-            Debug.Assert(this.IsTrueIdentifier(this.CurrentToken));
-
-            // Now look for some sort of lambda form.  This is complicated by the fact that if we
-            // see `async` it might be a modifier (like `async a => ...`) or it might be the lambda
-            // parameter itself (like `async => async.bar()` or `async (a) => ...`), or it just
-            // might be an identifier like (`async()`).
-            //
-            // So, in the case we see `async`, try to see if it's legal in either form.
-
-            // First, just check the simplest form of `a => ...`.  This also works properly for 
-            // `async => ...
-            if (this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
+            if (this.PeekToken(peekIndex).Kind == SyntaxKind.EqualsGreaterThanToken)
             {
+                // We only got into IsPossibleLambdaExpression if we saw 'static' or an identifier.
+                // So if we're now on => then we must have been on 'static' in order to have moved
+                // past those.
+                Debug.Assert(seenStatic);
+
+                // 1. `static =>`
+                // 2. `async static =>`
+
+                // This is an error case, but we have enough code in front of us to be certain
+                // the user was trying to write a static lambda.
                 return true;
             }
 
-            // Wasn't the simple form.  At this point, the identifier we have must be 'async'
-            // for us to be a lambda.
-            if (this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword)
+            if (this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(peekIndex + 1).Kind == SyntaxKind.EqualsGreaterThanToken)
+            {
+                // 1. `a => ...`
+                // 1. `static a => ...`
+                // 2. `async static a => ...`
+                return true;
+            }
+
+            if (this.PeekToken(peekIndex).Kind == SyntaxKind.OpenParenToken)
+            {
+                // We only got into IsPossibleLambdaExpression if we saw 'static' or an identifier.
+                // So if we're now on ( then we must have been on 'static' in order to have moved
+                // past those.
+                Debug.Assert(seenStatic);
+
+                // 1. `static (...
+                // 2. `async static (...
+                return true;
+            }
+
+            // Have checked all the static forms.  And have checked for the basic `a => a` form.  
+            // At this point we have must be on 'async' for this to still be a lambda.
+            if (this.PeekToken(peekIndex).ContextualKind != SyntaxKind.AsyncKeyword)
             {
                 return false;
             }
 
+            peekIndex++;
+            // However, just because we're on `async` doesn't mean we're a lambda.  We might have
+            // something lambda-like like:
+            //
+            //      async a => ...  // or
+            //      async (a) => ...
+            //
+            // Or we could have something that isn't a lambda like:
+            //
+            //      async ();
+
             // 'async <identifier> => ...' looks like an async simple lambda
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
+            if (this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(peekIndex + 1).Kind == SyntaxKind.EqualsGreaterThanToken)
             {
+                // async a => ...
                 return true;
             }
 
             // Non-simple async lambda must be of the form 'async (...'
-            if (this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)
+            if (this.PeekToken(peekIndex + 1).Kind != SyntaxKind.OpenParenToken)
             {
                 return false;
             }
 
+            // we have `async (`.  Could be a lambda, or could be an invocation of something called
+            // `async`.  Have to do a more costly speculative scan to find out.
+            var resetPoint = this.GetResetPoint();
+
+            // Skip all tokens until we go past 'async'
+            for (int i = 0; i < peekIndex; i++)
             {
-                // we have `async (`.  Could be a lambda, or could be an invocation of something called
-                // `async`.  Have to do a more costly speculative scan to find out.
-                var resetPoint = this.GetResetPoint();
-
-                // Skip 'async'
-                EatToken(SyntaxKind.IdentifierToken);
-
-                // Check whether looks like implicitly or explicitly typed lambda
-                bool isAsync = ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
-
-                // Restore current token index
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-
-                return isAsync;
+                EatToken();
             }
 
-            // tri-state.  `null` means 'don't know'.  true/false should be returned.
-            bool? isDefinitelyStaticLambda()
-            {
-                // If we see `static` or `async static` we can just jump past that point and look at
-                // what follows.
-                var peekIndex = 0;
-                if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
-                {
-                    peekIndex++;
-                }
-                else if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
-                         this.PeekToken(1).Kind == SyntaxKind.StaticKeyword)
-                {
-                    peekIndex += 2;
-                }
-                else
-                {
-                    // didn't see 'static'.  have to keep looking.
-                    return null;
-                }
+            // Check whether looks like implicitly or explicitly typed lambda
+            bool isAsync = ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
 
-                // we definitely had 'static'.  Now see if we have enough to be sure this is a
-                // lambda, and not the declaration of some member/local function.
+            // Restore current token index
+            this.Reset(ref resetPoint);
+            this.Release(ref resetPoint);
 
-                if (this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
-                    this.PeekToken(peekIndex + 1).Kind == SyntaxKind.EqualsGreaterThanToken)
-                {
-                    // 1. `static a => ...`
-                    // 2. `async static a => ...`
-                    return true;
-                }
-
-                if (this.PeekToken(peekIndex).Kind == SyntaxKind.OpenParenToken)
-                {
-                    // 1. `static (...
-                    // 2. `async static (...
-                    return true;
-                }
-
-                return false;
-            }
+            return isAsync;
         }
 
         private static bool CanFollowCast(SyntaxKind kind)

@@ -517,5 +517,116 @@ class C
                 //         Action v = static static delegate() { };
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "static").WithArguments("static").WithLocation(8, 27));
         }
+
+        [Fact]
+        public void SimpleLambdaWithParameterCalledAsync()
+        {
+            var test = @"
+using System;
+
+class C
+{
+    void M1()
+    {
+        Func<int, int> v = async => async;
+    }
+}";
+
+            UsingTree(test);
+
+            CreateCompilation(test).GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void AsyncLambdaWithParameterCalledAsync()
+        {
+            var test = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M1()
+    {
+        Func<int, Task<int>> v = async async => async;
+    }
+}";
+
+            UsingTree(test);
+
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (9,46): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         Func<int, Task<int>> v = async async => async;
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 46));
+        }
+
+        [Fact]
+        public void StaticLambdaWithParameterCalledAsync()
+        {
+            var test = @"
+using System;
+
+class C
+{
+    void M1()
+    {
+        Func<int, int> v = static async => async;
+    }
+}";
+
+            UsingTree(test);
+
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (8,28): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<int, int> v = static async => async;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 28)
+);
+        }
+
+        [Fact]
+        public void StaticAsyncLambdaWithParameterCalledAsync()
+        {
+            var test = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M1()
+    {
+        Func<int, Task<int>> v = static async async => async;
+    }
+}";
+
+            UsingTree(test);
+
+            CreateCompilation(test).GetDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void AsyncStaticLambdaWithParameterCalledAsync()
+        {
+            var test = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M1()
+    {
+        Func<int, Task<int>> v = async static async => async;
+    }
+}";
+
+            UsingTree(test);
+
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (9,40): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<int, Task<int>> v = async static async => async;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 40),
+                // (9,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         Func<int, Task<int>> v = async static async => async;
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 53));
+        }
     }
 }
