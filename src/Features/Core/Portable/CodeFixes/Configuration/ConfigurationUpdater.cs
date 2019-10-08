@@ -214,6 +214,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 return null;
             }
 
+            if (_project.Solution?.FilePath == null)
+            {
+                // Project has no solution or solution without a file path.
+                // Add analyzer config to just the current project.
+                return _project.GetOrCreateAnalyzerConfigDocument(analyzerConfigPath);
+            }
+
+            // Otherwise, add analyzer config document to all applicable projects for the current project's solution.
             AnalyzerConfigDocument analyzerConfigDocument = null;
             var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigPath);
             var currentSolution = _project.Solution;

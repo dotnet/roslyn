@@ -2,14 +2,12 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Log;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
@@ -48,16 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
-        private SolutionUserOptionsProvider _solutionUserOptionsProvider;
-        private AnalyzerConfigDocumentAsSolutionItemHandler _analyzerConfigDocumentAsSolutionItemHandler;
-
-        public RoslynPackage()
-        {
-            foreach (var optionName in SolutionUserOptionNames.AllOptionNames)
-            {
-                AddOptionKey(optionName);
-            }
-        }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -85,8 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             _componentModel.GetExtensions<IOptionPersister>();
-
-            _analyzerConfigDocumentAsSolutionItemHandler = this.ComponentModel.GetService<AnalyzerConfigDocumentAsSolutionItemHandler>();
 
             RoslynTelemetrySetup.Initialize(this);
 
@@ -243,26 +229,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 _ruleSetEventHandler.Unregister();
                 _ruleSetEventHandler = null;
             }
-        }
-
-        protected override void OnLoadOptions(string key, Stream stream)
-        {
-            if (_solutionUserOptionsProvider == null)
-            {
-                // NOTE: This method is called before Initialize, so we cannot use "this.ComponentModel"
-                var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
-                _solutionUserOptionsProvider = componentModel.GetService<SolutionUserOptionsProvider>();
-                _solutionUserOptionsProvider.Initialize((IVsSolution)this.GetService(typeof(SVsSolution)));
-            }
-
-            _solutionUserOptionsProvider?.OnLoadOption(key, stream);
-            base.OnLoadOptions(key, stream);
-        }
-
-        protected override void OnSaveOptions(string key, Stream stream)
-        {
-            _solutionUserOptionsProvider?.OnSaveOption(key, stream);
-            base.OnSaveOptions(key, stream);
         }
 
         private void TrackBulkFileOperations()
