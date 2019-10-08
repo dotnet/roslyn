@@ -37,10 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
             var found = false;
 
+            // For each potential base, try to find its definition in sources.
+            // If found, add its' definitionItem to the context.
+            // If not found but the symbol is from metadata, create its' definition item from metadata and add to the context.
             foreach (var baseSymbol in bases)
             {
                 var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
-                   SymbolAndProjectId.Create(baseSymbol, projectId), project.Solution, cancellationToken).ConfigureAwait(false);
+                   SymbolAndProjectId.Create(baseSymbol, projectId), solution, cancellationToken).ConfigureAwait(false);
                 if (sourceDefinition.Symbol != null &&
                     sourceDefinition.Symbol.Locations.Any(l => l.IsInSource))
                 {

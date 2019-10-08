@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithSingleClass() As Task
-            Await TestAsync("class $$C { }", , metadataDefinitions:={"mscorlib:Object"})
+            Await TestAsync("class $$C { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>

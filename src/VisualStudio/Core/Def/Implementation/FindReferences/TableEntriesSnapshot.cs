@@ -37,6 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public override bool TryGetValue(int index, string keyName, out object content)
             {
+                // TableControlEventProcessor.PreprocessNavigate needs to get an entry 
+                // to call TryNavigateTo on it.
                 if (keyName == SelfKeyName)
                 {
                     content = _entries[index];
