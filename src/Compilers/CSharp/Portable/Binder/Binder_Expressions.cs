@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(syntax,
                 resultKind,
                 symbols,
-                childNodes,
+                childNodes.SelectAsArray((e, self) => self.BindToTypeForErrorRecovery(e), this),
                 CreateErrorType());
         }
 
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expr.Syntax,
                     resultKind,
                     symbols.ToImmutableAndFree(),
-                    ImmutableArray.Create(expr),
+                    ImmutableArray.Create(BindToTypeForErrorRecovery(expr)),
                     resultType ?? CreateErrorType());
             }
         }
@@ -232,6 +232,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression BindRValueWithoutTargetType(ExpressionSyntax node, DiagnosticBag diagnostics, bool reportDefaultMissingType = true)
         {
             return BindToNaturalType(BindValue(node, diagnostics, BindValueKind.RValue), diagnostics, reportDefaultMissingType);
+        }
+
+        internal BoundExpression BindToTypeForErrorRecovery(BoundExpression expression, TypeSymbol type = null)
+        {
+            if (expression is null)
+                return null;
+            var discardedDiagnostics = DiagnosticBag.GetInstance();
+            var result =
+                (!expression.NeedsToBeConverted() || expression.WasConverted) ? expression :
+                type is null ? BindToNaturalType(expression, discardedDiagnostics) :
+                GenerateConversionForAssignment(type, expression, discardedDiagnostics);
+            discardedDiagnostics.Free();
+            return result;
         }
 
         /// <summary>
@@ -651,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindRefExpression(node, diagnostics);
 
                 case SyntaxKind.DeclarationExpression:
-                    return BindDeclarationExpression((DeclarationExpressionSyntax)node, diagnostics);
+                    return BindDeclarationExpressionAsError((DeclarationExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.SuppressNullableWarningExpression:
                     return BindSuppressNullableWarningExpression((PostfixUnaryExpressionSyntax)node, diagnostics);
@@ -735,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Bind a declaration expression where it isn't permitted.
-        private BoundExpression BindDeclarationExpression(DeclarationExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindDeclarationExpressionAsError(DeclarationExpressionSyntax node, DiagnosticBag diagnostics)
         {
             // This is an error, as declaration expressions are handled specially in every context in which
             // they are permitted. So we have a context in which they are *not* permitted. Nevertheless, we
@@ -746,13 +759,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             var declType = BindVariableTypeWithAnnotations(node.Designation, diagnostics, node.Type, ref isConst, out isVar, out alias);
             Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, node);
-            return BindDeclarationVariables(declType, node.Designation, node, diagnostics);
+            return BindDeclarationVariablesForErrorRecovery(declType, node.Designation, node, diagnostics);
         }
 
         /// <summary>
         /// Bind a declaration variable where it isn't permitted. The caller is expected to produce a diagnostic.
         /// </summary>
-        private BoundExpression BindDeclarationVariables(TypeWithAnnotations declTypeWithAnnotations, VariableDesignationSyntax node, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private BoundExpression BindDeclarationVariablesForErrorRecovery(TypeWithAnnotations declTypeWithAnnotations, VariableDesignationSyntax node, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             declTypeWithAnnotations = declTypeWithAnnotations.HasType ? declTypeWithAnnotations : TypeWithAnnotations.Create(CreateErrorType("var"));
             switch (node.Kind())
@@ -761,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var single = (SingleVariableDesignationSyntax)node;
                         var result = BindDeconstructionVariable(declTypeWithAnnotations, single, syntax, diagnostics);
-                        return result;
+                        return BindToTypeForErrorRecovery(result);
                     }
                 case SyntaxKind.DiscardDesignation:
                     {
@@ -776,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         foreach (var n in tuple.Variables)
                         {
-                            builder.Add(BindDeclarationVariables(declTypeWithAnnotations, n, n, diagnostics));
+                            builder.Add(BindDeclarationVariablesForErrorRecovery(declTypeWithAnnotations, n, n, diagnostics));
                             namesBuilder.Add(InferTupleElementName(n));
                         }
                         ImmutableArray<BoundExpression> subExpressions = builder.ToImmutableAndFree();
@@ -1364,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax: node,
                             resultKind: LookupResultKind.WrongArity,
                             symbols: ImmutableArray.Create(symbol),
-                            childBoundNodes: ImmutableArray.Create(expression),
+                            childBoundNodes: ImmutableArray.Create(BindToTypeForErrorRecovery(expression)),
                             type: expression.Type,
                             hasErrors: isError);
                     }
@@ -2150,23 +2163,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteDiagnostics);
 
             var conversionGroup = new ConversionGroup(conversion, targetTypeWithAnnotations);
-            if (operand.HasAnyErrors || targetType.IsErrorType() || !conversion.IsValid || targetType.IsStatic)
+            bool suppressErrors = operand.HasAnyErrors || targetType.IsErrorType();
+            bool hasErrors = !conversion.IsValid || targetType.IsStatic;
+            if (hasErrors && !suppressErrors)
             {
                 GenerateExplicitConversionErrors(diagnostics, node, conversion, operand, targetType);
-
-                return new BoundConversion(
-                    node,
-                    operand,
-                    conversion,
-                    @checked: CheckOverflowAtRuntime,
-                    explicitCastInCode: true,
-                    conversionGroup,
-                    constantValueOpt: ConstantValue.NotAvailable,
-                    type: targetType,
-                    hasErrors: true);
             }
 
-            return CreateConversion(node, operand, conversion, isCast: true, conversionGroup, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics);
+            return CreateConversion(node, operand, conversion, isCast: true, conversionGroupOpt: conversionGroup, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, hasErrors: hasErrors | suppressErrors);
         }
 
         private void GenerateExplicitConversionErrors(
@@ -6155,7 +6159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 lookupKind,
                 (object)symbolOpt == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(symbolOpt),
-                boundLeft == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(boundLeft),
+                boundLeft == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(BindToTypeForErrorRecovery(boundLeft)),
                 GetNonMethodMemberType(symbolOpt));
         }
 
@@ -7036,7 +7040,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? arrayType
                 : arrayType.ElementType;
 
-            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors);
+            return hasErrors
+                ? new BoundArrayAccess(node, BindToTypeForErrorRecovery(expr), convertedArguments.Select(e => BindToTypeForErrorRecovery(e)).AsImmutableOrNull(), resultType, hasErrors: true)
+                : new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors: false);
         }
 
         private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, DiagnosticBag diagnostics, bool allowIndexAndRange)

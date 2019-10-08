@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<LineChange> Changes)> LineChanges;
 
         /// <summary>
+        /// All symbols added in changed documents.
+        /// </summary>
+        public readonly ImmutableHashSet<ISymbol> AddedSymbols;
+
+        /// <summary>
         /// All active statements and the corresponding exception regions in changed documents.
         /// </summary>
         public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> NewActiveStatements;
@@ -27,14 +32,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public ProjectChanges(
             ImmutableArray<SemanticEdit> semanticEdits,
             ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> lineChanges,
+            ImmutableHashSet<ISymbol> addedSymbols,
             ImmutableArray<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)> newActiveStatements)
         {
             Debug.Assert(!semanticEdits.IsDefault);
             Debug.Assert(!lineChanges.IsDefault);
+            Debug.Assert(addedSymbols != null);
             Debug.Assert(!newActiveStatements.IsDefault);
 
             SemanticEdits = semanticEdits;
             LineChanges = lineChanges;
+            AddedSymbols = addedSymbols;
             NewActiveStatements = newActiveStatements;
         }
     }

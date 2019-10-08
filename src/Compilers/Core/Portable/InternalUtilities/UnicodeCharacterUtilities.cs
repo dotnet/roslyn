@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Roslyn.Utilities
@@ -85,9 +88,9 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Check that the name is a valid Unicode identifier.
         /// </summary>
-        public static bool IsValidIdentifier(string name)
+        public static bool IsValidIdentifier([NotNullWhen(returnValue: true)] string? name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (RoslynString.IsNullOrEmpty(name))
             {
                 return false;
             }

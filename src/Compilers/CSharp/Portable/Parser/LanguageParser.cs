@@ -3670,6 +3670,11 @@ tryAgain:
                 {
                     case SyntaxKind.ThisKeyword:
                         modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod);
+                        if (this.CurrentToken.Kind == SyntaxKind.RefKeyword ||
+                            this.CurrentToken.Kind == SyntaxKind.InKeyword)
+                        {
+                            modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
+                        }
                         break;
 
                     case SyntaxKind.RefKeyword:

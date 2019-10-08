@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,7 +42,7 @@ namespace Roslyn.Utilities
         /// constraint. This property supports documenting constraints which cannot be described in terms of other
         /// constraint properties.</para>
         /// </remarks>
-        public string Constraint
+        public string? Constraint
         {
             get;
             set;

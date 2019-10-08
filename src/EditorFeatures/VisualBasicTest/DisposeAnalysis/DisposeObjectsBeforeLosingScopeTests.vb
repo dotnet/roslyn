@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DisposeAnalysis
     Public Class DisposeObjectsBeforeLosingScopeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer(), Nothing)
+            Return (New DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer(isEnabledByDefault:=True), Nothing)
         End Function
 
         ' Ensure that we explicitly test missing diagnostic, which has no corresponding code fix (non-fixable diagnostic).

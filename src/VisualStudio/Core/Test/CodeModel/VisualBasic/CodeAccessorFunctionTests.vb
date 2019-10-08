@@ -509,7 +509,7 @@ Public Class C1
 
    End Event
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionAddHandler)
@@ -536,7 +536,7 @@ Public Class C1
 
    End Event
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRemoveHandler)
@@ -563,7 +563,7 @@ Public Class C1
 
    End Event
 
-End Clas
+End Class
 </Code>
 
             TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRaiseEvent)
