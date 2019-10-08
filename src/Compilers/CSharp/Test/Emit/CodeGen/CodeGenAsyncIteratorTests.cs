@@ -6571,12 +6571,8 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithAsyncIterator(new[] { source, EnumeratorCancellationAttributeType });
-            comp.VerifyDiagnostics(
-                // (13,70): error CS8205: Attributes are not allowed on local function parameters or type parameters
-                //         async System.Collections.Generic.IAsyncEnumerable<int> local([EnumeratorCancellation] CancellationToken token)
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[EnumeratorCancellation]").WithLocation(13, 70)
-                );
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, EnumeratorCancellationAttributeType, AsyncStreamsTypes }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(35166, "https://github.com/dotnet/roslyn/issues/35166")]

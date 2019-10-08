@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -25,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _lazyIsVarArg;
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
-        private TypeWithAnnotations.Boxed _lazyReturnType;
-        private TypeWithAnnotations.Boxed _lazyIteratorElementType;
+        private TypeWithAnnotations.Boxed? _lazyReturnType;
+        private TypeWithAnnotations.Boxed? _lazyIteratorElementType;
 
-        private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
-        private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
+        private CustomAttributesBag<CSharpAttributeData>? _lazyCustomAttributesBag;
+        private CustomAttributesBag<CSharpAttributeData>? _lazyReturnTypeCustomAttributesBag;
 
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
@@ -72,11 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDiagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
             }
 
-            foreach (var param in syntax.ParameterList.Parameters)
-            {
-                ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
-            }
-
             if (syntax.ReturnType.Kind() == SyntaxKind.RefType)
             {
                 var returnType = (RefTypeSyntax)syntax.ReturnType;
@@ -95,6 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _binder = binder;
+
+            foreach (var param in syntax.ParameterList.Parameters)
+            {
+                ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
+            }
         }
 
         /// <summary>
@@ -208,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 ComputeReturnType();
-                return _lazyReturnType.Value;
+                return _lazyReturnType!.Value;
             }
         }
 
@@ -347,9 +349,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData => null;
+        internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation => null;
+        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
 
         internal override CallingConvention CallingConvention => CallingConvention.Default;
 
@@ -357,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool RequiresSecurityObject => false;
 
-        public override Symbol AssociatedSymbol => null;
+        public override Symbol? AssociatedSymbol => null;
 
         public override Accessibility DeclaredAccessibility => ModifierUtils.EffectiveAccessibility(_declarationModifiers);
 
@@ -387,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Method;
 
-        public override DllImportData GetDllImportData() => null;
+        public override DllImportData? GetDllImportData() => null;
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
 
@@ -405,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             // Local function symbols have no "this" parameter
             thisParameter = null;
@@ -414,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
         {
-            var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfoOpt(this.DeclaringCompilation);
+            var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfoOpt(_binder.Compilation);
             if (diagnosticInfo is object)
             {
                 foreach (var attrList in attributes)
@@ -548,8 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)this == symbol) return true;
 
             var localFunction = symbol as LocalFunctionSymbol;
-            return (object)localFunction != null
-                && localFunction._syntax == _syntax;
+            return localFunction?._syntax == _syntax;
         }
     }
 }
