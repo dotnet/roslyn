@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Host
     public interface IDocumentRefactoringService : IWorkspaceService
     {
         /// <summary>
-        /// Attempts to sync a named type name and namespace based on file path. PreviousFilePath is 
+        /// Attempts to sync a named type name and namespace based on file path. <paramref name="previousFilePath" /> is
         /// used to determine how the policy might be applied, assuming that matching types with previous
         /// indicates a user wants the type to match with the new location or name.
         /// May fail if:
