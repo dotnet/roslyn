@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _lazyIsVarArg;
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
-        private TypeWithAnnotations _lazyReturnType;
+        private TypeWithAnnotations.Boxed _lazyReturnType;
         private TypeWithAnnotations.Boxed _lazyIteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 ComputeReturnType();
-                return _lazyReturnType;
+                return _lazyReturnType.Value;
             }
         }
 
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void ComputeReturnType()
         {
-            if (!_lazyReturnType.IsDefault)
+            if (_lazyReturnType is object)
             {
                 return;
             }
@@ -270,14 +270,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if (!_lazyReturnType.IsDefault)
+                if (_lazyReturnType is object)
                 {
                     diagnostics.Free();
                     return;
                 }
 
                 _declarationDiagnostics.AddRangeAndFree(diagnostics);
-                _lazyReturnType = returnType;
+                Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
             }
         }
 

@@ -273,9 +273,9 @@ A definição de grupo de balanceamento usa 'name2' como uma pilha. O caractere 
         <source>This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
 
 'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</source>
-        <target state="translated">Este elemento de linguagem tenta corresponder a um de dois padrões, dependendo se consegue corresponder a um padrão inicial.
+        <target state="translated">Este elemento de linguagem tenta corresponder a um de dois padrões, dependendo da possibilidade de correspondência com um padrão inicial.
 
-'expression' é o padrão inicial a ser correspondido, 'yes' é o padrão a ser correspondido quando a expressão é correspondida e 'no' é o padrão opcional a ser correspondido quando a expressão não é correspondida.</target>
+'expression' é o padrão inicial, 'yes' é o padrão quando a expressão é correspondida e 'no' é o padrão opcional quando a expressão não é correspondida.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_expression_match_short">
@@ -369,9 +369,9 @@ A âncora \Z corresponde a \n, mas não corresponde à \r\n (à combinação de 
         <source>The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
 
 The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</source>
-        <target state="translated">A âncora $ especifica que o padrão anterior precisa ocorrer no final da cadeia de caracteres de entrada ou antes \n do final da cadeia de caracteres de entrada. Se você usar $ com a opção RegexOptions.Multiline, a correspondência também poderá ocorrer no final de uma linha.
+        <target state="translated">A âncora $ especifica que o padrão anterior precisa ocorrer no final da cadeia de caracteres de entrada ou antes de \n no final da cadeia de caracteres de entrada. Se você usar $ com a opção RegexOptions.Multiline, a correspondência também poderá ocorrer no final de uma linha.
 
-A âncora $ corresponde a \n, mas não corresponde a \r\n (a combinação dos caracteres de retorno de carro e de nova linha ou CR/LF). Para corresponder à combinação de caracteres CR/LF, inclua \r?$ no padrão de expressão regular.</target>
+A âncora $ corresponde a \n, mas não corresponde a \r\n (a combinação dos caracteres de retorno de carro e de nova linha ou CR/LF). Para a âncora corresponder à combinação de caracteres CR/LF, inclua \r?$ no padrão de expressão regular.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_short">
@@ -445,8 +445,8 @@ A âncora $ corresponde a \n, mas não corresponde a \r\n (a combinação dos ca
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="translated">escape hexadecimal</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">escape hexadecimal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -741,7 +741,7 @@ Dois ou mais intervalos de caracteres podem ser concatenados. Por exemplo, para 
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="translated">O constructo de expressão regular \P{ name } corresponde a qualquer caractere que não pertença a uma categoria genérica Unicode ou a um bloco nomeado, em que o nome seja a abreviação da categoria ou o nome do bloco nomeado.</target>
+        <target state="translated">O constructo de expressão regular \P{ name } corresponde a qualquer caractere que não pertença a uma categoria Unicode genérica nem a um bloco nomeado, em que o nome seja a abreviação da categoria ou o nome do bloco nomeado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_short">
@@ -782,7 +782,7 @@ Se o comportamento em conformidade com o ECMAScript for especificado, \D será e
         <source>\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
 
 If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</source>
-        <target state="translated">\S corresponde a qualquer caractere que não seja um espaço em branco. É equivalente ao padrão de expressão regular [^\f\n\r\t\v\x85\p{Z}] ou ao oposto do padrão de expressão regular equivalente a \s, que corresponde a caracteres de espaço em branco.
+        <target state="translated">\S corresponde a qualquer caractere que não seja um espaço em branco. Ele equivale ao padrão de expressão regular [^\f\n\r\t\v\x85\p{Z}] ou ao oposto do padrão de expressão regular equivalente a \s, que corresponde a caracteres de espaço em branco.
 
 Se o comportamento em conformidade com o ECMAScript for especificado, \S será equivalente a [^ \f\n\r\t\v]</target>
         <note />
@@ -856,9 +856,9 @@ The noncapturing group construct is typically used when a quantifier is applied 
 If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</source>
         <target state="translated">Este constructo não captura a substring correspondida por uma subexpressão:
 
-O constructo do grupo que não é de captura geralmente é usada quando um quantificador é aplicado a um grupo, mas as substrings capturadas pelo grupo são de nenhum interesse.
+O constructo do grupo que não é de captura geralmente é usado quando um quantificador é aplicado a um grupo, mas as substrings capturadas pelo grupo não são de interesse.
 
-Se uma expressão regular inclui constructos de agrupamento aninhado, um constructo de grupo de não captura externa não se aplica aos constructos internos de grupo aninhado.</target>
+Se uma expressão regular inclui constructos de agrupamento aninhado, um constructo externo de grupo de não captura não se aplica aos constructos internos de grupo aninhado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_short">
@@ -1137,7 +1137,7 @@ A âncora \b é usada geralmente para garantir que uma subexpressão corresponda
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</source>
-        <target state="translated">\w corresponde a qualquer caractere de palavra. Um caractere de palavra é membro de qualquer uma das categorias Unicode a seguir:
+        <target state="translated">\w corresponde a qualquer caractere de palavra. Um caractere de palavra é membro de qualquer uma das seguintes categorias Unicode:
 
     Ll	Letra, Minúscula
     Lu	Letra, Maiúscula
@@ -1148,7 +1148,7 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
     Nd	Número, Dígito Decimal
     Pc	Pontuação, Conector
 
-Se o comportamento em conformidade com o ECMAScript for especificado, \w é equivalente a [a-zA-Z_0-9]</target>
+Se o comportamento em conformidade com o ECMAScript for especificado, \w será equivalente a [a-zA-Z_0-9]</target>
         <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized.</note>
       </trans-unit>
       <trans-unit id="Regex_word_character_short">
@@ -1167,7 +1167,7 @@ Se o comportamento em conformidade com o ECMAScript for especificado, \w é equi
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
         <target state="translated">Uma declaração de lookahead negativa de largura zero, em que, para que a correspondência seja bem-sucedida, a cadeia de caracteres de entrada não pode corresponder ao padrão de expressão regular na subexpressão. A cadeia de caracteres correspondente não está incluída no resultado correspondente.
 
-Uma declaração de lookahead negativa de largura zero normalmente é usada no início ou no final de uma expressão regular. No início de uma expressão regular, ela pode definir um padrão específico que não deve ser correspondido quando o início da expressão regular define um padrão semelhante, mas mais geral a ser correspondido. Nesse caso, ela geralmente é usada para limitar o retrocesso. No final de uma expressão regular, ela pode definir uma subexpressão que não pode ocorrer no final de uma correspondência.</target>
+Uma declaração de lookahead negativa de largura zero normalmente é usada no início ou no final de uma expressão regular. No início de uma expressão regular, ela pode definir um padrão específico que não deve ser correspondido quando o início da expressão regular define um padrão semelhante, mas mais geral, a ser correspondido. Nesse caso, ela geralmente é usada para limitar o retrocesso. No final de uma expressão regular, ela pode definir uma subexpressão que não pode ocorrer no final de uma correspondência.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
@@ -1307,49 +1307,14 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Especificações de símbolo</target>
         <note />
       </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
-        <source>Base Type</source>
-        <target state="translated">Tipo Base</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Construct">
-        <source>Construct</source>
-        <target state="translated">Constructo</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Declare">
-        <source>Declare</source>
-        <target state="translated">Declarar</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Import">
-        <source>Import</source>
-        <target state="translated">Importar</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
-        <source>Qualify</source>
-        <target state="translated">Qualificar</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
-        <source>Type Argument</source>
-        <target state="translated">Argumento de Tipo</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
-        <source>Type Constraint</source>
-        <target state="translated">Restrição de Tipo</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Name">
-        <source>Name</source>
-        <target state="translated">Nome</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Arquivos do Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
+        <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
+        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
@@ -2241,21 +2206,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <source>Regex issue: {0}</source>
         <target state="translated">Problema do Regex: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Read">
-        <source>Read</source>
-        <target state="translated">Ler</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Reference">
-        <source>Reference</source>
-        <target state="translated">Referência</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Write">
-        <source>Write</source>
-        <target state="translated">Gravar</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Parameter_preferences">
         <source>Parameter preferences</source>

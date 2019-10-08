@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -18,13 +21,25 @@ namespace Microsoft.CodeAnalysis
         /// following selection `1 + [|2 + 3|]` is underselecting the whole expression node tree.
         /// </para>
         /// <para>
+        /// Returns false if only and precisely one <see cref="SyntaxToken"/> is selected. In that case the <paramref name="selection"/> 
+        /// is treated more as a caret location.
+        /// </para>
+        /// <para>
         /// It's intended to be used in conjunction with <see cref="IRefactoringHelpersService.GetRelevantNodesAsync{TSyntaxNode}(Document, TextSpan, CancellationToken)"/>
         /// that, for non-empty selections, returns the smallest encompassing node. A node that can, for certain refactorings, be too large given user-selection even though
         /// it is the smallest that can be retrieved.
         /// </para>
+        /// <para>
+        /// Null node is always considered underselected.
+        /// </para>
         /// </summary>
-        public static bool IsNodeUnderselected(SyntaxNode node, TextSpan selection)
+        public static bool IsNodeUnderselected(SyntaxNode? node, TextSpan selection)
         {
+            if (node == null)
+            {
+                return true;
+            }
+
             if (selection.IsEmpty || node.Span.IsEmpty)
             {
                 return false;
@@ -32,6 +47,16 @@ namespace Microsoft.CodeAnalysis
 
             // If selection is larger than node.Span -> can't be underselecting
             if (selection.Contains(node.Span))
+            {
+                return false;
+            }
+
+            // Only precisely one token is selected -> treat is as empty selection -> not under-selected.
+            // The rationale is that if a only one Token is selected then the selection wasn't about
+            // precisely getting the one node and nothing else & therefore we should treat it as empty
+            // selection.
+            var selectionStartToken = node.FindToken(selection.Start);
+            if (selection.IsAround(selectionStartToken))
             {
                 return false;
             }

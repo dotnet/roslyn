@@ -1441,7 +1441,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Diagnostic &apos;{0}: {1}&apos; was programmatically suppressed by a DiagnosticSuppressor with suppresion ID &apos;{2}&apos; and justification &apos;{3}&apos;.
+        ///   Looks up a localized string similar to Diagnostic &apos;{0}: {1}&apos; was programmatically suppressed by a DiagnosticSuppressor with suppression ID &apos;{2}&apos; and justification &apos;{3}&apos;.
         /// </summary>
         internal static string SuppressionDiagnosticDescriptorMessage {
             get {

@@ -5,6 +5,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -105,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Next
         End Sub
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ValidTagsDuringSimpleRename() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -565,8 +566,9 @@ class C
                 Dim textBuffer = workspace.Documents.Single().TextBuffer
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim session = StartSession(workspace)
                 textBuffer.Replace(New Span(location, 3), "Goo")
@@ -697,7 +699,7 @@ class C
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NonReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -768,7 +770,7 @@ class C
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -840,7 +842,7 @@ class Goo
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38247")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_ReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -907,7 +909,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_NeedsEscaping() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1072,8 +1074,9 @@ End Class
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim textViewService = New TextBufferAssociatedViewService()
                 Dim buffers = New Collection(Of ITextBuffer)
@@ -1155,8 +1158,9 @@ End Class
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
-                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
-                                                               workspace.GetService(Of IEditorOperationsFactoryService))
+                Dim commandHandler As New RenameCommandHandler(
+                    workspace.GetService(Of IThreadingContext)(),
+                    workspace.GetService(Of InlineRenameService))
 
                 Dim textViewService = New TextBufferAssociatedViewService()
                 Dim buffers = New Collection(Of ITextBuffer)
@@ -1351,7 +1355,7 @@ namespace N
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans() As Task

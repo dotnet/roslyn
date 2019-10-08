@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 case ProgressStatus.Started:
                     SolutionCrawlerProgressChanged(running: true);
                     break;
-                case ProgressStatus.Stoped:
+                case ProgressStatus.Stopped:
                     SolutionCrawlerProgressChanged(running: false);
                     break;
             }

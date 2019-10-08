@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             public async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
-                var (document, textSpan, cancellationToken) = context;
+                var (document, _, cancellationToken) = context;
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);

@@ -2,19 +2,35 @@
 <!-- Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Configuration xmlns="http://schemas.microsoft.com/vstudio/vsdconfig/2008">
   <DefineGuid Name="ManagedEditAndContinueServiceId" Value="A96BBE03-0408-41E3-8613-6086FD494B43"/>
-  <DefineGuid Name="ManagedEditAndContinueMessageSourceId" Value="58CDF976-1923-48F7-8288-B4189F5700B1"/>
+  <DefineGuid Name="DebuggeeModuleMetadataProviderMessageSourceId" Value="58CDF976-1923-48F7-8288-B4189F5700B1"/>
+  <DefineGuid Name="StateChangeListenerMessageSourceId" Value="730432E7-1B68-4B3A-BD6A-BD4C13E0566B"/>
   <ManagedComponent
     ComponentId="ManagedEditAndContinueServiceId"
     ComponentLevel="9991500"
     Synchronized="true"
     AssemblyName="Microsoft.VisualStudio.LanguageServices">
-    <Class Name="Microsoft.VisualStudio.LanguageServices.EditAndContinue.DebuggeeModuleMetadataProvider+DebuggerService">
+    <Class Name="Microsoft.VisualStudio.LanguageServices.EditAndContinue.VisualStudioDebuggeeModuleMetadataProvider+DebuggerService">
       <Implements>
         <InterfaceGroup>
           <Filter>
-            <SourceId RequiredValue="ManagedEditAndContinueMessageSourceId"/>
+            <SourceId RequiredValue="DebuggeeModuleMetadataProviderMessageSourceId"/>
           </Filter>
           <Interface Name="IDkmCustomMessageForwardReceiver"/>
+        </InterfaceGroup>
+      </Implements>
+    </Class>
+    <Class Name="Microsoft.VisualStudio.LanguageServices.EditAndContinue.VisualStudioDebugStateChangeListener+DebuggerService">
+      <Implements>
+        <InterfaceGroup>
+          <Filter>
+            <SourceId RequiredValue="StateChangeListenerMessageSourceId"/>
+          </Filter>
+          <Interface Name="IDkmCustomMessageForwardReceiver"/>
+        </InterfaceGroup>
+        <InterfaceGroup>
+          <NoFilter/>
+          <Interface Name="IDkmModuleInstanceLoadNotification"/>
+          <Interface Name="IDkmModuleInstanceUnloadNotification"/>
         </InterfaceGroup>
       </Implements>
     </Class>

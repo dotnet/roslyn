@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             return new StatisticResult(max, min, median, mean, range, mode, values.Count);
         }
 
+        public bool IsEmpty => _map.IsEmpty;
+
         public IEnumerator<KeyValuePair<object, T>> GetEnumerator()
         {
             return _map.GetEnumerator();

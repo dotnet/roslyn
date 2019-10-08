@@ -3,9 +3,8 @@
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
-    /// provide various operations for this document
-    /// 
-    /// I followed name from EditorOperation for now. 
+    /// TODO: Merge into <see cref="DocumentPropertiesService"/>.
+    /// Used by Razor via IVT.
     /// </summary>
     internal interface IDocumentOperationService : IDocumentService
     {

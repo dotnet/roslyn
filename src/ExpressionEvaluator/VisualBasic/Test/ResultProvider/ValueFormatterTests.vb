@@ -2,6 +2,7 @@
 
 Imports System
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Xunit
@@ -575,6 +576,59 @@ End Namespace
             Assert.Equal("#1/1/1970 12:00:00 AM#", FormatValue(New Date(&H89F7FF5F7B58000, DateTimeKind.Local)))
             Assert.Equal("#1/1/1970 12:00:00 AM#", FormatValue(New Date(&H89F7FF5F7B58000, DateTimeKind.Utc)))
         End Sub
+
+        <Fact>
+        Public Sub HostValueNotFound_Integer()
+            Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(Integer), TypeImpl)),
+                alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue))
+        End Sub
+
+        <Fact>
+        Public Sub HostValueNotFound_char()
+            Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(Char), TypeImpl)),
+                                           alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue))
+        End Sub
+
+        <Fact>
+        Public Sub HostValueNotFound_IntPtr()
+            Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(IntPtr), TypeImpl)),
+                                           alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue))
+        End Sub
+
+        <Fact>
+        Public Sub HostValueNotFound_UIntPtr()
+            Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(UIntPtr), TypeImpl)),
+                                           alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue))
+        End Sub
+
+        <Fact>
+        Public Sub HostValueNotFound_Enum()
+            Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(TestEnum), TypeImpl)),
+                                           alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue))
+        End Sub
+
+        ' DateTime is a primitive type in VB but not in C#.
+        <Fact>
+        Public Sub HostValueNotFound_DateTime()
+            Dim clrValue = New DkmClrValue(value:=Nothing, hostObjectValue:=Nothing, New DkmClrType(CType(GetType(DateTime), TypeImpl)),
+                                           alias:=Nothing, evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.None)
+
+            Assert.Equal(Resources.HostValueNotFound, FormatValue(clrValue))
+        End Sub
+
+        Private Enum TestEnum
+            One
+        End Enum
 
     End Class
 

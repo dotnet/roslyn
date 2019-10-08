@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -29,6 +30,49 @@ namespace Microsoft.CodeAnalysis
         /// corresponds to each <see cref="AnalyzerConfig.NamedSections"/>.
         /// </summary>
         private readonly ImmutableArray<ImmutableArray<SectionNameMatcher?>> _analyzerMatchers;
+
+        // PERF: diagnostic IDs will appear in the output options for every syntax tree in
+        // the solution. We share string instances for each diagnostic ID to avoid creating
+        // excess strings
+        private readonly ConcurrentDictionary<ReadOnlyMemory<char>, string> _diagnosticIdCache =
+            new ConcurrentDictionary<ReadOnlyMemory<char>, string>(CharMemoryEqualityComparer.Instance);
+
+        // PERF: Most files will probably have the same options, so share the dictionary instances
+        private readonly ConcurrentCache<List<Section>, AnalyzerConfigOptionsResult> _optionsCache =
+            new ConcurrentCache<List<Section>, AnalyzerConfigOptionsResult>(50, SequenceEqualComparer.Instance); // arbitrary size
+
+        private readonly ObjectPool<TreeOptions.Builder> _treeOptionsPool =
+            new ObjectPool<TreeOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(Section.PropertiesKeyComparer));
+
+        private readonly ObjectPool<AnalyzerOptions.Builder> _analyzerOptionsPool =
+            new ObjectPool<AnalyzerOptions.Builder>(() => ImmutableDictionary.CreateBuilder<string, string>(Section.PropertiesKeyComparer));
+
+        private readonly ObjectPool<List<Section>> _sectionKeyPool = new ObjectPool<List<Section>>(() => new List<Section>());
+
+        private sealed class SequenceEqualComparer : IEqualityComparer<List<Section>>
+        {
+            public static SequenceEqualComparer Instance { get; } = new SequenceEqualComparer();
+
+            public bool Equals(List<Section> x, List<Section> y)
+            {
+                if (x.Count != y.Count)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < x.Count; i++)
+                {
+                    if (!ReferenceEquals(x[i], y[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(List<Section> obj) => Hash.CombineValues(obj);
+        }
 
         private readonly static DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
             = new DiagnosticDescriptor(
@@ -80,6 +124,7 @@ namespace Microsoft.CodeAnalysis
         /// precedence rules if there are multiple rules for the same file.
         /// </summary>
         /// <param name="sourcePath">The path to a file such as a source file or additional file. Must be non-null.</param>
+        /// <remarks>This method is safe to call from multiple threads.</remarks>
         public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
         {
             if (sourcePath == null)
@@ -87,11 +132,10 @@ namespace Microsoft.CodeAnalysis
                 throw new System.ArgumentNullException(nameof(sourcePath));
             }
 
-            var treeOptionsBuilder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(
-                CaseInsensitiveComparison.Comparer);
-            var analyzerOptionsBuilder = ImmutableDictionary.CreateBuilder<string, string>(
-                CaseInsensitiveComparison.Comparer);
+            var treeOptionsBuilder = _treeOptionsPool.Allocate();
+            var analyzerOptionsBuilder = _analyzerOptionsPool.Allocate();
             var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
+            var sectionKey = _sectionKeyPool.Allocate();
 
             var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
 
@@ -128,23 +172,46 @@ namespace Microsoft.CodeAnalysis
                         if (matchers[sectionIndex]?.IsMatch(relativePath) == true)
                         {
                             var section = config.NamedSections[sectionIndex];
-                            addOptions(section, treeOptionsBuilder, analyzerOptionsBuilder, diagnosticBuilder, config.PathToFile);
+                            addOptions(
+                                section,
+                                treeOptionsBuilder,
+                                analyzerOptionsBuilder,
+                                diagnosticBuilder,
+                                config.PathToFile,
+                                _diagnosticIdCache);
+                            sectionKey.Add(section);
                         }
                     }
                 }
             }
 
-            return new AnalyzerConfigOptionsResult(
-                treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
-                analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
-                diagnosticBuilder.ToImmutableAndFree());
+            // Try to avoid creating extra dictionaries if we've already seen an options result with the
+            // exact same options
+            if (!_optionsCache.TryGetValue(sectionKey, out var result))
+            {
+                result = new AnalyzerConfigOptionsResult(
+                    treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : SyntaxTree.EmptyDiagnosticOptions,
+                    analyzerOptionsBuilder.Count > 0 ? analyzerOptionsBuilder.ToImmutable() : AnalyzerConfigOptions.EmptyDictionary,
+                    diagnosticBuilder.ToImmutableAndFree());
+                _optionsCache.TryAdd(sectionKey, result);
+            }
+
+            sectionKey.Clear();
+            treeOptionsBuilder.Clear();
+            analyzerOptionsBuilder.Clear();
+            _sectionKeyPool.Free(sectionKey);
+            _treeOptionsPool.Free(treeOptionsBuilder);
+            _analyzerOptionsPool.Free(analyzerOptionsBuilder);
+
+            return result;
 
             static void addOptions(
                 AnalyzerConfig.Section section,
                 TreeOptions.Builder treeBuilder,
                 AnalyzerOptions.Builder analyzerBuilder,
                 ArrayBuilder<Diagnostic> diagnosticBuilder,
-                string analyzerConfigPath)
+                string analyzerConfigPath,
+                ConcurrentDictionary<ReadOnlyMemory<char>, string> diagIdCache)
             {
                 const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
                 const string DiagnosticOptionSuffix = ".severity";
@@ -161,9 +228,19 @@ namespace Microsoft.CodeAnalysis
 
                     if (diagIdLength >= 0)
                     {
-                        var diagId = key.Substring(
-                            DiagnosticOptionPrefix.Length,
-                            diagIdLength);
+                        ReadOnlyMemory<char> idSlice = key.AsMemory().Slice(DiagnosticOptionPrefix.Length, diagIdLength);
+                        // PERF: this is similar to a double-checked locking pattern, and trying to fetch the ID first
+                        // lets us avoid an allocation if the id has already been added
+                        if (!diagIdCache.TryGetValue(idSlice, out var diagId))
+                        {
+                            // We use ReadOnlyMemory<char> to allow allocation-free lookups in the
+                            // dictionary, but the actual keys stored in the dictionary are trimmed
+                            // to avoid holding GC references to larger strings than necessary. The
+                            // GetOrAdd APIs do not allow the key to be manipulated between lookup
+                            // and insertion, so we separate the operations here in code.
+                            diagId = idSlice.ToString();
+                            diagId = diagIdCache.GetOrAdd(diagId.AsMemory(), diagId);
+                        }
 
                         ReportDiagnostic? severity;
                         var comparer = StringComparer.OrdinalIgnoreCase;

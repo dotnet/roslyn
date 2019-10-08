@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var method = (MethodSymbol)_symbol;
-            bool isStatic = method.IsStatic;
+            bool isStatic = !method.RequiresInstanceReceiver();
 
             int thisSlot = -1;
 
@@ -88,10 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 method.TryGetThisParameter(out var thisParameter);
                 thisSlot = VariableSlot(thisParameter);
-                if (thisSlot == -1)
-                {
-                    return;
-                }
+                Debug.Assert(thisSlot > 0);
             }
 
             var containingType = method.ContainingType;
@@ -113,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
-            int slot = VariableSlot(symbol, thisSlot);
+            int slot = VariableSlot(symbol, symbol.IsStatic ? 0 : thisSlot);
             return slot > 0 && this.State.IsAssigned(slot);
         }
 
@@ -187,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
             base.VisitEventAssignmentOperator(node);
-            if (node.IsAddition && node is { Event: { AssociatedField: { } field } }) 
+            if (node.IsAddition && node is { Event: { AssociatedField: { } field } })
             {
                 int slot = MakeMemberSlot(node.ReceiverOpt, field);
                 if (slot != -1)

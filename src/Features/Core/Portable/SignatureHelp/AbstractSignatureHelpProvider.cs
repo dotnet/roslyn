@@ -51,9 +51,40 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 return null;
             }
 
+            if (selectedItem < 0)
+            {
+                selectedItem = null;
+            }
+
             (items, selectedItem) = Filter(items, state.ArgumentNames, selectedItem);
             return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
         }
+
+        protected static SignatureHelpItems CreateCollectionInitializerSignatureHelpItems(
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+        {
+            // We will have added all the accessible '.Add' methods that take at least one
+            // arguments. However, in general the one-arg Add method is the least likely for the
+            // user to invoke. For example, say there is:
+            //
+            //      new JObject { { $$ } }
+            //
+            // Technically, the user could be calling the `.Add(object)` overload in this case.
+            // However, normally in that case, they would just supply the value directly like so:
+            //
+            //      new JObject { new JProperty(...), new JProperty(...) }
+            //
+            // So, it's a strong signal when they're inside another `{ $$ }` that they want to call
+            // the .Add methods that take multiple args, like so:
+            //
+            //      new JObject { { propName, propValue }, { propName, propValue } }
+            // 
+            // So, we include all the .Add methods, but we prefer selecting the first that has
+            // at least two parameters.
+            return CreateSignatureHelpItems(
+                items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2));
+        }
+
 
         private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames, int? selectedItem)
         {

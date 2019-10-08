@@ -43,8 +43,47 @@ A number of null checks affect the flow state when tested for:
   - `static bool object.Equals(object, object)`
   - `static bool object.ReferenceEquals(object, object)`
   - `bool object.Equals(object)` and overrides
-  - `bool IEquatable<T>(T)` and implementations
-  - `bool IEqualityComparer<T>(T, T)` and implementations
+  - `bool IEquatable<T>.Equals(T)` and implementations
+  - `bool IEqualityComparer<T>.Equals(T, T)` and implementations
+
+Some null checks are "pure null tests", which means that they can cause a variable whose flow state was previously not-null to update to maybe-null. Pure null tests include:
+- `x == null`, `x != null` *whether using a built-in or user-defined operator*
+- `(Type)x == null`, `(Type)x != null`
+- `x is null`
+- `object.Equals(x, null)`, `object.ReferenceEquals(x, null)`
+- `IEqualityComparer<Type?>.Equals(x, null)`
+
+All of the above checks except for `x is null` are commutative. For example, `null == x` is also a valid pure null test.
+
+Some expressions which may not return `bool` are also considered pure null tests:
+- `x?.Member` will change the receiver's flow state to maybe-null unconditionally
+- `x ?? y` will change the LHS expression's flow state to maybe-null unconditionally
+
+Example of how a pure null test can affect flow analysis:
+```cs
+string s = "hello";
+if (s != null)
+{
+    _ = s.ToString(); // ok
+}
+else
+{
+    _ = s.ToString(); // warning
+}
+```
+
+Versus a "not pure" null test:
+```cs
+string s = "hello";
+if (s is string)
+{
+    _ = s.ToString(); // ok
+}
+else
+{
+    _ = s.ToString(); // ok
+}
+```
 
 Invocation of methods annotated with the following attributes will also affect flow analysis:
 - simple pre-conditions: `[AllowNull]` and `[DisallowNull]`
@@ -57,6 +96,10 @@ See https://github.com/dotnet/csharplang/blob/master/meetings/2019/LDM-2019-05-1
 The `Interlocked.CompareExchange` methods have special handling in flow analysis instead of being annotated due to the complexity of their nullability semantics. The affected overloads include:
 - `static object? System.Threading.Interlocked.CompareExchange(ref object? location, object? value, object? comparand)`
 - `static T System.Threading.Interlocked.CompareExchange<T>(ref T location, T value, T comparand) where T : class?`
+
+When simple pre- and post-condition attributes are applied to a property, and an allowed input state is assigned to the property, the property's state is updated to be an allowed output state. For instance an `[AllowNull] string` property can be assigned `null` and still return not-null values.
+
+The use of any member returning `[MaybeNull]T` for an unconstrained type parameter `T` produces a warning, just like `default(T)` (see below). For instance, `listT.FirstOrDefault();` would produce a warning.
 
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.
@@ -77,7 +120,6 @@ If `T` is an unconstrained type parameter, `default(T)` is a `T` that is maybe n
 ```c#
 T t = default; // warning
 ```
-_Is `default(T?)` an error?_
 
 ### Conversions
 Conversions can be calculated with ~ considered distinct from ? and !, or with ~ implicitly convertible to ? and !.

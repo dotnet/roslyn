@@ -2394,5 +2394,45 @@ class Program
 
             await TestAsync(markup, expectedOrderedItems);
         }
+
+        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        void Local() { }
+        Local($$);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem> { new SignatureHelpTestItem("void Local()") };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(38074, "https://github.com/dotnet/roslyn/issues/38074")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunctionInStaticMethod()
+        {
+            var markup = @"
+class C
+{
+    static void M()
+    {
+        void Local() { }
+        Local($$);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem> { new SignatureHelpTestItem("void Local()") };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
     }
 }

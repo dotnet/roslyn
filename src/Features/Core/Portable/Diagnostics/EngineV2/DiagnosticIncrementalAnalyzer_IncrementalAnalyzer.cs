@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // we don't have actual snapshot (we have no idea what sources out of proc build has picked up)
                     // so we might be out of sync.
                     // example of such cases will be changing anything about solution while building is going on.
-                    // it can be user explict actions such as unloading project, deleting a file, but also it can be 
+                    // it can be user explicit actions such as unloading project, deleting a file, but also it can be 
                     // something project system or roslyn workspace does such as populating workspace right after
                     // solution is loaded.
                     continue;
