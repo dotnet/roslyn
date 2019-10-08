@@ -208,7 +208,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
 
                 // TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
-                var latencyTracker = ShouldLogLocalTelemetry(document.Project.Language) ? new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger) : null;
+                var latencyTracker = ShouldLogLocalTelemetry(document.Project.Language)
+                    ? new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger) : null;
                 using (latencyTracker)
                 {
                     // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
