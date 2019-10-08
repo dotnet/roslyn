@@ -10,6 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Diagnostics.Contracts;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -10150,7 +10151,7 @@ tryAgain:
                 // We only got into IsPossibleLambdaExpression if we saw 'static' or an identifier.
                 // So if we're now on => then we must have been on 'static' in order to have moved
                 // past those.
-                Debug.Assert(seenStatic);
+                Contract.Requires(seenStatic);
 
                 // 1. `static =>`
                 // 2. `async static =>`
@@ -10174,7 +10175,7 @@ tryAgain:
                 // We only got into IsPossibleLambdaExpression if we saw 'static' or an identifier.
                 // So if we're now on ( then we must have been on 'static' in order to have moved
                 // past those.
-                Debug.Assert(seenStatic);
+                Contract.Requires(seenStatic);
 
                 // 1. `static (...
                 // 2. `async static (...
