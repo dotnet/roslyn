@@ -5541,5 +5541,71 @@ class Program
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "b ? await Task.Delay(1) : await Task.Delay(2)").WithLocation(8, 9)
                 );
         }
+
+        [Fact]
+        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
+        public void GetAwaiterBoxingConversion_01()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+interface IAwaitable { }
+struct StructAwaitable : IAwaitable { }
+
+static class Extensions
+{
+    public static TaskAwaiter GetAwaiter(this IAwaitable x)
+    {
+        if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
+        return Task.CompletedTask.GetAwaiter();
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        await new StructAwaitable();
+    }
+}";
+            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "StructAwaitable");
+        }
+
+        [Fact]
+        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
+        public void GetAwaiterBoxingConversion_02()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+struct StructAwaitable { }
+
+static class Extensions
+{
+    public static TaskAwaiter GetAwaiter(this object x)
+    {
+        if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
+        return Task.CompletedTask.GetAwaiter();
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        StructAwaitable? s = new StructAwaitable();
+        await s;
+    }
+}";
+            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "StructAwaitable");
+        }
     }
 }
