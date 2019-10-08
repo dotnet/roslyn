@@ -228,9 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var modifiers = ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics);
             ModifierUtils.CheckModifiers(
-                modifiers,
+                ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics),
                 allowedModifiers: DeclarationModifiers.Static | DeclarationModifiers.Async,
                 GetLocationForDiagnostics(syntax),
                 diagnostics,
