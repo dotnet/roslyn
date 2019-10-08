@@ -10208,7 +10208,7 @@ tryAgain:
             }
 
             // Non-simple async lambda must be of the form 'async (...'
-            if (this.PeekToken(peekIndex + 1).Kind != SyntaxKind.OpenParenToken)
+            if (this.PeekToken(peekIndex).Kind != SyntaxKind.OpenParenToken)
             {
                 return false;
             }

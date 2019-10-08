@@ -534,6 +534,91 @@ class C
 
             UsingTree(test);
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M1");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.GenericName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Func");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleLambdaExpression);
+                                            {
+                                                N(SyntaxKind.Parameter);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             CreateCompilation(test).GetDiagnostics().Verify();
         }
 
@@ -553,6 +638,126 @@ class C
 }";
 
             UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Threading");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Tasks");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M1");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.GenericName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Func");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Task");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.PredefinedType);
+                                                    {
+                                                        N(SyntaxKind.IntKeyword);
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleLambdaExpression);
+                                            {
+                                                N(SyntaxKind.AsyncKeyword);
+                                                N(SyntaxKind.Parameter);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
                 // (9,46): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
@@ -576,11 +781,96 @@ class C
 
             UsingTree(test);
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M1");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.GenericName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Func");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleLambdaExpression);
+                                            {
+                                                N(SyntaxKind.StaticKeyword);
+                                                N(SyntaxKind.Parameter);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             CreateCompilation(test).GetDiagnostics().Verify(
                 // (8,28): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<int, int> v = static async => async;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 28)
-);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 28));
         }
 
         [Fact]
@@ -600,7 +890,134 @@ class C
 
             UsingTree(test);
 
-            CreateCompilation(test).GetDiagnostics().Verify();
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Threading");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Tasks");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M1");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.GenericName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Func");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Task");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.PredefinedType);
+                                                    {
+                                                        N(SyntaxKind.IntKeyword);
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleLambdaExpression);
+                                            {
+                                                N(SyntaxKind.StaticKeyword);
+                                                N(SyntaxKind.AsyncKeyword);
+                                                N(SyntaxKind.Parameter);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (9,34): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<int, Task<int>> v = static async async => async;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 34),
+                // (9,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         Func<int, Task<int>> v = static async async => async;
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 53));
         }
 
         [Fact]
@@ -620,6 +1037,128 @@ class C
 
             UsingTree(test);
 
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Threading");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Tasks");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M1");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.GenericName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Func");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Task");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.PredefinedType);
+                                                    {
+                                                        N(SyntaxKind.IntKeyword);
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleLambdaExpression);
+                                            {
+                                                N(SyntaxKind.AsyncKeyword);
+                                                N(SyntaxKind.StaticKeyword);
+                                                N(SyntaxKind.Parameter);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
             CreateCompilation(test).GetDiagnostics().Verify(
                 // (9,40): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<int, Task<int>> v = async static async => async;
@@ -627,6 +1166,157 @@ class C
                 // (9,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         Func<int, Task<int>> v = async static async => async;
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 53));
+        }
+
+        [Fact]
+        public void AsyncStaticAsyncLambdaWithParameterCalledAsync()
+        {
+            var test = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    void M1()
+    {
+        Func<int, Task<int>> v = async static async async => async;
+    }
+}";
+
+            UsingTree(test);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "System");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Threading");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Tasks");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M1");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.GenericName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Func");
+                                        N(SyntaxKind.TypeArgumentList);
+                                        {
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.GenericName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Task");
+                                                N(SyntaxKind.TypeArgumentList);
+                                                {
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.PredefinedType);
+                                                    {
+                                                        N(SyntaxKind.IntKeyword);
+                                                    }
+                                                    N(SyntaxKind.GreaterThanToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.GreaterThanToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.SimpleLambdaExpression);
+                                            {
+                                                N(SyntaxKind.AsyncKeyword);
+                                                N(SyntaxKind.StaticKeyword);
+                                                N(SyntaxKind.AsyncKeyword);
+                                                N(SyntaxKind.Parameter);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(test).GetDiagnostics().Verify(
+                // (9,40): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<int, Task<int>> v = async static async async => async;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 40),
+                // (9,47): error CS1004: Duplicate 'async' modifier
+                //         Func<int, Task<int>> v = async static async async => async;
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "async").WithArguments("async").WithLocation(9, 47),
+                // (9,59): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         Func<int, Task<int>> v = async static async async => async;
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 59));
         }
     }
 }
