@@ -19,9 +19,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
     {
-        bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
+        bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo);
 
         bool TryGetTargetTypeName(SyntaxNode node, out string instanceTypeName);
+
+        string GetRootNamspace(CompilationOptions compilationOptions);
     }
 
     internal sealed partial class SyntaxTreeIndex
@@ -65,6 +67,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var simpleExtensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
             var complexExtensionMethodInfoBuilder = ArrayBuilder<int>.GetInstance();
+
+            var rootNamespace = infoFactory.GetRootNamspace(project.CompilationOptions);
 
             try
             {
@@ -122,7 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // the future then we know the problem lies in (2).  If, however, the problem is really in
                             // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
                             // and will prevent the crash from occurring.
-                            if (infoFactory.TryGetDeclaredSymbolInfo(stringTable, node, out var declaredSymbolInfo))
+                            if (infoFactory.TryGetDeclaredSymbolInfo(stringTable, node, rootNamespace, out var declaredSymbolInfo))
                             {
                                 if (root.FullSpan.Contains(declaredSymbolInfo.Span))
                                 {

@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Text
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -88,14 +87,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             End If
         End Sub
 
-        Private Function GetTypeName(typeSyntax As TypeSyntax) As String
+        Private Function GetTypeName(typeSyntax As TypeSyntax, Optional onlyHandleNameSyntax As Boolean = True) As String
             If TypeOf typeSyntax Is SimpleNameSyntax Then
                 Return GetSimpleName(DirectCast(typeSyntax, SimpleNameSyntax))
             ElseIf TypeOf typeSyntax Is QualifiedNameSyntax Then
                 Return GetSimpleName(DirectCast(typeSyntax, QualifiedNameSyntax).Right)
             End If
 
+            If Not onlyHandleNameSyntax Then
+                If TypeOf typeSyntax Is NullableTypeSyntax Then
+                    Return GetTypeName(DirectCast(typeSyntax, NullableTypeSyntax).ElementType)
+                ElseIf TypeOf typeSyntax Is PredefinedTypeSyntax Then
+                    Return GetSpecialTypeName(DirectCast(typeSyntax, PredefinedTypeSyntax))
+                End If
+            End If
+
             Return Nothing
+        End Function
+
+        Private Function GetSpecialTypeName(predefinedTypeNode As PredefinedTypeSyntax) As String
+            Select Case predefinedTypeNode.Keyword.Kind()
+                Case SyntaxKind.BooleanKeyword
+                    Return "Boolean"
+                Case SyntaxKind.ByteKeyword
+                    Return "Byte"
+                Case SyntaxKind.CharKeyword
+                    Return "Char"
+                Case SyntaxKind.DateKeyword
+                    Return "DateTime"
+                Case SyntaxKind.DecimalKeyword
+                    Return "Decimal"
+                Case SyntaxKind.DoubleKeyword
+                    Return "Double"
+                Case SyntaxKind.IntegerKeyword
+                    Return "Int32"
+                Case SyntaxKind.LongKeyword
+                    Return "Int64"
+                Case SyntaxKind.ObjectKeyword
+                    Return "Object"
+                Case SyntaxKind.SByteKeyword
+                    Return "SByte"
+                Case SyntaxKind.ShortKeyword
+                    Return "Int16"
+                Case SyntaxKind.SingleKeyword
+                    Return "Single"
+                Case SyntaxKind.StringKeyword
+                    Return "String"
+                Case SyntaxKind.UIntegerKeyword
+                    Return "UInt32"
+                Case SyntaxKind.ULongKeyword
+                    Return "UInt64"
+                Case SyntaxKind.UShortKeyword
+                    Return "UInt16"
+                Case Else
+                    Return Nothing
+            End Select
         End Function
 
         Private Function GetSimpleName(simpleName As SimpleNameSyntax) As String
@@ -106,11 +152,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return VisualBasicSyntaxFactsService.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters)
         End Function
 
-        Private Function GetFullyQualifiedContainerName(node As SyntaxNode) As String
+        Private Function GetFullyQualifiedContainerName(node As SyntaxNode, rootNamespace As String) As String
             Return VisualBasicSyntaxFactsService.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces)
         End Function
 
-        Public Overrides Function TryGetDeclaredSymbolInfo(stringTable As StringTable, node As SyntaxNode, ByRef declaredSymbolInfo As DeclaredSymbolInfo) As Boolean
+        Public Overrides Function TryGetDeclaredSymbolInfo(stringTable As StringTable, node As SyntaxNode, rootNamespace As String, ByRef declaredSymbolInfo As DeclaredSymbolInfo) As Boolean
             Select Case node.Kind()
                 Case SyntaxKind.ClassBlock
                     Dim classDecl = CType(node, ClassBlockSyntax)
@@ -119,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         classDecl.ClassStatement.Identifier.ValueText,
                         GetTypeParameterSuffix(classDecl.ClassStatement.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
                         DeclaredSymbolInfoKind.Class,
                         GetAccessibility(classDecl, classDecl.ClassStatement.Modifiers),
                         classDecl.ClassStatement.Identifier.Span,
@@ -132,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         stringTable,
                         enumDecl.EnumStatement.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
                         DeclaredSymbolInfoKind.Enum,
                         GetAccessibility(enumDecl, enumDecl.EnumStatement.Modifiers),
                         enumDecl.EnumStatement.Identifier.Span,
@@ -146,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         interfaceDecl.InterfaceStatement.Identifier.ValueText,
                         GetTypeParameterSuffix(interfaceDecl.InterfaceStatement.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
                         DeclaredSymbolInfoKind.Interface,
                         GetAccessibility(interfaceDecl, interfaceDecl.InterfaceStatement.Modifiers),
                         interfaceDecl.InterfaceStatement.Identifier.Span,
@@ -160,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         moduleDecl.ModuleStatement.Identifier.ValueText,
                         GetTypeParameterSuffix(moduleDecl.ModuleStatement.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
                         DeclaredSymbolInfoKind.Module,
                         GetAccessibility(moduleDecl, moduleDecl.ModuleStatement.Modifiers),
                         moduleDecl.ModuleStatement.Identifier.Span,
@@ -174,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         structDecl.StructureStatement.Identifier.ValueText,
                         GetTypeParameterSuffix(structDecl.StructureStatement.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
                         DeclaredSymbolInfoKind.Struct,
                         GetAccessibility(structDecl, structDecl.StructureStatement.Modifiers),
                         structDecl.StructureStatement.Identifier.Span,
@@ -190,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                             typeBlock.BlockStatement.Identifier.ValueText,
                             GetConstructorSuffix(constructor),
                             GetContainerDisplayName(node.Parent),
-                            GetFullyQualifiedContainerName(node.Parent),
+                            GetFullyQualifiedContainerName(node.Parent, rootNamespace),
                             DeclaredSymbolInfoKind.Constructor,
                             GetAccessibility(constructor, constructor.SubNewStatement.Modifiers),
                             constructor.SubNewStatement.NewKeyword.Span,
@@ -206,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
                         DeclaredSymbolInfoKind.Delegate,
                         GetAccessibility(delegateDecl, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
@@ -218,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         stringTable,
                         enumMember.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
                         DeclaredSymbolInfoKind.EnumMember,
                         Accessibility.Public,
                         enumMember.Identifier.Span,
@@ -232,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         stringTable,
                         eventDecl.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(eventParent),
-                        GetFullyQualifiedContainerName(eventParent),
+                        GetFullyQualifiedContainerName(eventParent, rootNamespace),
                         DeclaredSymbolInfoKind.Event,
                         GetAccessibility(statementOrBlock, eventDecl.Modifiers),
                         eventDecl.Identifier.Span,
@@ -245,8 +291,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         funcDecl.SubOrFunctionStatement.Identifier.ValueText,
                         GetMethodSuffix(funcDecl),
                         GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Method,
+                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                        If(IsExtensionMethod(funcDecl), DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method),
                         GetAccessibility(node, funcDecl.SubOrFunctionStatement.Modifiers),
                         funcDecl.SubOrFunctionStatement.Identifier.Span,
                         ImmutableArray(Of String).Empty,
@@ -265,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                             stringTable,
                             modifiedIdentifier.Identifier.ValueText, Nothing,
                             GetContainerDisplayName(fieldDecl.Parent),
-                            GetFullyQualifiedContainerName(fieldDecl.Parent),
+                            GetFullyQualifiedContainerName(fieldDecl.Parent, rootNamespace),
                             kind, GetAccessibility(fieldDecl, fieldDecl.Modifiers),
                             modifiedIdentifier.Identifier.Span,
                             ImmutableArray(Of String).Empty)
@@ -279,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         stringTable,
                         propertyDecl.Identifier.ValueText, GetPropertySuffix(propertyDecl),
                         GetContainerDisplayName(propertyParent),
-                        GetFullyQualifiedContainerName(propertyParent),
+                        GetFullyQualifiedContainerName(propertyParent, rootNamespace),
                         DeclaredSymbolInfoKind.Property,
                         GetAccessibility(statementOrBlock, propertyDecl.Modifiers),
                         propertyDecl.Identifier.Span,
@@ -288,6 +334,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             End Select
 
             declaredSymbolInfo = Nothing
+            Return False
+        End Function
+
+        Private Function IsExtensionMethod(node As MethodBlockSyntax) As Boolean
+            Dim parameterCount = node.SubOrFunctionStatement.ParameterList?.Parameters.Count
+            If Not parameterCount.HasValue Or parameterCount.Value = 0 Then
+                Return False
+            End If
+
+            If TypeOf node.Parent Is ModuleBlockSyntax Then
+                For Each attributeList In node.BlockStatement.AttributeLists
+                    For Each attribute In attributeList.Attributes
+                        If attribute.ArgumentList.Arguments.Count = 0 And attribute.Name.ToString().EndsWith("Extension") Then
+                            Return True
+                        End If
+                    Next
+                Next
+            End If
+
             Return False
         End Function
 
@@ -433,8 +498,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         End Sub
 
         Public Overrides Function TryGetTargetTypeName(node As SyntaxNode, ByRef instanceTypeName As String) As Boolean
+            Dim funcDecl = TryCast(node, MethodBlockSyntax)
+            'TODO: don't call `IsExtensionMethod` again
+            If funcDecl IsNot Nothing And IsExtensionMethod(funcDecl) Then
+                instanceTypeName = GetTypeName(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, onlyHandleNameSyntax:=False)
+                Return True
+            End If
+
             instanceTypeName = Nothing
             Return False
+        End Function
+
+        Public Overrides Function GetRootNamspace(compilationOptions As CompilationOptions) As String
+            Return DirectCast(compilationOptions, VisualBasicCompilationOptions).RootNamespace
         End Function
     End Class
 End Namespace

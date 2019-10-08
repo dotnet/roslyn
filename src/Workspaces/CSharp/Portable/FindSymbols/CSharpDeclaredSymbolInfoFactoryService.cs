@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        public override bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo)
+        public override bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo)
         {
             switch (node.Kind())
             {
@@ -491,6 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         private bool IsExtensionMethod(MethodDeclarationSyntax method)
             => method.ParameterList.Parameters.Count > 0 &&
                method.ParameterList.Parameters[0].Modifiers.Any(SyntaxKind.ThisKeyword);
+
+        public override string GetRootNamspace(CompilationOptions compilationOptions)
+            => string.Empty;
 
         public override bool TryGetTargetTypeName(SyntaxNode node, out string targetTypeName)
         {

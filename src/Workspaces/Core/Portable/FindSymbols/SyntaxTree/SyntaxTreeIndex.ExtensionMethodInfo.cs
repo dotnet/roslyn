@@ -11,9 +11,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private readonly struct ExtensionMethodInfo
         {
-            // Target type name to index of DeclaredSymbolInfo
-            // All type predefind types are converted to its metadata form. e.g. int => Int32
+            // We devide extension methods into two categories, simple and complex, for filtering purpose.
+            // Whether a method is simple is determined based on if we can determine it's target type easily
+            // with a pure text matching. For complex methods, we will need to rely on symbol to decide if it's 
+            // feasible.
+            //
+            // Complex methods include:
+            // - Method declared in the document which includes using alias directive
+            // - Generic method
+            // - If the target type name is one of the following (i.e. name of the type for the first parameter) 
+            //      1. Array type
+            //      2. ValueTuple type
+            //      3. Pointer type
+            //
+            // The rest of methods are considered simple.
+
+            /// <summary>
+            /// Name of the simple method's target type name to the index of its DeclaredSymbolInfo in `_declarationInfo`.
+            /// All predefind types are converted to its metadata form. e.g. int => Int32. For generic types, type parameters are ignored.
+            /// </summary>
             public readonly ImmutableDictionary<string, ImmutableArray<int>> SimpleExtensionMethodInfo { get; }
+
+            /// <summary>
+            /// Indices of to all complex methods' DeclaredSymbolInfo in `_declarationInfo`.
+            /// </summary>
             public readonly ImmutableArray<int> ComplexExtensionMethodInfo { get; }
 
             public ExtensionMethodInfo(ImmutableDictionary<string, ImmutableArray<int>> simpleExtensionMethodInfo, ImmutableArray<int> complexExtensionMethodInfo)
