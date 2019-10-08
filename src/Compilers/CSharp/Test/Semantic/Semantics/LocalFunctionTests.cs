@@ -709,6 +709,59 @@ public class C {
         }
 
         [Fact]
+        public void LocalFunctionAttribute_AttributeSemanticModel()
+        {
+            const string text = @"
+using System;
+class A : Attribute { }
+
+class C
+{
+    void M()
+    {
+        [A]
+        void local1() { }
+
+        [return: A]
+        void local2() { }
+
+        void local3([A] int i) { }
+
+        void local4<[A] T>() { }
+    }
+}
+";
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,14): warning CS8321: The local function 'local1' is declared but never used
+                //         void local1() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(10, 14),
+                // (13,14): warning CS8321: The local function 'local2' is declared but never used
+                //         void local2() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(13, 14),
+                // (15,14): warning CS8321: The local function 'local3' is declared but never used
+                //         void local3([A] int i) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local3").WithArguments("local3").WithLocation(15, 14),
+                // (17,14): warning CS8321: The local function 'local4' is declared but never used
+                //         void local4<[A] T>() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local4").WithArguments("local4").WithLocation(17, 14));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var attributeSyntaxes = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().ToList();
+            Assert.Equal(4, attributeSyntaxes.Count);
+
+            var attributeConstructor = comp.GetTypeByMetadataName("A").InstanceConstructors.Single();
+            foreach (var attributeSyntax in attributeSyntaxes)
+            {
+                var symbol = model.GetSymbolInfo(attributeSyntaxes[0]).Symbol;
+                Assert.Equal(attributeConstructor, symbol);
+            }
+        }
+
+        [Fact]
         public void UnsafeLocal()
         {
             var source = @"
