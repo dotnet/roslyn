@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;

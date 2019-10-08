@@ -62,5 +62,23 @@ namespace Analyzer.Utilities.Extensions
 
             return publicType ?? anyType;
         }
+
+        /// <summary>
+        /// Gets a type by its full type name and cache it at the compilation level.
+        /// </summary>
+        /// <param name="compilation">The compilation.</param>
+        /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
+        /// <returns>The <see cref="INamedTypeSymbol"/> if found, null otherwise.</returns>
+        internal static INamedTypeSymbol GetOrCreateTypeByMetadataName(this Compilation compilation, string fullTypeName) =>
+            WellKnownTypeProvider.GetOrCreate(compilation).GetOrCreateTypeByMetadataName(fullTypeName);
+
+        /// <summary>
+        /// Gets a type by its full type name and cache it at the compilation level.
+        /// </summary>
+        /// <param name="compilation">The compilation.</param>
+        /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
+        /// <returns>The <see cref="INamedTypeSymbol"/> if found, null otherwise.</returns>
+        internal static bool TryGetOrCreateTypeByMetadataName(this Compilation compilation, string fullTypeName, out INamedTypeSymbol namedTypeSymbol) =>
+            WellKnownTypeProvider.GetOrCreate(compilation).TryGetOrCreateTypeByMetadataName(fullTypeName, out namedTypeSymbol);
     }
 }
