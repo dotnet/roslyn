@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis
             // of the last child doesn't intersect with the end.
 
             // Node is underselected if either the first (lowest) child ends before the selection has started
-            // or the last child starts before the selection ends (i.e. one of them is completely on the outside of selection).
+            // or the last child starts after the selection ends (i.e. one of them is completely on the outside of selection).
             // It's a crude heuristic but it allows omitting parts of nodes or trivial tokens from the beginning/end 
             // but fires up e.g.: `1 + [|2 + 3|]`.
-            return beginningNode.Span.End <= selection.Start || endNode.Span.Start > selection.End - 1;
+            return beginningNode.Span.End <= selection.Start || endNode.Span.Start >= selection.End;
         }
 
 
