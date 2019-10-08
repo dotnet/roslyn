@@ -208,14 +208,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
 
                 // TODO - Cleanup once experiment completed - https://github.com/dotnet/roslyn/projects/45#card-27261853
-                if (ShouldLogLocalTelemetry(document.Project.Language))
-                {
-                    using (new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger))
-                    {
-                        _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    }
-                }
-                else
+                var latencyTracker = ShouldLogLocalTelemetry(document.Project.Language) ? new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger) : null;
+                using (latencyTracker)
                 {
                     // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
                     // F#/typescript and other languages that doesn't support syntax tree will return null here.
@@ -245,14 +239,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             /// </summary>
             private bool ShouldLogLocalTelemetry(string languageName)
             {
-                var isLspContentType = _lspClientLanguages.Contains(languageName);
+                if (!_lspClientLanguages.Contains(languageName))
+                {
+                    return false;
+                }
+
                 if (_areRemoteClassificationsEnabled == null)
                 {
                     var experimentationService = _workspace.Services.GetService<IExperimentationService>();
                     _areRemoteClassificationsEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.SyntacticExp_LiveShareTagger_Remote);
                 }
 
-                return isLspContentType && !(bool)_areRemoteClassificationsEnabled;
+                return !(bool)_areRemoteClassificationsEnabled;
             }
 
             private void ReportChangedSpan(SnapshotSpan changeSpan)
