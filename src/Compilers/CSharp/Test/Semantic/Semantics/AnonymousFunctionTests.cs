@@ -37,7 +37,7 @@ public class C
         Func<int> f = static () => a;
     }
 }";
-        CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<int> f = static () => a;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 23));
@@ -666,6 +666,37 @@ public class C
                 // (11,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<int> f = static () =>
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(11, 23));
+        }
+
+        [Fact]
+        public void InstanceLambdaInStaticLambdaCannotReferenceThis()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void Goo()
+    {
+        Func<int> f = static () =>
+        {
+            Func<int> g = () =>
+            {
+                this.Goo();
+                return 0;
+            };
+
+            return g();
+        };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<int> f = static () =>
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23),
+                // (12,17): error CS8428: A static anonymous function cannot contain a reference to 'this' or 'base'.
+                //                 this.Goo();
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "this").WithLocation(12, 17));
         }
     }
 }
