@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4372,11 +4371,331 @@ Block[B14] - Exit [UnReachable]
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public void UsingDeclaration_Flow_09()
+        {
+            string source = @"
+#pragma  warning disable CS0815, CS0219
+using System.Threading.Tasks;
+
+class C
+{
+    public Task DisposeAsync()
+    {
+        return default;
+    }
+
+    async Task M()
+    /*<bind>*/{
+        await using var c = new C();
+    }/*</bind>*/
+}
+";
+
+            string expectedGraph = @"
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1}
+    .locals {R1}
+    {
+        Locals: [C c]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c = new C()')
+                  Left: 
+                    ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c = new C()')
+                  Right: 
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+            Next (Regular) Block[B2]
+                Entering: {R2} {R3}
+        .try {R2, R3}
+        {
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (0)
+                Next (Regular) Block[B6]
+                    Finalizing: {R4}
+                    Leaving: {R3} {R2} {R1}
+        }
+        .finally {R4}
+        {
+            Block[B3] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B5]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c = new C()')
+                      Operand: 
+                        ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c = new C()')
+                Next (Regular) Block[B4]
+            Block[B4] - Block
+                Predecessors: [B3]
+                Statements (1)
+                    IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'c = new C()')
+                      Expression: 
+                        IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'c = new C()')
+                          Instance Receiver: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'c = new C()')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                (ExplicitReference)
+                              Operand: 
+                                ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c = new C()')
+                          Arguments(0)
+                Next (Regular) Block[B5]
+            Block[B5] - Block
+                Predecessors: [B3] [B4]
+                Statements (0)
+                Next (StructuredExceptionHandling) Block[null]
+        }
+    }
+    Block[B6] - Exit
+        Predecessors: [B2]
+        Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedGraph, expectedDiagnostics);
+
+        }
+
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public void UsingDeclaration_Flow_10()
+        {
+            string source = @"
+#pragma  warning disable CS0815, CS0219
+using System.Threading.Tasks;
+
+class C : System.IDisposable
+{
+    public Task DisposeAsync()
+    {
+        return default;
+    }
+
+    public void Dispose()
+    {
+    }
+
+    async Task M()
+    /*<bind>*/{
+        using var c = new C();
+        await using var d = new C();
+        using var e = new C();
+        await using var f = new C();
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+ Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1}
+    .locals {R1}
+    {
+        Locals: [C c] [C d] [C e] [C f]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c = new C()')
+                  Left: 
+                    ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c = new C()')
+                  Right: 
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+            Next (Regular) Block[B2]
+                Entering: {R2} {R3}
+        .try {R2, R3}
+        {
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'd = new C()')
+                      Left: 
+                        ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'd = new C()')
+                      Right: 
+                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                          Arguments(0)
+                          Initializer: 
+                            null
+                Next (Regular) Block[B3]
+                    Entering: {R4} {R5}
+            .try {R4, R5}
+            {
+                Block[B3] - Block
+                    Predecessors: [B2]
+                    Statements (1)
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'e = new C()')
+                          Left: 
+                            ILocalReferenceOperation: e (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'e = new C()')
+                          Right: 
+                            IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                              Arguments(0)
+                              Initializer: 
+                                null
+                    Next (Regular) Block[B4]
+                        Entering: {R6} {R7}
+                .try {R6, R7}
+                {
+                    Block[B4] - Block
+                        Predecessors: [B3]
+                        Statements (1)
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'f = new C()')
+                              Left: 
+                                ILocalReferenceOperation: f (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'f = new C()')
+                              Right: 
+                                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                                  Arguments(0)
+                                  Initializer: 
+                                    null
+                        Next (Regular) Block[B5]
+                            Entering: {R8} {R9}
+                    .try {R8, R9}
+                    {
+                        Block[B5] - Block
+                            Predecessors: [B4]
+                            Statements (0)
+                            Next (Regular) Block[B18]
+                                Finalizing: {R10} {R11} {R12} {R13}
+                                Leaving: {R9} {R8} {R7} {R6} {R5} {R4} {R3} {R2} {R1}
+                    }
+                    .finally {R10}
+                    {
+                        Block[B6] - Block
+                            Predecessors (0)
+                            Statements (0)
+                            Jump if True (Regular) to Block[B8]
+                                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'f = new C()')
+                                  Operand: 
+                                    ILocalReferenceOperation: f (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'f = new C()')
+                            Next (Regular) Block[B7]
+                        Block[B7] - Block
+                            Predecessors: [B6]
+                            Statements (1)
+                                IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'f = new C()')
+                                  Expression: 
+                                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'f = new C()')
+                                      Instance Receiver: 
+                                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'f = new C()')
+                                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                            (ExplicitReference)
+                                          Operand: 
+                                            ILocalReferenceOperation: f (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'f = new C()')
+                                      Arguments(0)
+                            Next (Regular) Block[B8]
+                        Block[B8] - Block
+                            Predecessors: [B6] [B7]
+                            Statements (0)
+                            Next (StructuredExceptionHandling) Block[null]
+                    }
+                }
+                .finally {R11}
+                {
+                    Block[B9] - Block
+                        Predecessors (0)
+                        Statements (0)
+                        Jump if True (Regular) to Block[B11]
+                            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'e = new C()')
+                              Operand: 
+                                ILocalReferenceOperation: e (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'e = new C()')
+                        Next (Regular) Block[B10]
+                    Block[B10] - Block
+                        Predecessors: [B9]
+                        Statements (1)
+                            IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'e = new C()')
+                              Instance Receiver: 
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'e = new C()')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                    (ImplicitReference)
+                                  Operand: 
+                                    ILocalReferenceOperation: e (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'e = new C()')
+                              Arguments(0)
+                        Next (Regular) Block[B11]
+                    Block[B11] - Block
+                        Predecessors: [B9] [B10]
+                        Statements (0)
+                        Next (StructuredExceptionHandling) Block[null]
+                }
+            }
+            .finally {R12}
+            {
+                Block[B12] - Block
+                    Predecessors (0)
+                    Statements (0)
+                    Jump if True (Regular) to Block[B14]
+                        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'd = new C()')
+                          Operand: 
+                            ILocalReferenceOperation: d (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'd = new C()')
+                    Next (Regular) Block[B13]
+                Block[B13] - Block
+                    Predecessors: [B12]
+                    Statements (1)
+                        IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'd = new C()')
+                          Expression: 
+                            IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'd = new C()')
+                              Instance Receiver: 
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'd = new C()')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                    (ExplicitReference)
+                                  Operand: 
+                                    ILocalReferenceOperation: d (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'd = new C()')
+                              Arguments(0)
+                    Next (Regular) Block[B14]
+                Block[B14] - Block
+                    Predecessors: [B12] [B13]
+                    Statements (0)
+                    Next (StructuredExceptionHandling) Block[null]
+            }
+        }
+        .finally {R13}
+        {
+            Block[B15] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B17]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c = new C()')
+                      Operand: 
+                        ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c = new C()')
+                Next (Regular) Block[B16]
+            Block[B16] - Block
+                Predecessors: [B15]
+                Statements (1)
+                    IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'c = new C()')
+                      Instance Receiver: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'c = new C()')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitReference)
+                          Operand: 
+                            ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c = new C()')
+                      Arguments(0)
+                Next (Regular) Block[B17]
+            Block[B17] - Block
+                Predecessors: [B15] [B16]
+                Statements (0)
+                Next (StructuredExceptionHandling) Block[null]
+        }
+    }
+    Block[B18] - Exit
+        Predecessors: [B5]
+        Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes });
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedGraph, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_SingleDeclaration()
         {
-            //TODO: implement IOperation for using declarations
             string source = @"
 using System;
 
@@ -4416,7 +4735,6 @@ class C : IDisposable
         [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_MultipleDeclarations()
         {
-            //TODO: implement IOperation for using declarations
             string source = @"
 using System;
 
@@ -4533,6 +4851,286 @@ class C : IDisposable
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public void UsingDeclaration_SingleDeclaration_Async()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace System { interface IAsyncDisposable { } }
+
+class C
+{
+    public Task DisposeAsync()
+    {
+        return default;
+    }
+
+    public static async Task M1()
+    {
+        /*<bind>*/await using var c = new C();/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'await using ...  = new C();')
+  IVariableDeclarationOperation (1 declarators) (UsingKind: Asynchronous) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+              IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                Arguments(0)
+                Initializer: 
+                  null
+    Initializer: 
+      null
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public void UsingDeclaration_MultipleDeclarations_Async()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace System { interface IAsyncDisposable { } }
+
+class C
+{
+    public Task DisposeAsync()
+    {
+        return default;
+    }
+
+    public static async Task M1()
+/*<bind>*/{
+        await using var c = new C();
+        await using var d = new C();
+        await using var e = new C();
+    }  /*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+    IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      Locals: Local_1: C c
+        Local_2: C d
+        Local_3: C e
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'await using ...  = new C();')
+        IVariableDeclarationOperation (1 declarators) (UsingKind: Asynchronous) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'await using ...  = new C();')
+        IVariableDeclarationOperation (1 declarators) (UsingKind: Asynchronous) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var d = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'await using ...  = new C();')
+        IVariableDeclarationOperation (1 declarators) (UsingKind: Asynchronous) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var e = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public void UsingDeclaration_SingleDeclaration_MultipleVariables_Async()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace System { interface IAsyncDisposable { } }
+
+class C
+{
+    public Task DisposeAsync()
+    {
+        return default;
+    }
+
+    public static async Task M1()
+    {
+        /*<bind>*/await using C c = new C(), d = new C(), e = new C();/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'await using ...  = new C();')
+  IVariableDeclarationOperation (3 declarators) (UsingKind: Asynchronous) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C c = new C ... e = new C()')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+              IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                Arguments(0)
+                Initializer: 
+                  null
+        IVariableDeclaratorOperation (Symbol: C d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = new C()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+              IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                Arguments(0)
+                Initializer: 
+                  null
+        IVariableDeclaratorOperation (Symbol: C e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = new C()')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+              IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                Arguments(0)
+                Initializer: 
+                  null
+    Initializer: 
+      null
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public void UsingDeclaration_RegularAsync_Mix()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+
+namespace System { interface IAsyncDisposable { } }
+
+class C : IDisposable
+{
+    public Task DisposeAsync()
+    {
+        return default;
+    }
+
+    public void Dispose()
+    {
+    }
+
+    public static async Task M1()
+/*<bind>*/{
+        using C c = new C();
+        await using C d = new C();
+        using C e = new C(), f = new C();
+        await using C g = new C(), h = new C();
+    }  /*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+    IBlockOperation (4 statements, 6 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      Locals: Local_1: C c
+        Local_2: C d
+        Local_3: C e
+        Local_4: C f
+        Local_5: C g
+        Local_6: C h
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'using C c = new C();')
+        IVariableDeclarationOperation (1 declarators) (UsingKind: Using) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C c = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'await using ...  = new C();')
+        IVariableDeclarationOperation (1 declarators) (UsingKind: Asynchronous) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C d = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'using C e = ...  = new C();')
+        IVariableDeclarationOperation (2 declarators) (UsingKind: Using) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C e = new C ... f = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+              IVariableDeclaratorOperation (Symbol: C f) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'f = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'await using ...  = new C();')
+        IVariableDeclarationOperation (2 declarators) (UsingKind: Asynchronous) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C g = new C ... h = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C g) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'g = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+              IVariableDeclaratorOperation (Symbol: C h) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'h = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }
