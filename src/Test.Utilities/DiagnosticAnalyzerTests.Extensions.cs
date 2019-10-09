@@ -30,7 +30,7 @@ namespace Test.Utilities
                 return;
             }
 
-            int expectedCount = expectedResults.Count();
+            int expectedCount = expectedResults.Length;
             int actualCount = actualResults.Count();
 
             if (expectedCount != actualCount)

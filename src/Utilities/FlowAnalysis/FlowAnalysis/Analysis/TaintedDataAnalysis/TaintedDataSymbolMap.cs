@@ -34,7 +34,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             foreach (TInfo info in taintedDataInfos)
             {
-                if (wellKnownTypeProvider.TryGetTypeByMetadataName(info.FullTypeName, out INamedTypeSymbol namedTypeSymbol))
+                if (wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(info.FullTypeName, out INamedTypeSymbol namedTypeSymbol))
                 {
                     if (info.IsInterface)
                     {

@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -41,7 +42,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var expression = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
-            if (!(semanticModel.GetOperation(expression, cancellationToken) is IBinaryOperation operation))
+            var rawOperation = semanticModel.GetOperation(expression, cancellationToken);
+
+            return rawOperation switch
+            {
+                IBinaryOperation binaryOperation => await ConvertToEqualsAsync(document, semanticModel, binaryOperation, cancellationToken).ConfigureAwait(false),
+                IInvocationOperation invocationOperation => await EnsureEqualsCorrectAsync(document, semanticModel, invocationOperation, cancellationToken).ConfigureAwait(false),
+                _ => document
+            };
+        }
+
+        private static async Task<Document> EnsureEqualsCorrectAsync(Document document, SemanticModel semanticModel, IInvocationOperation invocationOperation, CancellationToken cancellationToken)
+        {
+            if (!CompareSymbolsCorrectlyAnalyzer.UseSymbolEqualityComparer(semanticModel.Compilation))
             {
                 return document;
             }
@@ -49,13 +62,48 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
 
-            var replacement = generator.InvocationExpression(
-                generator.MemberAccessExpression(
-                    generator.TypeExpression(semanticModel.Compilation.GetSpecialType(SpecialType.System_Object)),
-                    nameof(object.Equals)),
-                operation.LeftOperand.Syntax.WithoutLeadingTrivia(),
-                operation.RightOperand.Syntax.WithoutTrailingTrivia());
-            if (operation.OperatorKind == BinaryOperatorKind.NotEquals)
+            if (invocationOperation.Instance is null)
+            {
+                var replacement = generator.InvocationExpression(
+                                    GetEqualityComparerDefaultEquals(generator),
+                                    invocationOperation.Arguments.Select(argument => argument.Syntax).ToImmutableArray());
+
+                editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
+            }
+            else
+            {
+                var replacement = generator.AddParameters(invocationOperation.Syntax, new[] { GetEqualityComparerDefault(generator) });
+                editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
+            }
+
+            return editor.GetChangedDocument();
+        }
+
+        private static async Task<Document> ConvertToEqualsAsync(Document document, SemanticModel semanticModel, IBinaryOperation binaryOperation, CancellationToken cancellationToken)
+        {
+
+            var expression = binaryOperation.Syntax;
+            var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var generator = editor.Generator;
+
+            var replacement = CompareSymbolsCorrectlyAnalyzer.UseSymbolEqualityComparer(semanticModel.Compilation) switch
+            {
+                true =>
+                    generator.InvocationExpression(
+                        GetEqualityComparerDefaultEquals(generator),
+                        binaryOperation.LeftOperand.Syntax.WithoutLeadingTrivia(),
+                        binaryOperation.RightOperand.Syntax.WithoutTrailingTrivia()),
+
+                false =>
+                    generator.InvocationExpression(
+                        generator.MemberAccessExpression(
+                            generator.TypeExpression(semanticModel.Compilation.GetSpecialType(SpecialType.System_Object)),
+                            nameof(object.Equals)),
+                        binaryOperation.LeftOperand.Syntax.WithoutLeadingTrivia(),
+                        binaryOperation.RightOperand.Syntax.WithoutTrailingTrivia())
+            };
+
+            if (binaryOperation.OperatorKind == BinaryOperatorKind.NotEquals)
             {
                 replacement = generator.LogicalNotExpression(replacement);
             }
@@ -63,5 +111,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             editor.ReplaceNode(expression, replacement.WithTriviaFrom(expression));
             return editor.GetChangedDocument();
         }
+
+        private static SyntaxNode GetEqualityComparerDefaultEquals(SyntaxGenerator generator)
+            => generator.MemberAccessExpression(
+                    GetEqualityComparerDefault(generator),
+                    nameof(object.Equals));
+
+        private static SyntaxNode GetEqualityComparerDefault(SyntaxGenerator generator)
+            => generator.MemberAccessExpression(generator.DottedName(CompareSymbolsCorrectlyAnalyzer.SymbolEqualityComparerName), "Default");
     }
 }

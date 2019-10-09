@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             public DisposeDataFlowOperationVisitor(DisposeAnalysisContext analysisContext)
                 : base(analysisContext)
             {
-                Debug.Assert(analysisContext.WellKnownTypeProvider.IDisposable != null);
-                Debug.Assert(analysisContext.WellKnownTypeProvider.CollectionTypes.All(ct => ct.TypeKind == TypeKind.Interface));
+                Debug.Assert(IDisposableNamedType != null);
+                Debug.Assert(CollectionNamedTypes.All(ct => ct.TypeKind == TypeKind.Interface));
                 Debug.Assert(analysisContext.DisposeOwnershipTransferLikelyTypes != null);
                 Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 if (!location.IsNull &&
                     location.LocationTypeOpt != null &&
                     !location.LocationTypeOpt.IsValueType &&
-                    location.LocationTypeOpt.IsDisposable(WellKnownTypeProvider.IDisposable))
+                    location.LocationTypeOpt.IsDisposable(IDisposableNamedType))
                 {
                     CurrentAnalysisData[location] = value;
                 }
@@ -84,14 +84,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 defaultValue = DisposeAbstractValue.NotDisposable;
                 var instanceType = creation.Type;
 
-                if (!instanceType.IsDisposable(WellKnownTypeProvider.IDisposable) ||
+                if (!instanceType.IsDisposable(IDisposableNamedType) ||
                     !IsCurrentBlockReachable())
                 {
                     return defaultValue;
                 }
 
                 // Special case: Do not track System.Threading.Tasks.Task as you are not required to dispose them.
-                if (WellKnownTypeProvider.Task != null && instanceType.DerivesFrom(WellKnownTypeProvider.Task, baseTypesOnly: true))
+                if (TaskNamedType != null &&
+                    instanceType.DerivesFrom(TaskNamedType, baseTypesOnly: true))
                 {
                     return defaultValue;
                 }
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             private void HandleDisposingOperation(IOperation disposingOperation, IOperation disposedInstance)
             {
-                if (disposedInstance.Type?.IsDisposable(WellKnownTypeProvider.IDisposable) == false)
+                if (disposedInstance.Type?.IsDisposable(IDisposableNamedType) == false)
                 {
                     return;
                 }
@@ -175,7 +176,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 Debug.Assert(!escapedLocations.IsEmpty);
                 Debug.Assert(parameter.RefKind != RefKind.None);
-                var escapedDisposableLocations = escapedLocations.Where(l => l.LocationTypeOpt?.IsDisposable(WellKnownTypeProvider.IDisposable) == true);
+                var escapedDisposableLocations =
+                    escapedLocations.Where(l => l.LocationTypeOpt?.IsDisposable(IDisposableNamedType) == true);
                 SetAbstractValue(escapedDisposableLocations, ValueDomain.UnknownOrMayBeValue);
             }
 
@@ -270,7 +272,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, instance,
                     arguments, invokedAsDelegate, originalOperation, defaultValue);
 
-                var disposeMethodKind = targetMethod.GetDisposeMethodKind(WellKnownTypeProvider.IDisposable, WellKnownTypeProvider.Task);
+                var disposeMethodKind = targetMethod.GetDisposeMethodKind(IDisposableNamedType, TaskNamedType);
                 switch (disposeMethodKind)
                 {
                     case DisposeMethodKind.Dispose:

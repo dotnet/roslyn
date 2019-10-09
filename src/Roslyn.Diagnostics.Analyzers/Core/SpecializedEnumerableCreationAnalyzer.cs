@@ -63,7 +63,7 @@ namespace Roslyn.Diagnostics.Analyzers
                         return;
                     }
 
-                    INamedTypeSymbol genericEnumerableSymbol = WellKnownTypes.GenericIEnumerable(context.Compilation);
+                    INamedTypeSymbol genericEnumerableSymbol = context.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEnumerable1);
                     if (genericEnumerableSymbol == null)
                     {
                         return;

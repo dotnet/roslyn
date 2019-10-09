@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                Debug.Assert(WellKnownTypeProvider.Exception != null);
+                Debug.Assert(ExceptionNamedType != null);
 
                 _exceptionPathsThrownExceptionInfoMapOpt ??= new Dictionary<BasicBlock, ThrownExceptionInfo>();
                 if (!_exceptionPathsThrownExceptionInfoMapOpt.TryGetValue(CurrentBasicBlock, out var info))
@@ -184,6 +184,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected DataFlowOperationVisitor(TAnalysisContext analysisContext)
         {
             DataFlowAnalysisContext = analysisContext;
+
+            // All of these named type are very commonly accessed in the dataflow analysis so we want to ensure
+            // the fastest access (even though we know we have a cached access).
+            ExceptionNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException);
+            ContractNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticContractsContract);
+            IDisposableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            TaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
+            GenericTaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericTask);
+            MonitorNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingMonitor);
+            InterlockedNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingInterlocked);
+            SerializationInfoNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
+            GenericIEquatableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
+            CollectionNamedTypes = GetWellKnownCollectionTypes();
 
             _lValueFlowCaptures = LValueFlowCapturesProvider.GetOrCreateLValueFlowCaptures(analysisContext.ControlFlowGraph);
             _valueCacheBuilder = ImmutableDictionary.CreateBuilder<IOperation, TAbstractAnalysisValue>();
@@ -577,7 +590,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     // Update the tracked merged analysis data at throw branches.
                     var thrownExceptionType = branch.BranchValueOpt?.Type ?? CurrentBasicBlock.GetEnclosingRegionExceptionType();
                     if (thrownExceptionType is INamedTypeSymbol exceptionType &&
-                        exceptionType.DerivesFrom(WellKnownTypeProvider.Exception, baseTypesOnly: true))
+                        exceptionType.DerivesFrom(ExceptionNamedType, baseTypesOnly: true))
                     {
                         AnalysisDataForUnhandledThrowOperations ??= new Dictionary<ThrownExceptionInfo, TAnalysisData>();
                         var info = ThrownExceptionInfo.Create(CurrentBasicBlock, exceptionType, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack);
@@ -689,7 +702,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // If so, we return the abstract value for the task wrapping the underlying return value.
             if (OwningSymbol is IMethodSymbol method &&
                 method.IsAsync &&
-                method.ReturnType.OriginalDefinition.Equals(WellKnownTypeProvider.GenericTask) &&
+                method.ReturnType.OriginalDefinition.Equals(GenericTaskNamedType) &&
                 !method.ReturnType.Equals(returnValueOperation.Type))
             {
                 var location = AbstractLocation.CreateAllocationLocation(returnValueOperation, method.ReturnType, DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.CallStack);
@@ -714,7 +727,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Bail out if System.Exception is not defined.
-            if (WellKnownTypeProvider.Exception == null)
+            if (ExceptionNamedType == null)
             {
                 return;
             }
@@ -831,18 +844,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             Debug.Assert(PredicateAnalysis);
 
-            if (WellKnownTypeProvider.Contract != null &&
+            if (ContractNamedType != null &&
                 operation.Parent is IInvocationOperation invocation &&
-                Equals(invocation.TargetMethod.ContainingType, WellKnownTypeProvider.Contract) &&
+                Equals(invocation.TargetMethod.ContainingType, ContractNamedType) &&
                 invocation.TargetMethod.IsStatic &&
                 invocation.Arguments[0] == operation)
             {
                 if (_lazyContractCheckMethodsForPredicateAnalysis == null)
                 {
                     // Contract.Requires check.
-                    var requiresMethods = WellKnownTypeProvider.Contract.GetMembers("Requires");
-                    var assumeMethods = WellKnownTypeProvider.Contract.GetMembers("Assume");
-                    var assertMethods = WellKnownTypeProvider.Contract.GetMembers("Assert");
+                    var requiresMethods = ContractNamedType.GetMembers("Requires");
+                    var assumeMethods = ContractNamedType.GetMembers("Assume");
+                    var assertMethods = ContractNamedType.GetMembers("Assert");
                     var validationMethods = requiresMethods.Concat(assumeMethods).Concat(assertMethods).OfType<IMethodSymbol>().Where(m => m.IsStatic && m.ReturnsVoid && m.Parameters.Length >= 1 && (m.Parameters[0].Type.SpecialType == SpecialType.System_Boolean));
                     _lazyContractCheckMethodsForPredicateAnalysis = ImmutableHashSet.CreateRange(validationMethods);
                 }
@@ -1534,14 +1547,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // local functions.
             bool IsOverrideOrImplementationOfEquatableEquals(IMethodSymbol methodSymbol)
             {
-                if (WellKnownTypeProvider.GenericIEquatable == null)
+                if (GenericIEquatableNamedType == null)
                 {
                     return false;
                 }
 
                 foreach (var interfaceType in methodSymbol.ContainingType.AllInterfaces)
                 {
-                    if (interfaceType.OriginalDefinition.Equals(WellKnownTypeProvider.GenericIEquatable))
+                    if (interfaceType.OriginalDefinition.Equals(GenericIEquatableNamedType))
                     {
                         var equalsMember = interfaceType.GetMembers("Equals").OfType<IMethodSymbol>().FirstOrDefault();
                         if (equalsMember != null && methodSymbol.IsOverrideOrImplementationOfInterfaceMember(equalsMember))
@@ -2661,7 +2674,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         private void PostProcessEscapedArgument(IArgumentOperation operation)
         {
-            // For reference types passed as arguments, 
+            // For reference types passed as arguments,
             // reset all analysis data for the instance members as the content might change for them.
             if (HasPointsToAnalysisResult &&
                 PessimisticAnalysis &&
@@ -2749,13 +2762,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (operation.Arguments.Length == 1 &&
                     operation.Instance != null &&
-                    operation.TargetMethod.IsTaskConfigureAwaitMethod(WellKnownTypeProvider.GenericTask))
+                    operation.TargetMethod.IsTaskConfigureAwaitMethod(GenericTaskNamedType))
                 {
                     // ConfigureAwait invocation - just return the abstract value of the visited instance on which it is invoked.
                     value = GetCachedAbstractValue(operation.Instance);
                 }
                 else if (operation.Arguments.Length == 1 &&
-                   operation.TargetMethod.IsTaskFromResultMethod(WellKnownTypeProvider.Task))
+                   operation.TargetMethod.IsTaskFromResultMethod(TaskNamedType))
                 {
                     // Result wrapped within a task.
                     var wrappedOperationValue = GetCachedAbstractValue(operation.Arguments[0].Value);
@@ -2780,23 +2793,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     PerformPredicateAnalysis(operation);
                 }
 
-                if (targetMethod.IsLockMethod(WellKnownTypeProvider.Monitor))
+                if (targetMethod.IsLockMethod(MonitorNamedType))
                 {
                     // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
                     Debug.Assert(arguments.Length >= 1);
 
                     HandleEnterLockOperation(arguments[0].Value);
                 }
-                else if (targetMethod.ContainingType.OriginalDefinition.Equals(WellKnownTypeProvider.Interlocked))
+                else if (InterlockedNamedType != null &&
+                    targetMethod.ContainingType.OriginalDefinition.Equals(InterlockedNamedType))
                 {
-                    ProcessInterlockedOperation(targetMethod, arguments);
+                    ProcessInterlockedOperation(targetMethod, arguments, InterlockedNamedType);
                 }
             }
 
-            void ProcessInterlockedOperation(IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments)
+            void ProcessInterlockedOperation(IMethodSymbol targetMethod, ImmutableArray<IArgumentOperation> arguments, INamedTypeSymbol interlockedType)
             {
-                var isExchangeMethod = targetMethod.IsInterlockedExchangeMethod(WellKnownTypeProvider.Interlocked);
-                var isCompareExchangeMethod = targetMethod.IsInterlockedCompareExchangeMethod(WellKnownTypeProvider.Interlocked);
+                var isExchangeMethod = targetMethod.IsInterlockedExchangeMethod(interlockedType);
+                var isCompareExchangeMethod = targetMethod.IsInterlockedCompareExchangeMethod(interlockedType);
 
                 if (isExchangeMethod || isCompareExchangeMethod)
                 {
@@ -3511,5 +3525,82 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         #endregion
 
         #endregion
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Exception"/>
+        /// </summary>
+        protected INamedTypeSymbol ExceptionNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for 'System.Diagnostics.Contracts.Contract' type. />
+        /// </summary>
+        protected INamedTypeSymbol ContractNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.IDisposable"/>
+        /// </summary>
+        protected INamedTypeSymbol IDisposableNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.Task"/>
+        /// </summary>
+        protected INamedTypeSymbol TaskNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.Task{TResult}"/>
+        /// </summary>
+        protected INamedTypeSymbol GenericTaskNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Monitor"/>
+        /// </summary>
+        protected INamedTypeSymbol MonitorNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Interlocked"/>
+        /// </summary>
+        protected INamedTypeSymbol InterlockedNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for 'System.Runtime.Serialization.SerializationInfo' type />
+        /// </summary>
+        protected INamedTypeSymbol SerializationInfoNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.IEquatable{T}"/>
+        /// </summary>
+        protected INamedTypeSymbol GenericIEquatableNamedType { get; }
+
+        /// <summary>
+        /// Set containing following named types, if not null:
+        /// 1. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.ICollection"/>
+        /// 2. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Generic.ICollection{T}"/>
+        /// 3. <see cref="INamedTypeSymbol"/> for <see cref="System.Collections.Generic.IReadOnlyCollection{T}"/>
+        /// </summary>
+        protected ImmutableHashSet<INamedTypeSymbol> CollectionNamedTypes { get; }
+
+        private ImmutableHashSet<INamedTypeSymbol> GetWellKnownCollectionTypes()
+        {
+            var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
+            var iCollection = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsICollection);
+            if (iCollection != null)
+            {
+                builder.Add(iCollection);
+            }
+
+            var genericICollection = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericICollection1);
+            if (genericICollection != null)
+            {
+                builder.Add(genericICollection);
+            }
+
+            var genericIReadOnlyCollection = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIReadOnlyCollection1);
+            if (genericIReadOnlyCollection != null)
+            {
+                builder.Add(genericIReadOnlyCollection);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
     }
 }

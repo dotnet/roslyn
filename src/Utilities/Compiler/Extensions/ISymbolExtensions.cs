@@ -448,7 +448,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsFromMscorlib(this ISymbol symbol, Compilation compilation)
         {
-            var @object = WellKnownTypes.Object(compilation);
+            var @object = compilation.GetSpecialType(SpecialType.System_Object);
             return symbol.ContainingAssembly?.Equals(@object.ContainingAssembly) == true;
         }
 
