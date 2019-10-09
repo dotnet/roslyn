@@ -644,6 +644,180 @@ namespace Baz
                  inlineDescription: "Foo");
         }
 
+        [InlineData("(1 + 1)")]
+        [InlineData("(new int())")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task MethodSymbolReceiver(string expression)
+        {
+            var file1 = $@"
+using System;
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod(this int x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M()
+        {{
+            {expression}.$$
+        }}
+    }}
+}}";
+            var markup = GetMarkup(file2, file1, ReferenceType.None);
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Foo");
+        }
+
+        public static IEnumerable<object[]> VBBuiltInTypes
+        {
+            get
+            {
+                var predefinedTypes = new List<(string vbType, string csType)>
+                {
+                    ( "Boolean", "bool" ),
+                    ( "Byte", "byte" ),
+                    ( "Char", "char" ),
+                    ( "Date", "DateTime" ),
+                    ( "Integer", "int" ),
+                    ( "String", "string" ),
+                    ( "Object", "object" ),
+                    ( "Short", "short" ),
+
+                };
+
+                var arraySuffixes = new (string vbSuffix, string csSuffix)[] { ("", ""), ("()", "[]"), ("(,)", "[,]") };
+
+                foreach (var type in predefinedTypes)
+                {
+                    foreach (var suffix in arraySuffixes)
+                    {
+                        yield return new object[] { type.vbType + suffix.vbSuffix, type.csType + suffix.csSuffix };
+                    }
+                }
+            }
+        }
+
+        [MemberData(nameof(VBBuiltInTypes))]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExtensionMethodDelcaredInVBSource(string vbType, string csType)
+        {
+            var file1 = $@"
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace NS
+    Public Module Foo
+        <Extension>
+        public Function ExtentionMethod(x As {vbType}) As Boolean
+            Return True
+        End Function
+    End Module
+End Namespace";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M({csType} x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+            var markup = GetMarkup(file2, file1, ReferenceType.Project, currentLanguage: LanguageNames.CSharp, referencedLanguage: LanguageNames.VisualBasic);
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "NS");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExtensionMethodDelcaredInRootNamespaceVBSource()
+        {
+            var file1 = $@"
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Module Foo
+    <Extension>
+    public Function ExtentionMethod(x As Integer) As Boolean
+        Return True
+    End Function
+End Module";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(int x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "Root");
+
+            await VerifyTypeImportItemExistsAsync(
+                 markup,
+                 "ExtentionMethod",
+                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 inlineDescription: "Root");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExtensionMethodDelcaredInGlobalNamespaceVBSource()
+        {
+            var file1 = $@"
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Module Foo
+    <Extension>
+    public Function ExtentionMethod(x As Integer) As Boolean
+        Return True
+    End Function
+End Module";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(int x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp);
+
+            await VerifyTypeImportItemIsAbsentAsync(
+                 markup,
+                 "ExtentionMethod",
+                 inlineDescription: "");
+        }
+
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)
         {
             return VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull);

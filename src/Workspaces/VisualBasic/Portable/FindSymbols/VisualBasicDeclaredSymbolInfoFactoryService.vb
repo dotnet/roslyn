@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         End Function
 
         Private Function GetFullyQualifiedContainerName(node As SyntaxNode, rootNamespace As String) As String
-            Return VisualBasicSyntaxFactsService.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces)
+            Return VisualBasicSyntaxFactsService.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces, rootNamespace)
         End Function
 
         Public Overrides Function TryGetDeclaredSymbolInfo(stringTable As StringTable, node As SyntaxNode, rootNamespace As String, ByRef declaredSymbolInfo As DeclaredSymbolInfo) As Boolean
@@ -292,19 +292,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
 
         Private Function IsExtensionMethod(node As MethodBlockSyntax) As Boolean
             Dim parameterCount = node.SubOrFunctionStatement.ParameterList?.Parameters.Count
-            If Not parameterCount.HasValue Or parameterCount.Value = 0 Then
+
+            ' Extension method must have at least one parameter and declared inside a module
+            If Not parameterCount.HasValue Or parameterCount.Value = 0 Or TypeOf node.Parent IsNot ModuleBlockSyntax Then
                 Return False
             End If
 
-            If TypeOf node.Parent Is ModuleBlockSyntax Then
-                For Each attributeList In node.BlockStatement.AttributeLists
-                    For Each attribute In attributeList.Attributes
-                        If attribute.ArgumentList.Arguments.Count = 0 And attribute.Name.ToString().EndsWith("Extension") Then
-                            Return True
-                        End If
-                    Next
+            For Each attributeList In node.BlockStatement.AttributeLists
+                For Each attribute In attributeList.Attributes
+                    ' ExtensionAttribute takes no argument.
+                    If attribute.ArgumentList?.Arguments.Count > 0 Then
+                        Continue For
+                    End If
+
+                    Dim name = attribute.Name.ToString()
+                    If name.Equals("Extension") Or name.Equals("ExtensionAttribute") Or name.EndsWith(".Extension") Or name.EndsWith(".ExtensionAttribute") Then
+                        Return True
+                    End If
                 Next
-            End If
+            Next
 
             Return False
         End Function
