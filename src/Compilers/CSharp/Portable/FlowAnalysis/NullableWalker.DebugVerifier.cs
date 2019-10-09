@@ -18,16 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class DebugVerifier : BoundTreeWalker
         {
             private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMap;
-            private readonly ImmutableDictionary<(BoundNode, Symbol), Symbol> _updatedMethodSymbols;
-            private readonly SnapshotManager _snapshotManager;
+            private readonly SnapshotManager? _snapshotManager;
             private readonly HashSet<BoundExpression> _visitedExpressions = new HashSet<BoundExpression>();
             private int _recursionDepth;
 
-            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, ImmutableDictionary<(BoundNode, Symbol), Symbol> updatedMethodSymbols, SnapshotManager snapshotManager)
+            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, SnapshotManager? snapshotManager)
             {
                 _analyzedNullabilityMap = analyzedNullabilityMap;
                 _snapshotManager = snapshotManager;
-                _updatedMethodSymbols = updatedMethodSymbols;
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
@@ -35,26 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Same behavior as NullableWalker
             }
 
-            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, ImmutableDictionary<(BoundNode, Symbol), Symbol> updatedMethodSymbols, SnapshotManager snapshotManagerOpt, BoundNode node)
+            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, SnapshotManager? snapshotManagerOpt, BoundNode node)
             {
-                var verifier = new DebugVerifier(analyzedNullabilityMap, updatedMethodSymbols, snapshotManagerOpt);
+                var verifier = new DebugVerifier(analyzedNullabilityMap, snapshotManagerOpt);
                 verifier.Visit(node);
-
-                foreach (var ((expr, originalSymbol), updatedSymbol) in updatedMethodSymbols)
-                {
-                    Debug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {expr.Syntax}");
-                    Debug.Assert(originalSymbol is object, $"Recorded null original symbol for {expr.Syntax}");
-                    Debug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {expr.Syntax}");
-                    Debug.Assert(areSymbolsIdentical(originalSymbol, updatedSymbol), @$"Symbol for `{expr.Syntax}` changed:
-Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
-Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
-
-                    static bool areSymbolsIdentical(Symbol original, Symbol updated) => (original, updated) switch
-                    {
-                        (FieldSymbol { IsTupleField: true } originalField, FieldSymbol { IsTupleField: true } updatedField) => originalField.Type.Equals(updatedField.Type, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames),
-                        _ => original.Equals(updated, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames)
-                    };
-                }
+                snapshotManagerOpt?.VerifyUpdatedSymbols();
 
                 // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
                 Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Visited {verifier._visitedExpressions.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");
@@ -131,6 +114,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
             public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
             {
                 Visit(node.IterationVariableType);
+                Visit(node.AwaitOpt);
                 Visit(node.Expression);
                 // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);

@@ -23,7 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics)
         {
             bool hasErrors = false;
-            AwaitableInfo info = BindAwaitInfo(expression, node, node.Location, diagnostics, ref hasErrors);
+            var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, GetValEscape(expression, LocalScopeDepth), expression.Type);
+
+            ReportBadAwaitDiagnostics(node, node.Location, diagnostics, ref hasErrors);
+            var info = BindAwaitInfo(placeholder, node, diagnostics, ref hasErrors, expressionOpt: expression);
 
             // Spec 7.7.7.2:
             // The expression await t is classified the same way as the expression (t).GetAwaiter().GetResult(). Thus,
@@ -34,24 +37,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAwaitExpression(node, expression, info, awaitExpressionType, hasErrors);
         }
 
-        internal AwaitableInfo BindAwaitInfo(BoundExpression expressionOpt, SyntaxNode node, Location location, DiagnosticBag diagnostics, ref bool hasErrors)
+        internal void ReportBadAwaitDiagnostics(SyntaxNode node, Location location, DiagnosticBag diagnostics, ref bool hasErrors)
         {
             hasErrors |= ReportBadAwaitWithoutAsync(location, diagnostics);
             hasErrors |= ReportBadAwaitContext(node, location, diagnostics);
+        }
 
-            if (expressionOpt is null)
-            {
-                return AwaitableInfo.Empty;
-            }
-            else
-            {
-                MethodSymbol getAwaiter;
-                PropertySymbol isCompleted;
-                MethodSymbol getResult;
-                hasErrors |= !GetAwaitableExpressionInfo(expressionOpt, out getAwaiter, out isCompleted, out getResult, out _, node, diagnostics);
+        internal BoundAwaitableInfo BindAwaitInfo(BoundAwaitableValuePlaceholder placeholder, SyntaxNode node, DiagnosticBag diagnostics, ref bool hasErrors, BoundExpression expressionOpt = null)
+        {
+            bool hasGetAwaitableErrors = !GetAwaitableExpressionInfo(
+                expressionOpt ?? placeholder,
+                placeholder,
+                out bool isDynamic,
+                out BoundExpression getAwaiter,
+                out PropertySymbol isCompleted,
+                out MethodSymbol getResult,
+                getAwaiterGetResultCall: out _,
+                node,
+                diagnostics);
+            hasErrors |= hasGetAwaitableErrors;
 
-                return new AwaitableInfo(getAwaiter, isCompleted, getResult);
-            }
+            return new BoundAwaitableInfo(node, placeholder, isDynamic: isDynamic, getAwaiter, isCompleted, getResult, hasErrors: hasGetAwaitableErrors) { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -222,13 +228,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if the expression is awaitable; false otherwise.</returns>
         internal bool GetAwaitableExpressionInfo(
             BoundExpression expression,
-            out MethodSymbol getAwaiter,
+            out BoundExpression getAwaiterGetResultCall,
+            SyntaxNode node,
+            DiagnosticBag diagnostics)
+        {
+            return GetAwaitableExpressionInfo(expression, expression, out _, out _, out _, out _, out getAwaiterGetResultCall, node, diagnostics);
+        }
+
+        private bool GetAwaitableExpressionInfo(
+            BoundExpression expression,
+            BoundExpression getAwaiterArgument,
+            out bool isDynamic,
+            out BoundExpression getAwaiter,
             out PropertySymbol isCompleted,
             out MethodSymbol getResult,
             out BoundExpression getAwaiterGetResultCall,
             SyntaxNode node,
             DiagnosticBag diagnostics)
         {
+            Debug.Assert(TypeSymbol.Equals(expression.Type, getAwaiterArgument.Type, TypeCompareKind.ConsiderEverything));
+
+            isDynamic = false;
             getAwaiter = null;
             isCompleted = null;
             getResult = null;
@@ -241,19 +261,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression.HasDynamicType())
             {
+                isDynamic = true;
                 return true;
             }
 
-            BoundExpression getAwaiterCall = null;
-            if (!GetGetAwaiterMethod(expression, node, diagnostics, out getAwaiter, out getAwaiterCall))
+            if (!GetGetAwaiterMethod(getAwaiterArgument, node, diagnostics, out getAwaiter))
             {
                 return false;
             }
 
-            TypeSymbol awaiterType = getAwaiter.ReturnType;
+            TypeSymbol awaiterType = getAwaiter.Type;
             return GetIsCompletedProperty(awaiterType, node, expression.Type, diagnostics, out isCompleted)
                 && AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics)
-                && GetGetResultMethod(getAwaiterCall, node, expression.Type, diagnostics, out getResult, out getAwaiterGetResultCall);
+                && GetGetResultMethod(getAwaiter, node, expression.Type, diagnostics, out getResult, out getAwaiterGetResultCall);
         }
 
         /// <summary>
@@ -287,12 +307,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: this is an error in the spec.  An extension method of the form
         /// Awaiter&lt;T&gt; GetAwaiter&lt;T&gt;(this Task&lt;T&gt;) may be used.
         /// </remarks>
-        private bool GetGetAwaiterMethod(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics, out MethodSymbol getAwaiterMethod, out BoundExpression getAwaiterCall)
+        private bool GetGetAwaiterMethod(BoundExpression expression, SyntaxNode node, DiagnosticBag diagnostics, out BoundExpression getAwaiterCall)
         {
             if (expression.Type.IsVoidType())
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitArgVoidCall, node);
-                getAwaiterMethod = null;
                 getAwaiterCall = null;
                 return false;
             }
@@ -300,7 +319,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             getAwaiterCall = MakeInvocationExpression(node, expression, WellKnownMemberNames.GetAwaiter, ImmutableArray<BoundExpression>.Empty, diagnostics);
             if (getAwaiterCall.HasAnyErrors) // && !expression.HasAnyErrors?
             {
-                getAwaiterMethod = null;
                 getAwaiterCall = null;
                 return false;
             }
@@ -308,18 +326,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (getAwaiterCall.Kind != BoundKind.Call)
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitArg, node, expression.Type);
-                getAwaiterMethod = null;
                 getAwaiterCall = null;
                 return false;
             }
 
-            getAwaiterMethod = ((BoundCall)getAwaiterCall).Method;
+            var getAwaiterMethod = ((BoundCall)getAwaiterCall).Method;
             if (getAwaiterMethod is ErrorMethodSymbol ||
                 HasOptionalOrVariableParameters(getAwaiterMethod) || // We might have been able to resolve a GetAwaiter overload with optional parameters, so check for that here
                 getAwaiterMethod.ReturnsVoid) // If GetAwaiter returns void, don't bother checking that it returns an Awaiter.
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitArg, node, expression.Type);
-                getAwaiterMethod = null;
                 getAwaiterCall = null;
                 return false;
             }
