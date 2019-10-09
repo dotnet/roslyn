@@ -21,7 +21,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    [Export(typeof(AnalyzerConfigDocumentAsSolutionItemHandler)), Shared]
+    [Export, Shared]
     internal partial class AnalyzerConfigDocumentAsSolutionItemHandler : IDisposable
     {
         private static readonly string LocalRegistryPath = $@"Roslyn\Internal\{nameof(AnalyzerConfigDocumentAsSolutionItemHandler)}\";
@@ -30,7 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly IThreadingContext _threadingContext;
-        private readonly DTE _dte;
+
+        private DTE? _dte;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,9 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _workspace = workspace;
             _threadingContext = threadingContext;
-            _dte = (DTE)serviceProvider.GetService(typeof(DTE));
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
+        }
+
+        public void Initialize(IServiceProvider serviceProvider)
+        {
+            _dte = (DTE)serviceProvider.GetService(typeof(DTE));
         }
 
         void IDisposable.Dispose()
@@ -53,8 +58,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            // Check if a new analyzer config document was added.
-            if (e.Kind != WorkspaceChangeKind.AnalyzerConfigDocumentAdded)
+            // Check if a new analyzer config document was added and we have a non-null DTE instance.
+            if (e.Kind != WorkspaceChangeKind.AnalyzerConfigDocumentAdded ||
+                _dte == null)
             {
                 return;
             }

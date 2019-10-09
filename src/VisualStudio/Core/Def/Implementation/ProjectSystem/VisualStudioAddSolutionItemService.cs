@@ -19,6 +19,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    [Export]
     [ExportWorkspaceService(typeof(IAddSolutionItemService)), Shared]
     internal partial class VisualStudioAddSolutionItemService : IAddSolutionItemService
     {
@@ -26,9 +27,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly object _gate = new object();
         private readonly IThreadingContext _threadingContext;
-        private readonly DTE _dte;
-        private readonly IVsFileChangeEx _fileChangeService;
         private readonly ConcurrentDictionary<string, FileChangeTracker> _fileChangeTrackers;
+
+        private DTE? _dte;
+        private IVsFileChangeEx? _fileChangeService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -37,28 +39,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
-            _dte = (DTE)serviceProvider.GetService(typeof(DTE));
-            _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
             _fileChangeTrackers = new ConcurrentDictionary<string, FileChangeTracker>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public Task TrackFilePathAndAddSolutionItemWhenFileCreatedAsync(string filePath, CancellationToken cancellationToken)
+        public void Initialize(IServiceProvider serviceProvider)
         {
-            if (!PathUtilities.IsAbsolute(filePath))
+            _dte = (DTE)serviceProvider.GetService(typeof(DTE));
+            _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
+        }
+
+        public void TrackFilePathAndAddSolutionItemWhenFileCreated(string filePath)
+        {
+            if (_fileChangeService != null &&
+                PathUtilities.IsAbsolute(filePath) &&
+                FileExistsWithGuard(filePath) == false)
             {
-                return Task.CompletedTask;
+                // Setup a new file change tracker to track file path and 
+                // add newly created file as solution item.
+                _fileChangeTrackers.GetOrAdd(filePath, CreateTracker);
             }
 
-            if (File.Exists(filePath))
-            {
-                // File already created, so directly add the file as solution item.
-                return AddSolutionItemAsync(filePath, cancellationToken);
-            }
-
-            // Otherwise, setup a new file change tracker to track file path and 
-            // add newly created file as solution item.
-            var tracker = _fileChangeTrackers.GetOrAdd(filePath, CreateTracker);
-            return Task.CompletedTask;
+            return;
 
             // Local functions
             FileChangeTracker CreateTracker(string filePath)
@@ -85,12 +86,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public async Task AddSolutionItemAsync(string filePath, CancellationToken cancellationToken)
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (_dte == null)
+            {
+                return;
+            }
 
-            var solution = (Solution2)_dte.Solution;
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             lock (_gate)
             {
+                var solution = (Solution2)_dte.Solution;
                 if (!TryGetExistingSolutionItemsFolder(solution, filePath, out var solutionItemsFolder, out var hasExistingSolutionItem))
                 {
                     solutionItemsFolder = solution.AddSolutionFolder("Solution Items");
@@ -98,11 +103,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (!hasExistingSolutionItem &&
                     solutionItemsFolder != null &&
-                    File.Exists(filePath))
+                    FileExistsWithGuard(filePath) == true)
                 {
                     solutionItemsFolder.ProjectItems.AddFromFile(filePath);
                     solution.SaveAs(solution.FileName);
                 }
+            }
+        }
+
+        private static bool? FileExistsWithGuard(string filePath)
+        {
+            try
+            {
+                return File.Exists(filePath);
+            }
+            catch (IOException)
+            {
+                return null;
             }
         }
 

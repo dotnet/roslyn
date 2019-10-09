@@ -151,7 +151,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
             this.HostDiagnosticUpdateSource = this.Package.ComponentModel.GetService<HostDiagnosticUpdateSource>();
             this.AnalyzerFileWatcherService = this.Package.ComponentModel.GetService<AnalyzerFileWatcherService>();
-            _ = this.Package.ComponentModel.GetService<AnalyzerConfigDocumentAsSolutionItemHandler>();
 
             this.Debugger = (IVsDebugger)this.SystemServiceProvider.GetService(typeof(SVsShellDebugger));
         }

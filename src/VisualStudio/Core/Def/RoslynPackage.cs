@@ -123,6 +123,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // the appropriate task scheduler to report events on.
             this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
+            // Load and initialize the services detecting and adding new analyzer config documents as solution item.
+            this.ComponentModel.GetService<AnalyzerConfigDocumentAsSolutionItemHandler>().Initialize(this);
+            this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().Initialize(this);
+
             LoadAnalyzerNodeComponents();
 
             LoadComponentsBackgroundAsync(cancellationToken).Forget();
