@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 }
             }
 
-            Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
+            Debug.Assert(actions.Count != 0, "No code actions found for MoveType Refactoring");
 
             return actions.ToImmutableArray();
         }

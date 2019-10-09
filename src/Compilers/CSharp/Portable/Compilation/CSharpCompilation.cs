@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
+            // Early bail so we only ever check things that are System.Threading.Tasks.Task(<T>)
             if (!(TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task), TypeCompareKind.ConsiderEverything2) ||
                   TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything2)))
             {
@@ -1733,7 +1733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
             BoundExpression result;
-            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, syntax, diagnostics);
 
             return success &&
                 (result.Type.IsVoidType() || result.Type.SpecialType == SpecialType.System_Int32);
@@ -1821,6 +1821,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // compilation, while the other method needs a bindings object to determine what bound node
         // an expression syntax binds to.  Perhaps when we document these methods we should explain
         // where a user can find the other.
+        /// <summary>
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/>.
+        /// </summary>
+        /// <param name="source">Source type of value to be converted</param>
+        /// <param name="destination">Destination type of value to be converted</param>
+        /// <returns>A <see cref="Conversion"/> that classifies the conversion from the
+        /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public Conversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
         {
             // Note that it is possible for there to be both an implicit user-defined conversion

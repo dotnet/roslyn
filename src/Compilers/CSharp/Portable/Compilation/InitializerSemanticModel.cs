@@ -24,8 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      Binder rootBinder,
                                      SyntaxTreeSemanticModel containingSemanticModelOpt = null,
                                      SyntaxTreeSemanticModel parentSemanticModelOpt = null,
+                                     ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt = null,
                                      int speculatedPosition = 0) :
-            base(syntax, symbol, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, snapshotManagerOpt: null, speculatedPosition)
+            base(syntax, symbol, rootBinder, containingSemanticModelOpt, parentSemanticModelOpt, snapshotManagerOpt: null, parentRemappedSymbolsOpt, speculatedPosition)
         {
             Debug.Assert(!(syntax is ConstructorInitializerSyntax));
         }
@@ -53,17 +54,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for a parameter default value.
         /// </summary>
-        internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder)
+        internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
         {
             Debug.Assert(containingSemanticModel != null);
-            return new InitializerSemanticModel(syntax, parameterSymbol, rootBinder, containingSemanticModel);
+            return new InitializerSemanticModel(syntax, parameterSymbol, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
         }
 
         /// <summary>
         /// Creates a speculative SemanticModel for an initializer node (field initializer, constructor initializer, or parameter default value)
         /// that did not appear in the original source code.
         /// </summary>
-        internal static InitializerSemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, CSharpSyntaxNode syntax, Binder rootBinder, int position)
+        internal static InitializerSemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, CSharpSyntaxNode syntax, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt, int position)
         {
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(syntax != null);
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            return new InitializerSemanticModel(syntax, owner, rootBinder, parentSemanticModelOpt: parentSemanticModel, speculatedPosition: position);
+            return new InitializerSemanticModel(syntax, owner, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
         }
 
         internal protected override CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             binder = new ExecutableCodeBinder(initializer, binder.ContainingMemberOrLambda, binder);
-            speculativeModel = CreateSpeculative(parentModel, this.MemberSymbol, initializer, binder, position);
+            speculativeModel = CreateSpeculative(parentModel, this.MemberSymbol, initializer, binder, GetRemappedSymbols(), position);
             return true;
         }
 
@@ -258,9 +259,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots, out NullableWalker.SnapshotManager snapshotManager)
+        protected override BoundNode RewriteNullableBoundNodesWithSnapshots(
+            BoundNode boundRoot,
+            Binder binder,
+            DiagnosticBag diagnostics,
+            bool createSnapshots,
+            out NullableWalker.SnapshotManager snapshotManager,
+            ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager);
+            return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
     }
 }

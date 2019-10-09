@@ -181,6 +181,17 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected const string IAsyncDisposableDefinition = @"
+using System.Threading.Tasks;
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        ValueTask DisposeAsync();
+    }
+}
+";
+
         protected const string AsyncStreamsTypes = @"
 namespace System.Collections.Generic
 {
