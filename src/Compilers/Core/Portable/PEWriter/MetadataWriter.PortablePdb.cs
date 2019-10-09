@@ -759,7 +759,7 @@ namespace Microsoft.Cci
         /// This is done after serializing method debug info to ensure that we embed all requested
         /// text even if there are no corresponding sequence points.
         /// </remarks>
-        public void AddRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> documents)
+        public void AddRemainingEmbeddedDocuments(ImmutableArray<DebugSourceDocument> documents)
         {
             foreach (var document in documents)
             {
@@ -775,7 +775,7 @@ namespace Microsoft.Cci
         /// This is done after serializing method debug info to ensure that we embed all requested
         /// text even if there are no corresponding sequence points.
         /// </remarks>
-        public void AddRemainingDebugDocuments(IEnumerable<DebugSourceDocument> documents)
+        public void AddRemainingDebugDocuments(ImmutableArray<DebugSourceDocument> documents)
         {
             foreach (var document in documents)
             {
