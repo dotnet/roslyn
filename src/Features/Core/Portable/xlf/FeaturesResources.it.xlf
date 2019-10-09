@@ -67,6 +67,11 @@
         <target state="translated">Allinea gli argomenti con ritorno a capo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Align_wrapped_elements">
+        <source>Align wrapped elements</source>
+        <target state="new">Align wrapped elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Align_wrapped_parameters">
         <source>Align wrapped parameters</source>
         <target state="translated">Allinea i parametri con ritorno a capo</target>
@@ -247,6 +252,11 @@
         <target state="translated">Imposta rientro per tutti gli argomenti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
         <target state="translated">Imposta rientro per tutti i parametri</target>
@@ -255,6 +265,11 @@
       <trans-unit id="Indent_wrapped_arguments">
         <source>Indent wrapped arguments</source>
         <target state="translated">Imposta rientro per argomenti con ritorno a capo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_elements">
+        <source>Indent wrapped elements</source>
+        <target state="new">Indent wrapped elements</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_wrapped_parameters">
@@ -497,6 +512,11 @@
         <target state="translated">Annulla ritorno a capo per tutti gli argomenti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
         <target state="translated">Annulla ritorno a capo per tutti i parametri</target>
@@ -505,6 +525,11 @@
       <trans-unit id="Unwrap_and_indent_all_arguments">
         <source>Unwrap and indent all arguments</source>
         <target state="translated">Annulla il ritorno a capo e imposta il rientro per tutti gli argomenti</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_elements">
+        <source>Unwrap and indent all elements</source>
+        <target state="new">Unwrap and indent all elements</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
@@ -520,6 +545,11 @@
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
         <target state="translated">Annulla ritorno a capo per la catena di chiamate</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_element_list">
+        <source>Unwrap element list</source>
+        <target state="new">Unwrap element list</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -642,6 +672,11 @@
         <target state="translated">Imposta ritorno a capo per ogni argomento</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_every_element">
+        <source>Wrap every element</source>
+        <target state="new">Wrap every element</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
         <target state="translated">Imposta ritorno a capo per ogni parametro</target>
@@ -660,6 +695,11 @@
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Applica ritorno a capo alla catena di chiamate lunga</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_element_list">
+        <source>Wrap long element list</source>
+        <target state="new">Wrap long element list</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

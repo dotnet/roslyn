@@ -67,6 +67,11 @@
         <target state="translated">줄 바꿈 된 인수 맞춤</target>
         <note />
       </trans-unit>
+      <trans-unit id="Align_wrapped_elements">
+        <source>Align wrapped elements</source>
+        <target state="new">Align wrapped elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Align_wrapped_parameters">
         <source>Align wrapped parameters</source>
         <target state="translated">줄 바꿈 된 매개 변수 맞춤</target>
@@ -247,6 +252,11 @@
         <target state="translated">모든 인수 들여쓰기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
         <target state="translated">모든 매개 변수 들여쓰기</target>
@@ -255,6 +265,11 @@
       <trans-unit id="Indent_wrapped_arguments">
         <source>Indent wrapped arguments</source>
         <target state="translated">줄 바꿈 된 인수 들여쓰기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_elements">
+        <source>Indent wrapped elements</source>
+        <target state="new">Indent wrapped elements</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_wrapped_parameters">
@@ -497,6 +512,11 @@
         <target state="translated">모든 인수 줄 바꿈 조정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
         <target state="translated">모든 매개 변수 줄 바꿈 조정</target>
@@ -505,6 +525,11 @@
       <trans-unit id="Unwrap_and_indent_all_arguments">
         <source>Unwrap and indent all arguments</source>
         <target state="translated">모든 인수 줄 바꿈 조정 및 들여쓰기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_elements">
+        <source>Unwrap and indent all elements</source>
+        <target state="new">Unwrap and indent all elements</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
@@ -520,6 +545,11 @@
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
         <target state="translated">호출 체인 래핑 해제</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_element_list">
+        <source>Unwrap element list</source>
+        <target state="new">Unwrap element list</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -642,6 +672,11 @@
         <target state="translated">모든 인수 줄 바꿈</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_every_element">
+        <source>Wrap every element</source>
+        <target state="new">Wrap every element</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
         <target state="translated">모든 매개 변수 줄 바꿈</target>
@@ -660,6 +695,11 @@
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">긴 호출 체인 래핑</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_element_list">
+        <source>Wrap long element list</source>
+        <target state="new">Wrap long element list</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

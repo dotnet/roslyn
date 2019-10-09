@@ -67,6 +67,11 @@
         <target state="translated">對齊包裝的引數</target>
         <note />
       </trans-unit>
+      <trans-unit id="Align_wrapped_elements">
+        <source>Align wrapped elements</source>
+        <target state="new">Align wrapped elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Align_wrapped_parameters">
         <source>Align wrapped parameters</source>
         <target state="translated">對齊包裝的參數</target>
@@ -247,6 +252,11 @@
         <target state="translated">將所有引數縮排</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
         <target state="translated">將所有餐數縮排</target>
@@ -255,6 +265,11 @@
       <trans-unit id="Indent_wrapped_arguments">
         <source>Indent wrapped arguments</source>
         <target state="translated">將包裝的引數縮排</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_wrapped_elements">
+        <source>Indent wrapped elements</source>
+        <target state="new">Indent wrapped elements</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_wrapped_parameters">
@@ -497,6 +512,11 @@
         <target state="translated">將所有引數取消換行</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
         <target state="translated">將所有參數取消換行</target>
@@ -505,6 +525,11 @@
       <trans-unit id="Unwrap_and_indent_all_arguments">
         <source>Unwrap and indent all arguments</source>
         <target state="translated">將所有引數取消換行並縮排</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_and_indent_all_elements">
+        <source>Unwrap and indent all elements</source>
+        <target state="new">Unwrap and indent all elements</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_and_indent_all_parameters">
@@ -520,6 +545,11 @@
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
         <target state="translated">將呼叫鏈結取消包裝</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_element_list">
+        <source>Unwrap element list</source>
+        <target state="new">Unwrap element list</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -642,6 +672,11 @@
         <target state="translated">包裝每個引數</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_every_element">
+        <source>Wrap every element</source>
+        <target state="new">Wrap every element</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_parameter">
         <source>Wrap every parameter</source>
         <target state="translated">將每個參數換行</target>
@@ -660,6 +695,11 @@
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">包裝長呼叫鏈結</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_element_list">
+        <source>Wrap long element list</source>
+        <target state="new">Wrap long element list</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

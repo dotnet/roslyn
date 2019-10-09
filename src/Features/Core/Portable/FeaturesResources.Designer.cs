@@ -564,6 +564,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Align wrapped elements.
+        /// </summary>
+        internal static string Align_wrapped_elements {
+            get {
+                return ResourceManager.GetString("Align_wrapped_elements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Align wrapped parameters.
         /// </summary>
         internal static string Align_wrapped_parameters {
@@ -2076,6 +2085,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indent all elements.
+        /// </summary>
+        internal static string Indent_all_elements {
+            get {
+                return ResourceManager.GetString("Indent_all_elements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Indent all parameters.
         /// </summary>
         internal static string Indent_all_parameters {
@@ -2090,6 +2108,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Indent_wrapped_arguments {
             get {
                 return ResourceManager.GetString("Indent_wrapped_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indent wrapped elements.
+        /// </summary>
+        internal static string Indent_wrapped_elements {
+            get {
+                return ResourceManager.GetString("Indent_wrapped_elements", resourceCulture);
             }
         }
         
@@ -4003,6 +4030,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unwrap all elements.
+        /// </summary>
+        internal static string Unwrap_all_elements {
+            get {
+                return ResourceManager.GetString("Unwrap_all_elements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unwrap all parameters.
         /// </summary>
         internal static string Unwrap_all_parameters {
@@ -4017,6 +4053,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unwrap_and_indent_all_arguments {
             get {
                 return ResourceManager.GetString("Unwrap_and_indent_all_arguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap and indent all elements.
+        /// </summary>
+        internal static string Unwrap_and_indent_all_elements {
+            get {
+                return ResourceManager.GetString("Unwrap_and_indent_all_elements", resourceCulture);
             }
         }
         
@@ -4044,6 +4089,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unwrap_call_chain {
             get {
                 return ResourceManager.GetString("Unwrap_call_chain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unwrap element list.
+        /// </summary>
+        internal static string Unwrap_element_list {
+            get {
+                return ResourceManager.GetString("Unwrap_element_list", resourceCulture);
             }
         }
         
@@ -4636,7 +4690,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object  [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a &apos;using&apos; statement or a &apos;using&apos; declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the &apos;finally&apos; region, say &apos;x?.Dispose()&apos;. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string UseRecommendedDisposePatternDescription {
             get {
@@ -4790,6 +4844,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Wrap every element.
+        /// </summary>
+        internal static string Wrap_every_element {
+            get {
+                return ResourceManager.GetString("Wrap_every_element", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wrap every parameter.
         /// </summary>
         internal static string Wrap_every_parameter {
@@ -4822,6 +4885,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Wrap_long_call_chain {
             get {
                 return ResourceManager.GetString("Wrap_long_call_chain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap long element list.
+        /// </summary>
+        internal static string Wrap_long_element_list {
+            get {
+                return ResourceManager.GetString("Wrap_long_element_list", resourceCulture);
             }
         }
         
