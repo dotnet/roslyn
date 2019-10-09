@@ -6,9 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -528,6 +531,27 @@ namespace Microsoft.CodeAnalysis
             return count;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct ImmutableArrayProxy<T>
+        {
+            internal T[] MutableArray;
+        }
+
+        // TODO(https://github.com/dotnet/corefx/issues/34126): Remove when System.Collections.Immutable
+        // provides a Span API
+        internal static T[] DangerousGetUnderlyingArray<T>(this ImmutableArray<T> array)
+            => Unsafe.As<ImmutableArray<T>, ImmutableArrayProxy<T>>(ref array).MutableArray;
+
+        internal static ReadOnlySpan<T> AsSpan<T>(this ImmutableArray<T> array)
+            => array.DangerousGetUnderlyingArray();
+
+        internal static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>([MaybeNull] ref T[] array)
+        {
+            var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
+            array = null!;
+            return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
+        }
+
         internal static Dictionary<K, ImmutableArray<T>> ToDictionary<K, T>(this ImmutableArray<T> items, Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
         {
             if (items.Length == 1)
@@ -573,6 +597,36 @@ namespace Microsoft.CodeAnalysis
         internal static Location FirstOrNone(this ImmutableArray<Location> items)
         {
             return items.IsEmpty ? Location.None : items[0];
+        }
+
+        internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)
+        {
+            // The framework implementation of SequenceEqual forces a NullRef for default array1 and 2, so we
+            // maintain the same behavior in this extension
+            if (array1.IsDefault)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (array2.IsDefault)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (array1.Length != array2.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (!predicate(array1[i], array2[i], arg))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

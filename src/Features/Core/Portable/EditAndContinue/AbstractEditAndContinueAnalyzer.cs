@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #region Document Analysis 
 
         public async Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
-            Project baseProjectOpt,
+            Document oldDocumentOpt,
             ImmutableArray<ActiveStatement> baseActiveStatements,
             Document document,
             IActiveStatementTrackingService trackingServiceOpt,
@@ -371,7 +371,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SyntaxNode oldRoot;
                 SourceText oldText;
 
-                var oldDocumentOpt = baseProjectOpt?.GetDocument(document.Id);
                 if (oldDocumentOpt != null)
                 {
                     oldTreeOpt = await oldDocumentOpt.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -1565,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (exceptionHandlingAncestors.Count == 0)
             {
-                return ImmutableArray.Create<LinePositionSpan>();
+                return ImmutableArray<LinePositionSpan>.Empty;
             }
 
             var result = ArrayBuilder<LinePositionSpan>.GetInstance();

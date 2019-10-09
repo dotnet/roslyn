@@ -209,8 +209,6 @@
   <PropertyGroup Condition="'$(IsPackable)' == 'true' and '$(IsAnalyzer)' == 'true'">
     <DevelopmentDependency>true</DevelopmentDependency>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <!-- https://github.com/NuGet/Home/issues/8583 -->
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <IncludeContentInPack>false</IncludeContentInPack>
   </PropertyGroup>
   

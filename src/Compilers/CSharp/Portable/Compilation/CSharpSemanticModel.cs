@@ -1596,7 +1596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // This name mapped to something unique.  We don't need to proceed
                     // with a costly lookup.  Just add it straight to the results.
-                    results.Add(uniqueSymbol);
+                    results.Add(RemapSymbolIfNecessary(uniqueSymbol));
                 }
                 else
                 {
@@ -1656,21 +1656,49 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!wasError)
                     {
-                        results.Add(singleSymbol);
+                        results.Add(RemapSymbolIfNecessary(singleSymbol));
                     }
                     else
                     {
-                        results.AddRange(lookupResult.Symbols);
+                        foreach (var symbol in lookupResult.Symbols)
+                        {
+                            results.Add(RemapSymbolIfNecessary(symbol));
+                        }
                     }
                 }
                 else
                 {
-                    results.AddRange(lookupResult.Symbols);
+                    foreach (var symbol in lookupResult.Symbols)
+                    {
+                        results.Add(RemapSymbolIfNecessary(symbol));
+                    }
                 }
             }
 
             lookupResult.Free();
         }
+
+        private Symbol RemapSymbolIfNecessary(Symbol symbol)
+        {
+            if (!Compilation.NullableSemanticAnalysisEnabled) return symbol;
+
+            switch (symbol)
+            {
+                case LocalSymbol _:
+                case ParameterSymbol _:
+                case MethodSymbol { MethodKind: MethodKind.LambdaMethod }:
+                    return RemapSymbolIfNecessaryCore(symbol);
+
+                default:
+                    return symbol;
+            }
+        }
+
+        /// <summary>
+        /// Remaps a local, parameter, localfunction, or lambda symbol, if that symbol or its containing
+        /// symbols were reinferred. This should only be called when nullable semantic analysis is enabled.
+        /// </summary>
+        internal abstract Symbol RemapSymbolIfNecessaryCore(Symbol symbol);
 
         private static ImmutableArray<Symbol> FilterNotReferencable(ImmutableArray<Symbol> sealedResults)
         {
@@ -2523,7 +2551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol aliasOpt;
             var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).Type;
             diagnostics.Free();
-            speculativeModel = AttributeSemanticModel.CreateSpeculative((SyntaxTreeSemanticModel)this, attribute, attributeType, aliasOpt, binder, position);
+            speculativeModel = ((SyntaxTreeSemanticModel)this).CreateSpeculativeAttributeSemanticModel(position, attribute, binder, aliasOpt, attributeType);
             return true;
         }
 
@@ -3018,9 +3046,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             LocalSymbol local = foreachBinder.GetDeclaredLocalsForScope(forEachStatement).FirstOrDefault();
-            return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable)
-                ? GetAdjustedLocalSymbol(local, forEachStatement.SpanStart)
-                : null;
+            return local is SourceLocalSymbol { DeclarationKind: LocalDeclarationKind.ForEachIterationVariable } sourceLocal
+                ? GetAdjustedLocalSymbol(sourceLocal)
+                : local;
         }
 
         /// <summary>
@@ -3028,9 +3056,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// if the analysis affects the local.
         /// </summary>
         /// <param name="originalSymbol">The original symbol from initial binding.</param>
-        /// <param name="position">The position the local was declared at.</param>
+        /// 
         /// <returns>The nullability-adjusted local, or the original symbol if the nullability analysis made no adjustments or was not run.</returns>
-        internal abstract LocalSymbol GetAdjustedLocalSymbol(LocalSymbol originalSymbol, int position);
+        internal abstract LocalSymbol GetAdjustedLocalSymbol(SourceLocalSymbol originalSymbol);
 
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
@@ -3295,7 +3323,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AwaitExpression:
                     var await = (BoundAwaitExpression)boundNode;
                     isDynamic = await.AwaitableInfo.IsDynamic;
-                    // TODO:
                     goto default;
 
                 case BoundKind.ConditionalOperator:

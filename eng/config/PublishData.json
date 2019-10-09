@@ -51,7 +51,7 @@
       "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dev16.4p1" ],
-      "vsBranch": "master",
+      "vsBranch": "rel/d16.4",
       "vsMajorVersion": 16
     },
     "release/dev16.4-preview2-vs-deps": {
@@ -60,7 +60,7 @@
       "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dev16.4p2" ],
-      "vsBranch": "master",
+      "vsBranch": "rel/d16.4",
       "vsMajorVersion": 16
     },
     "master-vs-deps": {

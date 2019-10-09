@@ -3,9 +3,13 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
@@ -1279,6 +1283,26 @@ namespace NS2
 
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "NS1");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [Trait(Traits.Feature, Traits.Features.Interactive)]
+        [WorkItem(39027, "https://github.com/dotnet/roslyn/issues/39027")]
+        public async Task TriggerCompletionInSubsequentSubmission()
+        {
+            var markup = @"
+                <Workspace>
+                    <Submission Language=""C#"" CommonReferences=""true"">  
+                        var x = ""10"";
+                    </Submission>
+                    <Submission Language=""C#"" CommonReferences=""true"">  
+                        var y = $$
+                    </Submission>
+                </Workspace> ";
+
+            var completionList = await GetCompletionListAsync(markup, workspaceKind: WorkspaceKind.Interactive).ConfigureAwait(false);
+            Assert.NotEmpty(completionList.Items);
         }
 
         private static void AssertRelativeOrder(List<string> expectedTypesInRelativeOrder, ImmutableArray<CompletionItem> allCompletionItems)

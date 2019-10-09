@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
                         // For both overridden and inherited members, 
                         // find all explicit and implicit interface implementations.
                         // We need to start from each base class for cases like N() Implements I.M() 
-                        // where N() can be hidden or overwritted in a nested class later on.
+                        // where N() can be hidden or overwritten in a nested class later on.
                         interfaceImplementations.AddRange(member.ExplicitOrImplicitInterfaceImplementations());
                     }
                 }
