@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
+            // Early bail so we only ever check things that are System.Threading.Tasks.Task(<T>)
             if (!(TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task), TypeCompareKind.ConsiderEverything2) ||
                   TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything2)))
             {
@@ -1733,7 +1733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
             BoundExpression result;
-            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, syntax, diagnostics);
 
             return success &&
                 (result.Type.IsVoidType() || result.Type.SpecialType == SpecialType.System_Int32);

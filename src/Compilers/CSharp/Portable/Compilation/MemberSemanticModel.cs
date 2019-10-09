@@ -892,13 +892,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var bound = GetUpperBoundNode(node);
-            BoundAwaitExpression boundAwait = ((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression;
-            if (boundAwait == null)
+            BoundAwaitableInfo awaitableInfo = (((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression)?.AwaitableInfo;
+            if (awaitableInfo == null)
             {
                 return default(AwaitExpressionInfo);
             }
 
-            return new AwaitExpressionInfo(boundAwait.AwaitableInfo);
+            return new AwaitExpressionInfo(
+                getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter?.ExpressionSymbol,
+                isCompleted: awaitableInfo.IsCompleted,
+                getResult: awaitableInfo.GetResult,
+                isDynamic: awaitableInfo.IsDynamic);
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
