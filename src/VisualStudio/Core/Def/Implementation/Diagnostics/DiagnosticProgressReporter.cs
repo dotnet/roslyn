@@ -123,6 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 EnqueueRefresh();
                 return;
             }
+            //random comment.
 
             _lastShownProgressStatus = _lastProgressStatus;
             _lastTimeReported = current;
