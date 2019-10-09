@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
             _returnTypesOpt = returnTypesOpt;
             _snapshotBuilderOpt = snapshotBuilderOpt;
-            _defaultValues = defaultValues;
+            _defaultValues = new Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression>();
             _isSpeculative = isSpeculative;
 
             if (initialState != null)
