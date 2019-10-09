@@ -18,7 +18,6 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
-Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
@@ -2958,7 +2957,7 @@ class C
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
 
                 Dim textBufferFactoryService = state.GetExportedValue(Of ITextBufferFactoryService)()
-                Dim contentTypeService = state.GetExportedValue(Of IContentTypeRegistryService)()
+                Dim contentTypeService = state.GetExportedValue(Of VisualStudio.Utilities.IContentTypeRegistryService)()
                 Dim contentType = contentTypeService.GetContentType(ContentTypeNames.CSharpContentType)
                 Dim textViewFactory = state.GetExportedValue(Of ITextEditorFactoryService)()
                 Dim editorOperationsFactory = state.GetExportedValue(Of IEditorOperationsFactoryService)()

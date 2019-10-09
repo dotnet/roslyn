@@ -11,6 +11,10 @@
       command line length for Windows. These projects must manually specify references to avoid this overflow.
     -->
     <DisableTransitiveProjectReferences Condition="'$(IsVsixProject)' == 'true'">true</DisableTransitiveProjectReferences>
+
+    <!-- Setting this to the same as CreateVsixContainer ensures that the VS SDK doesn't try to look for a source.extension.vsixmanifest
+         when we don't have one. -->
+    <CopyVsixManifestToOutput>$(CreateVsixContainer)</CopyVsixManifestToOutput>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
