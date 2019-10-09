@@ -121,26 +121,42 @@ namespace Microsoft.CodeAnalysis
         protected static string GetUri(string path)
         {
             Debug.Assert(!string.IsNullOrEmpty(path));
+            Uri uri;
 
             // Note that in general, these "paths" are opaque strings to be 
             // interpreted by resolvers (see SyntaxTree.FilePath documentation).
 
             // Common case: absolute path -> absolute URI
-            if (Uri.TryCreate(path, UriKind.Absolute, out Uri uri))
+            if (Path.IsPathRooted(path))
             {
-                // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString() 
-                // is unescaped (e.g. spaces remain unreplaced by %20) and therefore 
-                // not well-formed.
-                return uri.AbsoluteUri;
+                // N.B. URI does not handle multiple backslashes or `..` well, so call GetFullPath
+                // to normalize before going to URI
+                var fullPath = Path.GetFullPath(path);
+                if (Uri.TryCreate(fullPath, UriKind.Absolute, out uri))
+                {
+                    // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString()
+                    // is unescaped (e.g. spaces remain unreplaced by %20) and therefore
+                    // not well-formed.
+                    return uri.AbsoluteUri;
+                }
             }
-
-            // First fallback attempt: attempt to interpret as relative path/URI.
-            // (Perhaps the resolver works that way.)
-            if (Uri.TryCreate(path, UriKind.Relative, out uri))
+            else
             {
-                // There is no AbsoluteUri equivalent for relative URI references and ToString() 
-                // won't escape without this relative -> absolute -> relative trick.
-                return s_fileRoot.MakeRelativeUri(new Uri(s_fileRoot, uri)).ToString();
+                // Attempt to normalize the directory separators
+                if (PathUtilities.DirectorySeparatorChar == '\\')
+                {
+                    path = path.Replace(@"\\", @"\");
+                    path = PathUtilities.NormalizeWithForwardSlash(path);
+                }
+
+                if (Uri.TryCreate(path, UriKind.Relative, out uri))
+                {
+                    // First fallback attempt: attempt to interpret as relative path/URI.
+                    // (Perhaps the resolver works that way.)
+                    // There is no AbsoluteUri equivalent for relative URI references and ToString()
+                    // won't escape without this relative -> absolute -> relative trick.
+                    return s_fileRoot.MakeRelativeUri(new Uri(s_fileRoot, uri)).ToString();
+                }
             }
 
             // Last resort: UrlEncode the whole opaque string.

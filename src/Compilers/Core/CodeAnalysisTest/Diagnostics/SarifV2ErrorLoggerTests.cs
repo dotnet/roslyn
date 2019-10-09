@@ -61,19 +61,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                   ""endColumn"": 1
                 }
               }
-            },
-            {
-              ""physicalLocation"": {
-                ""artifactLocation"": {
-                  ""uri"": ""a%3Acannot%2Finterpret%2Fas%5Curi""
-                },
-                ""region"": {
-                  ""startLine"": 1,
-                  ""startColumn"": 1,
-                  ""endLine"": 1,
-                  ""endColumn"": 1
-                }
-              }
             }
           ]
         }
@@ -387,6 +374,62 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void DescriptorIdCollision()
         {
             DescriptorIdCollisionImpl();
+        }
+
+        [Fact]
+        public void PathToUri()
+        {
+            PathToUriImpl(@"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+      ""results"": [
+        {{
+          ""ruleId"": ""uriDiagnostic"",
+          ""ruleIndex"": 0,
+          ""level"": ""warning"",
+          ""message"": {{
+            ""text"": ""blank diagnostic""
+          }},
+          ""locations"": [
+            {{
+              ""physicalLocation"": {{
+                ""artifactLocation"": {{
+                  ""uri"": ""{0}""
+                }},
+                ""region"": {{
+                  ""startLine"": 1,
+                  ""startColumn"": 1,
+                  ""endLine"": 1,
+                  ""endColumn"": 1
+                }}
+              }}
+            }}
+          ],
+          ""properties"": {{
+            ""warningLevel"": 3
+          }}
+        }}
+      ],
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": """",
+          ""version"": """",
+          ""dottedQuadFileVersion"": ""1.0.0"",
+          ""semanticVersion"": ""1.0.0"",
+          ""language"": """",
+          ""rules"": [
+            {{
+              ""id"": ""uriDiagnostic""
+            }}
+          ]
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}");
         }
     }
 }

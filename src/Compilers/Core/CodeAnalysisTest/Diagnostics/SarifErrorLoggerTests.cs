@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -34,7 +35,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                 IEnumerable<Location> additionalLocations = new[] {
                     Location.Create(@"Relative Additional/Location.cs", span, position),
-                    Location.Create(@"a:cannot/interpret/as\uri", span, position),
                 };
 
                 logger.LogDiagnostic(Diagnostic.Create(descriptor, mainLocation, additionalLocations));
@@ -82,6 +82,49 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             string actual = Encoding.UTF8.GetString(stream.ToArray());
             Assert.Equal(ExpectedOutputForDescriptorIdCollision, actual);
+        }
+
+        protected void PathToUriImpl(string formatString)
+        {
+            var isUnix = PathUtilities.IsUnixLikePlatform;
+            var paths = new[] {
+                (@"A:\B\C\\..\D.cs", isUnix ? @"A:\B\C\\..\D.cs" : "file:///A:/B/D.cs"),
+                (@"A\B\C\\..\D.cs", isUnix ? @"A\B\C\\..\D.cs" : @"A/B/D.cs")
+            };
+            foreach (var (inputPath, outputPath) in paths)
+            {
+                var stream = new MemoryStream();
+
+                using (var logger = CreateLogger(
+                        stream,
+                        toolName: "",
+                        toolFileVersion: "",
+                        toolAssemblyVersion: Version.Parse("1.0.0"),
+                        CultureInfo.InvariantCulture))
+                {
+                    var location = Location.Create(
+                        inputPath,
+                        textSpan: default,
+                        lineSpan: default);
+
+                    logger.LogDiagnostic(Diagnostic.Create(
+                        "uriDiagnostic",
+                        category: "",
+                        message: "blank diagnostic",
+                        DiagnosticSeverity.Warning,
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true,
+                        warningLevel: 3,
+                        location: location));
+                }
+
+                var buffer = stream.ToArray();
+                Assert.Equal(
+                    string.Format(formatString, outputPath),
+                    Encoding.UTF8.GetString(buffer, 0, buffer.Length),
+                    ignoreLineEndingDifferences: true,
+                    ignoreWhiteSpaceDifferences: true);
+            }
         }
     }
 }
