@@ -378,7 +378,6 @@ namespace Analyzer.Utilities
         public const string SystemCodeDomCompilerGeneratedCodeAttribute = "System.CodeDom.Compiler.GeneratedCodeAttribute";
         public const string SystemResourcesNeutralResourcesLanguageAttribute = "System.Resources.NeutralResourcesLanguageAttribute";
         public const string SystemConsole = "System.Console";
-        public const string SystemSecurityCryptographyX509CertificatesX509Certificate = "System.Security.Cryptography.X509Certificates.X509Certificate";
         public const string SystemSecurityCryptographyX509CertificatesX509Chain = "System.Security.Cryptography.X509Certificates.X509Chain";
         public const string SystemNetSecuritySslPolicyErrors = "System.Net.Security.SslPolicyErrors";
         public const string SystemRuntimeCompilerServicesRestrictedInternalsVisibleToAttribute = "System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute";
