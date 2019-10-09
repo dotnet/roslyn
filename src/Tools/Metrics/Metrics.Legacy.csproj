@@ -6,8 +6,8 @@
     <IsShipping>true</IsShipping>
     <DefineConstants>$(DefineConstants),LEGACY_CODE_METRICS_MODE</DefineConstants>
   </PropertyGroup>
-  <Import Project="..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
-  <Import Project="..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
+  <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
+  <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(MicrosoftCodeAnalysisVersion)" />
