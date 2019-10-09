@@ -5156,6 +5156,36 @@ class Program
 ");
         }
 
+        [Fact]
+        public void LocalFunctionAttribute_Emit()
+        {
+            var source = @"
+class A : System.Attribute { }
+
+class C
+{
+    public void M()
+    {
+        local1();
+
+        [A]
+        void local1()
+        {
+        }
+    }
+}
+";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var localFn = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs = localFn.GetAttributes();
+                Assert.Equal(1, attrs.Length);
+            }
+        }
+
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
