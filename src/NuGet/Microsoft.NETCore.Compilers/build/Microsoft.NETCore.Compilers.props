@@ -3,6 +3,7 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Target Name="ValidateMSBuildToolsVersion" Condition="'$(BuildingProject)' == 'true'">
+    <!-- The new editorconfig support requires MSBuild version 16.3. -->
     <Error Text="Microsoft.NETCore.Compilers is only supported on MSBuild v16.3 and above"
            Condition="'$(MSBuildToolsVersion)' &lt; '16.3'" />
   </Target>
