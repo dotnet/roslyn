@@ -42,6 +42,11 @@
         <target state="translated">작업은 비워 둘 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_static_modifier">
+        <source>Add the 'static' modifier</source>
+        <target state="new">Add the 'static' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_tuple_element_name_0">
         <source>Add tuple element name '{0}'</source>
         <target state="translated">튜플 요소 이름 '{0}' 추가</target>

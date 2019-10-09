@@ -332,6 +332,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+         ///   Looks up a localized string similar to Add the 'static' modifier.
+         /// </summary>
+        internal static string Add_static_modifier {
+            get {
+                return ResourceManager.GetString("Add_static_modifier", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Add &apos;string.IsNullOrEmpty&apos; check.
         /// </summary>
         internal static string Add_string_IsNullOrEmpty_check {

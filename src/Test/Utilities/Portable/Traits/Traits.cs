@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddParenthesesAroundConditionalExpressionInInterpolatedString = "CodeActions.AddParenthesesAroundConditionalExpressionInInterpolatedString";
             public const string CodeActionsAddRequiredParentheses = "CodeActions.AddRequiredParentheses";
             public const string CodeActionsAddShadows = "CodeActions.AddShadows";
+            public const string CodeActionsAddStaticModifier = "CodeActions.AddStaticModifier";
             public const string CodeActionsAliasAmbiguousType = "CodeActions.AliasAmbiguousType";
             public const string CodeActionsAssignOutParameters = "CodeActions.AssignOutParameters";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";

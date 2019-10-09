@@ -42,6 +42,11 @@
         <target state="translated">操作不能为空。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_static_modifier">
+        <source>Add the 'static' modifier</source>
+        <target state="new">Add the 'static' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_tuple_element_name_0">
         <source>Add tuple element name '{0}'</source>
         <target state="translated">添加元组元素名称 "{0}"</target>

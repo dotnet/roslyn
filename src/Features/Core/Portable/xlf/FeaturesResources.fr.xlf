@@ -42,6 +42,11 @@
         <target state="translated">Les actions ne peuvent pas être vides.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_static_modifier">
+        <source>Add the 'static' modifier</source>
+        <target state="new">Add the 'static' modifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_tuple_element_name_0">
         <source>Add tuple element name '{0}'</source>
         <target state="translated">Ajouter le nom d'élément tuple '{0}'</target>
