@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Contains the core execution logic for callbacks into analyzers.
     /// </summary>
-    internal class AnalyzerExecutor
+    internal partial class AnalyzerExecutor
     {
         private const string DiagnosticCategory = "Compiler";
 
@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var addDiagnostic = GetAddDiagnostic(semanticModel.SyntaxTree, analyzer, isSyntaxDiagnostic: false);
+            var diagReporter = GetAddDiagnostic(semanticModel.SyntaxTree, analyzer, isSyntaxDiagnostic: false);
             Func<Diagnostic, bool> isSupportedDiagnostic = d => IsSupportedDiagnostic(analyzer, d);
 
             foreach (var semanticModelAction in semanticModelActions)
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var context = new SemanticModelAnalysisContext(semanticModel, _analyzerOptions, addDiagnostic,
+                    var context = new SemanticModelAnalysisContext(semanticModel, _analyzerOptions, diagReporter.AddDiagnosticAction,
                         isSupportedDiagnostic, _cancellationToken);
 
                     // Catch Exception from action.
@@ -685,6 +685,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     analyzerStateOpt?.ProcessedActions.Add(semanticModelAction);
                 }
             }
+
+            diagReporter.Free();
         }
 
         /// <summary>
@@ -740,7 +742,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var addDiagnostic = GetAddDiagnostic(tree, analyzer, isSyntaxDiagnostic: true);
+            var diagReporter = GetAddDiagnostic(tree, analyzer, isSyntaxDiagnostic: true);
             Func<Diagnostic, bool> isSupportedDiagnostic = d => IsSupportedDiagnostic(analyzer, d);
 
             foreach (var syntaxTreeAction in syntaxTreeActions)
@@ -749,7 +751,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var context = new SyntaxTreeAnalysisContext(tree, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _compilation, _cancellationToken);
+                    var context = new SyntaxTreeAnalysisContext(tree, _analyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, _compilation, _cancellationToken);
 
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(
@@ -761,6 +763,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     analyzerStateOpt?.ProcessedActions.Add(syntaxTreeAction);
                 }
             }
+
+            diagReporter.Free();
         }
 
         private void ExecuteSyntaxNodeAction<TLanguageKindEnum>(
@@ -962,7 +966,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 blockEndActions.AddAll(endActions);
             }
 
-            var addDiagnostic = GetAddDiagnostic(semanticModel.SyntaxTree, declaredNode.FullSpan, analyzer, isSyntaxDiagnostic: false);
+            var diagReporter = GetAddDiagnostic(semanticModel.SyntaxTree, declaredNode.FullSpan, analyzer, isSyntaxDiagnostic: false);
             Func<Diagnostic, bool> isSupportedDiagnostic = d => IsSupportedDiagnostic(analyzer, d);
 
             try
@@ -1036,20 +1040,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
                     var syntaxNodesToAnalyze = (IEnumerable<SyntaxNode>)getNodesToAnalyze(executableBlocks);
-                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, addDiagnostic, isSupportedDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as SyntaxNodeAnalyzerStateData);
+                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as SyntaxNodeAnalyzerStateData);
                 }
                 else if (operationActions != null)
                 {
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
                     var operationsToAnalyze = (IEnumerable<IOperation>)getNodesToAnalyze(executableBlocks);
-                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, addDiagnostic, isSupportedDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
+                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
                 }
             }
 
             executableNodeActions.Free();
 
-            ExecuteBlockActions(blockActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, addDiagnostic, isSupportedDiagnostic, analyzerStateOpt);
-            ExecuteBlockActions(blockEndActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, addDiagnostic, isSupportedDiagnostic, analyzerStateOpt);
+            ExecuteBlockActions(blockActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerStateOpt);
+            ExecuteBlockActions(blockEndActions, declaredNode, declaredSymbol, analyzer, semanticModel, operationBlocks, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerStateOpt);
+
+            diagReporter.Free();
         }
 
         private void ExecuteBlockActions<TBlockAction, TNodeStateData>(
@@ -1190,9 +1196,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var addDiagnostic = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false);
+            var diagReporter = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false);
             Func<Diagnostic, bool> isSupportedDiagnostic = d => IsSupportedDiagnostic(analyzer, d);
-            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, analyzer, containingSymbol, model, getKind, addDiagnostic, isSupportedDiagnostic, analyzerStateOpt);
+            ExecuteSyntaxNodeActions(nodesToAnalyze, nodeActionsByKind, analyzer, containingSymbol, model, getKind, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerStateOpt);
+            diagReporter.Free();
         }
 
         private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
@@ -1330,9 +1337,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var addDiagnostic = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false);
+            var diagReporter = GetAddDiagnostic(model.SyntaxTree, filterSpan, analyzer, isSyntaxDiagnostic: false);
             Func<Diagnostic, bool> isSupportedDiagnostic = d => IsSupportedDiagnostic(analyzer, d);
-            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, containingSymbol, model, addDiagnostic, isSupportedDiagnostic, analyzerStateOpt);
+            ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, containingSymbol, model, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, analyzerStateOpt);
+            diagReporter.Free();
         }
 
         private void ExecuteOperationActions(
@@ -1670,16 +1678,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        private Action<Diagnostic> GetAddDiagnostic(SyntaxTree tree, DiagnosticAnalyzer analyzer, bool isSyntaxDiagnostic)
+        private AnalyzerDiagnosticReporter GetAddDiagnostic(SyntaxTree tree, DiagnosticAnalyzer analyzer, bool isSyntaxDiagnostic)
         {
-            return GetAddDiagnostic(tree, null, _compilation, analyzer, isSyntaxDiagnostic,
+            return AnalyzerDiagnosticReporter.GetInstance(tree, null, _compilation, analyzer, isSyntaxDiagnostic,
                 _addNonCategorizedDiagnosticOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt,
                 _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
         }
 
-        private Action<Diagnostic> GetAddDiagnostic(SyntaxTree tree, TextSpan? span, DiagnosticAnalyzer analyzer, bool isSyntaxDiagnostic)
+        private AnalyzerDiagnosticReporter GetAddDiagnostic(SyntaxTree tree, TextSpan? span, DiagnosticAnalyzer analyzer, bool isSyntaxDiagnostic)
         {
-            return GetAddDiagnostic(tree, span, _compilation, analyzer, false,
+            return AnalyzerDiagnosticReporter.GetInstance(tree, span, _compilation, analyzer, false,
                 _addNonCategorizedDiagnosticOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt,
                 _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
         }
