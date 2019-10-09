@@ -17,10 +17,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </summary>
     internal class SourceInfo : ITaintedDataInfo, IEquatable<SourceInfo>
     {
-        // TODO: This is just a quick fix for a performance regression.  Perhaps we should have a dedicated collection
-        // of methods which are always tainted.
-        public static readonly PointsToCheck AlwaysTruePointsToCheck = (ImmutableArray<PointsToAbstractValue> pointsTos) => true;
-
         /// <summary>
         /// Constructs.
         /// </summary>
