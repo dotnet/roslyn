@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -30,10 +31,9 @@ using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompl
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal class CompletionSource : ForegroundThreadAffinitizedObject, IAsyncCompletionSource
+    internal class CompletionSource : ForegroundThreadAffinitizedObject, IAsyncExpandingCompletionSource
     {
         internal const string RoslynItem = nameof(RoslynItem);
-        internal const string TriggerSnapshot = nameof(TriggerSnapshot);
         internal const string CompletionListSpan = nameof(CompletionListSpan);
         internal const string InsertionText = nameof(InsertionText);
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
@@ -52,12 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         // Use CWT to cache data needed to create VSCompletionItem, so the table would be cleared when Roslyn completion item cache is cleared.
         private static readonly ConditionalWeakTable<RoslynCompletionItem, StrongBox<VSCompletionItemData>> s_roslynItemToVsItemData =
             new ConditionalWeakTable<RoslynCompletionItem, StrongBox<VSCompletionItemData>>();
-
-        // Cache all the VS completion filters which essentially make them singletons.
-        // Because all items that should be filtered using the same filter button must 
-        // use the same reference to the instance of CompletionFilter.
-        private static readonly Dictionary<string, AsyncCompletionData.CompletionFilter> s_filterCache =
-            new Dictionary<string, AsyncCompletionData.CompletionFilter>();
 
         private readonly ITextView _textView;
         private readonly bool _isDebuggerTextView;
@@ -211,17 +205,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return true;
         }
 
-        public async Task<AsyncCompletionData.CompletionContext> GetCompletionContextAsync(
+        public Task<AsyncCompletionData.CompletionContext> GetCompletionContextAsync(
             IAsyncCompletionSession session,
             AsyncCompletionData.CompletionTrigger trigger,
             SnapshotPoint triggerLocation,
             SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
+            return GetCompletionContextWorkerAsync(session, trigger, triggerLocation, applicableToSpan, isExpanded: false, cancellationToken);
+        }
+
+        public async Task<AsyncCompletionData.CompletionContext> GetExpandedCompletionContextAsync(
+            IAsyncCompletionSession session,
+            AsyncCompletionData.CompletionExpander expander,
+            AsyncCompletionData.CompletionTrigger intialTrigger,
+            SnapshotSpan applicableToSpan,
+            CancellationToken cancellationToken)
+        {
+            // We only want to provide expanded items for Roslyn's expander.
+            if ((object)expander == FilterSet.Expander)
+            {
+                if (Helpers.TryGetInitialTriggerLocation(session, out var initialTriggerLocation))
+                {
+                    return await GetCompletionContextWorkerAsync(session, intialTrigger, initialTriggerLocation, applicableToSpan, isExpanded: true, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return AsyncCompletionData.CompletionContext.Empty;
+        }
+
+        private async Task<AsyncCompletionData.CompletionContext> GetCompletionContextWorkerAsync(
+            IAsyncCompletionSession session,
+            AsyncCompletionData.CompletionTrigger trigger,
+            SnapshotPoint triggerLocation,
+            SnapshotSpan applicableToSpan,
+            bool isExpanded,
+            CancellationToken cancellationToken)
+        {
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
+                return AsyncCompletionData.CompletionContext.Empty;
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
@@ -229,78 +253,94 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
             if (_snippetCompletionTriggeredIndirectly)
             {
-                roslynTrigger = new CompletionTrigger(CompletionTriggerKind.Snippets);
+                roslynTrigger = new CodeAnalysis.Completion.CompletionTrigger(CompletionTriggerKind.Snippets);
             }
 
             var workspace = document.Project.Solution.Workspace;
 
-            var completionList = await completionService.GetCompletionsAsync(
+            var options = _isDebuggerTextView ? workspace.Options.WithDebuggerCompletionOptions() : workspace.Options;
+            options = options.WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, isExpanded);
+
+            var (completionList, expandItemsAvailable) = await completionService.GetCompletionsInternalAsync(
                 document,
                 triggerLocation,
                 roslynTrigger,
                 _roles,
-                _isDebuggerTextView ? workspace.Options.WithDebuggerCompletionOptions() : workspace.Options,
+                options,
                 cancellationToken).ConfigureAwait(false);
+
+            ImmutableArray<VSCompletionItem> items;
+            AsyncCompletionData.SuggestionItemOptions suggestionItemOptions;
+            var filterSet = new FilterSet();
 
             if (completionList == null)
             {
-                return new AsyncCompletionData.CompletionContext(ImmutableArray<VSCompletionItem>.Empty);
+                items = ImmutableArray<VSCompletionItem>.Empty;
+                suggestionItemOptions = null;
             }
-
-            var itemsBuilder = new ArrayBuilder<VSCompletionItem>(completionList.Items.Length);
-            foreach (var roslynItem in completionList.Items)
+            else
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var item = Convert(document, roslynItem);
-                itemsBuilder.Add(item);
+                var itemsBuilder = new ArrayBuilder<VSCompletionItem>(completionList.Items.Length);
+                foreach (var roslynItem in completionList.Items)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var item = Convert(document, roslynItem, filterSet);
+                    itemsBuilder.Add(item);
+                }
+
+                items = itemsBuilder.ToImmutableAndFree();
+
+                suggestionItemOptions = completionList.SuggestionModeItem != null
+                        ? new AsyncCompletionData.SuggestionItemOptions(
+                            completionList.SuggestionModeItem.DisplayText,
+                            completionList.SuggestionModeItem.Properties.TryGetValue(Description, out var description)
+                                ? description
+                                : string.Empty)
+                        : null;
+
+                // Store around the span this completion list applies to.  We'll use this later
+                // to pass this value in when we're committing a completion list item.
+                // It's OK to overwrite this value when expanded items are requested.
+                session.Properties[CompletionListSpan] = completionList.Span;
+
+                // This is a code supporting original completion scenarios: 
+                // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
+                // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
+                if (!session.Properties.TryGetProperty(HasSuggestionItemOptions, out bool hasSuggestionItemOptionsBefore) || !hasSuggestionItemOptionsBefore)
+                {
+                    session.Properties[HasSuggestionItemOptions] = suggestionItemOptions != null;
+                }
+
+                var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
+                if (excludedCommitCharacters.Length > 0)
+                {
+                    if (session.Properties.TryGetProperty(ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharactersBefore))
+                    {
+                        excludedCommitCharacters = excludedCommitCharacters.Union(excludedCommitCharactersBefore).ToImmutableArray();
+                    }
+                    session.Properties[ExcludedCommitCharacters] = excludedCommitCharacters;
+                }
             }
 
-            var items = itemsBuilder.ToImmutableAndFree();
-
-            var suggestionItemOptions = completionList.SuggestionModeItem != null
-                    ? new AsyncCompletionData.SuggestionItemOptions(
-                        completionList.SuggestionModeItem.DisplayText,
-                        completionList.SuggestionModeItem.Properties.TryGetValue(Description, out var description)
-                            ? description
-                            : string.Empty)
-                    : null;
-
-            // Have to store the snapshot to reuse it in some projections related scenarios
-            // where data and session in further calls are able to provide other snapshots.
-            session.Properties.AddProperty(TriggerSnapshot, triggerLocation.Snapshot);
-
-            // Store around the span this completion list applies to.  We'll use this later
-            // to pass this value in when we're committing a completion list item.
-            session.Properties.AddProperty(CompletionListSpan, completionList.Span);
-
-            // This is a code supporting original completion scenarios: 
-            // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
-            // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
-            session.Properties.AddProperty(HasSuggestionItemOptions, suggestionItemOptions != null);
-
-            var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
-            if (excludedCommitCharacters.Length > 0)
-            {
-                session.Properties.AddProperty(ExcludedCommitCharacters, excludedCommitCharacters);
-            }
-
+            // It's possible that some providers can provide expanded items, in which case we will need to show expander as unselected.
             return new AsyncCompletionData.CompletionContext(
                 items,
                 suggestionItemOptions,
                 suggestionItemOptions == null
                     ? AsyncCompletionData.InitialSelectionHint.RegularSelection
-                    : AsyncCompletionData.InitialSelectionHint.SoftSelection);
+                    : AsyncCompletionData.InitialSelectionHint.SoftSelection,
+                filterSet.GetFilterStatesInSet(addUnselectedExpander: expandItemsAvailable));
         }
 
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
             if (!item.Properties.TryGetProperty(RoslynItem, out RoslynCompletionItem roslynItem) ||
-                !session.Properties.TryGetProperty(TriggerSnapshot, out ITextSnapshot triggerSnapshot))
+                !Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation))
             {
                 return null;
             }
 
-            var document = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return null;
@@ -337,11 +377,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// </summary>
         private readonly struct VSCompletionItemData
         {
-            public VSCompletionItemData(string displayText, ImageElement icon, ImmutableArray<AsyncCompletionData.CompletionFilter> filters, ImmutableArray<ImageElement> attributeIcons, string insertionText)
+            public VSCompletionItemData(
+                string displayText, ImageElement icon, ImmutableArray<AsyncCompletionData.CompletionFilter> filters,
+                int filterSetData, ImmutableArray<ImageElement> attributeIcons, string insertionText)
             {
                 DisplayText = displayText;
                 Icon = icon;
                 Filters = filters;
+                FilterSetData = filterSetData;
                 AttributeIcons = attributeIcons;
                 InsertionText = insertionText;
             }
@@ -352,6 +395,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             public ImmutableArray<AsyncCompletionData.CompletionFilter> Filters { get; }
 
+            /// <summary>
+            /// This is the bit vector value from the FilterSet of this item.
+            /// </summary>
+            public int FilterSetData { get; }
+
             public ImmutableArray<ImageElement> AttributeIcons { get; }
 
             public string InsertionText { get; }
@@ -359,18 +407,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private VSCompletionItem Convert(
             Document document,
-            RoslynCompletionItem roslynItem)
+            RoslynCompletionItem roslynItem,
+            FilterSet filterSet)
         {
             VSCompletionItemData itemData;
 
-            if (roslynItem.IsCached && s_roslynItemToVsItemData.TryGetValue(roslynItem, out var boxedItemData))
+            if (roslynItem.Flags.IsCached() && s_roslynItemToVsItemData.TryGetValue(roslynItem, out var boxedItemData))
             {
                 itemData = boxedItemData.Value;
+                filterSet.CombineData(itemData.FilterSetData);
             }
             else
             {
                 var imageId = roslynItem.Tags.GetFirstGlyph().GetImageId();
-                var filters = GetFilters(roslynItem);
+                var (filters, filterSetData) = filterSet.GetFiltersAndAddToSet(roslynItem);
 
                 // roslynItem generated by providers can contain an insertionText in a property bag.
                 // We will not use it but other providers may need it.
@@ -387,12 +437,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     displayText: roslynItem.GetEntireDisplayText(),
                     icon: new ImageElement(new ImageId(imageId.Guid, imageId.Id), roslynItem.DisplayText),
                     filters: filters,
+                    filterSetData: filterSetData,
                     attributeIcons: attributeImages,
                     insertionText: insertionText);
 
                 // It doesn't make sense to cache VS item data for those Roslyn items created from scratch for each session,
                 // since CWT uses object identity for comparison.
-                if (roslynItem.IsCached)
+                if (roslynItem.Flags.IsCached())
                 {
                     s_roslynItemToVsItemData.Add(roslynItem, new StrongBox<VSCompletionItemData>(itemData));
                 }
@@ -433,24 +484,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             return hashSet.ToImmutableArray();
-        }
-
-        private ImmutableArray<AsyncCompletionData.CompletionFilter> GetFilters(RoslynCompletionItem item)
-            => CompletionItemFilter.AllFilters.WhereAsArray(f => f.Matches(item)).SelectAsArray(f => GetOrCreateFilter(f));
-
-        internal static AsyncCompletionData.CompletionFilter GetOrCreateFilter(CompletionItemFilter filter)
-        {
-            if (!s_filterCache.TryGetValue(filter.DisplayText, out var itemFilter))
-            {
-                var imageId = filter.Tags.GetFirstGlyph().GetImageId();
-                itemFilter = new AsyncCompletionData.CompletionFilter(
-                    filter.DisplayText,
-                    filter.AccessKey.ToString(),
-                    new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
-                s_filterCache[filter.DisplayText] = itemFilter;
-            }
-
-            return itemFilter;
         }
 
         internal static bool QuestionMarkIsPrecededByIdentifierAndWhitespace(

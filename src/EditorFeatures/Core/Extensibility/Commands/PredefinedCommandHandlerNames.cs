@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string FormatDocument = "Format Document Command Handler";
 
         /// <summary>
+        /// Command handler name for Go to Base.
+        /// </summary>
+        public const string GoToBase = "Go To Base Command Handler";
+
+        /// <summary>
         /// Command handler name for Go to Definition.
         /// </summary>
         public const string GoToDefinition = "Go To Definition Command Handler";
@@ -159,5 +164,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Command handler name for Paste in Paste Tracking.
         /// </summary>
         public const string PasteTrackingPaste = "Paste Tracking Paste Command Handler";
+
+        /// <summary>
+        /// Command handler name for Edit and Continue file save handler.
+        /// </summary>
+        public const string EditAndContinueFileSave = "Edit and Continue Save File Handler";
     }
 }

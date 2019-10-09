@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
 {
     /// <summary>
     /// this is almost straight copy from typescript for syntatic LSP experiement.
-    /// we won't attemp to change code to follow Roslyn style until we have result of the experiement
+    /// we won't attempt to change code to follow Roslyn style until we have result of the experiement
     /// </summary>
     internal sealed class SyntacticClassificationModeSelector
     {
@@ -48,9 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
             {
                 return SyntacticClassificationMode.TextMate;
             }
-
-            // this is most likely already ran, so it will be no-op
-            RoslynSyntaxClassificationService.EnsureInitializationAsync(_lspClientServiceFactory, CancellationToken.None).Wait(CancellationToken.None);
 
             if (RoslynSyntaxClassificationService.ShouldRunExperiment(_lspClientServiceFactory, experimentService, WellKnownExperimentNames.SyntacticExp_LiveShareTagger_TextMate))
             {

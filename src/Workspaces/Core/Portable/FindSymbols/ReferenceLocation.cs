@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -51,11 +50,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Additional properties for this reference
         /// </summary>
-        internal ImmutableArray<FindUsageProperty> FindUsagesProperties { get; }
+        internal ImmutableDictionary<string, string> AdditionalProperties { get; }
 
         public CandidateReason CandidateReason { get; }
 
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableArray<FindUsageProperty> additionalProperties, CandidateReason candidateReason)
+        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason)
             : this()
         {
             this.Document = document;
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             this.Location = location;
             this.IsImplicit = isImplicit;
             this.SymbolUsageInfo = symbolUsageInfo;
-            this.FindUsagesProperties = additionalProperties.NullToEmpty();
+            this.AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
             this.CandidateReason = candidateReason;
         }
 

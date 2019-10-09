@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var referencedSymbols = await SymbolFinder.FindReferencesAsync(
                 localFunctionSymbol, document.Project.Solution, documentImmutableSet, cancellationToken).ConfigureAwait(false);
 
-            // Now we need to find all the refereces to the local function that we might need to fix.
+            // Now we need to find all the references to the local function that we might need to fix.
             var shouldWarn = false;
             using var builderDisposer = ArrayBuilder<InvocationExpressionSyntax>.GetInstance(out var invocations);
 
@@ -111,10 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                         var seenDefaultArgumentValue = currentInvocation.ArgumentList.Arguments.Count < localFunction.ParameterList.Parameters.Count;
 
                         var newArguments = parameterAndCapturedSymbols.Select(
-                            p => generator.Argument(
+                            p => (ArgumentSyntax)generator.Argument(
                                 seenNamedArgument || seenDefaultArgumentValue ? p.symbol.Name : null,
                                 p.symbol.RefKind,
-                                p.capture.Name.ToIdentifierName()) as ArgumentSyntax);
+                                p.capture.Name.ToIdentifierName()));
 
                         var newArgList = currentInvocation.ArgumentList.WithArguments(currentInvocation.ArgumentList.Arguments.AddRange(newArguments));
                         return currentInvocation.WithArgumentList(newArgList);

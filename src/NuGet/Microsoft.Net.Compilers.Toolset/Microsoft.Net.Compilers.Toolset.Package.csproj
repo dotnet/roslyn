@@ -15,7 +15,8 @@
       $(RoslynPackageDescriptionDetails)
     </PackageDescription>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
-    <NoWarn>$(NoWarn);NU5100</NoWarn>
+    <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->
+    <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
     <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
     <_DependsOn Condition="'$(TargetFramework)' == 'netcoreapp2.1'">InitializeCoreClrCompilerArtifacts</_DependsOn>

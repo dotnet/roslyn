@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// Initialize the options.  This must be done on the UI thread because
         /// multiple <see cref="IOptionPersister"/> are required to be initialized on the UI thread.
         /// Typically this is done by <see cref="RoslynPackage"/> but this is not to guaranteed
-        /// to procede liveshare initialization.
+        /// to precede liveshare initialization.
         /// TODO - https://github.com/dotnet/roslyn/issues/37377
         /// </summary>
         private async Task InitOptionsAsync(CancellationToken cancellationToken)

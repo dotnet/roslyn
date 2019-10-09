@@ -414,8 +414,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var typeToStringMembers = type.GetMembers(objectToStringMethod.Name);
                 foreach (var member in typeToStringMembers)
                 {
-                    var toStringMethod = (MethodSymbol)member;
-                    if (toStringMethod.GetLeastOverriddenMethod(type) == (object)objectToStringMethod)
+                    if (member is MethodSymbol toStringMethod &&
+                        toStringMethod.GetLeastOverriddenMethod(type) == (object)objectToStringMethod)
                     {
                         structToStringMethod = toStringMethod;
                         break;
