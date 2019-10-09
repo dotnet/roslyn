@@ -583,7 +583,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "Foo");
             await VerifyTypeImportItemExistsAsync(markup, "Barr", glyph: (int)Glyph.ClassPublic, inlineDescription: "Foo.Bar");
         }
 
@@ -609,7 +609,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "");
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "");
             await VerifyTypeImportItemExistsAsync(markup, "Bar", glyph: (int)Glyph.ClassPublic, inlineDescription: "Na");
             await VerifyTypeImportItemExistsAsync(markup, "Foo", glyph: (int)Glyph.ClassPublic, inlineDescription: "Na");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "na");
@@ -639,7 +639,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "");
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "Na");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Foo", inlineDescription: "Na");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Bar", inlineDescription: "na");
@@ -662,7 +662,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "Foo");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
         }
 
@@ -683,7 +683,7 @@ namespace Baz
          $$
     }
 }";
-            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "Foo");
             await VerifyTypeImportItemIsAbsentAsync(markup, "Barr", inlineDescription: "Foo.Bar");
         }
 
@@ -790,7 +790,7 @@ namespace Baz
         Barr$$
     }
 }";
-            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootnamespace: "Foo");
+            var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "Foo");
             await VerifyCustomCommitProviderAsync(markup, "Barr", expectedCodeAfterCommit, sourceCodeKind: kind);
         }
 
