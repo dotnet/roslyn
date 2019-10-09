@@ -77,9 +77,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return null;
                 }
 
-                // Populate our caches with this data.
+                // Populate our cache with this data.
                 s_documentToIndex.GetValue(document, _ => index);
-                s_documentIdToIndex.GetValue(document.Id, _ => index);
             }
 
             return index;
@@ -104,16 +103,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // What we have in memory isn't valid.  Try to load from the persistence service.
             index = await LoadAsync(document, checksum, cancellationToken).ConfigureAwait(false);
-            if (index != null || loadOnly)
+            if (index == null && !loadOnly)
             {
-                return index;
+                // alright, we don't have cached information, re-calculate them here.
+                index = await CreateIndexAsync(document, checksum, cancellationToken).ConfigureAwait(false);
+
+                // okay, persist this info
+                await index.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+
+                // Populate our cache with this data.
+                s_documentIdToIndex.GetValue(document.Id, _ => index);
             }
 
-            // alright, we don't have cached information, re-calculate them here.
-            index = await CreateIndexAsync(document, checksum, cancellationToken).ConfigureAwait(false);
-
-            // okay, persist this info
-            await index.SaveAsync(document, cancellationToken).ConfigureAwait(false);
 
             return index;
         }
