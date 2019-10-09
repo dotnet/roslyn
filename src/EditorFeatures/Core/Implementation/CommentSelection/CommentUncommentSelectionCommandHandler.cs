@@ -15,14 +15,13 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
     [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.CommentSelection)]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
+    [VisualStudio.Utilities.Name(PredefinedCommandHandlerNames.CommentSelection)]
     internal class CommentUncommentSelectionCommandHandler :
         AbstractCommentSelectionBase<Operation>,
         ICommandHandler<CommentSelectionCommandArgs>,
