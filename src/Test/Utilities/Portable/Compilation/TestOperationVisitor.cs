@@ -1467,12 +1467,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.ReDimClause, operation.Kind);
             AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.DimensionSizes), operation.Children);
         }
-
-        public override void VisitUsingVariableDeclaration(IUsingVariableDeclarationOperation operation)
-        {
-            Assert.Equal(OperationKind.UsingVariableDeclaration, operation.Kind);
-            Assert.Single(operation.Children);
-            VisitVariableDeclarationGroup(operation.DeclarationGroup);
-        }
     }
 }

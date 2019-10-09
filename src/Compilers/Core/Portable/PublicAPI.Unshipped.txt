@@ -4,10 +4,11 @@ Microsoft.CodeAnalysis.ErrorLogOptions
 Microsoft.CodeAnalysis.ErrorLogOptions.ErrorLogOptions(string path, Microsoft.CodeAnalysis.SarifVersion sarifVersion) -> void
 Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string
 Microsoft.CodeAnalysis.ErrorLogOptions.SarifVersion.get -> Microsoft.CodeAnalysis.SarifVersion
-Microsoft.CodeAnalysis.OperationKind.UsingVariableDeclaration = 108 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.Operations.IUsingVariableDeclarationOperation
-Microsoft.CodeAnalysis.Operations.IUsingVariableDeclarationOperation.IsAsynchronous.get -> bool
-Microsoft.CodeAnalysis.Operations.IUsingVariableDeclarationOperation.DeclarationGroup.get -> Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation
+Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation.UsingKind.get -> Microsoft.CodeAnalysis.Operations.UsingKind
+Microsoft.CodeAnalysis.Operations.UsingKind
+Microsoft.CodeAnalysis.Operations.UsingKind.Asynchronous = 2 -> Microsoft.CodeAnalysis.Operations.UsingKind
+Microsoft.CodeAnalysis.Operations.UsingKind.None = 0 -> Microsoft.CodeAnalysis.Operations.UsingKind
+Microsoft.CodeAnalysis.Operations.UsingKind.Using = 1 -> Microsoft.CodeAnalysis.Operations.UsingKind
 Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Default = 1 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.SarifVersion
@@ -22,7 +23,5 @@ abstract Microsoft.CodeAnalysis.DataFlowAnalysis.DefinitelyAssignedOnEntry.get -
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.DefinitelyAssignedOnExit.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitPropertySubpattern(Microsoft.CodeAnalysis.Operations.IPropertySubpatternOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitRecursivePattern(Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUsingVariableDeclaration(Microsoft.CodeAnalysis.Operations.IUsingVariableDeclarationOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitPropertySubpattern(Microsoft.CodeAnalysis.Operations.IPropertySubpatternOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitRecursivePattern(Microsoft.CodeAnalysis.Operations.IRecursivePatternOperation operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUsingVariableDeclaration(Microsoft.CodeAnalysis.Operations.IUsingVariableDeclarationOperation operation, TArgument argument) -> TResult

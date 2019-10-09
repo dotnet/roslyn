@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitVariableDeclaration(IVariableDeclarationOperation operation, object argument)
         {
-            return new VariableDeclarationOperation(VisitArray(operation.Declarators), Visit(operation.Initializer), VisitArray(operation.IgnoredDimensions), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new VariableDeclarationOperation(VisitArray(operation.Declarators), Visit(operation.Initializer), VisitArray(operation.IgnoredDimensions), operation.UsingKind, ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, object argument)

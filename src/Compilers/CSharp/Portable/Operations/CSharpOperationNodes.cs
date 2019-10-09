@@ -1413,8 +1413,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _localDeclaration;
 
-        internal CSharpLazyVariableDeclarationOperation(CSharpOperationFactory operationFactory, BoundNode localDeclaration, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        internal CSharpLazyVariableDeclarationOperation(CSharpOperationFactory operationFactory, BoundNode localDeclaration, UsingKind usingKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(usingKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _localDeclaration = localDeclaration;
@@ -1852,24 +1852,6 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override IOperation CreateRightOperand()
         {
             return _operationFactory.Create(_rangeExpression.RightOperandOpt);
-        }
-    }
-
-    internal sealed class CSharpLazyUsingVariableDeclarationOperation : LazyUsingVariableDeclarationOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly IVariableDeclarationGroupOperation _declarationGroup;
-
-        public CSharpLazyUsingVariableDeclarationOperation(CSharpOperationFactory operationFactory, IVariableDeclarationGroupOperation declarationGroup, bool isAsynchronous, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(isAsynchronous, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _declarationGroup = declarationGroup;
-        }
-
-        protected override IVariableDeclarationGroupOperation CreateDeclarationGroup()
-        {
-            return _declarationGroup;
         }
     }
 }

@@ -475,6 +475,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var variableCount = operation.Declarators.Length;
             LogString($"{nameof(IVariableDeclarationOperation)} ({variableCount} declarators)");
+            if (operation.UsingKind != UsingKind.None)
+            {
+                LogString($" (UsingKind: {operation.UsingKind})");
+            }
             LogCommonPropertiesAndNewLine(operation);
 
             if (!operation.IgnoredDimensions.IsEmpty)
@@ -1928,17 +1932,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
             Visit(operation.Operand, "Operand");
             VisitArray(operation.DimensionSizes, "DimensionSizes", logElementCount: true);
-        }
-
-        public override void VisitUsingVariableDeclaration(IUsingVariableDeclarationOperation operation)
-        {
-            LogString(nameof(IUsingVariableDeclarationOperation));
-            if (operation.IsAsynchronous)
-            {
-                LogString(" (Async)");
-            }
-            LogCommonPropertiesAndNewLine(operation);
-            Visit(operation.DeclarationGroup, nameof(operation.DeclarationGroup));
         }
 
         #endregion

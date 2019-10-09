@@ -4393,10 +4393,8 @@ class C : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IUsingVariableDeclarationOperation (OperationKind.UsingVariableDeclaration, Type: null) (Syntax: 'using var c = new C();')
-  DeclarationGroup: 
-    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using var c = new C();')
-      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'using var c = new C();')
+      IVariableDeclarationOperation (1 declarators) (UsingKind: Using) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
         Declarators:
             IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
               Initializer: 
@@ -4437,14 +4435,12 @@ class C : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-  Locals: Local_1: C c
-    Local_2: C d
-    Local_3: C e
-  IUsingVariableDeclarationOperation (OperationKind.UsingVariableDeclaration, Type: null) (Syntax: 'using var c = new C();')
-    DeclarationGroup: 
-      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using var c = new C();')
-        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
+    IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      Locals: Local_1: C c
+        Local_2: C d
+        Local_3: C e
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'using var c = new C();')
+        IVariableDeclarationOperation (1 declarators) (UsingKind: Using) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
           Declarators:
               IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
                 Initializer: 
@@ -4455,10 +4451,8 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                         null
           Initializer: 
             null
-  IUsingVariableDeclarationOperation (OperationKind.UsingVariableDeclaration, Type: null) (Syntax: 'using var d = new C();')
-    DeclarationGroup: 
-      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using var d = new C();')
-        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var d = new C()')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'using var d = new C();')
+        IVariableDeclarationOperation (1 declarators) (UsingKind: Using) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var d = new C()')
           Declarators:
               IVariableDeclaratorOperation (Symbol: C d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = new C()')
                 Initializer: 
@@ -4469,10 +4463,8 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                         null
           Initializer: 
             null
-  IUsingVariableDeclarationOperation (OperationKind.UsingVariableDeclaration, Type: null) (Syntax: 'using var e = new C();')
-    DeclarationGroup: 
-      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using var e = new C();')
-        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var e = new C()')
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'using var e = new C();')
+        IVariableDeclarationOperation (1 declarators) (UsingKind: Using) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var e = new C()')
           Declarators:
               IVariableDeclaratorOperation (Symbol: C e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = new C()')
                 Initializer: 
@@ -4510,10 +4502,8 @@ class C : IDisposable
 }
 ";
             string expectedOperationTree = @"
-IUsingVariableDeclarationOperation (OperationKind.UsingVariableDeclaration, Type: null) (Syntax: 'using C c = ...  = new C();')
-  DeclarationGroup: 
-    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using C c = ...  = new C();')
-      IVariableDeclarationOperation (3 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C c = new C ... e = new C()')
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'using C c = ...  = new C();')
+      IVariableDeclarationOperation (3 declarators) (UsingKind: Using) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C c = new C ... e = new C()')
         Declarators:
             IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
               Initializer: 

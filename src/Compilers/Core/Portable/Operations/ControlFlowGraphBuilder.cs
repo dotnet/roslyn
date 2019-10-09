@@ -1364,20 +1364,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return result ?? MakeInvalidOperation(originalOperation.Syntax, originalOperation.Type, ImmutableArray<IOperation>.Empty);
         }
 
-        private void VisitStatements(IList<IOperation> statements)
+        private void VisitStatements(ImmutableArray<IOperation> statements)
         {
-            for (int i = 0; i < statements.Count; i++)
+            for (int i = 0; i < statements.Length; i++)
             {
-                if (statements[i] is IUsingVariableDeclarationOperation usingDeclaration)
+                if (statements[i] is VariableDeclarationGroupOperation declarationGroup
+                    && declarationGroup.Declarations[0].UsingKind != UsingKind.None)
                 {
-                    ArrayBuilder<IOperation> followingStatements = new ArrayBuilder<IOperation>(statements.Count - i);
-                    for (int j = i + 1; j < statements.Count; j++)
+                    ArrayBuilder<IOperation> followingStatements = new ArrayBuilder<IOperation>(statements.Length - i);
+                    for (int j = i + 1; j < statements.Length; j++)
                     {
                         followingStatements.Add(statements[j]);
                     }
 
                     // visit the using decl with the following statements
-                    VisitUsingVariableDeclarationOperation(usingDeclaration, followingStatements.ToImmutableAndFree());
+                    VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements.ToImmutableAndFree());
                     break;
                 }
                 else
@@ -6838,27 +6839,31 @@ oneMoreTime:
             return GetCaptureReference(captureOutput, operation);
         }
 
-        private void VisitUsingVariableDeclarationOperation(IUsingVariableDeclarationOperation operation, ImmutableArray<IOperation> statements)
+        private void VisitUsingVariableDeclarationOperation(VariableDeclarationGroupOperation operation, ImmutableArray<IOperation> statements)
         {
             IOperation saveCurrentStatement = _currentStatement;
             _currentStatement = operation;
             StartVisitingStatement(operation);
 
+            var usingKind = operation.Declarations[0].UsingKind;
+            Debug.Assert(usingKind != UsingKind.None);
+
             // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
             BlockOperation logicalBlock = new BlockOperation(
                 operations: statements,
                 locals: default,
-                (operation as Operation).OwningSemanticModel,
+                operation.OwningSemanticModel,
                 operation.Syntax,
                 operation.Type,
                 operation.ConstantValue,
                 isImplicit: true);
 
+
             HandleUsingOperationParts(
-                resources: operation.DeclarationGroup,
+                resources: operation,
                 body: logicalBlock,
                 locals: default,
-                operation.IsAsynchronous);
+                isAsynchronous: usingKind == UsingKind.Asynchronous);
 
             FinishVisitingStatement(operation);
             _currentStatement = saveCurrentStatement;
