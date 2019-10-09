@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode nodeToAnalyze,
                 Binder binder,
                 ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.Builder analyzedNullabilityMap,
-                SnapshotManager.Builder newManagerOpt,
-                Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression> defaultValues)
+                SnapshotManager.Builder newManagerOpt)
             {
                 Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
                 var sharedState = _walkerSharedStates[incrementalSnapshot.SharedStateIndex];
@@ -70,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            returnTypesOpt: null,
                                            analyzedNullabilityMap,
                                            snapshotBuilderOpt: newManagerOpt,
-                                           defaultValues,
                                            isSpeculative: true),
                         variableState,
                         sharedState.Symbol);
