@@ -513,30 +513,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             var lazyCustomAttributesBag = _lazyCustomAttributesBag;
-            if (lazyCustomAttributesBag != null)
+
+            if (lazyCustomAttributesBag == null)
             {
-                return lazyCustomAttributesBag.Attributes;
+                LoadAndValidateAttributes(OneOrMany.Create(_syntax.AttributeLists), ref _lazyCustomAttributesBag);
+                lazyCustomAttributesBag = _lazyCustomAttributesBag;
             }
 
-            var bagCreatedOnThisThread = LoadAndValidateAttributes(OneOrMany.Create(_syntax.AttributeLists), ref _lazyCustomAttributesBag);
-            // PROTOTYPE: there is no completion part to set, but does the thread that wins the race need to do anything else?
-            return _lazyCustomAttributesBag.Attributes;
+            return lazyCustomAttributesBag.Attributes;
         }
 
         public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
         {
             var lazyReturnTypeCustomAttributesBag = _lazyReturnTypeCustomAttributesBag;
-            if (lazyReturnTypeCustomAttributesBag != null)
+            if (lazyReturnTypeCustomAttributesBag == null)
             {
-                return lazyReturnTypeCustomAttributesBag.Attributes;
+                LoadAndValidateAttributes(
+                    OneOrMany.Create(_syntax.AttributeLists),
+                    ref _lazyReturnTypeCustomAttributesBag,
+                    symbolPart: AttributeLocation.Return);
+                lazyReturnTypeCustomAttributesBag = _lazyReturnTypeCustomAttributesBag;
             }
 
-            var bagCreatedOnThisThread = LoadAndValidateAttributes(
-                OneOrMany.Create(_syntax.AttributeLists),
-                ref _lazyReturnTypeCustomAttributesBag,
-                symbolPart: AttributeLocation.Return);
-            // PROTOTYPE: there is no completion part to set, but does the thread that wins the race need to do anything else?
-            return _lazyReturnTypeCustomAttributesBag.Attributes;
+            return lazyReturnTypeCustomAttributesBag.Attributes;
         }
 
         public override int GetHashCode()

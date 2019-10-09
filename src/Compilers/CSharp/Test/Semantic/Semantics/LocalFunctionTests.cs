@@ -442,9 +442,7 @@ class C
             Assert.NotNull(symbol);
 
             var attributes = symbol.GetAttributes();
-            Assert.Single(attributes);
-
-            var attributeData = attributes[0];
+            var attributeData = attributes.Single();
             var aAttribute = comp.GetTypeByMetadataName("A");
             Assert.Equal(aAttribute, attributeData.AttributeClass);
             Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor);
@@ -495,9 +493,7 @@ class C
             Assert.NotNull(symbol);
 
             var attributes = symbol.GetAttributes();
-            Assert.Single(attributes);
-
-            var attributeData = attributes[0];
+            var attributeData = attributes.Single();
             var aAttribute = comp.GetTypeByMetadataName("A");
             Assert.Equal(aAttribute, attributeData.AttributeClass);
             Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor);
@@ -546,9 +542,7 @@ class C
             Assert.NotNull(symbol);
 
             var returnAttributes = symbol.GetReturnTypeAttributes();
-            Assert.Single(returnAttributes);
-
-            var attributeData = returnAttributes[0];
+            var attributeData = returnAttributes.Single();
             var aAttribute = comp.GetTypeByMetadataName("A");
             Assert.Equal(aAttribute, attributeData.AttributeClass);
             Assert.Equal(aAttribute.InstanceConstructors.Single(), attributeData.AttributeConstructor);
@@ -586,8 +580,8 @@ class C
             var paramSymbol = model.GetDeclaredSymbol(parameter);
 
             var attrs = paramSymbol.GetAttributes();
-            Assert.Single(attrs);
-            Assert.Equal(comp.GetTypeByMetadataName("A"), attrs[0].AttributeClass);
+            var attr = attrs.Single();
+            Assert.Equal(comp.GetTypeByMetadataName("A"), attr.AttributeClass);
         }
 
         [Fact]
@@ -3999,7 +3993,7 @@ class Test : System.Attribute
 }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
-            compilation.GetDiagnostics().Verify(
+            compilation.VerifyDiagnostics(
                 // (10,23): error CS0103: The name 'b2' does not exist in the current context
                 //             [Test(p = b2)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23),
