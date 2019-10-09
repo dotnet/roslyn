@@ -3609,14 +3609,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < parametersOpt.Length; i++)
                 {
                     var parameter = parametersOpt[i];
-                    // fill in unspecified optional arguments
+                    // Fill in unspecified optional arguments
+                    // Note that the order of visiting the optional arguments doesn't matter because they are constants.
                     if (parameter.IsOptional && !visitedParameters.Contains(parameter))
                     {
                         var annotations = GetParameterAnnotations(parameter);
 
                         if (!_defaultValues.TryGetValue((syntax, parameter), out var argument))
                         {
-                            _defaultValues[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, ThreeState.Unknown, localRewriter: null, _binder, Diagnostics);
+                            _defaultValues[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.True, localRewriter: null, _binder, Diagnostics);
                         }
                         resultsBuilder.Add(VisitArgumentEvaluate(argument, RefKind.None, annotations));
                         argumentsBuilder.Add(argument);
