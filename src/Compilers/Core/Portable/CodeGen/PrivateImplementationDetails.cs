@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal bool TryAddSynthesizedMethod(Cci.IMethodDefinition method)
         {
             Debug.Assert(!IsFrozen);
-#nullable disable // Can 'method.Name' be null?
+#nullable disable // Can 'method.Name' be null? https://github.com/dotnet/roslyn/issues/39166
             return _synthesizedMethods.TryAdd(method.Name, method);
 #nullable enable
         }

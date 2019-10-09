@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
                 if (this.HasUniqueSymbol)
                 {
                     arities = null;
-#nullable disable // Can '_uniqueSymbolOrArities' be null?
+#nullable disable // Can '_uniqueSymbolOrArities' be null? https://github.com/dotnet/roslyn/issues/39166
                     uniqueSymbol = (TSymbol)_uniqueSymbolOrArities;
 #nullable enable
                 }
