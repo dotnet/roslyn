@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Collections.Immutable;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -16,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
+        private const string s_symbolEqualsName = nameof(ISymbol.Equals);
+        public const string SymbolEqualityComparerName = "Microsoft.CodeAnalysis.SymbolEqualityComparer";
 
         public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
@@ -43,11 +47,29 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                context.RegisterOperationAction(context => HandleBinaryOperator(in context, symbolType), OperationKind.BinaryOperator);
+                // Check that the EqualityComparer exists and can be used, otherwise the Roslyn version
+                // being used it too low to need the change for method references
+                var operatorsToHandle = UseSymbolEqualityComparer(context.Compilation) ?
+                    new[] { OperationKind.BinaryOperator, OperationKind.Invocation } :
+                    new[] { OperationKind.BinaryOperator };
+
+                context.RegisterOperationAction(context => HandleOperation(in context, symbolType), operatorsToHandle);
             });
         }
 
-        private void HandleBinaryOperator(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
+        private void HandleOperation(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
+        {
+            if (context.Operation is IBinaryOperation)
+            {
+                HandleBinaryOperator(in context, symbolType);
+            }
+            else if (context.Operation is IInvocationOperation)
+            {
+                HandleInvocationOperation(in context, symbolType);
+            }
+        }
+
+        private static void HandleBinaryOperator(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
         {
             var binary = (IBinaryOperation)context.Operation;
             if (binary.OperatorKind != BinaryOperatorKind.Equals && binary.OperatorKind != BinaryOperatorKind.NotEquals)
@@ -90,24 +112,57 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             context.ReportDiagnostic(binary.Syntax.GetLocation().CreateDiagnostic(Rule));
         }
 
+        private static void HandleInvocationOperation(in OperationAnalysisContext context, INamedTypeSymbol symbolType)
+        {
+            var invocationOperation = (IInvocationOperation)context.Operation;
+            var method = invocationOperation.TargetMethod;
+            if (method.Name != s_symbolEqualsName)
+            {
+                return;
+            }
+
+            if (invocationOperation.Instance != null && !IsSymbolType(invocationOperation.Instance, symbolType))
+            {
+                return;
+            }
+
+            var parameters = invocationOperation.Arguments;
+            if (parameters.All(p => IsSymbolType(p.Value, symbolType)))
+            {
+                context.ReportDiagnostic(invocationOperation.Syntax.GetLocation().CreateDiagnostic(Rule));
+            }
+        }
+
         private static bool IsSymbolType(IOperation operation, INamedTypeSymbol symbolType)
         {
-            if (operation.Type is object)
+            if (operation.Type is object && IsSymbolType(operation.Type, symbolType))
             {
-                if (operation.Type.Equals(symbolType))
-                {
-                    return true;
-                }
-
-                if (operation.Type.AllInterfaces.Contains(symbolType))
-                {
-                    return true;
-                }
+                return true;
             }
 
             if (operation is IConversionOperation conversion)
             {
                 return IsSymbolType(conversion.Operand, symbolType);
+            }
+
+            return false;
+        }
+
+        private static bool IsSymbolType(ITypeSymbol typeSymbol, INamedTypeSymbol symbolType)
+        {
+            if (typeSymbol == null)
+            {
+                return false;
+            }
+
+            if (typeSymbol.Equals(symbolType))
+            {
+                return true;
+            }
+
+            if (typeSymbol.AllInterfaces.Contains(symbolType))
+            {
+                return true;
             }
 
             return false;
@@ -146,5 +201,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             return conversion.Type?.SpecialType == SpecialType.System_Object;
         }
+
+        public static bool UseSymbolEqualityComparer(Compilation compilation)
+        => compilation.GetTypeByMetadataName(SymbolEqualityComparerName) is object;
     }
 }

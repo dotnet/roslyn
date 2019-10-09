@@ -20,7 +20,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             var builder = PooledHashSet<SourceInfo>.GetInstance();
 
             builder.AddSourceInfo(
-                WellKnownTypeNames.SystemExceptionFullName,
+                WellKnownTypeNames.SystemException,
                 isInterface: false,
                 taintedProperties: new[] {
                     "Message",

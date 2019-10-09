@@ -101,7 +101,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         continue;
                     }
 
-                    if (wellKnownTypeProvider.TryGetTypeByMetadataName(kvp.Key.InstanceTypeName, out INamedTypeSymbol namedTypeSymbol))
+                    if (wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(kvp.Key.InstanceTypeName, out INamedTypeSymbol namedTypeSymbol))
                     {
                         pooledDictionary[(namedTypeSymbol, kvp.Key.derivedClasses)] = kvp.Key.InstanceTypeName;
                     }

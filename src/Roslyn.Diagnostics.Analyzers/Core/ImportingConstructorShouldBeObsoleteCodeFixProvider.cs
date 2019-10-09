@@ -81,7 +81,7 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var obsoleteAttributeSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName);
+            var obsoleteAttributeSymbol = semanticModel.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
             if (obsoleteAttributeSymbol is null)
             {
                 return document;
@@ -235,7 +235,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static SyntaxNode GenerateDescriptionArgument(SyntaxGenerator generator, SemanticModel semanticModel)
         {
-            var mefConstructionType = semanticModel.Compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.Host.Mef.MefConstruction");
+            var mefConstructionType = semanticModel.Compilation.GetTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisHostMefMefConstruction);
             var knownConstant = mefConstructionType?.GetMembers("ImportingConstructorMessage").OfType<IFieldSymbol>().Any();
 
             SyntaxNode attributeArgument;

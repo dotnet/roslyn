@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 _ = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(method, visitedInstance, visitedArguments, invokedAsDelegate, originalOperation, defaultValue);
 
                 if (visitedArguments.Length > 0 &&
-                    method.IsCollectionAddMethod(WellKnownTypeProvider.CollectionTypes))
+                    method.IsCollectionAddMethod(CollectionNamedTypes))
                 {
                     // FxCop compat: The object added to a collection is considered escaped.
                     var lastArgument = visitedArguments[visitedArguments.Length - 1];
@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 => IsSpecialFactoryMethod(method) || IsSpecialEmptyMember(method);
 
             /// <summary>
-            /// Returns true if this special static factory method whose name starts with "Create", such that 
+            /// Returns true if this special static factory method whose name starts with "Create", such that
             /// method's containing type is static OR a special type OR derives from or is same as the type of the field/property/method return.
             /// For example: class SomeType { static SomeType CreateXXX(...); }
             /// </summary>
