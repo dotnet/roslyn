@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -61,13 +62,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static async Task<SyntaxTreeIndex> GetIndexAsync(
             Document document,
+            bool loadOnly,
             CancellationToken cancellationToken)
         {
             // See if we already cached an index with this direct document index.  If so we can just
             // return it with no additional work.
             if (!s_documentToIndex.TryGetValue(document, out var index))
             {
-                index = await GetIndexWorkerAsync(document, cancellationToken).ConfigureAwait(false);
+                index = await GetIndexWorkerAsync(document, loadOnly, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfFalse(index != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
+
+                if (index == null && loadOnly)
+                {
+                    return null;
+                }
 
                 // Populate our caches with this data.
                 s_documentToIndex.GetValue(document, _ => index);
@@ -79,6 +87,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static async Task<SyntaxTreeIndex> GetIndexWorkerAsync(
             Document document,
+            bool loadOnly,
             CancellationToken cancellationToken)
         {
             var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
@@ -95,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // What we have in memory isn't valid.  Try to load from the persistence service.
             index = await LoadAsync(document, checksum, cancellationToken).ConfigureAwait(false);
-            if (index != null)
+            if (index != null || loadOnly)
             {
                 return index;
             }

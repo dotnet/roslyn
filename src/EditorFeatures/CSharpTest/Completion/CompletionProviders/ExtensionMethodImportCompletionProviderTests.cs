@@ -26,11 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         // -1 would disable timebox, whereas 0 means always timeout.
         private int TimeoutInMilliseconds { get; set; } = -1;
 
+        private bool IsExpandedCompletion { get; set; } = true;
+
         protected override void SetWorkspaceOptions(TestWorkspace workspace)
         {
             workspace.Options = workspace.Options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds);
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForImportCompletion, TimeoutInMilliseconds)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion);
         }
 
         protected override ExportProvider GetExportProvider()
@@ -816,6 +819,42 @@ namespace Baz
                  markup,
                  "ExtentionMethod",
                  inlineDescription: "");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ShouldNotProvideItemsIfIndexIsNotReady()
+        {
+            var file1 = $@"
+using System;
+
+namespace Foo
+{{
+    public static class ExtensionClass
+    {{
+        public static bool ExtentionMethod(this int x)
+            => true;
+    }}
+}}";
+            var file2 = $@"
+using System;
+
+namespace Baz
+{{
+    public class Bat
+    {{
+        public void M(int x)
+        {{
+            x.$$
+        }}
+    }}
+}}";
+            IsExpandedCompletion = false;
+            var markup = GetMarkup(file2, file1, ReferenceType.None);
+
+            await VerifyTypeImportItemIsAbsentAsync(
+                 markup,
+                 "ExtentionMethod",
+                 inlineDescription: "Foo");
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null)

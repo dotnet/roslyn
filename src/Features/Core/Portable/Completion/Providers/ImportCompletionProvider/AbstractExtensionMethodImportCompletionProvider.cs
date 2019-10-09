@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var project = completionContext.Document.Project;
 
-                var tick = Environment.TickCount;
                 using var allTypeNamesDisposer = PooledHashSet<string>.GetInstance(out var allTypeNames);
                 allTypeNames.Add(receiverTypeSymbol.MetadataName);
                 allTypeNames.AddRange(receiverTypeSymbol.GetBaseTypes().Concat(receiverTypeSymbol.GetAllInterfacesIncludingThis()).Select(s => s.MetadataName));
@@ -49,21 +48,140 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     allTypeNames.Add("Object");
                 }
 
-                var matchedMethods = await GetPossibleExtensionMethodMatchesAsync(project, allTypeNames, cancellationToken).ConfigureAwait(false);
-                telemetryCounter.TotalTypesChecked = Environment.TickCount - tick;
+                // We don't want to wait for creating indices from scratch unless user explicitly asked for unimported items (via expander).
+                var matchedMethods = await GetPossibleExtensionMethodMatchesAsync(project, allTypeNames, loadOnly: !isExpandedCompletion, cancellationToken).ConfigureAwait(false);
+                if (matchedMethods == null)
+                {
+                    return;
+                }
 
                 var assembly = (await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
                 using var itemsDisposer = ArrayBuilder<CompletionItem>.GetInstance(out var items);
 
-                tick = Environment.TickCount;
                 VisitNamespaceSymbol(assembly.GlobalNamespace, string.Empty, receiverTypeSymbol,
                     syntaxContext.SemanticModel, syntaxContext.Position, namespaceInScope, matchedMethods, items, telemetryCounter,
                     cancellationToken);
-                telemetryCounter.TotalExtensionMethodsChecked = Environment.TickCount - tick;
 
                 completionContext.AddItems(items);
+            }
+        }
 
-                telemetryCounter.TotalExtensionMethodsProvided = items.Count;
+        /// <summary>
+        /// Returns a multi-dictionary of mappings "FQN of containing type" => "extension method names"
+        /// </summary>
+        private static async Task<MultiDictionary<string, string>?> GetPossibleExtensionMethodMatchesAsync(
+            Project currentProject,
+            ISet<string> targetTypeNames,
+            bool loadOnly,
+            CancellationToken cancellationToken)
+        {
+            var solution = currentProject.Solution;
+            var graph = currentProject.Solution.GetProjectDependencyGraph();
+            var relevantProjectIds = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id)
+                                        .Concat(currentProject.Id);
+
+            using var syntaxDisposer = ArrayBuilder<SyntaxTreeIndex>.GetInstance(out var syntaxTreeIndexBuilder);
+            using var symbolDisposer = ArrayBuilder<SymbolTreeInfo>.GetInstance(out var symbolTreeInfoBuilder);
+            var peReferences = PooledHashSet<PortableExecutableReference>.GetInstance();
+
+            try
+            {
+                foreach (var projectId in relevantProjectIds.Concat(currentProject.Id))
+                {
+                    // Alway create indices for documents in current project if they don't exist.
+                    loadOnly &= projectId != currentProject.Id;
+
+                    var project = solution.GetProject(projectId);
+                    if (project == null || !project.SupportsCompilation)
+                    {
+                        continue;
+                    }
+
+                    // Transitively get all the PE references
+                    peReferences.AddRange(project.MetadataReferences.OfType<PortableExecutableReference>());
+                    foreach (var document in project.Documents)
+                    {
+                        var info = await document.GetSyntaxTreeIndexAsync(loadOnly, cancellationToken).ConfigureAwait(false);
+
+                        // Don't provide anyting if we don't have all the required SyntaxTreeIndex created.
+                        if (info == null)
+                        {
+                            return null;
+                        }
+
+                        if (info.ContainsExtensionMethod)
+                        {
+                            syntaxTreeIndexBuilder.Add(info);
+                        }
+                    }
+                }
+
+                foreach (var peReference in peReferences)
+                {
+                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                        solution, peReference, loadOnly, cancellationToken).ConfigureAwait(false);
+
+                    // Don't provide anyting if we don't have all the required SymbolTreeInfo created.
+                    if (info == null)
+                    {
+                        return null;
+                    }
+
+                    if (info.ContainsExtensionMethod)
+                    {
+                        symbolTreeInfoBuilder.Add(info);
+                    }
+                }
+
+                var results = new MultiDictionary<string, string>();
+
+                // Find matching extension methods from source.
+                foreach (var info in syntaxTreeIndexBuilder)
+                {
+                    // Add simple extension methods with matching target type name
+                    foreach (var targetTypeName in targetTypeNames)
+                    {
+                        if (!info.SimpleExtensionMethodInfo.TryGetValue(targetTypeName, out var methodInfoIndices))
+                        {
+                            continue;
+                        }
+
+                        foreach (var index in methodInfoIndices)
+                        {
+                            if (info.TryGetDeclaredSymbolInfo(index, out var methodInfo))
+                            {
+                                results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
+                            }
+                        }
+                    }
+
+                    // Add all complex extension methods, we will need to completely rely on symbols to match them.
+                    foreach (var index in info.ComplexExtensionMethodInfo)
+                    {
+                        if (info.TryGetDeclaredSymbolInfo(index, out var methodInfo))
+                        {
+                            results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
+                        }
+                    }
+                }
+
+                // Find matching extension methods from metadata
+                foreach (var info in symbolTreeInfoBuilder)
+                {
+                    foreach (var targetTypeName in targetTypeNames)
+                    {
+                        foreach (var methodInfo in info.GetMatchingExtensionMethodInfo(targetTypeName))
+                        {
+                            results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
+                        }
+                    }
+                }
+
+                return results;
+            }
+            finally
+            {
+                peReferences.Free();
             }
         }
 
@@ -149,101 +267,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return reducedMethodSymbol != null;
-        }
-
-        /// <summary>
-        /// Returns a multi-dictionary of mappings "FQN of containing type" => "extension method names"
-        /// </summary>
-        private static async Task<MultiDictionary<string, string>> GetPossibleExtensionMethodMatchesAsync(
-            Project currentProject,
-            ISet<string> targetTypeNames,
-            CancellationToken cancellationToken)
-        {
-            var solution = currentProject.Solution;
-            var graph = currentProject.Solution.GetProjectDependencyGraph();
-            var dependencies = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id);
-#nullable restore
-            var relevantProjects = dependencies.Select(solution.GetProject)
-                                                 .Where(p => p.SupportsCompilation)
-                                                 .Concat(currentProject);
-
-            using var syntaxDisposer = ArrayBuilder<SyntaxTreeIndex>.GetInstance(out var syntaxTreeIndexBuilder);
-            using var symbolDisposer = ArrayBuilder<SymbolTreeInfo>.GetInstance(out var symbolTreeInfoBuilder);
-            var peReferences = PooledHashSet<PortableExecutableReference>.GetInstance();
-
-            foreach (var project in relevantProjects)
-            {
-                // Transitively get all the PE references
-                peReferences.AddRange(project.MetadataReferences.OfType<PortableExecutableReference>());
-
-                foreach (var document in project.Documents)
-                {
-                    var info = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-                    if (info.ContainsExtensionMethod)
-                    {
-                        syntaxTreeIndexBuilder.Add(info);
-                    }
-                }
-            }
-#nullable enable
-
-            foreach (var peReference in peReferences)
-            {
-                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                    solution, peReference, loadOnly: true, cancellationToken).ConfigureAwait(false);
-
-                if (info.ContainsExtensionMethod)
-                {
-                    symbolTreeInfoBuilder.Add(info);
-                }
-            }
-
-            peReferences.Free();
-            var results = new MultiDictionary<string, string>();
-
-            // Find matching extension methods from source.
-            foreach (var info in syntaxTreeIndexBuilder)
-            {
-                // Add simple extension methods with matching target type name
-                foreach (var targetTypeName in targetTypeNames)
-                {
-                    if (!info.SimpleExtensionMethodInfo.TryGetValue(targetTypeName, out var methodInfoIndices))
-                    {
-                        continue;
-                    }
-
-                    foreach (var index in methodInfoIndices)
-                    {
-                        if (info.TryGetDeclaredSymbolInfo(index, out var methodInfo))
-                        {
-                            results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
-                        }
-                    }
-                }
-
-                // Add all complex extension methods, we will need to completely rely on symbols to match them.
-                foreach (var index in info.ComplexExtensionMethodInfo)
-                {
-                    if (info.TryGetDeclaredSymbolInfo(index, out var methodInfo))
-                    {
-                        results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
-                    }
-                }
-            }
-
-            // Find matching extension methods from metadata
-            foreach (var info in symbolTreeInfoBuilder)
-            {
-                foreach (var targetTypeName in targetTypeNames)
-                {
-                    foreach (var methodInfo in info.GetMatchingExtensionMethodInfo(targetTypeName))
-                    {
-                        results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
-                    }
-                }
-            }
-
-            return results;
         }
 
         private class TelemetryCounter : IDisposable

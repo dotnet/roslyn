@@ -173,8 +173,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
-            => SyntaxTreeIndex.GetIndexAsync(document, cancellationToken);
+        public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
+            => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
 
         /// <summary>
         /// Returns the semantic model for this document that may be produced from partial semantics. The semantic model

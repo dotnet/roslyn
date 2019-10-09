@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task ProcessDocumentWorkerAsync(Document document)
         {
             var index = await SyntaxTreeIndex.GetIndexAsync(
-                document, _cancellationToken).ConfigureAwait(false);
+                document, loadOnly: false, _cancellationToken).ConfigureAwait(false);
 
             if (_searchKind == SearchKind.StringLiterals)
             {
