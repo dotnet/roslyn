@@ -818,6 +818,28 @@ CodeStyleOptions.QualifyMethodAccess);
 CodeStyleOptions.QualifyMethodAccess);
         }
 
+        [WorkItem(38043, "https://github.com/dotnet/roslyn/issues/38043")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyLocalMethodAccess_NotSuggestedInNestedMethodCall()
+        {
+            await TestMissingAsyncWithOption(
+@"using System;
+
+class C
+{
+    void Method()
+    {
+        object LocalFunction() => new object();
+        this.Method2([|LocalFunction|]);
+    }
+
+    void Method2(Func<object> LocalFunction)
+    {
+    }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
+
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7587"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyEventAccess_EventSubscription()

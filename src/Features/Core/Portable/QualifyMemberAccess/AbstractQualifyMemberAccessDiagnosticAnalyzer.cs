@@ -152,7 +152,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             switch (operation)
             {
                 case IMemberReferenceOperation memberReferenceOperation:
-                    return memberReferenceOperation.Member == null || memberReferenceOperation.Member.IsStatic;
+                    return memberReferenceOperation.Member == null || memberReferenceOperation.Member.IsStatic ||
+                        memberReferenceOperation.Member is IMethodSymbol method && method.MethodKind == MethodKind.LocalFunction;
                 case IInvocationOperation invocationOperation:
                     return invocationOperation.TargetMethod == null || invocationOperation.TargetMethod.IsStatic;
                 default:
