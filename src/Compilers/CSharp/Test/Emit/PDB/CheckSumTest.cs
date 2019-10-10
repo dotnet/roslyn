@@ -287,7 +287,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NoResolver()
         {
             var comp = CSharpCompilation.Create(

@@ -4615,7 +4615,7 @@ End Class"
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         <WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")>
         Public Sub FilesOneWithNoMethodBody()
             Dim source1 =
@@ -4659,7 +4659,7 @@ End Class
 ")
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         <WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")>
         Public Sub SingleFileWithNoMethodBody()
             Dim source =
