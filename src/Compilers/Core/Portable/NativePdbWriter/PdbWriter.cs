@@ -5,11 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -742,33 +741,17 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Write document entries for any embedded text document that does not yet have an entry.
+        /// Write document entries for all debug documents that do not yet have an entry.
         /// </summary>
         /// <remarks>
         /// This is done after serializing method debug info to ensure that we embed all requested
         /// text even if there are no corresponding sequence points.
         /// </remarks>
-        public void WriteRemainingEmbeddedDocuments(ImmutableArray<DebugSourceDocument> embeddedDocuments)
+        public void WriteRemainingDebugDocuments(IReadOnlyDictionary<string, DebugSourceDocument> documents)
         {
-            foreach (var document in embeddedDocuments)
+            foreach (var kvp in documents.OrderBy(kvp => kvp.Key))
             {
-                Debug.Assert(!document.GetSourceInfo().EmbeddedTextBlob.IsDefault);
-                GetDocumentIndex(document);
-            }
-        }
-
-        /// <summary>
-        /// Write document entries for all debug documents that does not yet have an entry.
-        /// </summary>
-        /// <remarks>
-        /// This is done after serializing method debug info to ensure that we embed all requested
-        /// text even if there are no corresponding sequence points.
-        /// </remarks>
-        public void WriteRemainingDebugDocuments(ImmutableArray<DebugSourceDocument> documents)
-        {
-            foreach (var document in documents)
-            {
-                GetDocumentIndex(document);
+                GetDocumentIndex(kvp.Value);
             }
         }
     }

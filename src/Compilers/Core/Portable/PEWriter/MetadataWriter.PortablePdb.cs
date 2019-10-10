@@ -753,33 +753,17 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Add document entries for any embedded text document that does not yet have an entry.
+        /// Add document entries for all debug documents that do not yet have an entry.
         /// </summary>
         /// <remarks>
         /// This is done after serializing method debug info to ensure that we embed all requested
         /// text even if there are no corresponding sequence points.
         /// </remarks>
-        public void AddRemainingEmbeddedDocuments(ImmutableArray<DebugSourceDocument> documents)
+        public void AddRemainingDebugDocuments(IReadOnlyDictionary<string, DebugSourceDocument> documents)
         {
-            foreach (var document in documents)
+            foreach (var kvp in documents.OrderBy(kvp => kvp.Key))
             {
-                Debug.Assert(document.GetSourceInfo().EmbeddedTextBlob != null);
-                GetOrAddDocument(document, _documentIndex);
-            }
-        }
-
-        /// <summary>
-        /// Add document entries for all debug documents that does not yet have an entry.
-        /// </summary>
-        /// <remarks>
-        /// This is done after serializing method debug info to ensure that we embed all requested
-        /// text even if there are no corresponding sequence points.
-        /// </remarks>
-        public void AddRemainingDebugDocuments(ImmutableArray<DebugSourceDocument> documents)
-        {
-            foreach (var document in documents)
-            {
-                GetOrAddDocument(document, _documentIndex);
+                GetOrAddDocument(kvp.Value, _documentIndex);
             }
         }
 
