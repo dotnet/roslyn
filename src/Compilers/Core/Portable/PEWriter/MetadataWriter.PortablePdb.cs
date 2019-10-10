@@ -727,26 +727,33 @@ namespace Microsoft.Cci
 
         private DocumentHandle GetOrAddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, DocumentHandle> index)
         {
-            DocumentHandle documentHandle;
-            if (!index.TryGetValue(document, out documentHandle))
+            if (index.TryGetValue(document, out var documentHandle))
             {
-                DebugSourceInfo info = document.GetSourceInfo();
+                return documentHandle;
+            }
 
-                documentHandle = _debugMetadataOpt.AddDocument(
-                    name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
-                    hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
-                    hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
-                    language: _debugMetadataOpt.GetOrAddGuid(document.Language));
+            return AddDocument(document, index);
+        }
 
-                index.Add(document, documentHandle);
+        private DocumentHandle AddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, DocumentHandle> index)
+        {
+            DocumentHandle documentHandle;
+            DebugSourceInfo info = document.GetSourceInfo();
 
-                if (info.EmbeddedTextBlob != null)
-                {
-                    _debugMetadataOpt.AddCustomDebugInformation(
-                        parent: documentHandle,
-                        kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EmbeddedSource),
-                        value: _debugMetadataOpt.GetOrAddBlob(info.EmbeddedTextBlob));
-                }
+            documentHandle = _debugMetadataOpt.AddDocument(
+                name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
+                hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
+                hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
+                language: _debugMetadataOpt.GetOrAddGuid(document.Language));
+
+            index.Add(document, documentHandle);
+
+            if (info.EmbeddedTextBlob != null)
+            {
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: documentHandle,
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EmbeddedSource),
+                    value: _debugMetadataOpt.GetOrAddBlob(info.EmbeddedTextBlob));
             }
 
             return documentHandle;
@@ -765,7 +772,7 @@ namespace Microsoft.Cci
                 .Where(kvp => !_documentIndex.ContainsKey(kvp.Value))
                 .OrderBy(kvp => kvp.Key))
             {
-                GetOrAddDocument(kvp.Value, _documentIndex);
+                AddDocument(kvp.Value, _documentIndex);
             }
         }
 

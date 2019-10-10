@@ -571,6 +571,11 @@ namespace Microsoft.Cci
                 return documentIndex;
             }
 
+            return AddDocumentIndex(document);
+        }
+
+        private int AddDocumentIndex(DebugSourceDocument document)
+        {
             Guid algorithmId;
             ReadOnlySpan<byte> checksum;
             ReadOnlySpan<byte> embeddedSource;
@@ -596,7 +601,7 @@ namespace Microsoft.Cci
                 embeddedSource = null;
             }
 
-            documentIndex = _symWriter.DefineDocument(
+            int documentIndex = _symWriter.DefineDocument(
                 document.Location,
                 document.Language,
                 document.LanguageVendor,
@@ -753,7 +758,7 @@ namespace Microsoft.Cci
                 .Where(kvp => !_documentIndex.ContainsKey(kvp.Value))
                 .OrderBy(kvp => kvp.Key))
             {
-                GetDocumentIndex(kvp.Value);
+                AddDocumentIndex(kvp.Value);
             }
         }
     }
