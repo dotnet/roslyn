@@ -13,7 +13,9 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
+#if !NewSymbolApi
     [Export(typeof(ICommandHandler))]
+#endif
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToDefinition)]
     internal class GoToDefinitionCommandHandler :
