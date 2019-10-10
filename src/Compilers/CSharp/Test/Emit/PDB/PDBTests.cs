@@ -11040,7 +11040,7 @@ class Program
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")]
         public void FilesOneWithNoMethodBody()
         {
@@ -11090,7 +11090,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         [WorkItem(38954, "https://github.com/dotnet/roslyn/issues/38954")]
         public void SingleFileWithNoMethodBody()
         {
