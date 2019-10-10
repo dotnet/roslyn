@@ -63,8 +63,9 @@
           (1) C# local declaration statement
           (2) C# fixed statement
           (3) C# using statement
-          (4) VB Dim statement
-          (5) VB Using statement
+          (4) C# using declaration
+          (5) VB Dim statement
+          (6) VB Using statement
       </para>
     </Comments>
     <Property Name="Declarations" Type="ImmutableArray&lt;IVariableDeclarationOperation&gt;">
@@ -73,6 +74,13 @@
         <remarks>
           In C#, this will always be a single declaration, with all variables in <see cref="IVariableDeclarationOperation.Declarators" />.
         </remarks>
+      </Comments>
+    </Property>
+    <Property Name="DeclarationKind" Type="DeclarationKind">
+      <Comments>
+        <summary>
+          Specifies the <see cref="DeclarationKind" /> of this declaration group.
+        </summary>
       </Comments>
     </Property>
   </Node>
@@ -2001,7 +2009,6 @@
         Current Usage:
           (1) C# VariableDeclaration
           (2) C# fixed declarations
-          (3) C# using declarations
           (4) VB Dim statement declaration groups
           (5) VB Using statement variable declarations
       </para>
@@ -2032,13 +2039,6 @@
         <summary>
           Array dimensions supplied to an array declaration in error cases, ignored by the compiler. This is only used for the C# case of
           RankSpecifierSyntax nodes on an ArrayTypeSyntax.
-        </summary>
-      </Comments>
-    </Property>
-    <Property Name="DeclarationKind" Type="DeclarationKind">
-      <Comments>
-        <summary>
-          Specifies the <see cref="DeclarationKind" /> of this declaration.
         </summary>
       </Comments>
     </Property>

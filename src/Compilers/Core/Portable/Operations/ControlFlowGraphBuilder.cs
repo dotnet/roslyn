@@ -1369,7 +1369,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             for (int i = 0; i < statements.Length; i++)
             {
                 if (statements[i] is VariableDeclarationGroupOperation declarationGroup
-                    && declarationGroup.Declarations[0].DeclarationKind != DeclarationKind.Default)
+                    && declarationGroup.DeclarationKind != DeclarationKind.Default)
                 {
                     ArrayBuilder<IOperation> followingStatements = new ArrayBuilder<IOperation>(statements.Length - i);
                     for (int j = i + 1; j < statements.Length; j++)
@@ -6845,8 +6845,8 @@ oneMoreTime:
             _currentStatement = operation;
             StartVisitingStatement(operation);
 
-            var usingKind = operation.Declarations[0].DeclarationKind;
-            Debug.Assert(usingKind != DeclarationKind.Default);
+            var declarationKind = operation.DeclarationKind;
+            Debug.Assert(declarationKind != DeclarationKind.Default);
 
             // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
             BlockOperation logicalBlock = new BlockOperation(
@@ -6863,7 +6863,7 @@ oneMoreTime:
                 resources: operation,
                 body: logicalBlock,
                 locals: default,
-                isAsynchronous: usingKind == DeclarationKind.AsynchronousUsing);
+                isAsynchronous: declarationKind == DeclarationKind.AsynchronousUsing);
 
             FinishVisitingStatement(operation);
             _currentStatement = saveCurrentStatement;

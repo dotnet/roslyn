@@ -451,7 +451,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation)
         {
             var variablesCountStr = $"{operation.Declarations.Length} declarations";
-            LogString($"{nameof(IVariableDeclarationGroupOperation)} ({variablesCountStr})");
+            var declarationKind = operation.DeclarationKind != DeclarationKind.Default ? $", DeclarationKind: {operation.DeclarationKind}" : string.Empty;
+            LogString($"{nameof(IVariableDeclarationGroupOperation)} ({variablesCountStr}{declarationKind})");
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitVariableDeclarationGroup(operation);
@@ -475,10 +476,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var variableCount = operation.Declarators.Length;
             LogString($"{nameof(IVariableDeclarationOperation)} ({variableCount} declarators)");
-            if (operation.DeclarationKind != DeclarationKind.Default)
-            {
-                LogString($" (DeclarationKind: {operation.DeclarationKind})");
-            }
             LogCommonPropertiesAndNewLine(operation);
 
             if (!operation.IgnoredDimensions.IsEmpty)

@@ -462,7 +462,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 builder.Add(New VariableDeclarationOperation(declarators,
                                                          initializer,
                                                          ImmutableArray(Of IOperation).Empty,
-                                                         DeclarationKind.Default,
                                                          _semanticModel,
                                                          declarationGroup.Key,
                                                          type:=Nothing,
@@ -489,6 +488,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationGroupOperation
             Return New VariableDeclarationGroupOperation(
                             GetVariableDeclarationStatementVariables(resourceList),
+                            DeclarationKind.Default,
                             _semanticModel,
                             syntax,
                             type:=Nothing,
