@@ -31,7 +31,7 @@
     <CodeStyleLayerCodeAnalysisVersion>2.8.2</CodeStyleLayerCodeAnalysisVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.0-beta1-63310-01</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.3.1-beta3-19454-05</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>16.4.182-g17f12fd24b</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>16.4.187-g51f9304c6b</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
     <MicrosoftVisualStudioLanguageServerPackagesVersion>16.3.27-develop-gdd55e997</MicrosoftVisualStudioLanguageServerPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>16.4.29407.28-pre</MicrosoftVisualStudioShellPackagesVersion>
