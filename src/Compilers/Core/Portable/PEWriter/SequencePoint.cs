@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
@@ -27,7 +29,7 @@ namespace Microsoft.Cci
             int endLine,
             ushort endColumn)
         {
-            Debug.Assert(document != null);
+            RoslynDebug.Assert(document != null);
 
             Offset = offset;
             StartLine = startLine;
@@ -44,7 +46,7 @@ namespace Microsoft.Cci
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             throw ExceptionUtilities.Unreachable;
         }
