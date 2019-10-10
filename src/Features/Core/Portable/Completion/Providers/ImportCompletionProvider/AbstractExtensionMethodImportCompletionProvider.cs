@@ -31,10 +31,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool isExpandedCompletion,
             CancellationToken cancellationToken)
         {
-            using var telemetryCounter = new TelemetryCounter();
-
             if (TryGetReceiverTypeSymbol(syntaxContext, out var receiverTypeSymbol))
             {
+                using var telemetryCounter = new TelemetryCounter();
+                var ticks = Environment.TickCount;
+
                 var project = completionContext.Document.Project;
 
                 using var allTypeNamesDisposer = PooledHashSet<string>.GetInstance(out var allTypeNames);
@@ -49,8 +50,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // We don't want to wait for creating indices from scratch unless user explicitly asked for unimported items (via expander).
                 var matchedMethods = await ExtensionMethodFilteringService.GetPossibleExtensionMethodMatchesAsync(project, allTypeNames.ToImmutableHashSet(), loadOnly: !isExpandedCompletion, cancellationToken).ConfigureAwait(false);
+
+                telemetryCounter.GetFilterTicks = Environment.TickCount - ticks;
+                ticks = Environment.TickCount;
+
                 if (matchedMethods == null)
                 {
+                    telemetryCounter.NoFilter = true;
                     return;
                 }
 
@@ -62,6 +68,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     cancellationToken);
 
                 completionContext.AddItems(items);
+
+                telemetryCounter.GetSymbolTicks = Environment.TickCount - ticks;
+                telemetryCounter.TotalExtensionMethodsProvided = items.Count;
             }
         }
 
@@ -74,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             HashSet<string> namespaceFilter,
             MultiDictionary<string, string> methodNameFilter,
             ArrayBuilder<CompletionItem> builder,
-            TelemetryCounter counter,
+            TelemetryCounter telemetryCounter,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -82,7 +91,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var memberNamespace in namespaceSymbol.GetNamespaceMembers())
             {
-                VisitNamespaceSymbol(memberNamespace, containingNamespace, receiverTypeSymbol, senamticModel, position, namespaceFilter, methodNameFilter, builder, counter, cancellationToken);
+                VisitNamespaceSymbol(
+                    memberNamespace, containingNamespace, receiverTypeSymbol, senamticModel, position, namespaceFilter,
+                    methodNameFilter, builder, telemetryCounter, cancellationToken);
             }
 
             if (namespaceFilter.Contains(containingNamespace))
@@ -95,9 +106,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 if (TypeMightContainMatches(containgType, containingNamespace, position, senamticModel, methodNameFilter, out var methodNames))
                 {
+                    telemetryCounter.IncreaseTotalTypesChecked();
+
                     var methodSymbols = containgType.GetMembers().OfType<IMethodSymbol>();
                     foreach (var methodSymbol in methodSymbols)
                     {
+                        telemetryCounter.IncreaseTotalExtensionMethodsChecked();
+
                         if (TryGetMatchingExtensionMethod(methodSymbol, methodNames, senamticModel, position, receiverTypeSymbol, out var matchedMethodSymbol))
                         {
                             builder.Add(ImportCompletionItem.Create(matchedMethodSymbol, containingNamespace, "<>"));
@@ -151,23 +166,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private class TelemetryCounter : IDisposable
         {
-            public int TotalTypesChecked { get; set; }
-            public int TotalExtensionMethodsChecked { get; set; }
+            public int TotalTypesChecked { get; private set; }
+            public int TotalExtensionMethodsChecked { get; private set; }
             public int TotalExtensionMethodsProvided { get; set; }
-            protected int Tick { get; }
+            public int GetFilterTicks { get; set; }
+            public int GetSymbolTicks { get; set; }
+            public bool NoFilter { get; set; }
 
-            public TelemetryCounter()
-            {
-                Tick = Environment.TickCount;
-            }
+            public void IncreaseTotalTypesChecked() => TotalTypesChecked++;
+            public void IncreaseTotalExtensionMethodsChecked() => TotalExtensionMethodsChecked++;
 
             public void Dispose()
             {
-                var delta = Environment.TickCount - Tick;
-                CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(delta);
+                CompletionProvidersLogger.LogExtensionMethodCompletionGetFilterTicksDataPoint(GetFilterTicks);
+                CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolTicksDataPoint(GetSymbolTicks);
+
                 CompletionProvidersLogger.LogExtensionMethodCompletionTypesCheckedDataPoint(TotalTypesChecked);
                 CompletionProvidersLogger.LogExtensionMethodCompletionMethodsCheckedDataPoint(TotalExtensionMethodsChecked);
                 CompletionProvidersLogger.LogExtensionMethodCompletionMethodsProvidedDataPoint(TotalExtensionMethodsProvided);
+
+                if (NoFilter)
+                {
+                    CompletionProvidersLogger.LogExtensionMethodCompletionNoFilter();
+                }
             }
         }
     }
