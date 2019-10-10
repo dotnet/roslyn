@@ -3270,7 +3270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 parentOperator.Event.Equals(accessSymbol, TypeCompareKind.AllNullableIgnoreOptions):
                     // When we're looking at the left-hand side of an event assignment, we synthesize a BoundEventAccess node. This node does not have
                     // nullability information, however, so if we're in that case then we need to grab the event symbol from the parent event assignment
-                    // which does have the nullability-reinfered symbol
+                    // which does have the nullability-reinferred symbol
                     symbols = ImmutableArray.Create<Symbol>(parentOperator.Event);
                     resultKind = parentOperator.ResultKind;
                     break;
