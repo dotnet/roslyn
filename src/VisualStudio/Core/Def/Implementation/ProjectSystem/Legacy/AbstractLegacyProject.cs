@@ -388,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // declared in the compilation.
             // 
             // Unfortunately, although being different concepts, default namespace and root namespace are almost
-            // used interchangebly in VS. For example, (1) the value is define in "rootnamespace" property in project 
+            // used interchangeably in VS. For example, (1) the value is define in "rootnamespace" property in project 
             // files and, (2) the property name we use to call into hierarchy below to retrieve the value is 
             // called "DefaultNamespace".
 
