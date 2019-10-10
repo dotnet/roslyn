@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.MultipleLocalDeclarations:
                 case BoundKind.UsingLocalDeclarations:
                     {
-                        var multipleDeclaration = (BoundMultipleLocalDeclarations)declaration;
+                        var multipleDeclaration = (BoundMultipleLocalDeclarationsBase)declaration;
                         var builder = ArrayBuilder<IVariableDeclaratorOperation>.GetInstance(multipleDeclaration.LocalDeclarations.Length);
                         foreach (var decl in multipleDeclaration.LocalDeclarations)
                         {
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.MultipleLocalDeclarations:
                 case BoundKind.UsingLocalDeclarations:
                     {
-                        var declarations = ((BoundMultipleLocalDeclarations)declaration).LocalDeclarations;
+                        var declarations = ((BoundMultipleLocalDeclarationsBase)declaration).LocalDeclarations;
                         var dimensions = declarations.Length > 0
                             ? declarations[0].DeclaredTypeOpt.BoundDimensionsOpt
                             : ImmutableArray<BoundExpression>.Empty;

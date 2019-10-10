@@ -2647,19 +2647,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundMultipleLocalDeclarations : BoundStatement
+    internal abstract partial class BoundMultipleLocalDeclarationsBase : BoundStatement
     {
-        protected BoundMultipleLocalDeclarations(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
+        protected BoundMultipleLocalDeclarationsBase(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
             : base(kind, syntax, hasErrors)
-        {
-
-            Debug.Assert(!localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-            this.LocalDeclarations = localDeclarations;
-        }
-
-        public BoundMultipleLocalDeclarations(SyntaxNode syntax, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
-            : base(BoundKind.MultipleLocalDeclarations, syntax, hasErrors || localDeclarations.HasErrors())
         {
 
             Debug.Assert(!localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -2669,6 +2660,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public ImmutableArray<BoundLocalDeclaration> LocalDeclarations { get; }
+    }
+
+    internal sealed partial class BoundMultipleLocalDeclarations : BoundMultipleLocalDeclarationsBase
+    {
+        public BoundMultipleLocalDeclarations(SyntaxNode syntax, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
+            : base(BoundKind.MultipleLocalDeclarations, syntax, localDeclarations, hasErrors || localDeclarations.HasErrors())
+        {
+
+            Debug.Assert(!localDeclarations.IsDefault, "Field 'localDeclarations' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+        }
+
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitMultipleLocalDeclarations(this);
 
@@ -2684,7 +2687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundUsingLocalDeclarations : BoundMultipleLocalDeclarations
+    internal sealed partial class BoundUsingLocalDeclarations : BoundMultipleLocalDeclarationsBase
     {
         public BoundUsingLocalDeclarations(SyntaxNode syntax, MethodSymbol disposeMethodOpt, Conversion iDisposableConversion, AwaitableInfo? awaitOpt, ImmutableArray<BoundLocalDeclaration> localDeclarations, bool hasErrors = false)
             : base(BoundKind.UsingLocalDeclarations, syntax, localDeclarations, hasErrors || localDeclarations.HasErrors())
