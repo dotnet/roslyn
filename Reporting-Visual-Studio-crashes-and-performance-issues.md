@@ -45,6 +45,16 @@ If you're not sure what's causing your crashes or they seem random, then you can
 "DumpFolder"="C:\\Crashdumps"
 "DumpCount"=dword:00000005
 "DumpType"=dword:00000002
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\ServiceHub.RoslynCodeAnalysisService32.exe]
+"DumpFolder"="C:\\Crashdumps"
+"DumpCount"=dword:00000005
+"DumpType"=dword:00000002
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\ServiceHub.RoslynCodeAnalysisService.exe]
+"DumpFolder"="C:\\Crashdumps"
+"DumpCount"=dword:00000005
+"DumpType"=dword:00000002
 ```
 
 ⚠️ Each dump file produced by this method will be up to 4GiB in size. Make sure to set `DumpFolder` to a location with adequate drive space or adjust the `DumpCount` appropriately.
