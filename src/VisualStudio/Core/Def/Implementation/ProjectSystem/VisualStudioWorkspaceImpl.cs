@@ -337,31 +337,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var currentSolution = this.CurrentSolution;
             var projectChanges = newSolution.GetChanges(currentSolution).GetProjectChanges().ToList();
 
-            var projectsToLoad = new HashSet<Guid>();
-            foreach (var pc in projectChanges)
-            {
-                if (pc.GetAddedAdditionalDocuments().Any() ||
-                    pc.GetAddedAnalyzerConfigDocuments().Any() ||
-                    pc.GetAddedAnalyzerReferences().Any() ||
-                    pc.GetAddedDocuments().Any() ||
-                    pc.GetAddedMetadataReferences().Any() ||
-                    pc.GetAddedProjectReferences().Any() ||
-                    pc.GetRemovedAdditionalDocuments().Any() ||
-                    pc.GetRemovedAnalyzerConfigDocuments().Any() ||
-                    pc.GetRemovedAnalyzerReferences().Any() ||
-                    pc.GetRemovedDocuments().Any() ||
-                    pc.GetRemovedMetadataReferences().Any() ||
-                    pc.GetRemovedProjectReferences().Any())
-                {
-                    var projectGuid = GetProjectGuid(pc.ProjectId);
-
-                    if (projectGuid != Guid.Empty)
-                    {
-                        projectsToLoad.Add(projectGuid);
-                    }
-                }
-            }
-
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
             var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).Where(CanApplyChange).ToList();
             if (changedDocs.Count > 0)
