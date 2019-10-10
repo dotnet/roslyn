@@ -1714,7 +1714,7 @@ This version used in: {2}</value>
   <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
     <value>Add null checks for all parameters</value>
   </data>
-  <data name="Add_static_modifier" xml:space="preserve">
-    <value>Add the 'static' modifier</value>
+  <data name="Make_member_static" xml:space="preserve">
+    <value>Make static</value>
   </data>
 </root>

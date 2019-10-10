@@ -9,44 +9,48 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.AddStaticModifier
+namespace Microsoft.CodeAnalysis.MakeMemberStatic
 {
-    internal abstract class AbstractAddStaticModifierCodeFixProvider
+    internal abstract class AbstractMakeMemberStaticCodeFixProvider
         : SyntaxEditorBasedCodeFixProvider
     {
-        protected abstract SyntaxNode MapToDeclarator(SyntaxNode declaration);
-
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            if (context.Diagnostics.Length != 1 ||
+                context.Diagnostics[0].Location?.FindNode(context.CancellationToken) == null)
+            {
+                return Task.CompletedTask;
+            }
+
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
+
             return Task.CompletedTask;
         }
 
-        protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
+        protected sealed override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var diagnostic in diagnostics)
+            for (int i = 0; i < diagnostics.Length; i++)
             {
-                var declaration = diagnostic.Location.FindNode(cancellationToken);
-                var declarator = MapToDeclarator(declaration);
-
-                var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
-
-                editor.ReplaceNode(declaration,
+                var declaration = diagnostics[i].Location?.FindNode(cancellationToken);
+                if (declaration != null)
+                {
+                    editor.ReplaceNode(declaration,
                     (currentDeclaration, generator) => generator.WithModifiers(currentDeclaration, DeclarationModifiers.Static));
+                }
             }
+
+            return Task.CompletedTask;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_static_modifier, createChangedDocument, nameof(AbstractAddStaticModifierCodeFixProvider))
+                : base(FeaturesResources.Make_member_static, createChangedDocument, nameof(AbstractMakeMemberStaticCodeFixProvider))
             {
             }
         }
