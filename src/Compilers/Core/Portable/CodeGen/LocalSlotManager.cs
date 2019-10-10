@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -63,19 +65,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         // maps local identities to locals.
-        private Dictionary<ILocalSymbol, LocalDefinition> _localMap;
+        private Dictionary<ILocalSymbol, LocalDefinition>? _localMap;
 
         // pool of free slots partitioned by their signature.
-        private KeyedStack<LocalSignature, LocalDefinition> _freeSlots;
+        private KeyedStack<LocalSignature, LocalDefinition>? _freeSlots;
 
         // all locals in order
-        private ArrayBuilder<Cci.ILocalDefinition> _lazyAllLocals;
+        private ArrayBuilder<Cci.ILocalDefinition>? _lazyAllLocals;
 
         // An optional allocator that provides slots for locals.
         // Used when emitting an update to a method body during EnC.
-        private readonly VariableSlotAllocator _slotAllocatorOpt;
+        private readonly VariableSlotAllocator? _slotAllocatorOpt;
 
-        public LocalSlotManager(VariableSlotAllocator slotAllocatorOpt)
+        public LocalSlotManager(VariableSlotAllocator? slotAllocatorOpt)
         {
             _slotAllocatorOpt = slotAllocatorOpt;
 
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<string> tupleElementNames,
             bool isSlotReusable)
         {
-            LocalDefinition local;
+            LocalDefinition? local;
 
             if (!isSlotReusable || !FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
             {
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<bool> dynamicTransformFlags = default(ImmutableArray<bool>),
             ImmutableArray<string> tupleElementNames = default(ImmutableArray<string>))
         {
-            LocalDefinition local;
+            LocalDefinition? local;
             if (!FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
             {
                 local = this.DeclareLocalImpl(
@@ -189,8 +191,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private LocalDefinition DeclareLocalImpl(
             Cci.ITypeReference type,
-            ILocalSymbolInternal symbolOpt,
-            string nameOpt,
+            ILocalSymbolInternal? symbolOpt,
+            string? nameOpt,
             SynthesizedLocalKind kind,
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
