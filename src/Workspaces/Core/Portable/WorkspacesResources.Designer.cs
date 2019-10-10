@@ -1972,7 +1972,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to hexidecimal escape.
+        ///   Looks up a localized string similar to hexadecimal escape.
         /// </summary>
         internal static string Regex_hexadecimal_escape_short {
             get {
