@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader;
 using System;
@@ -29,16 +31,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public readonly ConcurrentDictionary<IMethodSymbol, MethodData> Methods = new ConcurrentDictionary<IMethodSymbol, MethodData>();
 
         // The emitted module.
-        public CommonPEModuleBuilder Module;
+        public CommonPEModuleBuilder? Module;
 
-        public Func<ISymWriterMetadataProvider, SymUnmanagedWriter> SymWriterFactory;
+        public Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? SymWriterFactory;
 
         public ILBuilder GetIL(Func<IMethodSymbol, bool> predicate)
         {
             return Methods.Single(p => predicate(p.Key)).Value.ILBuilder;
         }
 
-        private ImmutableDictionary<string, MethodData> _lazyMethodsByName;
+        private ImmutableDictionary<string, MethodData>? _lazyMethodsByName;
 
         // Returns map indexed by name for those methods that have a unique name.
         public ImmutableDictionary<string, MethodData> GetMethodsByName()
