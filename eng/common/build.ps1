@@ -123,13 +123,6 @@ try {
     $nodeReuse = $false
   }
 
-  # Import custom tools configuration, if present in the repo.
-  # Note: Import in global scope so that the script set top-level variables without qualification.
-  $configureToolsetScript = Join-Path $EngRoot "configure-toolset.ps1"
-  if (Test-Path $configureToolsetScript) {
-    . $configureToolsetScript
-  }
-
   if (($restore) -and ($null -eq $env:DisableNativeToolsetInstalls)) {
     InitializeNativeTools
   }

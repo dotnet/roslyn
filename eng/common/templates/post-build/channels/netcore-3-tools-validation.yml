@@ -5,11 +5,11 @@ parameters:
   publishInstallersAndChecksums: false
 
 stages:
-- stage: PVR_Publish
+- stage: NetCore_3_Tools_Validation_Publish
   dependsOn: ${{ parameters.dependsOn }}
   variables:
     - template: ../common-variables.yml
-  displayName: .NET Tools - Validation Publishing
+  displayName: .NET 3 Tools - Validation Publishing
   jobs:
   - template: ../setup-maestro-vars.yml
 
@@ -23,7 +23,7 @@ stages:
         value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.BARBuildId'] ]
       - name: IsStableBuild
         value: $[ dependencies.setupMaestroVars.outputs['setReleaseVars.IsStableBuild'] ]
-    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.PublicValidationRelease_30_Channel_Id))
+    condition: contains(dependencies.setupMaestroVars.outputs['setReleaseVars.InitialChannels'], format('[{0}]', variables.NETCore_3_Tools_Validation_Channel_Id))
     pool:
       vmImage: 'windows-2019'
     steps:
@@ -94,4 +94,4 @@ stages:
 
       - template: ../../steps/promote-build.yml
         parameters:
-          ChannelId: ${{ variables.PublicValidationRelease_30_Channel_Id }}
+          ChannelId: ${{ variables.NETCore_3_Tools_Validation_Channel_Id }}

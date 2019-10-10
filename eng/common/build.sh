@@ -196,19 +196,6 @@ function Build {
   ExitWithExitCode 0
 }
 
-# Import custom tools configuration, if present in the repo.
-configure_toolset_script="$eng_root/configure-toolset.sh"
-if [[ -a "$configure_toolset_script" ]]; then
-  . "$configure_toolset_script"
-fi
-
-# TODO: https://github.com/dotnet/arcade/issues/1468
-# Temporary workaround to avoid breaking change.
-# Remove once repos are updated.
-if [[ -n "${useInstalledDotNetCli:-}" ]]; then
-  use_installed_dotnet_cli="$useInstalledDotNetCli"
-fi
-
 if [[ "$restore" == true && -z ${DisableNativeToolsetInstalls:-} ]]; then
   InitializeNativeTools
 fi

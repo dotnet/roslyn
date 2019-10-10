@@ -599,3 +599,10 @@ Write-PipelineSetVariable -Name 'Artifacts.Toolset' -Value $ToolsetDir
 Write-PipelineSetVariable -Name 'Artifacts.Log' -Value $LogDir
 Write-PipelineSetVariable -Name 'TEMP' -Value $TempDir
 Write-PipelineSetVariable -Name 'TMP' -Value $TempDir
+
+# Import custom tools configuration, if present in the repo.
+# Note: Import in global scope so that the script set top-level variables without qualification.
+$configureToolsetScript = Join-Path $EngRoot "configure-toolset.ps1"
+if (Test-Path $configureToolsetScript) {
+    . $configureToolsetScript
+}
