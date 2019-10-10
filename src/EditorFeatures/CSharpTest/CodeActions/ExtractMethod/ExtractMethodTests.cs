@@ -3054,5 +3054,74 @@ class C
         return (string?)o;
     }
 }");
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableNonNullFlowWithExplicitCastSelected()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = [|(string?)o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = new object();
+        var s = {|Rename:GetS|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static string? GetS(object o)
+    {
+        return (string?)o;
+    }
+}");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public Task TestExtractNullableToNonNullableWithExplicitCastSelected()
+        => TestInRegularAndScriptAsync(
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = [|(string)o|];
+        Console.WriteLine(s);
+    }
+}",
+@"#nullable enable
+
+using System;
+
+class C
+{
+    void M()
+    {
+        object? o = null;
+        var s = {|Rename:GetS|}(o);
+        Console.WriteLine(s);
+    }
+
+    private static string? GetS(object? o)
+    {
+        return (string)o;
+    }
+}");
     }
 }

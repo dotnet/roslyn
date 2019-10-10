@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     if (node.Parent is CastExpressionSyntax castExpression)
                     {
-                        return model.GetTypeInfo(castExpression).GetTypeWithAnnotatedNullability();
+                        return model.GetTypeInfo(castExpression).GetTypeWithFlowNullability();
                     }
                 }
 
