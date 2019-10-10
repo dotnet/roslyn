@@ -204,7 +204,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return ZipSlipSources.SourceInfos;
 
                 case SinkKind.HardcodedEncryptionKey:
-                    return HardcodedEncryptionKeySources.SourceInfos;
+                    return HardcodedBytesSources.SourceInfos;
+
+                case SinkKind.HardcodedCertificate:
+                    return HardcodedCertificateSources.SourceInfos.AddRange(HardcodedBytesSources.SourceInfos);
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
@@ -237,6 +240,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Redirect:
                 case SinkKind.Xaml:
                 case SinkKind.HardcodedEncryptionKey:
+                case SinkKind.HardcodedCertificate:
                     return ImmutableHashSet<SanitizerInfo>.Empty;
 
                 case SinkKind.ZipSlip:
@@ -291,6 +295,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.HardcodedEncryptionKey:
                     return HardcodedEncryptionKeySinks.SinkInfos;
+
+                case SinkKind.HardcodedCertificate:
+                    return HardcodedCertificateSinks.SinkInfos;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
