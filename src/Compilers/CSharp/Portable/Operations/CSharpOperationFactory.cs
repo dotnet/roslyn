@@ -343,14 +343,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
         {
-            //TODO: We can get rid of this once we implement UsingLocalDeclaration operations correctly, instead of just using an operationNone.
-            //For now we return a single child consisting of the using declaration parsed as if it were a standard variable declaration.
-            //See: https://github.com/dotnet/roslyn/issues/32100
-            if (boundNode is BoundUsingLocalDeclarations boundUsingLocalDeclarations)
-            {
-                return ImmutableArray.Create<IOperation>(CreateBoundMultipleLocalDeclarationsOperation(boundUsingLocalDeclarations));
-            }
-
             var boundNodeWithChildren = (IBoundNodeWithIOperationChildren)boundNode;
             var children = boundNodeWithChildren.Children;
             if (children.IsDefaultOrEmpty)
