@@ -4,8 +4,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     <[UseExportProvider]>
     Public Class CSharpGoToBaseTests
         Inherits GoToBaseTestsBase
-        Private Overloads Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True) As Task
-            Await TestAsync(source, LanguageNames.CSharp, shouldSucceed)
+        Private Overloads Async Function TestAsync(source As String, Optional shouldSucceed As Boolean = True,
+                                                   Optional metadataDefinitions As String() = Nothing) As Task
+            Await TestAsync(source, LanguageNames.CSharp, shouldSucceed, metadataDefinitions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithSingleClass() As Task
-            Await TestAsync("class $$C { }")
+            Await TestAsync("class $$C { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -29,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
 
 class $$D : C
 {
-}")
+}", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -37,7 +38,7 @@ class $$D : C
             Await TestAsync(
 "interface [|I|] { }
 abstract class [|C|] : I { }
-class $$D : C { }")
+class $$D : C { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -46,7 +47,7 @@ class $$D : C { }")
 "class [|D|] { }
 sealed class $$C : D
 {
-}")
+}", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -66,14 +67,14 @@ sealed class $$C : D
 
 class $$D : C
 {
-}")
+}", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithSingleClassImplementation() As Task
             Await TestAsync(
 "class $$C : I { }
-interface [|I|] { }")
+interface [|I|] { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -81,7 +82,7 @@ interface [|I|] { }")
             Await TestAsync(
 "class $$C : I { }
 class D : I { }
-interface [|I|] { }")
+interface [|I|] { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -96,7 +97,7 @@ interface [|I2|] : I { }
 interface I1 : I { }
 interface [|I|] : J1, J2 { }
 interface [|J1|] { }
-interface [|J2|] { }")
+interface [|J2|] { }", metadataDefinitions:={"mscorlib:Object"})
         End Function
 
 #End Region
@@ -108,14 +109,14 @@ interface [|J2|] { }")
             Await TestAsync(
 "struct $$C
 {
-}")
+}", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithSingleStructImplementation() As Task
             Await TestAsync(
 "struct $$C : I { }
-interface [|I|] { }")
+interface [|I|] { }", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -126,7 +127,7 @@ interface [|I2|] : I { }
 interface I1 : I { }
 interface [|I|] : J1, J2 { }
 interface [|J1|] { }
-interface [|J2|] { }")
+interface [|J2|] { }", metadataDefinitions:={"mscorlib:Object", "mscorlib:ValueType"})
         End Function
 
 #End Region
@@ -283,11 +284,12 @@ interface I { void [|M|](); }")
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithVirtualMethodHiddenWithInterfaceOnBaseClass() As Task
-            ' We should not find a hidden method.
+            ' We should not find hidden methods 
+            ' and methods in interfaces if hidden below but the nested class does not implement the interface.
             Await TestAsync(
 "class C : I { public virtual void M() { } }
 class D : C { public new void $$M() { } }
-interface I { void [|M|](); }")
+interface I { void M(); }")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
@@ -317,7 +319,8 @@ interface I { void [|M|](); }")
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Async Function TestWithVirtualMethodHiddenAndInterfaceImplementedOnDerivedType() As Task
-            ' We should not find a hidden method.
+            ' We should not find hidden methods 
+            ' but should find methods in interfaces if hidden below but the nested class implements the interface.
             Await TestAsync(
 "class C : I { public virtual void M() { } }
 class D : C, I { public new void $$M() { } }
@@ -328,7 +331,7 @@ interface I { void [|M|](); }")
         Public Async Function TestWithAbstractMethodImplementation() As Task
             Await TestAsync(
 "abstract class C : I { public abstract void [|M|]() { } }
-class D : C { public override void $$M() { } }}
+class D : C { public override void $$M() { } }
 interface I { void [|M|](); }")
         End Function
 
@@ -384,6 +387,30 @@ sealed class C1 : B {
 sealed class C2 : A {
     public override void $$M() => base.M();
 }")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOverloadsOverrdiesAndInterfaceImplementation_01() As Task
+            Await TestAsync(
+"abstract class C : I { public virtual void [|M|]() { } public virtual void M(int i) { }}
+class D : C { public override void $$M() { } public override void M(int i) { }}
+interface I { void [|M|](); void M(int i};")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestWithOverloadsOverrdiesAndInterfaceImplementation_02() As Task
+            Await TestAsync(
+"abstract class C : I { public virtual void M() { } public virtual void [|M|](int i) { }}
+class D : C { public override void M() { } public override void $$M(int i) { }}
+interface I { void M(); void [|M|](int i};")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
+        Public Async Function TestOverrideOfMethodFromMetadata() As Task
+            Await TestAsync(
+"using System;
+class C { public override string $$ToString() { return base.ToString(); } }
+", metadataDefinitions:={"mscorlib:Object.ToString"})
         End Function
 
 #End Region

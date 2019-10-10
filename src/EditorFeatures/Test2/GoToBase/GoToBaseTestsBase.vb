@@ -5,17 +5,19 @@ Imports Microsoft.CodeAnalysis.Editor.GoToBase
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
     Public MustInherit Class GoToBaseTestsBase
-        Protected Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True) As Task
+        Protected Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True,
+                                           Optional metadataDefinitions As String() = Nothing) As Task
             Await GoToHelpers.TestAsync(
                 workspaceDefinition,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext)
                     Dim gotoBaseService = document.GetLanguageService(Of IGoToBaseService)
                     Await gotoBaseService.FindBasesAsync(document, position, context)
                 End Function,
-                shouldSucceed)
+                shouldSucceed, metadataDefinitions)
         End Function
 
-        Protected Async Function TestAsync(source As String, language As String, Optional shouldSucceed As Boolean = True) As Task
+        Protected Async Function TestAsync(source As String, language As String, Optional shouldSucceed As Boolean = True,
+                                           Optional metadataDefinitions As String() = Nothing) As Task
             Await TestAsync(
                    <Workspace>
                        <Project Language=<%= language %> CommonReferences="true">
@@ -24,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
                            </Document>
                        </Project>
                    </Workspace>,
-                shouldSucceed)
+                shouldSucceed, metadataDefinitions)
         End Function
     End Class
 End Namespace
