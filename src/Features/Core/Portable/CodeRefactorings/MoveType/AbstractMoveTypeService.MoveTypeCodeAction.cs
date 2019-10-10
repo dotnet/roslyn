@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             internal override bool IsApplicable(Workspace workspace)
                 => _operationKind switch
                 {
-                    MoveTypeOperationKind.RenameFile => workspace.CanRenameFilesDuringCodeActions(_state.SemanticDocument.Document.Project),
                     MoveTypeOperationKind.MoveTypeNamespaceScope => _state.TypeNode.Parent is TNamespaceDeclarationSyntax,
                     _ => true,
                 };

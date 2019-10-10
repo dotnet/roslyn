@@ -1074,8 +1074,6 @@ namespace Microsoft.CodeAnalysis
 
         #region Apply Changes
 
-        internal virtual bool CanRenameFilesDuringCodeActions(Project project) => true;
-
         /// <summary>
         /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges(Solution)"/> method.
         /// </summary>

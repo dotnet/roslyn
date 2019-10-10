@@ -38,12 +38,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
             internal override bool PerformFinalApplicabilityCheck => true;
 
-            internal override bool IsApplicable(Workspace workspace)
-            {
-                // Due to some existing issue, move file action is not available for CPS projects.
-                return workspace.CanRenameFilesDuringCodeActions(workspace.CurrentSolution.GetDocument(_state.Document.Id).Project);
-            }
-
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
                 var id = _state.Document.Id;

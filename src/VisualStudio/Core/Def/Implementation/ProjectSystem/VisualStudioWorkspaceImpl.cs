@@ -409,9 +409,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal override bool CanRenameFilesDuringCodeActions(CodeAnalysis.Project project)
-            => !IsCPSProject(project);
-
         internal bool IsCPSProject(CodeAnalysis.Project project)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
