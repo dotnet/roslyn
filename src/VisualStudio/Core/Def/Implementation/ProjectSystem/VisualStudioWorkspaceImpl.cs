@@ -362,15 +362,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            if (projectsToLoad.Any())
-            {
-                var vsSolution4 = (IVsSolution4)ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
-                vsSolution4.EnsureProjectsAreLoaded(
-                    (uint)projectsToLoad.Count,
-                    projectsToLoad.ToArray(),
-                    (uint)__VSBSLFLAGS.VSBSLFLAGS_None);
-            }
-
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
             var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).Where(CanApplyChange).ToList();
             if (changedDocs.Count > 0)

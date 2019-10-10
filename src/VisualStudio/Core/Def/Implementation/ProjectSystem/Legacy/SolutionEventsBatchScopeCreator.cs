@@ -191,15 +191,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return VSConstants.S_OK;
             }
 
+            #region Unimplemented Members
+
             int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
             {
-                _scopeCreator._solutionLoaded = true;
-                _scopeCreator.StopTrackingAllProjects();
-
-                return VSConstants.S_OK;
+                return VSConstants.E_NOTIMPL;
             }
-
-            #region Unimplemented Members
 
             int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
             {
