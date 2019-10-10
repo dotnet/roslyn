@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         protected override SeparatedSyntaxList<ExpressionSyntax> GetListItems(InitializerExpressionSyntax listSyntax)
             => listSyntax.Expressions;
 
-        protected override bool PositionIsApplicable(SyntaxNode root, int position, SyntaxNode declaration, InitializerExpressionSyntax listSyntax) 
+        protected override bool PositionIsApplicable(SyntaxNode root, int position, SyntaxNode declaration, InitializerExpressionSyntax listSyntax)
             => true;
 
         protected override InitializerExpressionSyntax TryGetApplicableList(SyntaxNode node)
