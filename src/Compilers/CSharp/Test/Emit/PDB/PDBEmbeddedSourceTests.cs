@@ -14,10 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBEmbeddedSourceTests : CSharpTestBase
     {
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/28045")]
-        public void StandalonePdb()
+        [Theory]
+        [InlineData(DebugInformationFormat.PortablePdb)]
+        [InlineData(DebugInformationFormat.Pdb)]
+        [WorkItem(28045, "https://github.com/dotnet/roslyn/issues/28045")]
+        public void StandalonePdb(DebugInformationFormat format)
         {
-            string source1 = @"
+            string source1 = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -27,10 +30,10 @@ class C
         Console.WriteLine();
     }
 }
-";
-            string source2 = @"
+");
+            string source2 = WithWindowsLineBreaks(@"
 // no code
-";
+");
 
             var tree1 = Parse(source1, "f:/build/goo.cs");
             var tree2 = Parse(source2, "f:/build/nocode.cs");
@@ -44,7 +47,7 @@ class C
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F"" embeddedSourceLength=""98""><![CDATA[﻿
+    <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F""><![CDATA[﻿
 using System;
 class C
 {
@@ -54,7 +57,7 @@ class C
     }
 }
 ]]></file>
-    <file id=""2"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42"" embeddedSourceLength=""21""><![CDATA[﻿
+    <file id=""2"" name=""f:/build/nocode.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8B-1D-3F-75-E0-A8-8F-90-B2-D3-52-CF-71-9B-17-29-3C-70-7A-42""><![CDATA[﻿
 // no code
 ]]></file>
   </files>
@@ -76,7 +79,7 @@ class C
     </method>
   </methods>
 </symbols>
-", embeddedTexts);
+", embeddedTexts, format: format);
         }
 
         [Fact]
@@ -119,7 +122,7 @@ class C
                              Text = pdbReader.GetEmbeddedSource(documentHandle)
                          }).Single();
 
-                    Assert.Equal(embeddedSource.FilePath, "f:/build/goo.cs");
+                    Assert.Equal("f:/build/goo.cs", embeddedSource.FilePath);
                     Assert.Equal(source, embeddedSource.Text.ToString());
                 }
             }

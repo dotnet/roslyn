@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             // conditions
             // 1. if available memory is less than the threshold and 
-            // 2. if full solution analysis memory monitor is on (user can set it off using registery, when he does, we will never show info bar) and
+            // 2. if full solution analysis memory monitor is on (user can set it off using registry, when he does, we will never show info bar) and
             // 3. if our full solution analysis option is on (not user full solution analysis option, but our internal one) and
             // 4. if infobar is never shown to users for this solution
             return availableMemory < MemoryThreshold &&

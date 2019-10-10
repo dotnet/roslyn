@@ -35,9 +35,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, typeSymbol.Name, containingNamespace);
 
-            return CompletionItem.Create(
+            var item = CompletionItem.Create(
                  displayText: typeSymbol.Name,
-                 filterText: typeSymbol.Name,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: propertyBuilder?.ToImmutableDictionaryAndFree(),
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
@@ -45,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  displayTextPrefix: null,
                  displayTextSuffix: typeSymbol.Arity == 0 ? string.Empty : genericTypeSuffix,
                  inlineDescription: containingNamespace);
+
+            item.Flags = CompletionItemFlags.CachedAndExpanded;
+            return item;
         }
 
         public static CompletionItem CreateAttributeItemWithoutSuffix(CompletionItem attributeItem, string attributeNameWithoutSuffix)
@@ -59,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return CompletionItem.Create(
                  displayText: attributeNameWithoutSuffix,
-                 filterText: attributeNameWithoutSuffix,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: newProperties,
                  tags: attributeItem.Tags,
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                     // We choose not to display the number of "type overloads" for simplicity. 
-                    // Otherwise, we need additonal logic to track internal and public visible
+                    // Otherwise, we need additional logic to track internal and public visible
                     // types separately, and cache both completion items.
                     return await CommonCompletionUtilities.CreateDescriptionAsync(
                         document.Project.Solution.Workspace,

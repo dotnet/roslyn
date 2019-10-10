@@ -1399,7 +1399,6 @@ class C
         [Fact]
         public void SpeculativeGetTypeInfo_Basic()
         {
-
             var source = @"
 class C
 {
@@ -1431,7 +1430,7 @@ class C
 
             var ifStatement = root.DescendantNodes().OfType<IfStatementSyntax>().Single();
             var conditionalAccessExpression = root.DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single();
-            var ternary = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().Skip(1).Single();
+            var ternary = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().ElementAt(1);
 
             var newReference = (IdentifierNameSyntax)SyntaxFactory.ParseExpression(@"s1");
             var newCoalesce = (AssignmentExpressionSyntax)SyntaxFactory.ParseExpression(@"s1 ??= """"");
@@ -1771,7 +1770,7 @@ class C
             var model = comp.GetSemanticModel(syntaxTree);
 
             var s2Assignment = root.DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
-            var lastDeclaration = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Skip(3).Single();
+            var lastDeclaration = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(3);
             var newDeclaration = SyntaxFactory.ParseStatement("var o5 = s2;");
             var newDeclarator = newDeclaration.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
 
@@ -2636,7 +2635,6 @@ static class CExt2
         [Fact]
         public void GetSymbolInfo_ReinferredCollectionInitializerAdd_MultiElementAdds()
         {
-
             var source = @"
 using System.Collections;
 class C : IEnumerable
@@ -2680,7 +2678,6 @@ static class CExt
         [Fact]
         public void GetSymbolInfo_ReinferredCollectionInitializerAdd_MultiElementAdds_LinkedTypes()
         {
-
             var source = @"
 using System.Collections;
 class C : IEnumerable
@@ -2718,6 +2715,897 @@ static class CExt
                 var methodSymbol = ((IMethodSymbol)symbolInfo.Symbol);
                 Assert.Equal(annotation, methodSymbol.TypeArgumentNullableAnnotations[0]);
             }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_ReinferredIndexer()
+        {
+            var source = @"
+class C<T, U>
+{
+    public T this[U u] { get => throw null!; set => throw null!; }
+    
+    public static void M(object? o1, object o2)
+    {
+        var c1 = CExt.Create(o1, o2);
+        c1[o1] = o2;
+        _ = c1[o1];
+        
+        var c2 = CExt.Create(o2, o1);
+        c2[o2] = o1;
+        _ = c2[o2];
+        
+        var c3 = CExt.Create(o1 ?? o2, o2);
+        c3[o1] = o2;
+        _ = c3[o1];
+    }
+}
+static class CExt
+{
+    public static C<T, U> Create<T, U>(T t, U u) => throw null!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,12): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
+                //         c1[o1] = o2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(9, 12),
+                // (10,16): warning CS8604: Possible null reference argument for parameter 'u' in 'object? C<object?, object>.this[object u]'.
+                //         _ = c1[o1];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object? C<object?, object>.this[object u]").WithLocation(10, 16),
+                // (13,18): warning CS8601: Possible null reference assignment.
+                //         c2[o2] = o1;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "o1").WithLocation(13, 18),
+                // (17,12): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
+                //         c3[o1] = o2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(17, 12),
+                // (18,16): warning CS8604: Possible null reference argument for parameter 'u' in 'object C<object, object>.this[object u]'.
+                //         _ = c3[o1];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o1").WithArguments("u", "object C<object, object>.this[object u]").WithLocation(18, 16));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var indexers = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray().AsSpan();
+            verifyAnnotation(indexers.Slice(0, 2), PublicNullableAnnotation.Annotated, PublicNullableAnnotation.NotAnnotated);
+            verifyAnnotation(indexers.Slice(2, 2), PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
+            verifyAnnotation(indexers.Slice(4, 2), PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(Span<ElementAccessExpressionSyntax> indexers, PublicNullableAnnotation firstAnnotation, PublicNullableAnnotation secondAnnotation)
+            {
+                var propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[0]).Symbol;
+                verifyIndexer(propertySymbol);
+                propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[1]).Symbol;
+                verifyIndexer(propertySymbol);
+
+                void verifyIndexer(IPropertySymbol propertySymbol)
+                {
+                    Assert.True(propertySymbol.IsIndexer);
+                    Assert.Equal(firstAnnotation, propertySymbol.NullableAnnotation);
+                    Assert.Equal(secondAnnotation, propertySymbol.Parameters[0].NullableAnnotation);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_IndexReinferred()
+        {
+            var source = @"
+class C<T>
+{
+    public int Length { get; }
+    public T this[int i] { get => throw null!; set => throw null!; }
+    public static C<TT> Create<TT>(TT t) => throw null!;
+
+    public static void M(object? o)
+    {
+        var c1 = Create(o);
+        c1[^1] = new object();
+        _ = c1[^1];
+
+        var c2 = Create(o ?? new object());
+        c2[^1] = new object();
+        _ = c2[^1];
+    }
+}";
+
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var elementAccesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray().AsSpan();
+            verifyAnnotation(elementAccesses.Slice(0, 2), PublicNullableAnnotation.Annotated);
+            verifyAnnotation(elementAccesses.Slice(2, 2), PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(Span<ElementAccessExpressionSyntax> indexers, PublicNullableAnnotation annotation)
+            {
+                var propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[0]).Symbol;
+                verifyIndexer(propertySymbol);
+                propertySymbol = (IPropertySymbol)model.GetSymbolInfo(indexers[1]).Symbol;
+                verifyIndexer(propertySymbol);
+
+                void verifyIndexer(IPropertySymbol propertySymbol)
+                {
+                    Assert.True(propertySymbol.IsIndexer);
+                    Assert.Equal(annotation, propertySymbol.NullableAnnotation);
+                }
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_RangeReinferred()
+        {
+            var source = @"
+using System;
+
+class C<T>
+{
+    public int Length { get; }
+    public Span<T> Slice(int start, int length) => throw null!;
+    public static C<TT> Create<TT>(TT t) => throw null!;
+
+    public static void M(object? o)
+    {
+        var c1 = Create(o);
+        _ = c1[..^1];
+
+        var c2 = Create(o ?? new object());
+        _ = c2[..^1];
+    }
+}";
+
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var elementAccesses = root.DescendantNodes().OfType<ElementAccessExpressionSyntax>().ToArray();
+            verifyAnnotation(elementAccesses[0], PublicNullableAnnotation.Annotated);
+            verifyAnnotation(elementAccesses[1], PublicNullableAnnotation.NotAnnotated);
+
+            void verifyAnnotation(ElementAccessExpressionSyntax indexer, PublicNullableAnnotation annotation)
+            {
+                var propertySymbol = (IMethodSymbol)model.GetSymbolInfo(indexer).Symbol;
+                Assert.NotNull(propertySymbol);
+                var spanType = (INamedTypeSymbol)propertySymbol.ReturnType;
+                Assert.Equal(annotation, spanType.TypeArgumentNullableAnnotations[0]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_UnaryOperator()
+        {
+            var source =
+@"#nullable enable
+struct S<T>
+{
+    public static S<T> operator~(S<T> s) => s;
+}
+class Program
+{
+    static S<T> Create1<T>(T t) => new S<T>();
+    static S<T>? Create2<T>(T t) => null;
+    static void F<T>() where T : class, new()
+    {
+        T x = null;
+        var sx = Create1(x);
+        _ = ~sx;
+        T? y = new T();
+        var sy = Create2(y);
+        _ = ~sy;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 15));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+            var operators = root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().ToList();
+            verifyAnnotations(operators[0], PublicNullableAnnotation.Annotated, "S<T?> S<T?>.operator ~(S<T?> s)");
+            verifyAnnotations(operators[1], PublicNullableAnnotation.NotAnnotated, "S<T!> S<T!>.operator ~(S<T!> s)");
+
+            void verifyAnnotations(PrefixUnaryExpressionSyntax syntax, PublicNullableAnnotation annotation, string expected)
+            {
+                var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+                Assert.Equal(expected, method.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal(annotation, method.ContainingType.TypeArgumentNullableAnnotations[0]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_BinaryOperator()
+        {
+            var source =
+@"#nullable enable
+struct S<T>
+{
+    public static S<T> operator+(S<T> x, S<T> y) => x;
+}
+class Program
+{
+    static S<T> Create1<T>(T t) => new S<T>();
+    static S<T>? Create2<T>(T t) => null;
+    static void F<T>() where T : class, new()
+    {
+        T x = null;
+        var sx = Create1(x);
+        _ = sx + sx;
+        T? y = new T();
+        var sy = Create2(y);
+        _ = sy + sy;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(12, 15));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+            var operators = root.DescendantNodes().OfType<BinaryExpressionSyntax>().ToList();
+            verifyAnnotations(operators[0], PublicNullableAnnotation.Annotated, "S<T?> S<T?>.operator +(S<T?> x, S<T?> y)");
+            verifyAnnotations(operators[1], PublicNullableAnnotation.NotAnnotated, "S<T!> S<T!>.operator +(S<T!> x, S<T!> y)");
+
+            void verifyAnnotations(BinaryExpressionSyntax syntax, PublicNullableAnnotation annotation, string expected)
+            {
+                var method = (IMethodSymbol)model.GetSymbolInfo(syntax).Symbol;
+                Assert.Equal(expected, method.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal(annotation, method.ContainingType.TypeArgumentNullableAnnotations[0]);
+            }
+        }
+
+        [Fact]
+        public void GetSymbolInfo_SimpleLambdaReinference()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => { _ = o1.ToString(); });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (9,39): warning CS8602: Dereference of a possibly null reference.
+                    //         var a = Create(o, o1 => { _ = o1.ToString(); });
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o1").WithLocation(9, 39));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var lambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(lambda).Symbol;
+            Assert.NotNull(lambdaSymbol);
+            Assert.Equal(MethodKind.LambdaMethod, lambdaSymbol.MethodKind);
+            Assert.Equal(PublicNullableAnnotation.Annotated, lambdaSymbol.Parameters[0].NullableAnnotation);
+
+            var o1Ref = lambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .Single()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o1");
+
+            var parameterSymbol = (IParameterSymbol)model.GetSymbolInfo(o1Ref).Symbol;
+            Assert.NotNull(parameterSymbol);
+            Assert.Equal(PublicNullableAnnotation.Annotated, parameterSymbol.NullableAnnotation);
+
+            var mDeclaration = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First(m => m.Identifier.ValueText == "M");
+            var mSymbol = model.GetDeclaredSymbol(mDeclaration);
+            Assert.Equal(mSymbol, lambdaSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinference_NestedReinferred()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            if (o1 == null) return;
+            Create(o1, o2 => { _ = o2; _ = o1; });
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+
+            var innerLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+
+            var innerLambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(innerLambda).Symbol;
+            Assert.NotNull(innerLambdaSymbol);
+            Assert.Equal(MethodKind.LambdaMethod, innerLambdaSymbol.MethodKind);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol.Parameters[0].NullableAnnotation);
+            Assert.Equal(lambdaSymbol, innerLambdaSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var o1Ref = innerLambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .ElementAt(1)
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o1");
+
+            var o1Symbol = (IParameterSymbol)model.GetSymbolInfo(o1Ref).Symbol;
+            Assert.Equal(PublicNullableAnnotation.Annotated, o1Symbol.NullableAnnotation);
+
+            var o2Ref = innerLambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .First()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o2");
+
+            var o2Symbol = (IParameterSymbol)model.GetSymbolInfo(o2Ref).Symbol;
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.NullableAnnotation);
+            Assert.Equal(innerLambdaSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinference_NestedNotReinferred()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            if (o1 == null) return;
+            Action<string> a = o2 => { _ = o2; _ = o1; };
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+
+            var innerLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+
+            var innerLambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(innerLambda).Symbol;
+            Assert.NotNull(innerLambdaSymbol);
+            Assert.Equal(MethodKind.LambdaMethod, innerLambdaSymbol.MethodKind);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol.Parameters[0].NullableAnnotation);
+            Assert.Equal(lambdaSymbol, innerLambdaSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var o1Ref = innerLambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .ElementAt(1)
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o1");
+
+            var o1Symbol = (IParameterSymbol)model.GetSymbolInfo(o1Ref).Symbol;
+            Assert.Equal(PublicNullableAnnotation.Annotated, o1Symbol.NullableAnnotation);
+
+            var o2Ref = innerLambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .First()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o2");
+
+            var o2Symbol = (IParameterSymbol)model.GetSymbolInfo(o2Ref).Symbol;
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.NullableAnnotation);
+            Assert.Equal(innerLambdaSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38922")]
+        public void NestedLambdaReinference_LocalFunctionInLambda()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            LocalFunction(o1);
+            void LocalFunction(object? o2) 
+            {
+                _ = o2;
+            }
+        });
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var lambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(lambda).Symbol;
+
+            var localFunction = lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunctionSymbol = (IMethodSymbol)model.GetDeclaredSymbol(localFunction);
+
+            var o2Reference = localFunction.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "o2");
+            var o2Symbol = model.GetSymbolInfo(o2Reference).Symbol;
+
+            Assert.Equal(lambdaSymbol, localFunctionSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(localFunctionSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_SpeculativeParamReference()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => { _ = o1.ToString(); });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (9,39): warning CS8602: Dereference of a possibly null reference.
+                    //         var a = Create(o, o1 => { _ = o1.ToString(); });
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o1").WithLocation(9, 39));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var o1Ref = lambda.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .Single()
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .First(i => i.Identifier.ValueText == "o1");
+            var parameterSymbol = (IParameterSymbol)model.GetSymbolInfo(o1Ref).Symbol;
+
+            var newStatement = (ExpressionStatementSyntax)SyntaxFactory.ParseStatement("_ = o1;");
+            var newReference = ((AssignmentExpressionSyntax)newStatement.Expression).Right;
+
+            Assert.True(model.TryGetSpeculativeSemanticModel(lambda.Body.SpanStart, newStatement, out var speculativeModel));
+            var info = speculativeModel.GetSymbolInfo(newReference);
+
+            Assert.Equal(parameterSymbol, info.Symbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_GetDeclaredSymbolParameter()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => { });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var lambdaSymbol = (IMethodSymbol)model.GetSymbolInfo(lambda).Symbol;
+            var parameter = lambda.DescendantNodes().OfType<ParameterSyntax>().Single();
+            var paramSymbol = model.GetDeclaredSymbol(parameter);
+            Assert.Equal(lambdaSymbol, paramSymbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_NestedLocalDeclaration()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => 
+        {
+            var o2 = o1 ?? new object();
+            Action nested = () => { _ = o2; };
+
+            foreach (var o3 in new int[] {}) {}
+            foreach (var (o4, o5) in new (object, object)[]{}) {}
+            (var o6, var o7) = (new object(), new object());
+
+            void localFunc(out object? o)
+            {
+                o = null;
+                var o8 = new object();
+            }
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
+                    //             void localFunc(out object? o)
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(18, 18));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+            var o2Declaration = lambda.DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var o2Symbol = model.GetDeclaredSymbol(o2Declaration);
+
+            Assert.NotNull(lambdaSymbol);
+            assertParent(o2Declaration);
+
+            var innerLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+            var innerO2Reference = innerLambda.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "o2");
+            var o2Ref = model.GetSymbolInfo(innerO2Reference);
+
+            Assert.Equal(o2Symbol, o2Ref.Symbol, SymbolEqualityComparer.IncludeNullability);
+
+            var @foreach = lambda.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            assertParent(@foreach);
+
+            foreach (var singleVarDesignation in lambda.DescendantNodes().OfType<SingleVariableDesignationSyntax>())
+            {
+                assertParent(singleVarDesignation);
+            }
+
+            var localFunction = lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunctionSymbol = model.GetDeclaredSymbol(localFunction);
+
+            var o8Declaration = localFunction.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            Assert.Equal(localFunctionSymbol, model.GetDeclaredSymbol(o8Declaration).ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            void assertParent(SyntaxNode node)
+            {
+                Assert.Equal(lambdaSymbol, model.GetDeclaredSymbol(node).ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            }
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_InInitializers()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+    public static object? s_o = null;
+
+    public Action<object> f = Create(s_o ?? new object(), o1 => { 
+        var o2 = o1;
+    });
+
+    public Action<object> Prop { get; } = Create(s_o ?? new object(), o3 => { var o4 = o3; });
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var fieldLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var fieldLambdaSymbol = model.GetSymbolInfo(fieldLambda).Symbol;
+            var o1Reference = fieldLambda.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "o1");
+            var o1Symbol = (IParameterSymbol)model.GetSymbolInfo(o1Reference).Symbol;
+            var o2Decl = fieldLambda.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var o2Symbol = (ILocalSymbol)model.GetDeclaredSymbol(o2Decl);
+
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o1Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.NullableAnnotation);
+            Assert.Equal(fieldLambdaSymbol, o1Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(fieldLambdaSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var propertyLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+            var propertyLambdaSymbol = model.GetSymbolInfo(propertyLambda).Symbol;
+            var o3Reference = propertyLambda.DescendantNodes().OfType<IdentifierNameSyntax>().Single(id => id.Identifier.ValueText == "o3");
+            var o3Symbol = (IParameterSymbol)model.GetSymbolInfo(o3Reference).Symbol;
+            var o4Decl = propertyLambda.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var o4Symbol = (ILocalSymbol)model.GetDeclaredSymbol(o4Decl);
+
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o3Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o4Symbol.NullableAnnotation);
+            Assert.Equal(propertyLambdaSymbol, o3Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(propertyLambdaSymbol, o4Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_PartialExplicitTypes()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+    public static Action<T> Create<T>(T t, Action<T, T, T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            if (o1 == null) return;
+            Create(o1, (o2, object o3, object? o4) => { });
+            Create(o1, (object o2, object? o3, o4) => { });
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (12,29): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                    //             Create(o1, (o2, object o3, object? o4) => { });
+                    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "object").WithLocation(12, 29),
+                    // (12,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                    //             Create(o1, (o2, object o3, object? o4) => { });
+                    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "object?").WithLocation(12, 40),
+                    // (13,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                    //             Create(o1, (object o2, object? o3, o4) => { });
+                    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "o4").WithLocation(13, 48));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+
+            var innerLambda1 = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+            var innerLambdaSymbol1 = (IMethodSymbol)model.GetSymbolInfo(innerLambda1).Symbol;
+            Assert.Equal(lambdaSymbol, innerLambdaSymbol1.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol1.Parameters[0].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol1.Parameters[1].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol1.Parameters[2].NullableAnnotation);
+
+            var innerLambda2 = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+            var innerLambdaSymbol2 = (IMethodSymbol)model.GetSymbolInfo(innerLambda2).Symbol;
+            Assert.Equal(lambdaSymbol, innerLambdaSymbol1.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol2.Parameters[0].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol2.Parameters[1].NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, innerLambdaSymbol2.Parameters[2].NullableAnnotation);
+        }
+
+        [Fact]
+        public void NestedLambdaReinferrence_AttributeAndInitializers()
+        {
+            var source = @"
+using System;
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(object a) {}
+}
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => 
+        {
+            var o2 = o1 ?? new object();
+
+            void localFunc([A(o1)] object o3 = o2)
+            {
+                o = null;
+                var o8 = new object();
+            }
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
+                    //             void localFunc([A(o1)] object o3 = o2)
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(18, 18),
+                    // (18,28): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                    //             void localFunc([A(o1)] object o3 = o2)
+                    Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(o1)]").WithLocation(18, 28),
+                    // (18,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                    //             void localFunc([A(o1)] object o3 = o2)
+                    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "o1").WithLocation(18, 31),
+                    // (18,48): error CS1736: Default parameter value for 'o3' must be a compile-time constant
+                    //             void localFunc([A(o1)] object o3 = o2)
+                    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "o2").WithArguments("o3").WithLocation(18, 48));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var lambda = root.DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
+            var o1Decl = lambda.Parameter;
+            var o1Symbol = model.GetDeclaredSymbol(o1Decl);
+            var o2Decl = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+            var o2Symbol = model.GetDeclaredSymbol(o2Decl);
+
+            var o1Ref = root.DescendantNodes().OfType<AttributeArgumentSyntax>().Last().Expression;
+            var o1RefSymbol = model.GetSymbolInfo(o1Ref).Symbol;
+
+            var o2Ref = root.DescendantNodes().OfType<ParameterSyntax>().Last().Default.Value;
+            var o2RefSymbol = model.GetSymbolInfo(o2Ref).Symbol;
+
+            Assert.Equal(o1Symbol, o1RefSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(o2Symbol, o2RefSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var localFunction = root.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+
+            var speculativeAttribute = SyntaxFactory.Attribute(SyntaxFactory.ParseName("A"), SyntaxFactory.ParseAttributeArgumentList("(o2)"));
+            var speculativeO2Ref = speculativeAttribute.DescendantNodes().OfType<AttributeArgumentSyntax>().Single().Expression;
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunction.SpanStart, speculativeAttribute, out var speculativeModel));
+            Assert.Equal(o2Symbol, speculativeModel.GetSymbolInfo(speculativeO2Ref).Symbol, SymbolEqualityComparer.IncludeNullability);
+
+            var speculativeInitializer = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("o1"));
+            var speculativeO1Ref = speculativeInitializer.Value;
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunction.ParameterList.Parameters[0].Default.SpanStart, speculativeInitializer, out speculativeModel));
+            Assert.Equal(o1Symbol, speculativeModel.GetSymbolInfo(speculativeO1Ref).Symbol, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact]
+        public void LookupSymbols_ReinferredSymbols()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => 
+        {
+            var o2 = o1 ?? new object();
+            Action nested = () => { _ = o2; };
+
+            foreach (var o3 in new int[] {}) {}
+            foreach (var (o4, o5) in new (object, object)[]{}) {}
+            (var o6, var o7) = (new object(), new object());
+
+            void localFunc(out object? o)
+            {
+                o = null;
+                var o8 = new object();
+            }
+        });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                    // (18,18): warning CS8321: The local function 'localFunc' is declared but never used
+                    //             void localFunc(out object? o)
+                    Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "localFunc").WithArguments("localFunc").WithLocation(18, 18));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+            var innerLambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().ElementAt(1);
+            var localFunction = lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunctionSymbol = model.GetDeclaredSymbol(localFunction);
+
+            var position = localFunction.DescendantNodes().OfType<VariableDeclarationSyntax>().Single().Span.End;
+
+            var lookupResults = model.LookupSymbols(position);
+
+            var o2Result = lookupResults.OfType<ILocalSymbol>().First(l => l.Name == "o2");
+            var o8Result = lookupResults.OfType<ILocalSymbol>().First(l => l.Name == "o8");
+            Assert.Equal(lambdaSymbol, o2Result.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(localFunctionSymbol, o8Result.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var o1Result = lookupResults.OfType<IParameterSymbol>().First(p => p.Name == "o1");
+            var oResult = lookupResults.OfType<IParameterSymbol>().First(p => p.Name == "o");
+            Assert.Equal(lambdaSymbol, o1Result.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+            Assert.Equal(localFunctionSymbol, oResult.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
+
+            var localFunctionResult = lookupResults.OfType<IMethodSymbol>().First(m => m.MethodKind == MethodKind.LocalFunction);
+            Assert.Equal(localFunctionSymbol, localFunctionResult, SymbolEqualityComparer.IncludeNullability);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/38922")]
+        public void LocalFunction_GenericTypeParameters()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static Action<T> Create<T>(T t, Action<T> a) => throw null!;
+	public static T[] Create<T>(T t) => throw null!;
+
+    public static void M(object? o)
+    {
+        var a = Create(o, o1 => {
+            LocalFunction(o1);
+            T LocalFunction<T>(T t) 
+            {
+                _ = Create(t); // Type argument for Create needs to be reparented
+				var d = new D<T>(); // Type argument in D's substituted type needs to be reparented
+				d.DoSomething(t); // Argument of the function needs to be reparented
+                var f = SecondFunction(); // Return type of nested function needs to be reparented
+				return d.Prop; // Return type needs to be reparented
+                T SecondFunction() { return t; }
+            }
+        });
+    }
+}
+class D<T>
+{
+	public void DoSomething(T t) => throw null!;
+	public T Prop { get; } = default!;
+}";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+
+            var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
+            var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
+            var localFunction = lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().First();
+            var localFunctionSymbol = (IMethodSymbol)model.GetDeclaredSymbol(localFunction);
+            var nestedLocalFunction = (IMethodSymbol)model.GetDeclaredSymbol(lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().ElementAt(1));
+
+            var typeParameters = localFunctionSymbol.TypeParameters[0];
+            Assert.Same(localFunctionSymbol, typeParameters.ContainingSymbol);
         }
     }
 }

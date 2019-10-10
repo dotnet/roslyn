@@ -52,6 +52,10 @@
         <Parent guid="guidRoslynGrpId" id="cmdidSetSeveritySubMenu"/>
       </Group>
 
+      <Group guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" priority="0x000">
+        <Parent guid="guidRoslynGrpId" id="cmdidErrorListSetSeveritySubMenu"/>
+      </Group>
+
       <Group guid="guidRoslynGrpId" id="grpDiagnosticProperties" priority="0x002">
         <Parent guid="guidRoslynGrpId" id="cmdidDiagnosticContextMenu"/>
       </Group>
@@ -163,7 +167,7 @@
           <CommandName>OpenActiveRuleSet</CommandName>
         </Strings>
       </Button>
-      <!-- Buttons to set severity of diagnostics -->
+      <!-- Buttons to set severity of diagnostics in analyzers node and error list -->
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityDefault" priority="100" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
@@ -171,6 +175,15 @@
           <CanonicalName>Default</CanonicalName>
           <LocCanonicalName>Default</LocCanonicalName>
           <CommandName>SetSeverityDefault</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityDefault" priority="100" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Default</ButtonText>
+          <CanonicalName>Default</CanonicalName>
+          <LocCanonicalName>Default</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityDefault</CommandName>
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityError" priority="200" type="Button">
@@ -182,6 +195,15 @@
           <CommandName>SetSeverityError</CommandName>
         </Strings>
       </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityError" priority="200" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Error</ButtonText>
+          <CanonicalName>Error</CanonicalName>
+          <LocCanonicalName>Error</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityError</CommandName>
+        </Strings>
+      </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityWarning" priority="300" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
@@ -191,22 +213,49 @@
           <CommandName>SetSeverityWarning</CommandName>
         </Strings>
       </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityWarning" priority="300" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Warning</ButtonText>
+          <CanonicalName>Warning</CanonicalName>
+          <LocCanonicalName>Warning</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityWarning</CommandName>
+        </Strings>
+      </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityInfo" priority="400" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
-          <ButtonText>&amp;Info</ButtonText>
-          <CanonicalName>Info</CanonicalName>
-          <LocCanonicalName>Info</LocCanonicalName>
+          <ButtonText>&amp;Suggestion</ButtonText>
+          <CanonicalName>Suggestion</CanonicalName>
+          <LocCanonicalName>Suggestion</LocCanonicalName>
           <CommandName>SetSeverityInfo</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityInfo" priority="400" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Suggestion</ButtonText>
+          <CanonicalName>Suggestion</CanonicalName>
+          <LocCanonicalName>Suggestion</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityInfo</CommandName>
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityHidden" priority="500" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverityItems" />
         <Strings>
-          <ButtonText>&amp;Hidden</ButtonText>
-          <CanonicalName>Hidden</CanonicalName>
-          <LocCanonicalName>Hidden</LocCanonicalName>
+          <ButtonText>&amp;Silent</ButtonText>
+          <CanonicalName>Silent</CanonicalName>
+          <LocCanonicalName>Silent</LocCanonicalName>
           <CommandName>SetSeverityHidden</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityHidden" priority="500" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;Silent</ButtonText>
+          <CanonicalName>Silent</CanonicalName>
+          <LocCanonicalName>Silent</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityHidden</CommandName>
         </Strings>
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSetSeverityNone" priority="600" type="Button">
@@ -216,6 +265,15 @@
           <CanonicalName>None</CanonicalName>
           <LocCanonicalName>None</LocCanonicalName>
           <CommandName>SetSeverityNone</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidErrorListSetSeverityNone" priority="600" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListDiagnosticSeverityItems" />
+        <Strings>
+          <ButtonText>&amp;None</ButtonText>
+          <CanonicalName>None</CanonicalName>
+          <LocCanonicalName>None</LocCanonicalName>
+          <CommandName>ErrorListSetSeverityNone</CommandName>
         </Strings>
       </Button>
       <!-- Button to open the diagnostic help link -->
@@ -346,10 +404,10 @@
       <Menu guid="guidRoslynGrpId" id="cmdidSetSeveritySubMenu" priority="50" type="Menu">
         <Parent guid="guidRoslynGrpId" id="grpDiagnosticSeverity" />
         <Strings>
-          <ButtonText>Set Rule Set Severity</ButtonText>
-          <CommandName>Set Rule Set Severity</CommandName>
-          <CanonicalName>Set Rule Set Severity</CanonicalName>
-          <LocCanonicalName>Set Rule Set Severity</LocCanonicalName>
+          <ButtonText>Set severity</ButtonText>
+          <CommandName>Set severity</CommandName>
+          <CanonicalName>Set severity</CanonicalName>
+          <LocCanonicalName>Set severity</LocCanonicalName>
         </Strings>
       </Menu>
       
@@ -364,6 +422,20 @@
           <CanonicalName>S&amp;uppress</CanonicalName>
           <LocCanonicalName>S&amp;uppress</LocCanonicalName>
           <CommandName>S&amp;uppress</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Error list context menu items for Set severity. -->
+      <Menu guid="guidRoslynGrpId" id="cmdidErrorListSetSeveritySubMenu" priority="0xf003" type="Menu">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListContextMenu"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Set severity</ButtonText>
+          <CommandName>Set severity</CommandName>
+          <CanonicalName>Set severity</CanonicalName>
+          <LocCanonicalName>Set severity</LocCanonicalName>
         </Strings>
       </Menu>
     </Menus>
@@ -431,6 +503,7 @@
     <GuidSymbol name="guidRoslynGrpId" value="{b61e1a20-8c13-49a9-a727-a0ec091647dd}">
       <IDSymbol name="IDG_ROSLYN_HIDDEN_COMMANDS" value="0x3002" />
 
+      <!-- Analyzers node context menu IDs -->
       <IDSymbol name="cmdidAnalyzerContextMenu"       value="0x0103" />
       <IDSymbol name="grpAnalyzerProperties"          value="0x0104" />
       <IDSymbol name="grpAnalyzerRemove"              value="0x0105" />
@@ -456,12 +529,23 @@
       <IDSymbol name="cmdidSetSeveritySubMenu"        value="0x0119" />
       <IDSymbol name="grpDiagnosticSeverityItems"     value="0x011a" />
       <IDSymbol name="cmdidSetSeverityDefault"        value="0x011b" />
+      
+      <!-- Error List context menu IDs -->
       <IDSymbol name="grpErrorListContextMenu"        value="0x011c" />
       <IDSymbol name="cmdidAddSuppressionsContextMenu"        value="0x011d" />
       <IDSymbol name="grpAddSuppressions"             value="0x011e" />
       <IDSymbol name="cmdidAddSuppressionsInSource"   value="0x011f" />
       <IDSymbol name="cmdidAddSuppressionsInSuppressionFile"  value="0x0120" />
       <IDSymbol name="cmdidRemoveSuppressions"        value="0x0121" />
+      <IDSymbol name="cmdidErrorListSetSeveritySubMenu"        value="0x0122" />
+      <IDSymbol name="grpErrorListDiagnosticSeverity"          value="0x0123" />
+      <IDSymbol name="cmdidErrorListSetSeverityError"          value="0x0124" />
+      <IDSymbol name="cmdidErrorListSetSeverityWarning"        value="0x0125" />
+      <IDSymbol name="cmdidErrorListSetSeverityInfo"           value="0x0126" />
+      <IDSymbol name="cmdidErrorListSetSeverityHidden"         value="0x0127" />
+      <IDSymbol name="cmdidErrorListSetSeverityNone"           value="0x0128" />
+      <IDSymbol name="cmdidErrorListSetSeverityDefault"        value="0x0129" />
+      <IDSymbol name="grpErrorListDiagnosticSeverityItems"     value="0x012a" />
 
       <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
     </GuidSymbol>

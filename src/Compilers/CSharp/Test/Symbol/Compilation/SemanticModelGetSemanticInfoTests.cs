@@ -1752,7 +1752,7 @@ class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [WorkItem(3019, "DevDiv_Projects/Roslyn")]
@@ -3942,7 +3942,7 @@ public class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [WorkItem(538215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538215")]
@@ -8512,7 +8512,7 @@ public class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [Fact]
@@ -8717,7 +8717,7 @@ public class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [Fact]
@@ -11454,7 +11454,7 @@ class Program
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [WorkItem(542850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542850")]
@@ -11600,7 +11600,7 @@ class Test
             Assert.Equal("global", aliasInfo.Name);
             Assert.Equal("<global namespace>", aliasInfo.Target.ToTestDisplayString());
             Assert.True(((NamespaceSymbol)(aliasInfo.Target)).IsGlobalNamespace);
-            Assert.Equal(false, aliasInfo.IsExtern);
+            Assert.False(aliasInfo.IsExtern);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -11634,7 +11634,7 @@ class Test
             Assert.Equal("global", aliasInfo.Name);
             Assert.Equal("<global namespace>", aliasInfo.Target.ToTestDisplayString());
             Assert.True(((NamespaceSymbol)(aliasInfo.Target)).IsGlobalNamespace);
-            Assert.Equal(false, aliasInfo.IsExtern);
+            Assert.False(aliasInfo.IsExtern);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }

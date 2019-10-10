@@ -137,7 +137,9 @@ class C
             var typeInfo = model.GetTypeInfo(indexerAccess);
             Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
             var symbolInfo = model.GetSymbolInfo(indexerAccess);
-            Assert.Null(symbolInfo.Symbol);
+            var propertySymbol = (IPropertySymbol)symbolInfo.Symbol;
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.True(propertySymbol.IsIndexer);
             Assert.Empty(symbolInfo.CandidateSymbols);
 
             indexerAccess = accesses[1];
@@ -145,7 +147,9 @@ class C
             typeInfo = model.GetTypeInfo(indexerAccess);
             Assert.Equal(SpecialType.System_Char, typeInfo.Type.SpecialType);
             symbolInfo = model.GetSymbolInfo(indexerAccess);
-            Assert.Null(symbolInfo.Symbol);
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind);
+            Assert.Equal("Slice", symbolInfo.Symbol.Name);
             Assert.Empty(symbolInfo.CandidateSymbols);
         }
 
@@ -327,7 +331,7 @@ class C
             var symbol1 = model1.GetSymbolInfo(statement.Expression).Symbol;
             var symbol2 = model2.GetSymbolInfo(statement.Expression).Symbol;
 
-            Assert.Equal(false, ReferenceEquals(symbol1, symbol2));
+            Assert.False(ReferenceEquals(symbol1, symbol2));
             Assert.Equal(symbol1, symbol2);
         }
 

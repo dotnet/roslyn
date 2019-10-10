@@ -194,25 +194,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
         {
-            using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
+            using var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies);
+
+            string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
+            _allModuleData = testEnvironment.GetAllModuleData();
+            testEnvironment.Verify(peVerify);
+
+            if (expectedSignatures != null)
             {
-                string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
-                _allModuleData = testEnvironment.GetAllModuleData();
-                testEnvironment.Verify(peVerify);
+                MetadataSignatureUnitTestHelper.VerifyMemberSignatures(testEnvironment, expectedSignatures);
+            }
 
-                if (expectedSignatures != null)
+            if (expectedOutput != null || expectedReturnCode != null)
+            {
+                var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput);
+
+                if (expectedReturnCode is int exCode)
                 {
-                    MetadataSignatureUnitTestHelper.VerifyMemberSignatures(testEnvironment, expectedSignatures);
-                }
-
-                if (expectedOutput != null || expectedReturnCode != null)
-                {
-                    var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput);
-
-                    if (expectedReturnCode is int exCode)
-                    {
-                        Assert.Equal(exCode, returnCode);
-                    }
+                    Assert.Equal(exCode, returnCode);
                 }
             }
         }

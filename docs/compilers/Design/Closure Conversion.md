@@ -40,7 +40,7 @@ struct Environment
 }
 ```
 
-Instead of referring to local variables, the rewritten closure now references fields on the environment. A `struct` environment is used to prevent extra allocations, since `struct`s are normally allocated on the stack. However, the astute reader may notice a problem with this conversion -- `struct`s are always copied when passed as arguments to a function call! This means that writes to the environment field will not always propogate back to the local variable in the method `M`. To work around this flaw, all Environment variables are passed as `ref` arguments to the rewritten closures.
+Instead of referring to local variables, the rewritten closure now references fields on the environment. A `struct` environment is used to prevent extra allocations, since `struct`s are normally allocated on the stack. However, the astute reader may notice a problem with this conversion -- `struct`s are always copied when passed as arguments to a function call! This means that writes to the environment field will not always propagate back to the local variable in the method `M`. To work around this flaw, all Environment variables are passed as `ref` arguments to the rewritten closures.
 
 The second strategy for rewriting closures is necessary when the closure interacts with external code. Consider the following program:
 
