@@ -5175,14 +5175,20 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, symbolValidator: validate);
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate);
 
             void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var localFn = cClass.GetMethod("<M>g__local1|0_0");
                 var attrs = localFn.GetAttributes();
-                Assert.Equal(1, attrs.Length);
+                Assert.Equal(2, attrs.Length);
+                Assert.Equal(module.CorLibrary().GetTypeByMetadataName("System.Runtime.CompilerGeneratedAttribute"), attrs[0].AttributeClass);
+                Assert.Equal(module.GlobalNamespace.GetMember<NamedTypeSymbol>("A"), attrs[1].AttributeClass);
             }
         }
 
