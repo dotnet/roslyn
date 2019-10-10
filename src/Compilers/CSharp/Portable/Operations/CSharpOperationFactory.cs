@@ -224,7 +224,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.LocalDeclaration:
                     return CreateBoundLocalDeclarationOperation((BoundLocalDeclaration)boundNode);
                 case BoundKind.MultipleLocalDeclarations:
-                case BoundKind.UsingLocalDeclarations:
                     return CreateBoundMultipleLocalDeclarationsOperation((BoundMultipleLocalDeclarations)boundNode);
                 case BoundKind.LabelStatement:
                     return CreateBoundLabelStatementOperation((BoundLabelStatement)boundNode);
@@ -289,6 +288,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return CreateCollectionValuePlaceholderOperation((BoundObjectOrCollectionValuePlaceholder)boundNode);
+                case BoundKind.UsingLocalDeclarations:
+                    return CreateBoundUsingLocalDeclarationOperation((BoundUsingLocalDeclarations)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -1747,12 +1748,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     ((LocalDeclarationStatementSyntax)declarationGroupSyntax).Declaration :
                     declarationGroupSyntax;
 
-            bool isUsing = declarationGroupSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) && ((LocalDeclarationStatementSyntax)declarationGroupSyntax).UsingKeyword != default;
-            bool isAsync = isUsing && ((LocalDeclarationStatementSyntax)declarationGroupSyntax).AwaitKeyword != default;
-            DeclarationKind declKind = (isAsync) ? DeclarationKind.AsynchronousUsing : (isUsing) ? DeclarationKind.Using : DeclarationKind.Default;
-
             bool declarationIsImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
-            IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundMultipleLocalDeclarations, declKind, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
+            IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundMultipleLocalDeclarations, DeclarationKind.Default, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
 
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
@@ -2082,6 +2079,17 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = ConvertToOptional(placeholder.ConstantValue);
             bool isImplicit = placeholder.WasCompilerGenerated;
             return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private IVariableDeclarationGroupOperation CreateBoundUsingLocalDeclarationOperation(BoundUsingLocalDeclarations boundUsingLocalDeclarations)
+        {
+            bool isAsync = boundUsingLocalDeclarations.AwaitOpt is object;
+            DeclarationKind declarationKid = (isAsync) ? DeclarationKind.AsynchronousUsing : DeclarationKind.Using;
+            SyntaxNode declarationSyntax = ((LocalDeclarationStatementSyntax)boundUsingLocalDeclarations.Syntax).Declaration;
+            bool declarationIsImplicit = boundUsingLocalDeclarations.WasCompilerGenerated;
+
+            IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundUsingLocalDeclarations, declarationKid, _semanticModel, declarationSyntax, type: null, constantValue: default, declarationIsImplicit);
+            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), _semanticModel, boundUsingLocalDeclarations.Syntax, type: null, constantValue: default, isImplicit: false);
         }
     }
 }
