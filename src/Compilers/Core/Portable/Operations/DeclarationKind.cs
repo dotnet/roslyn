@@ -5,9 +5,9 @@ namespace Microsoft.CodeAnalysis.Operations
     public enum DeclarationKind
     {
         /// <summary>
-        /// A local declaration.
+        /// A declaration.
         /// </summary>
-        Local = 0,
+        Default = 0,
 
         /// <summary>
         /// A using declaration.

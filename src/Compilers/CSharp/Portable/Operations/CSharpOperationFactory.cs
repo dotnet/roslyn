@@ -1728,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             bool multiVariableImplicit = boundLocalDeclaration.WasCompilerGenerated;
-            IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundLocalDeclaration, DeclarationKind.Local, _semanticModel, varDeclaration, null, default, multiVariableImplicit);
+            IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundLocalDeclaration, DeclarationKind.Default, _semanticModel, varDeclaration, null, default, multiVariableImplicit);
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             // In the case of a for loop, varStatement and varDeclaration will be the same syntax node.
@@ -1749,7 +1749,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             bool isUsing = declarationGroupSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) && ((LocalDeclarationStatementSyntax)declarationGroupSyntax).UsingKeyword != default;
             bool isAsync = isUsing && ((LocalDeclarationStatementSyntax)declarationGroupSyntax).AwaitKeyword != default;
-            DeclarationKind declKind = (isAsync) ? DeclarationKind.AsynchronousUsing : (isUsing) ? DeclarationKind.Using : DeclarationKind.Local;
+            DeclarationKind declKind = (isAsync) ? DeclarationKind.AsynchronousUsing : (isUsing) ? DeclarationKind.Using : DeclarationKind.Default;
 
             bool declarationIsImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
             IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundMultipleLocalDeclarations, declKind, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);

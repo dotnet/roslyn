@@ -462,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 builder.Add(New VariableDeclarationOperation(declarators,
                                                          initializer,
                                                          ImmutableArray(Of IOperation).Empty,
-                                                         DeclarationKind.Local,
+                                                         DeclarationKind.Default,
                                                          _semanticModel,
                                                          declarationGroup.Key,
                                                          type:=Nothing,

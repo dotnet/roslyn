@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var variableCount = operation.Declarators.Length;
             LogString($"{nameof(IVariableDeclarationOperation)} ({variableCount} declarators)");
-            if (operation.DeclarationKind != DeclarationKind.Local)
+            if (operation.DeclarationKind != DeclarationKind.Default)
             {
                 LogString($" (DeclarationKind: {operation.DeclarationKind})");
             }

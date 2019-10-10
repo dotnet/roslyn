@@ -6,7 +6,7 @@ Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string
 Microsoft.CodeAnalysis.ErrorLogOptions.SarifVersion.get -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.Operations.DeclarationKind
 Microsoft.CodeAnalysis.Operations.DeclarationKind.AsynchronousUsing = 2 -> Microsoft.CodeAnalysis.Operations.DeclarationKind
-Microsoft.CodeAnalysis.Operations.DeclarationKind.Local = 0 -> Microsoft.CodeAnalysis.Operations.DeclarationKind
+Microsoft.CodeAnalysis.Operations.DeclarationKind.Default = 0 -> Microsoft.CodeAnalysis.Operations.DeclarationKind
 Microsoft.CodeAnalysis.Operations.DeclarationKind.Using = 1 -> Microsoft.CodeAnalysis.Operations.DeclarationKind
 Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation.DeclarationKind.get -> Microsoft.CodeAnalysis.Operations.DeclarationKind
 Microsoft.CodeAnalysis.SarifVersion
