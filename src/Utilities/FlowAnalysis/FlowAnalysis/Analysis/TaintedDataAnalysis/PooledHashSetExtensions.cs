@@ -67,19 +67,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
-                 taintedMethodsNeedsPointsToAnalysis:
+                taintedMethods:
                     taintedMethods
-                        ?.Select<string, (MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>(o =>
+                        ?.Select<string, (MethodMatcher, ImmutableHashSet<string>)>(o =>
                             (
-                                (methodName, argumets) => methodName == o,
-                                ImmutableHashSet<(PointsToCheck, string)>.Empty.Add(
-                                    (
-                                        SourceInfo.AlwaysTruePointsToCheck,
-                                        TaintedTargetValue.Return
-                                    ))
+                                (methodName, arguments) => methodName == o,
+                                ImmutableHashSet<string>.Empty.Add(TaintedTargetValue.Return)
                             ))
                         ?.ToImmutableHashSet()
-                    ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
+                    ?? ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
+                taintedMethodsNeedsPointsToAnalysis:
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(PointsToCheck, string)>)>.Empty,
                 taintedMethodsNeedsValueContentAnalysis:
                     ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(ValueContentCheck, string)>)>.Empty,
                 transferMethods:
@@ -113,6 +111,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
+                taintedMethods:
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
                 taintedMethodsNeedsPointsToAnalysis:
                     taintedMethodsNeedsPointsToAnalysis?.Select(o =>
                             (
@@ -162,6 +162,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 isInterface: isInterface,
                 taintedProperties: taintedProperties?.ToImmutableHashSet(StringComparer.Ordinal)
                     ?? ImmutableHashSet<string>.Empty,
+                taintedMethods:
+                    ImmutableHashSet<(MethodMatcher, ImmutableHashSet<string>)>.Empty,
                 taintedMethodsNeedsPointsToAnalysis:
                     taintedMethodsNeedsPointsToAnalysis?.Select(o =>
                             (

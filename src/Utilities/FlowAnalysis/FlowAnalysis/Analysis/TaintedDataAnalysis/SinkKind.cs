@@ -18,5 +18,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         Xaml,
         ZipSlip,
         HardcodedEncryptionKey,
+        HardcodedCertificate,
     }
 }
