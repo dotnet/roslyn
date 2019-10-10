@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Xunit;
-using System.Threading;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using System.Reflection.PortableExecutable;
-using System.Reflection.Metadata;
-using System.Linq;
-using Roslyn.Test.Utilities;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -467,7 +467,6 @@ class Program {
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("Program.Main()").WithLocation(6, 28));
         }
 
-
         [Fact]
         public void AsyncEmitMainOfIntTest_StringArgs()
         {
@@ -625,7 +624,6 @@ class A
 
             CompileAndVerify(compilation, expectedReturnCode: 0);
         }
-
 
         [Fact]
         public void MainCantBeAsyncWithRefTask()
@@ -1956,6 +1954,109 @@ class Program
   IL_013a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_013f:  ret
 }");
+        }
+
+        [Fact]
+        public void ValueTask()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class Program
+{
+    static async ValueTask Main()
+    {
+        await Task.Delay(0);
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (4,28): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
+                //     static async ValueTask Main()
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(4, 28));
+        }
+
+        [Fact]
+        public void ValueTaskOfInt()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class Program
+{
+    static async ValueTask<int> Main()
+    {
+        await Task.Delay(0);
+        return 0;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (4,33): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
+                //     static async ValueTask<int> Main()
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(4, 33));
+        }
+
+        [Fact]
+        public void TasklikeType()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+namespace System.Runtime.CompilerServices
+{
+    class AsyncMethodBuilderAttribute : System.Attribute
+    {
+        public AsyncMethodBuilderAttribute(System.Type t) { }
+    }
+}
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+struct MyTask
+{
+    internal Awaiter GetAwaiter() => new Awaiter();
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal void GetResult() { }
+    }
+}
+struct MyTaskMethodBuilder
+{
+    private MyTask _task;
+    public static MyTaskMethodBuilder Create() => new MyTaskMethodBuilder(new MyTask());
+    internal MyTaskMethodBuilder(MyTask task)
+    {
+        _task = task;
+    }
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
+    {
+        stateMachine.MoveNext();
+    }
+    public void SetException(Exception e) { }
+    public void SetResult() { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask Task => _task;
+}
+class Program
+{
+    static async MyTask Main()
+    {
+        await Task.Delay(0);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+                // (43,25): warning CS0028: 'Program.Main()' has the wrong signature to be an entry point
+                //     static async MyTask Main()
+                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("Program.Main()").WithLocation(43, 25));
         }
     }
 }

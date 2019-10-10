@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         void OnManagedModuleInstanceUnloaded(Guid mvid);
 
         bool IsDebuggingSessionInProgress { get; }
+        void OnSourceFileUpdated(DocumentId documentId);
 
         void StartDebuggingSession();
         void StartEditSession();

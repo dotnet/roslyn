@@ -107,7 +107,7 @@ namespace RunTests
 
             ConsoleUtil.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpDirectory}");
-            ConsoleUtil.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} partitions");
+            ConsoleUtil.WriteLine($"Running {options.Assemblies.Count} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;

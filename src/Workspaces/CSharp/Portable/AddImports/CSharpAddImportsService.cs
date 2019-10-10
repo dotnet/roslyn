@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImports
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
         protected override ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation)
             => ImmutableArray<SyntaxNode>.Empty;
 
-        protected override SyntaxNode GetAlias(UsingDirectiveSyntax usingOrAlias)
+        protected override SyntaxNode? GetAlias(UsingDirectiveSyntax usingOrAlias)
             => usingOrAlias.Alias;
 
         protected override bool IsStaticUsing(UsingDirectiveSyntax usingOrAlias)
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             {
                 // recurse downwards so we visit inner namespaces first.
-                var rewritten = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
+                var rewritten = (NamespaceDeclarationSyntax)(base.VisitNamespaceDeclaration(node) ?? throw ExceptionUtilities.Unreachable);
 
                 if (!node.CanAddUsingDirectives(_cancellationToken))
                 {
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
             {
                 // recurse downwards so we visit inner namespaces first.
-                var rewritten = (CompilationUnitSyntax)base.VisitCompilationUnit(node);
+                var rewritten = (CompilationUnitSyntax)(base.VisitCompilationUnit(node) ?? throw ExceptionUtilities.Unreachable);
 
                 if (!node.CanAddUsingDirectives(_cancellationToken))
                 {

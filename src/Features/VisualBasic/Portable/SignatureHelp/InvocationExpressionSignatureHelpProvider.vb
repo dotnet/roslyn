@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = New List(Of SignatureHelpItem)
-            If memberGroup.Count > 0 Then
+            If memberGroup.Length > 0 Then
                 items.AddRange(GetMemberGroupItems(document, invocationExpression, semanticModel, within, memberGroup, cancellationToken))
             End If
 

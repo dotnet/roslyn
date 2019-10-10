@@ -75,11 +75,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         // test only:
+        internal DebuggingSession? Test_GetDebuggingSession() => _debuggingSession;
         internal EditSession? Test_GetEditSession() => _editSession;
         internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
 
         public bool IsDebuggingSessionInProgress
             => _debuggingSession != null;
+
+        public void OnSourceFileUpdated(DocumentId documentId)
+        {
+            var debuggingSession = _debuggingSession;
+            if (debuggingSession != null)
+            {
+                // fire and forget
+                _ = Task.Run(() => debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(documentId, debuggingSession.CancellationToken));
+            }
+        }
 
         /// <summary>
         /// Invoked whenever a module instance is loaded to a process being debugged.
@@ -139,6 +150,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var debuggingSession = Interlocked.Exchange(ref _debuggingSession, null);
             Contract.ThrowIfNull(debuggingSession, "Debugging session has not started.");
 
+            // cancel all ongoing work bound to the session:
+            debuggingSession.Cancel();
+
             _reportTelemetry(_debuggingSessionTelemetry.GetDataAndClear());
 
             // clear emit/apply diagnostics reported previously:
@@ -166,14 +180,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                // The document has not changed while the application is running since the last changes were committed:
-                var oldDocument = debuggingSession.LastCommittedSolution.GetDocument(document.Id);
-                var editSession = _editSession;
-                if (editSession == null && document == oldDocument)
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
                 // Not a C# or VB project.
                 var project = document.Project;
                 if (!SupportsEditAndContinue(project))
@@ -197,8 +203,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
+                var (oldDocument, oldDocumentState) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, cancellationToken).ConfigureAwait(false);
+                if (oldDocumentState == CommittedSolution.DocumentState.OutOfSync ||
+                    oldDocumentState == CommittedSolution.DocumentState.DesignTimeOnly)
+                {
+                    // Do not report diagnostics for existing out-of-sync documents or design-time-only documents.
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                // The document has not changed while the application is running since the last changes were committed:
+                var editSession = _editSession;
+
                 if (editSession == null)
                 {
+                    if (document == oldDocument)
+                    {
+                        return ImmutableArray<Diagnostic>.Empty;
+                    }
+
                     // Any changes made in loaded, built projects outside of edit session are rude edits (the application is running):
                     var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfNull(newSyntaxTree);
@@ -207,13 +229,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return GetRunModeDocumentDiagnostics(document, newSyntaxTree, changedSpans);
                 }
 
-                // No changes made in the entire workspace since the edit session started:
-                if (editSession.BaseSolution.WorkspaceVersion == project.Solution.WorkspaceVersion)
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
-                var analysis = await editSession.GetDocumentAnalysis(document).GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var analysis = await editSession.GetDocumentAnalysis(oldDocument, document).GetValueAsync(cancellationToken).ConfigureAwait(false);
                 if (analysis.HasChanges)
                 {
                     // Once we detected a change in a document let the debugger know that the corresponding loaded module
@@ -412,7 +428,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     solution,
                     solutionUpdate.EmitBaselines,
                     solutionUpdate.Deltas,
-                    solutionUpdate.ModuleReaders));
+                    solutionUpdate.ModuleReaders,
+                    solutionUpdate.ChangedDocuments));
 
                 // commit/discard was not called:
                 Contract.ThrowIfFalse(previousPendingUpdate == null);
@@ -479,8 +496,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
+                var (oldPrimaryDocument, _) = await editSession.DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(baseActiveStatement.PrimaryDocumentId, cancellationToken).ConfigureAwait(false);
+                if (oldPrimaryDocument == null)
+                {
+                    // Can't determine position of an active statement if the document is out-of-sync with loaded module debug information.
+                    return null;
+                }
+
                 var primaryDocument = _workspace.CurrentSolution.GetDocument(baseActiveStatement.PrimaryDocumentId);
-                var documentAnalysis = await editSession.GetDocumentAnalysis(primaryDocument).GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var documentAnalysis = await editSession.GetDocumentAnalysis(oldPrimaryDocument, primaryDocument).GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var currentActiveStatements = documentAnalysis.ActiveStatements;
                 if (currentActiveStatements.IsDefault)
                 {
@@ -496,6 +520,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        /// <summary>
+        /// Called by the debugger to determine whether an active statement is in an exception region,
+        /// so it can determine whether the active statement can be remapped. This only happens when the EnC is about to apply changes.
+        /// If the debugger determines we can remap active statements, the application of changes proceeds.
+        /// </summary>
+        /// <returns>
+        /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement 
+        /// or the exception regions can't be determined.
+        /// </returns>
         public async Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
         {
             try
@@ -506,19 +539,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                // TODO: Avoid enumerating active statements for unchanged documents.
-                // We would need to add a document path parameter to be able to find the document we need to check for changes.
-                // https://github.com/dotnet/roslyn/issues/24324
+                // This method is only called when the EnC is about to apply changes, at which point all active statements and 
+                // their exception regions will be needed. Hence it's not neccessary to scope this query down to just the instruction
+                // the debugger is interested at this point while not calculating the others.
+
                 var baseActiveStatements = await editSession.BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 if (!baseActiveStatements.InstructionMap.TryGetValue(instructionId, out var baseActiveStatement))
                 {
                     return null;
                 }
 
-                // TODO: avoid waiting for ERs of all active statements to be calculated and just calculate the one we are interested in at this moment:
-                // https://github.com/dotnet/roslyn/issues/24324
-                var baseExceptionRegions = await editSession.BaseActiveExceptionRegions.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                return baseExceptionRegions[baseActiveStatement.Ordinal].IsActiveStatementCovered;
+                var baseExceptionRegions = (await editSession.GetBaseActiveExceptionRegionsAsync(cancellationToken).ConfigureAwait(false))[baseActiveStatement.Ordinal];
+
+                // If the document is out-of-sync the exception regions can't be determined.
+                return baseExceptionRegions.Spans.IsDefault ? (bool?)null : baseExceptionRegions.IsActiveStatementCovered;
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
