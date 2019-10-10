@@ -22,7 +22,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Tools\Metrics.csproj" />
-    <ProjectReference Include="..\..\src\Tools\Metrics.Legacy.csproj" />
+    <ProjectReference Include="..\..\src\Tools\Metrics\Metrics.csproj" />
+    <ProjectReference Include="..\..\src\Tools\Metrics\Metrics.Legacy.csproj" />
   </ItemGroup>
 </Project>

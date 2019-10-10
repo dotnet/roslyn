@@ -39,12 +39,16 @@ namespace Analyzer.Utilities
         private readonly WellKnownTypeProvider _wellKnownTypeProvider;
         private readonly ImmutableHashSet<INamedTypeSymbol> _disposeOwnershipTransferLikelyTypes;
         private ConcurrentDictionary<INamedTypeSymbol, ImmutableHashSet<IFieldSymbol>> _lazyDisposableFieldsMap;
-        public INamedTypeSymbol IDisposable => _wellKnownTypeProvider.IDisposable;
-        public INamedTypeSymbol Task => _wellKnownTypeProvider.Task;
+        public INamedTypeSymbol IDisposable { get; }
+        public INamedTypeSymbol Task { get; }
 
         private DisposeAnalysisHelper(Compilation compilation)
         {
             _wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
+
+            IDisposable = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            Task = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
+
             if (IDisposable != null)
             {
                 _disposeOwnershipTransferLikelyTypes = GetDisposeOwnershipTransferLikelyTypes(compilation);
@@ -153,7 +157,7 @@ namespace Analyzer.Utilities
             {
                 disposableFields = namedType.GetMembers()
                     .OfType<IFieldSymbol>()
-                    .Where(f => f.Type.IsDisposable(IDisposable) && !f.Type.DerivesFrom(_wellKnownTypeProvider.Task))
+                    .Where(f => f.Type.IsDisposable(IDisposable) && !f.Type.DerivesFrom(Task))
                     .ToImmutableHashSet();
             }
 

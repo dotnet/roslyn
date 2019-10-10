@@ -142,7 +142,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Checks if the given method is an implementation of the given interface method 
+        /// Checks if the given method is an implementation of the given interface method
         /// Substituted with the given typeargument.
         /// </summary>
         public static bool IsImplementationOfInterfaceMethod(this IMethodSymbol method, ITypeSymbol typeArgument, INamedTypeSymbol interfaceType, string interfaceMethodName)
@@ -157,7 +157,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsDisposeImplementation(this IMethodSymbol method, Compilation compilation)
         {
-            INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
+            INamedTypeSymbol iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             return method.IsDisposeImplementation(iDisposable);
         }
 
@@ -247,8 +247,8 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
         {
-            INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
-            INamedTypeSymbol task = WellKnownTypes.Task(compilation);
+            INamedTypeSymbol iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            INamedTypeSymbol task = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
             return method.GetDisposeMethodKind(iDisposable, task);
         }
 
