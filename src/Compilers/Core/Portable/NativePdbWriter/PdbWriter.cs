@@ -749,7 +749,9 @@ namespace Microsoft.Cci
         /// </remarks>
         public void WriteRemainingDebugDocuments(IReadOnlyDictionary<string, DebugSourceDocument> documents)
         {
-            foreach (var kvp in documents.OrderBy(kvp => kvp.Key))
+            foreach (var kvp in documents
+                .Where(kvp => !_documentIndex.ContainsKey(kvp.Value))
+                .OrderBy(kvp => kvp.Key))
             {
                 GetDocumentIndex(kvp.Value);
             }
