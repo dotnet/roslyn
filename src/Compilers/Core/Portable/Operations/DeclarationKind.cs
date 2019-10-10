@@ -2,12 +2,12 @@
 
 namespace Microsoft.CodeAnalysis.Operations
 {
-    public enum UsingKind
+    public enum DeclarationKind
     {
         /// <summary>
-        /// A regular declaration.
+        /// A local declaration.
         /// </summary>
-        None = 0,
+        Local = 0,
 
         /// <summary>
         /// A using declaration.
@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// An asynchronous using declaration.
         /// </summary>
-        Asynchronous = 2
+        AsynchronousUsing = 2
     }
 }

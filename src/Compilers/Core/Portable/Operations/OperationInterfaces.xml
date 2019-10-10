@@ -2035,10 +2035,10 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="UsingKind" Type="UsingKind">
+    <Property Name="DeclarationKind" Type="DeclarationKind">
       <Comments>
         <summary>
-          Specifies the <see cref="UsingKind" /> of this declaration.
+          Specifies the <see cref="DeclarationKind" /> of this declaration.
         </summary>
       </Comments>
     </Property>

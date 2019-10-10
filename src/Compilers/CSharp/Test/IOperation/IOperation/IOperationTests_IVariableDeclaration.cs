@@ -2424,7 +2424,7 @@ class C
 ";
 
             string expectedOperationTree = @"
-    IVariableDeclarationOperation (1 declarators) (UsingKind: Using) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
+    IVariableDeclarationOperation (1 declarators) (DeclarationKind: Using) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
       Ignored Dimensions(1):
           ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
             Value: 

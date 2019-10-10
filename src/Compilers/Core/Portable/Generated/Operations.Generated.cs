@@ -1999,9 +1999,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<IOperation> IgnoredDimensions { get; }
         /// <summary>
-        /// Specifies the <see cref="UsingKind" /> of this declaration.
+        /// Specifies the <see cref="DeclarationKind" /> of this declaration.
         /// </summary>
-        UsingKind UsingKind { get; }
+        DeclarationKind DeclarationKind { get; }
     }
     /// <summary>
     /// Represents an argument to a method invocation.
@@ -6431,15 +6431,15 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal abstract partial class BaseVariableDeclarationOperation : Operation, IVariableDeclarationOperation
     {
-        internal BaseVariableDeclarationOperation(UsingKind usingKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        internal BaseVariableDeclarationOperation(DeclarationKind declarationKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(OperationKind.VariableDeclaration, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            UsingKind = usingKind;
+            DeclarationKind = declarationKind;
         }
         public abstract ImmutableArray<IVariableDeclaratorOperation> Declarators { get; }
         public abstract IVariableInitializerOperation Initializer { get; }
         public abstract ImmutableArray<IOperation> IgnoredDimensions { get; }
-        public UsingKind UsingKind { get; }
+        public DeclarationKind DeclarationKind { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -6460,8 +6460,8 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class VariableDeclarationOperation : BaseVariableDeclarationOperation, IVariableDeclarationOperation
     {
-        internal VariableDeclarationOperation(ImmutableArray<IVariableDeclaratorOperation> declarators, IVariableInitializerOperation initializer, ImmutableArray<IOperation> ignoredDimensions, UsingKind usingKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(usingKind, semanticModel, syntax, type, constantValue, isImplicit)
+        internal VariableDeclarationOperation(ImmutableArray<IVariableDeclaratorOperation> declarators, IVariableInitializerOperation initializer, ImmutableArray<IOperation> ignoredDimensions, DeclarationKind declarationKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(declarationKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Declarators = SetParentOperation(declarators, this);
             Initializer = SetParentOperation(initializer, this);
@@ -6476,8 +6476,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private ImmutableArray<IVariableDeclaratorOperation> _lazyDeclarators;
         private IVariableInitializerOperation _lazyInitializer = s_unsetVariableInitializer;
         private ImmutableArray<IOperation> _lazyIgnoredDimensions;
-        internal LazyVariableDeclarationOperation(UsingKind usingKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(usingKind, semanticModel, syntax, type, constantValue, isImplicit){ }
+        internal LazyVariableDeclarationOperation(DeclarationKind declarationKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+            : base(declarationKind, semanticModel, syntax, type, constantValue, isImplicit){ }
         protected abstract ImmutableArray<IVariableDeclaratorOperation> CreateDeclarators();
         public override ImmutableArray<IVariableDeclaratorOperation> Declarators
         {

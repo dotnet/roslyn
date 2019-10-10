@@ -1413,8 +1413,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly CSharpOperationFactory _operationFactory;
         private readonly BoundNode _localDeclaration;
 
-        internal CSharpLazyVariableDeclarationOperation(CSharpOperationFactory operationFactory, BoundNode localDeclaration, UsingKind usingKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(usingKind, semanticModel, syntax, type, constantValue, isImplicit)
+        internal CSharpLazyVariableDeclarationOperation(CSharpOperationFactory operationFactory, BoundNode localDeclaration, DeclarationKind declarationKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(declarationKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _localDeclaration = localDeclaration;
