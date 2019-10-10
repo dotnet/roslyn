@@ -513,7 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             var lazyCustomAttributesBag = _lazyCustomAttributesBag;
-
             if (lazyCustomAttributesBag == null)
             {
                 LoadAndValidateAttributes(OneOrMany.Create(_syntax.AttributeLists), ref _lazyCustomAttributesBag);
