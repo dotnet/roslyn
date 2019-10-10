@@ -6,6 +6,8 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Text;
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     internal abstract class SyntaxComparer : TreeComparer<SyntaxNode>
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the nodes are. 
         /// </remarks>
-        public static double ComputeDistance(SyntaxNode oldNode, SyntaxNode newNode)
+        public static double ComputeDistance(SyntaxNode? oldNode, SyntaxNode? newNode)
         {
             if (oldNode == null || newNode == null)
             {
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens)
+        public static double ComputeDistance(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
         {
             return LcsTokens.Instance.ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
         }
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <remarks>
         /// Distance is a number within [0, 1], the smaller the more similar the sequences are. 
         /// </remarks>
-        public static double ComputeDistance(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
+        public static double ComputeDistance(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
         {
             return LcsNodes.Instance.ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
         }
@@ -187,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode> oldNodes, IEnumerable<SyntaxNode> newNodes)
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
         {
             return LcsNodes.Instance.GetEdits(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
         }
@@ -203,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <summary>
         /// Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
         /// </summary>
-        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken> oldTokens, IEnumerable<SyntaxToken> newTokens)
+        public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
         {
             return LcsTokens.Instance.GetEdits(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
         }
