@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Maps the name of target type name of simple methods to its <see cref="ExtensionMethodInfo" />.
         /// </summary>
-        private readonly MultiDictionary<string, ExtensionMethodInfo> _simpleTypeNameToExtensionMethodMap;
+        private readonly MultiDictionary<string, ExtensionMethodInfo>? _simpleTypeNameToExtensionMethodMap;
 
         /// <summary>
         /// A list of <see cref="ExtensionMethodInfo" /> for complex methods.
@@ -69,17 +71,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public ImmutableArray<ExtensionMethodInfo> GetMatchingExtensionMethodInfo(string parameterTypeName)
         {
-            var simpleMethods = _simpleTypeNameToExtensionMethodMap[parameterTypeName];
-            if (simpleMethods.Count == 0)
+            if (_simpleTypeNameToExtensionMethodMap == null)
             {
                 return _extensionMethodOfComplexType;
             }
 
+            var simpleMethods = _simpleTypeNameToExtensionMethodMap[parameterTypeName];
             using var disposer = ArrayBuilder<ExtensionMethodInfo>.GetInstance(out var builder);
-
             builder.AddRange(_extensionMethodOfComplexType);
             builder.AddRange(simpleMethods);
-
             return builder.ToImmutable();
         }
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<int, int> inheritanceMap,
             ImmutableArray<ExtensionMethodInfo> extensionMethodOfComplexType,
-            MultiDictionary<string, ExtensionMethodInfo> simpleTypeNameToExtensionMethodMap)
+            MultiDictionary<string, ExtensionMethodInfo>? simpleTypeNameToExtensionMethodMap)
         {
             Checksum = checksum;
             _concatenatedNames = concatenatedNames;
@@ -144,22 +144,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _inheritanceMap = inheritanceMap;
             _extensionMethodOfComplexType = extensionMethodOfComplexType;
             _simpleTypeNameToExtensionMethodMap = simpleTypeNameToExtensionMethodMap;
-        }
-
-        private static MultiDictionary<string, ParameterTypeInfo> CreateTypeNameToTypeMap(MultiDictionary<ParameterTypeInfo, int> parameterTypeToNodeMap)
-        {
-            if (parameterTypeToNodeMap == null)
-            {
-                return null;
-            }
-
-            var parameterTypeNameToTypeMap = new MultiDictionary<string, ParameterTypeInfo>();
-            foreach (var info in parameterTypeToNodeMap.Keys)
-            {
-                parameterTypeNameToTypeMap.Add(info.Name, info);
-            }
-
-            return parameterTypeNameToTypeMap;
         }
 
         public static SymbolTreeInfo CreateEmpty(Checksum checksum)
@@ -265,7 +249,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var comparer = GetComparer(ignoreCase);
             var results = ArrayBuilder<ISymbol>.GetInstance();
-            IAssemblySymbol assemblySymbol = null;
+            IAssemblySymbol? assemblySymbol = null;
 
             foreach (var node in FindNodeIndices(name, comparer))
             {
@@ -417,7 +401,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             out ImmutableArray<Node> sortedNodes)
         {
             // Generate index numbers from 0 to Count-1
-            var tmp = new int[unsortedNodes.Length];
+            int[]? tmp = new int[unsortedNodes.Length];
             for (var i = 0; i < tmp.Length; i++)
             {
                 tmp[i] = i;
@@ -442,7 +426,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             result.Count = unsortedNodes.Length;
 
             var concatenatedNamesBuilder = new StringBuilder();
-            string lastName = null;
+            string? lastName = null;
 
             // Copy nodes into the result array in the appropriate order and fixing
             // up parent indexes as we go.

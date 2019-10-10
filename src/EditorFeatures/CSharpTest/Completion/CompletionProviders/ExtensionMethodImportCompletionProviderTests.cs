@@ -849,7 +849,7 @@ namespace Baz
     }}
 }}";
             IsExpandedCompletion = false;
-            var markup = GetMarkup(file2, file1, ReferenceType.None);
+            var markup = GetMarkup(file2, file1, ReferenceType.Project);
 
             await VerifyTypeImportItemIsAbsentAsync(
                  markup,
