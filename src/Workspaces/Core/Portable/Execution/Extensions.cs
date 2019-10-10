@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private static XmlFileResolver GetXmlResolver(string filePath)
         {
-            // Given filePath can be any arbitary string project is created with.
+            // Given filePath can be any arbitrary string project is created with.
             // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
             // filePath will point to actual file on disk, but in memory solultion, or
             // one from AdhocWorkspace and etc, FilePath can be a random string.
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private static ImmutableArray<string> GetStrongNameKeyPaths(ProjectInfo.ProjectAttributes info)
         {
-            // Given FilePath/OutputFilePath can be any arbitary strings project is created with.
+            // Given FilePath/OutputFilePath can be any arbitrary strings project is created with.
             // for primary solution in host such as VSWorkspace, ETA or MSBuildWorkspace
             // filePath will point to actual file on disk, but in memory solultion, or
             // one from AdhocWorkspace and etc, FilePath/OutputFilePath can be a random string.
