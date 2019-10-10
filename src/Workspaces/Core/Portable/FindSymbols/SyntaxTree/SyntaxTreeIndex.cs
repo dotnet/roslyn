@@ -112,9 +112,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await index.SaveAsync(document, cancellationToken).ConfigureAwait(false);
 
                 // Populate our cache with this data.
+                s_documentIdToIndex.Remove(document.Id);
                 s_documentIdToIndex.GetValue(document.Id, _ => index);
             }
-
 
             return index;
         }
