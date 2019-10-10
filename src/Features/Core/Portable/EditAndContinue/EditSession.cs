@@ -763,7 +763,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // We also don't want to block the UI thread - emit might perform IO.
                     if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
                     {
-                        await Task.Factory.SafeStartNew(Emit, cancellationToken, TaskScheduler.Default).ConfigureAwait(false);
+                        await Task.Factory.StartNew(() =>
+                        {
+                            try
+                            {
+                                Emit();
+                            }
+                            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+                            {
+                                throw ExceptionUtilities.Unreachable;
+                            }
+                        }, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default).ConfigureAwait(false);
                     }
                     else
                     {
