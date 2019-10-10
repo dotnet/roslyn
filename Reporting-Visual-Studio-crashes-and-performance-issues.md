@@ -59,7 +59,7 @@ If you're not sure what's causing your crashes or they seem random, then you can
 
 ⚠️ Each dump file produced by this method will be up to 4GiB in size. Make sure to set `DumpFolder` to a location with adequate drive space or adjust the `DumpCount` appropriately.
 
-Each time Visual Studio crashes, it will create a dump file **devenv.exe.[number].dmp** file in the configured location.
+Each time Visual Studio crashes, it will create a dump file **devenv.exe.[number].dmp** file in the configured location. If one of the helper processes crashes, it will create a dump file **ServiceHub.RoslynCodeAnalysisService32.exe.[number].dmp** or **ServiceHub.RoslynCodeAnalysisService.exe.[number].dmp** file in the configured location.
 
 Then, use Visual Studio's "Report a Problem..." feature. It will allow you to attach the appropriate dump.
 
