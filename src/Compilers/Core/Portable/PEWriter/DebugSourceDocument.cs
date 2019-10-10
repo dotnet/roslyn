@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System;
 using System.Threading.Tasks;
@@ -19,11 +21,11 @@ namespace Microsoft.Cci
         private readonly string _location;
         private readonly Guid _language;
         private readonly bool _isComputedChecksum;
-        private readonly Task<DebugSourceInfo> _sourceInfo;
+        private readonly Task<DebugSourceInfo>? _sourceInfo;
 
         public DebugSourceDocument(string location, Guid language)
         {
-            Debug.Assert(location != null);
+            RoslynDebug.Assert(location != null);
 
             _location = location; // If it's a path, it should be normalized.
             _language = language;

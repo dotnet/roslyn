@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -11,18 +13,18 @@ namespace Microsoft.Cci
     /// </summary>
     internal struct UsedNamespaceOrType : IEquatable<UsedNamespaceOrType>
     {
-        public readonly string AliasOpt;
-        public readonly IAssemblyReference TargetAssemblyOpt;
-        public readonly INamespace TargetNamespaceOpt;
-        public readonly ITypeReference TargetTypeOpt;
-        public readonly string TargetXmlNamespaceOpt;
+        public readonly string? AliasOpt;
+        public readonly IAssemblyReference? TargetAssemblyOpt;
+        public readonly INamespace? TargetNamespaceOpt;
+        public readonly ITypeReference? TargetTypeOpt;
+        public readonly string? TargetXmlNamespaceOpt;
 
         private UsedNamespaceOrType(
-            string alias = null,
-            IAssemblyReference targetAssembly = null,
-            INamespace targetNamespace = null,
-            ITypeReference targetType = null,
-            string targetXmlNamespace = null)
+            string? alias = null,
+            IAssemblyReference? targetAssembly = null,
+            INamespace? targetNamespace = null,
+            ITypeReference? targetType = null,
+            string? targetXmlNamespace = null)
         {
             AliasOpt = alias;
             TargetAssemblyOpt = targetAssembly;
@@ -31,32 +33,32 @@ namespace Microsoft.Cci
             TargetXmlNamespaceOpt = targetXmlNamespace;
         }
 
-        internal static UsedNamespaceOrType CreateType(ITypeReference type, string aliasOpt = null)
+        internal static UsedNamespaceOrType CreateType(ITypeReference type, string? aliasOpt = null)
         {
-            Debug.Assert(type != null);
+            RoslynDebug.Assert(type != null);
             return new UsedNamespaceOrType(alias: aliasOpt, targetType: type);
         }
 
-        internal static UsedNamespaceOrType CreateNamespace(INamespace @namespace, IAssemblyReference assemblyOpt = null, string aliasOpt = null)
+        internal static UsedNamespaceOrType CreateNamespace(INamespace @namespace, IAssemblyReference? assemblyOpt = null, string? aliasOpt = null)
         {
-            Debug.Assert(@namespace != null);
+            RoslynDebug.Assert(@namespace != null);
             return new UsedNamespaceOrType(alias: aliasOpt, targetAssembly: assemblyOpt, targetNamespace: @namespace);
         }
 
         internal static UsedNamespaceOrType CreateExternAlias(string alias)
         {
-            Debug.Assert(alias != null);
+            RoslynDebug.Assert(alias != null);
             return new UsedNamespaceOrType(alias: alias);
         }
 
         internal static UsedNamespaceOrType CreateXmlNamespace(string prefix, string xmlNamespace)
         {
-            Debug.Assert(xmlNamespace != null);
-            Debug.Assert(prefix != null);
+            RoslynDebug.Assert(xmlNamespace != null);
+            RoslynDebug.Assert(prefix != null);
             return new UsedNamespaceOrType(alias: prefix, targetXmlNamespace: xmlNamespace);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is UsedNamespaceOrType other && Equals(other);
         }
@@ -73,9 +75,9 @@ namespace Microsoft.Cci
         public override int GetHashCode()
         {
             return Hash.Combine(AliasOpt,
-                   Hash.Combine((object)TargetAssemblyOpt,
-                   Hash.Combine((object)TargetNamespaceOpt,
-                   Hash.Combine((object)TargetTypeOpt,
+                   Hash.Combine((object?)TargetAssemblyOpt,
+                   Hash.Combine((object?)TargetNamespaceOpt,
+                   Hash.Combine((object?)TargetTypeOpt,
                    Hash.Combine(TargetXmlNamespaceOpt, 0)))));
         }
     }

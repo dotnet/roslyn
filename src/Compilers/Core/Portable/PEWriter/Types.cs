@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -157,8 +160,8 @@ namespace Microsoft.Cci
         /// </summary>
         TypeParameterVariance Variance { get; }
 
-        IGenericMethodParameter AsGenericMethodParameter { get; }
-        IGenericTypeParameter AsGenericTypeParameter { get; }
+        IGenericMethodParameter? AsGenericMethodParameter { get; }
+        IGenericTypeParameter? AsGenericTypeParameter { get; }
     }
 
     /// <summary>
@@ -320,7 +323,8 @@ namespace Microsoft.Cci
         /// type of a generic type instance), then the unspecialized member refers to a member from the unspecialized containing type. (I.e. the unspecialized member always
         /// corresponds to a definition that is not obtained via specialization.)
         /// </summary>
-        INestedTypeReference/*!*/ GetUnspecializedVersion(EmitContext context);
+        [return: NotNull]
+        INestedTypeReference GetUnspecializedVersion(EmitContext context);
     }
 
     /// <summary>
@@ -427,7 +431,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Returns null for interfaces and System.Object.
         /// </summary>
-        ITypeReference GetBaseClass(EmitContext context);
+        ITypeReference? GetBaseClass(EmitContext context);
         // ^ ensures result == null || result.ResolvedType.IsClass;
 
         /// <summary>
@@ -586,7 +590,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The type definition being referred to.
         /// </summary>
-        ITypeDefinition GetResolvedType(EmitContext context);
+        ITypeDefinition? GetResolvedType(EmitContext context);
 
         /// <summary>
         /// Unless the value of TypeCode is PrimitiveTypeCode.NotPrimitive, the type corresponds to a "primitive" CLR type (such as System.Int32) and
@@ -599,15 +603,15 @@ namespace Microsoft.Cci
         /// </summary>
         TypeDefinitionHandle TypeDef { get; }
 
-        IGenericMethodParameterReference AsGenericMethodParameterReference { get; }
-        IGenericTypeInstanceReference AsGenericTypeInstanceReference { get; }
-        IGenericTypeParameterReference AsGenericTypeParameterReference { get; }
-        INamespaceTypeDefinition AsNamespaceTypeDefinition(EmitContext context);
-        INamespaceTypeReference AsNamespaceTypeReference { get; }
-        INestedTypeDefinition AsNestedTypeDefinition(EmitContext context);
-        INestedTypeReference AsNestedTypeReference { get; }
-        ISpecializedNestedTypeReference AsSpecializedNestedTypeReference { get; }
-        ITypeDefinition AsTypeDefinition(EmitContext context);
+        IGenericMethodParameterReference? AsGenericMethodParameterReference { get; }
+        IGenericTypeInstanceReference? AsGenericTypeInstanceReference { get; }
+        IGenericTypeParameterReference? AsGenericTypeParameterReference { get; }
+        INamespaceTypeDefinition? AsNamespaceTypeDefinition(EmitContext context);
+        INamespaceTypeReference? AsNamespaceTypeReference { get; }
+        INestedTypeDefinition? AsNestedTypeDefinition(EmitContext context);
+        INestedTypeReference? AsNestedTypeReference { get; }
+        ISpecializedNestedTypeReference? AsSpecializedNestedTypeReference { get; }
+        ITypeDefinition? AsTypeDefinition(EmitContext context);
     }
 
     /// <summary>
