@@ -2,6 +2,7 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,26 +18,37 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
         private const string AttributeFullName = nameof(AttributeFullName);
+        private const string SymbolName = nameof(SymbolName);
 
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, string genericTypeSuffix)
         {
-            return Create(typeSymbol, typeSymbol.Arity, containingNamespace, genericTypeSuffix, CompletionItemFlags.CachedAndExpanded);
+            return Create(typeSymbol, typeSymbol.Arity, containingNamespace, genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, encodeSymbol: false);
         }
 
         public static CompletionItem Create(IMethodSymbol methodSymbol, string containingNamespace, string genericTypeSuffix)
         {
             Debug.Assert(methodSymbol.IsExtensionMethod);
-            return Create(methodSymbol, methodSymbol.Arity, containingNamespace, genericTypeSuffix, CompletionItemFlags.Expanded);
+            return Create(methodSymbol, methodSymbol.Arity, containingNamespace, genericTypeSuffix, CompletionItemFlags.Expanded, encodeSymbol: true);
         }
 
-        private static CompletionItem Create(ISymbol symbol, int arity, string containingNamespace, string genericTypeSuffix, CompletionItemFlags flags)
+        private static CompletionItem Create(ISymbol symbol, int arity, string containingNamespace, string genericTypeSuffix, CompletionItemFlags flags, bool encodeSymbol)
         {
-            PooledDictionary<string, string>? propertyBuilder = null;
+            ImmutableDictionary<string, string>? properties = null;
 
-            if (arity > 0)
+            if (encodeSymbol || arity > 0)
             {
-                propertyBuilder = PooledDictionary<string, string>.GetInstance();
-                propertyBuilder.Add(TypeAritySuffixName, AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(arity));
+                var builder = PooledDictionary<string, string>.GetInstance();
+
+                if (encodeSymbol)
+                {
+                    builder.Add(SymbolName, SymbolCompletionItem.EncodeSymbol(symbol));
+                }
+                else
+                {
+                    builder.Add(TypeAritySuffixName, AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(arity));
+                }
+
+                properties = builder.ToImmutableDictionaryAndFree();
             }
 
             // Add tildes (ASCII: 126) to name and namespace as sort text:
@@ -49,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var item = CompletionItem.Create(
                  displayText: symbol.Name,
                  sortText: sortTextBuilder.ToStringAndFree(),
-                 properties: propertyBuilder?.ToImmutableDictionaryAndFree(),
+                 properties: properties,
                  tags: GlyphTags.GetTags(symbol.GetGlyph()),
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
@@ -91,27 +103,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var metadataName = GetMetadataName(item);
-            if (!string.IsNullOrEmpty(metadataName))
-            {
-                var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
-                var symbol = compilation.GetTypeByMetadataName(metadataName);
-                if (symbol != null)
-                {
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+            var symbol = GetSymbol(item, compilation);
 
-                    // We choose not to display the number of "type overloads" for simplicity. 
-                    // Otherwise, we need additional logic to track internal and public visible
-                    // types separately, and cache both completion items.
-                    return await CommonCompletionUtilities.CreateDescriptionAsync(
-                        document.Project.Solution.Workspace,
-                        semanticModel,
-                        position: 0,
-                        symbol,
-                        overloadCount: 0,
-                        supportedPlatforms: null,
-                        cancellationToken).ConfigureAwait(false);
-                }
+            if (symbol != null)
+            {
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                // We choose not to display the number of "type overloads" for simplicity. 
+                // Otherwise, we need additional logic to track internal and public visible
+                // types separately, and cache both completion items.
+                return await CommonCompletionUtilities.CreateDescriptionAsync(
+                    document.Project.Solution.Workspace,
+                    semanticModel,
+                    position: 0,
+                    symbol,
+                    overloadCount: 0,
+                    supportedPlatforms: null,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return CompletionDescription.Empty;
@@ -120,17 +129,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static string GetFullyQualifiedName(string namespaceName, string typeName)
             => namespaceName.Length == 0 ? typeName : namespaceName + "." + typeName;
 
-        private static string GetMetadataName(CompletionItem item)
+        private static ISymbol? GetSymbol(CompletionItem item, Compilation compilation)
         {
+            if (item.Properties.TryGetValue(SymbolName, out var symbolId))
+            {
+                return SymbolCompletionItem.DecodeSymbol(symbolId, compilation);
+            }
+
             var containingNamespace = GetContainingNamespace(item);
             var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
             var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, typeName);
             if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
             {
-                return fullyQualifiedName + aritySuffix;
+                return compilation.GetTypeByMetadataName(fullyQualifiedName + aritySuffix);
             }
 
-            return fullyQualifiedName;
+            return compilation.GetTypeByMetadataName(fullyQualifiedName);
         }
     }
 }

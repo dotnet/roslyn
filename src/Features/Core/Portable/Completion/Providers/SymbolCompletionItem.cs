@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private static ISymbol DecodeSymbol(string id, Compilation compilation)
+        public static ISymbol DecodeSymbol(string id, Compilation compilation)
         {
             return SymbolKey.ResolveString(id, compilation).GetAnySymbol();
         }
