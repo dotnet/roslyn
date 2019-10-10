@@ -1054,7 +1054,7 @@ done:
         /// Gets the attributes applied on this symbol.
         /// Returns an empty array if there are no attributes.
         /// </summary>
-        public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return this.GetAttributesBag().Attributes;
         }
@@ -1063,7 +1063,7 @@ done:
         /// Gets the attributes applied on the return value of this method symbol.
         /// Returns an empty array if there are no attributes.
         /// </summary>
-        public sealed override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
         {
             return this.GetReturnTypeAttributesBag().Attributes;
         }

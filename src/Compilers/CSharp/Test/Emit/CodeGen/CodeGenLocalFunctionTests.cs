@@ -5157,7 +5157,7 @@ class Program
         }
 
         [Fact]
-        public void LocalFunctionAttribute_Emit()
+        public void LocalFunctionAttribute()
         {
             var source = @"
 class A : System.Attribute { }
@@ -5166,10 +5166,21 @@ class C
 {
     public void M()
     {
-        local1();
-
         [A]
         void local1()
+        {
+        }
+
+        [return: A]
+        void local2()
+        {
+        }
+
+        void local3([A] int i)
+        {
+        }
+
+        void local4<[A] T>()
         {
         }
     }
@@ -5184,11 +5195,29 @@ class C
             void validate(ModuleSymbol module)
             {
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var localFn = cClass.GetMethod("<M>g__local1|0_0");
-                var attrs = localFn.GetAttributes();
-                Assert.Equal(2, attrs.Length);
-                Assert.Equal(module.CorLibrary().GetTypeByMetadataName("System.Runtime.CompilerGeneratedAttribute"), attrs[0].AttributeClass);
-                Assert.Equal(module.GlobalNamespace.GetMember<NamedTypeSymbol>("A"), attrs[1].AttributeClass);
+                var aAttribute = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal(
+                    expected: new[]
+                    {
+                        module.CorLibrary().GetTypeByMetadataName("System.Runtime.CompilerServices.CompilerGeneratedAttribute"),
+                        aAttribute
+                    },
+                    actual: attrs1.Select(a => a.AttributeClass));
+
+                var localFn2 = cClass.GetMethod("<M>g__local2|0_1");
+                var attrs2 = localFn2.GetReturnTypeAttributes();
+                Assert.Equal(aAttribute, attrs2.Single().AttributeClass);
+
+                var localFn3 = cClass.GetMethod("<M>g__local3|0_2");
+                var attrs3 = localFn3.GetParameters().Single().GetAttributes();
+                Assert.Equal(aAttribute, attrs3.Single().AttributeClass);
+
+                var localFn4 = cClass.GetMethod("<M>g__local4|0_3");
+                var attrs4 = localFn4.TypeParameters.Single().GetAttributes();
+                Assert.Equal(aAttribute, attrs4.Single().AttributeClass);
             }
         }
 

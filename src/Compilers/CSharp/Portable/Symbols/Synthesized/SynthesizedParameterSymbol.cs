@@ -192,14 +192,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             string name = "",
-            ImmutableArray<CustomModifier> refCustomModifiers = default(ImmutableArray<CustomModifier>))
+            ImmutableArray<CustomModifier> refCustomModifiers = default,
+            ImmutableArray<CSharpAttributeData> attributes = default)
         {
-            if (refCustomModifiers.IsDefaultOrEmpty)
+            if (refCustomModifiers.IsDefaultOrEmpty && attributes.IsDefaultOrEmpty)
             {
                 return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name);
             }
 
-            return new SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, refKind, name, refCustomModifiers);
+            return new SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, refKind, name, refCustomModifiers, attributes);
         }
 
         /// <summary>
@@ -231,6 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class SynthesizedParameterSymbolWithCustomModifiers : SynthesizedParameterSymbolBase
         {
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
+            private readonly ImmutableArray<CSharpAttributeData> _attributes;
 
             public SynthesizedParameterSymbolWithCustomModifiers(
                 MethodSymbol container,
@@ -238,15 +240,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int ordinal,
                 RefKind refKind,
                 string name,
-                ImmutableArray<CustomModifier> refCustomModifiers)
+                ImmutableArray<CustomModifier> refCustomModifiers,
+                ImmutableArray<CSharpAttributeData> attributes)
                 : base(container, type, ordinal, refKind, name)
             {
                 _refCustomModifiers = refCustomModifiers.NullToEmpty();
+                _attributes = attributes;
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers
             {
                 get { return _refCustomModifiers; }
+            }
+
+            public override ImmutableArray<CSharpAttributeData> GetAttributes()
+            {
+                return _attributes;
             }
         }
     }
