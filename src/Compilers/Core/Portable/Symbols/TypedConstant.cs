@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -18,9 +21,9 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly TypedConstantKind _kind;
         private readonly ITypeSymbol _type;
-        private readonly object _value;
+        private readonly object? _value;
 
-        internal TypedConstant(ITypeSymbol type, TypedConstantKind kind, object value)
+        internal TypedConstant(ITypeSymbol type, TypedConstantKind kind, object? value)
         {
             Debug.Assert(kind == TypedConstantKind.Array || !(value is ImmutableArray<TypedConstant>));
             _kind = kind;
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The value for a non-array constant.
         /// </summary>
-        public object Value
+        public object? Value
         {
             get
             {
@@ -94,32 +97,35 @@ namespace Microsoft.CodeAnalysis
                     return default(ImmutableArray<TypedConstant>);
                 }
 
-                return (ImmutableArray<TypedConstant>)_value;
+                return (ImmutableArray<TypedConstant>)_value!;
             }
         }
 
+        [return: MaybeNull]
         internal T DecodeValue<T>(SpecialType specialType)
         {
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'T' is a non-nullable reference type.
             TryDecodeValue(specialType, out T value);
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'T' is a non-nullable reference type.
             return value;
         }
 
-        internal bool TryDecodeValue<T>(SpecialType specialType, out T value)
+        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNullWhen(returnValue: false)] out T value)
         {
             if (_kind == TypedConstantKind.Error)
             {
-                value = default(T);
+                value = default(T)!;
                 return false;
             }
 
             if (_type.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
             {
-                value = (T)_value;
+                value = (T)_value!;
                 return true;
             }
 
             // the actual argument type doesn't match the type of the parameter - an error has already been reported by the binder
-            value = default(T);
+            value = default(T)!;
             return false;
         }
 
@@ -129,7 +135,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal static TypedConstantKind GetTypedConstantKind(ITypeSymbol type, Compilation compilation)
         {
-            Debug.Assert(type != null);
+            RoslynDebug.Assert(type != null);
 
             switch (type.SpecialType)
             {
@@ -169,7 +175,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TypedConstant && Equals((TypedConstant)obj);
         }
@@ -186,6 +192,7 @@ namespace Microsoft.CodeAnalysis
             return Hash.Combine(_value,
                    Hash.Combine(_type, (int)this.Kind));
         }
+
         #region Testing & Debugging
 #if false
         /// <summary>
