@@ -460,9 +460,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("#nullable enable", "#nullable disable")]
         [InlineData("#nullable enable", "#nullable restore")]
         [InlineData("#nullable disable", "#nullable restore")]
+        [InlineData("#nullable enable", "#nullable enable warnings")]
+        [InlineData("#nullable enable", "#nullable enable annotations")]
+        [InlineData("#nullable enable annotations", "#nullable enable warnings")]
         [InlineData("", "#nullable disable")]
         [InlineData("", "#nullable enable")]
         [InlineData("", "#nullable restore")]
+        [InlineData("#nullable disable", "")]
+        [InlineData("#nullable enable", "")]
+        [InlineData("#nullable restore", "")]
         public void TestNullableDirectives_DifferentDirectives(string firstDirective, string secondDirective)
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree($@"
@@ -479,18 +485,8 @@ class C
             VerifyNotEquivalent(tree1, tree2, topLevel: true);
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
             VerifyEquivalent(tree1.GetRoot(), tree2.GetRoot(), ignoreChildNode: k => k == SyntaxKind.NullableDirectiveTrivia);
-        }
 
-        [Theory, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
-        [InlineData("#nullable enable", "#nullable disable")]
-        [InlineData("#nullable enable", "#nullable restore")]
-        [InlineData("#nullable disable", "#nullable restore")]
-        [InlineData("", "#nullable disable")]
-        [InlineData("", "#nullable enable")]
-        [InlineData("", "#nullable restore")]
-        public void TestNullableDirectives_Nested(string firstDirective, string secondDirective)
-        {
-            var tree1 = SyntaxFactory.ParseSyntaxTree($@"
+            var tree3 = SyntaxFactory.ParseSyntaxTree($@"
 class C
 {{
     void M()
@@ -498,7 +494,7 @@ class C
 {firstDirective}
     }}
 }}");
-            var tree2 = SyntaxFactory.ParseSyntaxTree($@"
+            var tree4 = SyntaxFactory.ParseSyntaxTree($@"
 class C
 {{
     void M()
@@ -507,15 +503,16 @@ class C
     }}
 }}");
 
-            VerifyNotEquivalent(tree1, tree2, topLevel: true);
-            VerifyNotEquivalent(tree1, tree2, topLevel: false);
-            VerifyEquivalent(tree1.GetRoot(), tree2.GetRoot(), ignoreChildNode: k => k == SyntaxKind.NullableDirectiveTrivia);
+            VerifyNotEquivalent(tree3, tree4, topLevel: true);
+            VerifyNotEquivalent(tree3, tree4, topLevel: false);
+            VerifyEquivalent(tree3.GetRoot(), tree4.GetRoot(), ignoreChildNode: k => k == SyntaxKind.NullableDirectiveTrivia);
         }
 
         [Theory, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
         [InlineData("#nullable enable")]
         [InlineData("#nullable disable")]
         [InlineData("#nullable restore")]
+        [InlineData("#nullable enable warnings")]
         public void TestNullableDirectives_TopLevelIdentical(string directive)
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree($@"
@@ -556,6 +553,32 @@ class C
 {
     void M()
     {
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
+        public void TestNullableDirectives_DifferentNumberOfDirectives()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+#nullable enable
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+#nullable enable
+#nullable disable
     }
 }");
 

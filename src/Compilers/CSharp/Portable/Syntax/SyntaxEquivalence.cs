@@ -230,11 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return beforeAnnotation == afterAnnotation;
                 }
 
-                if (beforeAnnotation == afterAnnotation)
-                {
-                    continue;
-                }
-
                 if (!AreEquivalentRecursive(beforeAnnotation, afterAnnotation, ignoreChildNode, topLevel: false))
                 {
                     return false;
