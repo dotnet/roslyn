@@ -188,25 +188,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return LoaderName;
             }
 
-            try
+            var frameworkName = new FrameworkName(targetFrameworkMoniker);
+            if (frameworkName.Identifier == ".NETCoreApp" && frameworkName.Version?.Major >= 3)
             {
-                var frameworkName = new FrameworkName(targetFrameworkMoniker);
-
-                if (frameworkName.Identifier == ".NETCoreApp" &&
-                    frameworkName.Version?.Major >= 3)
-                {
-                    if (!(_oleServiceProvider.QueryService<SVsShell>() is IVsShell shell))
-                    {
-                        return null;
-                    }
-
-                    return NewLoaderName;
-                }
-            }
-            catch
-            {
-                // Fall back to the old loader name if there are any failures 
-                // while parsing the TFM.
+                return NewLoaderName;
             }
 
             return LoaderName;
