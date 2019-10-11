@@ -4675,9 +4675,33 @@ select t";
         public void ArrayCreation_BadRef()
         {
             UsingExpression("new[] { ref }",
-                // (1,9): error CS1073: Unexpected token 'ref'
+                // (1,9): error CS1525: Invalid expression term 'ref'
                 // new[] { ref }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref ").WithArguments("ref").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 9),
+                // (1,13): error CS1525: Invalid expression term '}'
+                // new[] { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 13));
+
+            N(SyntaxKind.ImplicitArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+                N(SyntaxKind.ArrayInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
         }
 
         [Fact]
