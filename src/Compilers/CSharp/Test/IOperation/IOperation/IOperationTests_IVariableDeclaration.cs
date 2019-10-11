@@ -2427,25 +2427,25 @@ class C
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
       Ignored Dimensions(1):
           ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
-            Value: 
+            Value:
               ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
             Arms(1):
                 ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
-                  Pattern: 
+                  Pattern:
                     IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
-                  Value: 
+                  Value:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
                   Locals: Local_1: System.Int32 z
       Declarators:
           IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = new int[0]')
-            Initializer: 
+            Initializer:
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new int[0]')
                 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsInvalid) (Syntax: 'new int[0]')
                   Dimension Sizes(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-                  Initializer: 
+                  Initializer:
                     null
-      Initializer: 
+      Initializer:
         null
 ";
 

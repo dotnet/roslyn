@@ -2084,7 +2084,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IVariableDeclarationGroupOperation CreateBoundUsingLocalDeclarationOperation(BoundUsingLocalDeclarations boundUsingLocalDeclarations)
         {
             bool isAsync = boundUsingLocalDeclarations.AwaitOpt is object;
-            DeclarationKind declarationKid = (isAsync) ? DeclarationKind.AsynchronousUsing : DeclarationKind.Using;
+            DeclarationKind declarationKid = isAsync ? DeclarationKind.AsynchronousUsing : DeclarationKind.Using;
             SyntaxNode declarationSyntax = ((LocalDeclarationStatementSyntax)boundUsingLocalDeclarations.Syntax).Declaration;
             bool declarationIsImplicit = boundUsingLocalDeclarations.WasCompilerGenerated;
 

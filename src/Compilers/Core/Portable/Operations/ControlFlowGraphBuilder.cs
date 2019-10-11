@@ -6846,7 +6846,7 @@ oneMoreTime:
             StartVisitingStatement(operation);
 
             var declarationKind = operation.DeclarationKind;
-            Debug.Assert(declarationKind != DeclarationKind.Default);
+            Debug.Assert(declarationKind == DeclarationKind.Using || declarationKind == DeclarationKind.AsynchronousUsing);
 
             // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
             BlockOperation logicalBlock = new BlockOperation(
@@ -6857,7 +6857,6 @@ oneMoreTime:
                 operation.Type,
                 operation.ConstantValue,
                 isImplicit: true);
-
 
             HandleUsingOperationParts(
                 resources: operation,
