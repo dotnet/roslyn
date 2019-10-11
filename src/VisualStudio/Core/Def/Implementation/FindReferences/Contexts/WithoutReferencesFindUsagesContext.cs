@@ -54,6 +54,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     var entry = await TryCreateEntryAsync(definitionBucket, definition).ConfigureAwait(false);
                     entries.AddIfNotNull(entry);
                 }
+                else if (definition.SourceSpans.Length == 0)
+                {
+                    // No source spans means metadata references.
+                    // Display it for Go to Base and try to navigate to metadata.
+                    entries.Add(new MetadataDefinitionItemEntry(this, definitionBucket));
+                }
                 else
                 {
                     // If we have multiple spans (i.e. for partial types), then create a 
