@@ -153,10 +153,10 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             {
                 case IMemberReferenceOperation memberReferenceOperation:
                     return memberReferenceOperation.Member == null || memberReferenceOperation.Member.IsStatic ||
-                        memberReferenceOperation.Member is IMethodSymbol memberMethod && memberMethod.MethodKind == MethodKind.LocalFunction;
+                        memberReferenceOperation.Member is IMethodSymbol { MethodKind: MethodKind.LocalFunction };
                 case IInvocationOperation invocationOperation:
                     return invocationOperation.TargetMethod == null || invocationOperation.TargetMethod.IsStatic ||
-                        invocationOperation.TargetMethod is IMethodSymbol targetMethod && targetMethod.MethodKind == MethodKind.LocalFunction;
+                        invocationOperation.TargetMethod is IMethodSymbol { MethodKind: MethodKind.LocalFunction };
                 default:
                     throw ExceptionUtilities.UnexpectedValue(operation);
             }
