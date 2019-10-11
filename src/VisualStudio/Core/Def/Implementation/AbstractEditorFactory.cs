@@ -196,10 +196,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return NewLoaderName;
                 }
             }
-            catch	
+            catch
             {
                 // Fall back to the old loader name if there are any failures
-                // while parsing the TFM.	
+                // while parsing the TFM.
             }
 
             return LoaderName;
