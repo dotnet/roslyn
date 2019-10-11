@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Operations
 {
-    public enum DeclarationKind
+    public enum VariableDeclarationKind
     {
         /// <summary>
         /// A declaration.

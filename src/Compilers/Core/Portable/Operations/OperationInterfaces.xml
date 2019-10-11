@@ -76,10 +76,10 @@
         </remarks>
       </Comments>
     </Property>
-    <Property Name="DeclarationKind" Type="DeclarationKind">
+    <Property Name="DeclarationKind" Type="VariableDeclarationKind">
       <Comments>
         <summary>
-          Specifies the <see cref="DeclarationKind" /> of this declaration group.
+          Specifies the <see cref="VariableDeclarationKind" /> of this declaration group.
         </summary>
       </Comments>
     </Property>

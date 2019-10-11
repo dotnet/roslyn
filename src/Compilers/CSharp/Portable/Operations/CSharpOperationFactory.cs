@@ -1735,7 +1735,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // In the case of a for loop, varStatement and varDeclaration will be the same syntax node.
             // We can only have one explicit operation, so make sure this node is implicit in that scenario.
             bool isImplicit = (varStatement == varDeclaration) || boundLocalDeclaration.WasCompilerGenerated;
-            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), DeclarationKind.Default, _semanticModel, varStatement, type, constantValue, isImplicit);
+            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), VariableDeclarationKind.Default, _semanticModel, varStatement, type, constantValue, isImplicit);
         }
 
         private IVariableDeclarationGroupOperation CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
@@ -1756,7 +1756,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // If the syntax was the same, we're in a fixed statement or using statement. We make the Group operation implicit in this scenario, as the
             // syntax itself is a VariableDeclaration
             bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated;
-            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), DeclarationKind.Default, _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
+            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), VariableDeclarationKind.Default, _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
         }
 
         private ILabeledOperation CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
@@ -2084,7 +2084,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IVariableDeclarationGroupOperation CreateBoundUsingLocalDeclarationOperation(BoundUsingLocalDeclarations boundUsingLocalDeclarations)
         {
             bool isAsync = boundUsingLocalDeclarations.AwaitOpt is object;
-            DeclarationKind declarationKid = isAsync ? DeclarationKind.AsynchronousUsing : DeclarationKind.Using;
+            VariableDeclarationKind declarationKid = isAsync ? VariableDeclarationKind.AsynchronousUsing : VariableDeclarationKind.Using;
             SyntaxNode declarationSyntax = ((LocalDeclarationStatementSyntax)boundUsingLocalDeclarations.Syntax).Declaration;
             bool declarationIsImplicit = boundUsingLocalDeclarations.WasCompilerGenerated;
 

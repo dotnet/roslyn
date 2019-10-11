@@ -4,11 +4,11 @@ Microsoft.CodeAnalysis.ErrorLogOptions
 Microsoft.CodeAnalysis.ErrorLogOptions.ErrorLogOptions(string path, Microsoft.CodeAnalysis.SarifVersion sarifVersion) -> void
 Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string
 Microsoft.CodeAnalysis.ErrorLogOptions.SarifVersion.get -> Microsoft.CodeAnalysis.SarifVersion
-Microsoft.CodeAnalysis.Operations.DeclarationKind
-Microsoft.CodeAnalysis.Operations.DeclarationKind.AsynchronousUsing = 2 -> Microsoft.CodeAnalysis.Operations.DeclarationKind
-Microsoft.CodeAnalysis.Operations.DeclarationKind.Default = 0 -> Microsoft.CodeAnalysis.Operations.DeclarationKind
-Microsoft.CodeAnalysis.Operations.DeclarationKind.Using = 1 -> Microsoft.CodeAnalysis.Operations.DeclarationKind
-Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation.DeclarationKind.get -> Microsoft.CodeAnalysis.Operations.DeclarationKind
+Microsoft.CodeAnalysis.Operations.VariableDeclarationKind
+Microsoft.CodeAnalysis.Operations.VariableDeclarationKind.AsynchronousUsing = 2 -> Microsoft.CodeAnalysis.Operations.VariableDeclarationKind
+Microsoft.CodeAnalysis.Operations.VariableDeclarationKind.Default = 0 -> Microsoft.CodeAnalysis.Operations.VariableDeclarationKind
+Microsoft.CodeAnalysis.Operations.VariableDeclarationKind.Using = 1 -> Microsoft.CodeAnalysis.Operations.VariableDeclarationKind
+Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation.DeclarationKind.get -> Microsoft.CodeAnalysis.Operations.VariableDeclarationKind
 Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Default = 1 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Latest = 2147483647 -> Microsoft.CodeAnalysis.SarifVersion

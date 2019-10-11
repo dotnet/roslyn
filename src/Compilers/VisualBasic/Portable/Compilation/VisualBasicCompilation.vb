@@ -2860,7 +2860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Sub AppendSymbolsWithName(
                 spine As ArrayBuilder(Of MergedNamespaceOrTypeDeclaration), current As MergedNamespaceOrTypeDeclaration, [set] As HashSet(Of ISymbol))
 
-                If current.Kind = Symbols.DeclarationKind.Namespace Then
+                If current.Kind = DeclarationKind.Namespace Then
                     If _includeNamespace AndAlso Matches(current.Name) Then
                         Dim container = GetSpineSymbol(spine)
                         Dim symbol = GetSymbol(container, current)
@@ -2889,7 +2889,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each child In current.Children
                     Dim mergedNamespaceOrType = TryCast(child, MergedNamespaceOrTypeDeclaration)
                     If mergedNamespaceOrType IsNot Nothing Then
-                        If _includeMember OrElse _includeType OrElse child.Kind = Symbols.DeclarationKind.Namespace Then
+                        If _includeMember OrElse _includeType OrElse child.Kind = DeclarationKind.Namespace Then
                             AppendSymbolsWithName(spine, mergedNamespaceOrType, [set])
                         End If
                     End If
@@ -2954,7 +2954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return symbol
                 End If
 
-                If declaration.Kind = Symbols.DeclarationKind.Namespace Then
+                If declaration.Kind = DeclarationKind.Namespace Then
                     AddCache(container.GetMembers(declaration.Name).OfType(Of NamespaceOrTypeSymbol)())
                 Else
                     AddCache(container.GetTypeMembers(declaration.Name))
