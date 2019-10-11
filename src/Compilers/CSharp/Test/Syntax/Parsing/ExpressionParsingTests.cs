@@ -4669,5 +4669,160 @@ select t";
             }
             EOF();
         }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_BadRef()
+        {
+            UsingExpression("new[] { ref }",
+                // (1,9): error CS1073: Unexpected token 'ref'
+                // new[] { ref }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref ").WithArguments("ref").WithLocation(1, 9));
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_BadRefExpression()
+        {
+            UsingExpression("new[] { ref obj }",
+                // (1,9): error CS1525: Invalid expression term 'ref'
+                // new[] { ref obj }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref obj").WithArguments("ref").WithLocation(1, 9));
+
+            N(SyntaxKind.ImplicitArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+                N(SyntaxKind.ArrayInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "obj");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_BadRefElementAccess()
+        {
+            UsingExpression("new[] { ref[] }",
+                // (1,9): error CS1525: Invalid expression term 'ref'
+                // new[] { ref[] }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9),
+                // (1,12): error CS1525: Invalid expression term '['
+                // new[] { ref[] }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 12),
+                // (1,13): error CS0443: Syntax error; value expected
+                // new[] { ref[] }
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 13));
+
+            N(SyntaxKind.ImplicitArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+                N(SyntaxKind.ArrayInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ElementAccessExpression);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.Argument);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_BadInElementAccess()
+        {
+            UsingExpression("new[] { in[] }",
+                // (1,9): error CS1003: Syntax error, ',' expected
+                // new[] { in[] }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in").WithLocation(1, 9));
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_BadOutElementAccess()
+        {
+            UsingExpression("new[] { out[] }",
+                    // (1,9): error CS1003: Syntax error, ',' expected
+                    // new[] { out[] }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(1, 9));
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ArrayCreation_ElementAccess()
+        {
+            UsingExpression("new[] { obj[] }",
+                // (1,13): error CS0443: Syntax error; value expected
+                // new[] { obj[] }
+                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 13));
+
+            N(SyntaxKind.ImplicitArrayCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.CloseBracketToken);
+                N(SyntaxKind.ArrayInitializerExpression);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ElementAccessExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "obj");
+                        }
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.Argument);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
     }
 }

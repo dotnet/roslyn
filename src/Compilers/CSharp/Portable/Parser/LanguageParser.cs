@@ -9223,6 +9223,10 @@ tryAgain:
                 case SyntaxKind.DelegateKeyword:
                     expr = this.ParseAnonymousMethodExpression();
                     break;
+                case SyntaxKind.RefKeyword:
+                    // ref is not expected to appear in this position.
+                    expr = this.AddError(ParsePossibleRefExpression(), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+                    break;
                 default:
                     // check for intrinsic type followed by '.'
                     if (IsPredefinedType(tk))
