@@ -208,12 +208,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 var memberType = member.GetSymbolType();
 
-                if (IsPrimitiveValueType(memberType))
+                if (ShouldUseEqualityOperator(memberType))
                 {
-                    // If we have one of the well known primitive types, then just use '==' to compare
-                    // the values.
-                    //
-                    //      this.a == other.a
                     expressions.Add(factory.ValueEqualsExpression(thisSymbol, otherSymbol));
                     continue;
                 }
@@ -325,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        private static bool IsPrimitiveValueType(ITypeSymbol typeSymbol)
+        private static bool ShouldUseEqualityOperator(ITypeSymbol typeSymbol)
         {
             if (typeSymbol != null)
             {
