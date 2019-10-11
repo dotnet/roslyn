@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ErrorLogger;
 namespace Microsoft.CodeAnalysis.Options.EditorConfig
 {
     [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
+    [ExportMetadata("Name", PredefinedDocumentOptionsProviderNames.EditorConfig)]
     internal sealed class EditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         [ImportingConstructor]

@@ -16,6 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
     [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
+    [ExportMetadata("Name", PredefinedDocumentOptionsProviderNames.EditorConfig)]
     class LegacyEditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly ICodingConventionsManager _codingConventionsManager;
