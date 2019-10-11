@@ -188,10 +188,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return LoaderName;
             }
 
-            var frameworkName = new FrameworkName(targetFrameworkMoniker);
-            if (frameworkName.Identifier == ".NETCoreApp" && frameworkName.Version?.Major >= 3)
+            try
             {
-                return NewLoaderName;
+                var frameworkName = new FrameworkName(targetFrameworkMoniker);
+                if (frameworkName.Identifier == ".NETCoreApp" && frameworkName.Version?.Major >= 3)
+                {
+                    return NewLoaderName;
+                }
+            }
+            catch	
+            {
+                // Fall back to the old loader name if there are any failures
+                // while parsing the TFM.	
             }
 
             return LoaderName;
