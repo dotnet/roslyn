@@ -13,12 +13,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
     [Shared]
     internal class UnitTestingExperimentationServiceAccessorFactory : IWorkspaceServiceFactory
     {
-        private readonly IExperimentationService _experimentationService;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UnitTestingExperimentationServiceAccessorFactory(IExperimentationService experimentationService)
-            => _experimentationService = experimentationService;
+        public UnitTestingExperimentationServiceAccessorFactory() { }
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

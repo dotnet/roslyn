@@ -10,6 +10,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         internal UnitTestingPinnedSolutionInfoWrapper(PinnedSolutionInfo underlyingObject)
             => UnderlyingObject = underlyingObject ?? throw new ArgumentNullException(nameof(underlyingObject));
 
+        public UnitTestingPinnedSolutionInfoWrapper(object underlyingObject)
+            => UnderlyingObject = (PinnedSolutionInfo)underlyingObject;
+
         internal PinnedSolutionInfo UnderlyingObject { get; }
     }
 }

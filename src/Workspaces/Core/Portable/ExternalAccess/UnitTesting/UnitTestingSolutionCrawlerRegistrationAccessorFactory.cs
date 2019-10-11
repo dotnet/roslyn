@@ -13,12 +13,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
     [Shared]
     internal sealed class UnitTestingSolutionCrawlerRegistrationAccessorFactory : IWorkspaceServiceFactory
     {
-        private readonly ISolutionCrawlerRegistrationService _implementation;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UnitTestingSolutionCrawlerRegistrationAccessorFactory(ISolutionCrawlerRegistrationService implementation)
-            => _implementation = implementation;
+        public UnitTestingSolutionCrawlerRegistrationAccessorFactory() { }
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
