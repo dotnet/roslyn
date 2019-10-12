@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly bool _implementIEquatable;
             private readonly bool _generateOperators;
             private readonly Document _document;
+            private readonly SyntaxNode _typeDeclaration;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _selectedMembers;
             private readonly TextSpan _textSpan;
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             public GenerateEqualsAndGetHashCodeAction(
                 Document document,
                 TextSpan textSpan,
+                SyntaxNode typeDeclaration,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> selectedMembers,
                 bool generateEquals,
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 bool generateOperators)
             {
                 _document = document;
+                _typeDeclaration = typeDeclaration;
                 _containingType = containingType;
                 _selectedMembers = selectedMembers;
                 _textSpan = textSpan;
@@ -205,7 +208,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 var service = _document.GetLanguageService<IGenerateEqualsAndGetHashCodeService>();
                 return await service.GenerateIEquatableEqualsMethodAsync(
-                    _document, _containingType, _selectedMembers, cancellationToken).ConfigureAwait(false);
+                    _document, _typeDeclaration, _containingType, _selectedMembers, cancellationToken).ConfigureAwait(false);
             }
 
             public override string Title

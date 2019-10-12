@@ -52,23 +52,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 statements: statements);
         }
 
-        public static IMethodSymbol CreateIEqutableEqualsMethod(
+        public static IMethodSymbol CreateIEquatableEqualsMethod(
             this SyntaxGenerator factory,
-            Compilation compilation,
+            SemanticModel semanticModel,
+            SyntaxNode typeDeclaration,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
             SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)
         {
             var statements = CreateIEquatableEqualsMethodStatements(
-                factory, compilation, containingType, symbols, cancellationToken);
+                factory, semanticModel.Compilation, containingType, symbols, cancellationToken);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
-            var equatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+            var equatableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
             var constructed = equatableType.Construct(containingType);
             var methodSymbol = constructed.GetMembers(EqualsName)
                                           .OfType<IMethodSymbol>()
                                           .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+
+            var originalParameter = methodSymbol.Parameters.First();
+
+            var parameters = ImmutableArray.Create(
+                CodeGenerationSymbolFactory.CreateParameterSymbol(
+                    originalParameter,
+                    type: !originalParameter.Type.IsValueType && semanticModel.GetNullableContext(typeDeclaration.SpanStart).AnnotationsEnabled()
+                        ? originalParameter.Type.WithNullability(NullableAnnotation.Annotated)
+                        : originalParameter.Type,
+                    attributes: ImmutableArray<AttributeData>.Empty));
 
             if (factory.RequiresExplicitImplementationForInterfaceMembers)
             {
@@ -76,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     methodSymbol,
                     modifiers: new DeclarationModifiers(),
                     explicitInterfaceImplementations: ImmutableArray.Create(methodSymbol),
+                    parameters: parameters,
                     statements: statements);
             }
             else
@@ -83,6 +95,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     methodSymbol,
                     modifiers: new DeclarationModifiers(),
+                    parameters: parameters,
                     statements: statements);
             }
         }
@@ -221,8 +234,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var valueIEquatable = memberType?.IsValueType == true && ImplementsIEquatable(memberType, iequatableType);
                 if (valueIEquatable || memberType?.IsTupleType == true)
                 {
-                    // If it's a value type and implements IEquatable<T>, Or if it's a tuple, then 
-                    // just call directly into .Equals. This keeps the code simple and avoids an 
+                    // If it's a value type and implements IEquatable<T>, Or if it's a tuple, then
+                    // just call directly into .Equals. This keeps the code simple and avoids an
                     // unnecessary null check.
                     //
                     //      this.a.Equals(other.a)
