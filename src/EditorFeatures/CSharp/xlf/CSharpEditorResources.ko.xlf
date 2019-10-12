@@ -22,6 +22,11 @@
         <target state="translated">스마트 들여쓰기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split Comment</source>
+        <target state="new">Split Comment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_string">
         <source>Split string</source>
         <target state="translated">문자열 분할</target>

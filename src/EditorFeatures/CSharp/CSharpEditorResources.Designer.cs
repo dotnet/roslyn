@@ -97,6 +97,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Split Comment.
+        /// </summary>
+        internal static string Split_comment {
+            get {
+                return ResourceManager.GetString("Split_comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Split string.
         /// </summary>
         internal static string Split_string {

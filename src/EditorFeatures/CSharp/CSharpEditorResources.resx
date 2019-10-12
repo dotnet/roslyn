@@ -132,4 +132,7 @@
   <data name="Split_string" xml:space="preserve">
     <value>Split string</value>
   </data>
+  <data name="Split_comment" xml:space="preserve">
+    <value>Split Comment</value>
+  </data>
 </root>

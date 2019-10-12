@@ -22,6 +22,11 @@
         <target state="translated">スマート インデント</target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split Comment</source>
+        <target state="new">Split Comment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_string">
         <source>Split string</source>
         <target state="translated">文字列を分割します</target>
