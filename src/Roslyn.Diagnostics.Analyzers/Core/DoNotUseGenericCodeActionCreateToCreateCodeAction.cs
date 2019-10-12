@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -41,7 +42,7 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            var codeActionSymbol = context.Compilation.GetTypeByMetadataName(CodeActionMetadataName);
+            var codeActionSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeActionMetadataName);
             if (codeActionSymbol == null)
             {
                 return;

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
@@ -120,31 +121,31 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             Compilation compilation = compilationContext.Compilation;
 
-            INamedTypeSymbol analysisContext = compilation.GetTypeByMetadataName(AnalysisContextFullName);
+            INamedTypeSymbol analysisContext = compilation.GetOrCreateTypeByMetadataName(AnalysisContextFullName);
             if (analysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol compilationStartAnalysisContext = compilation.GetTypeByMetadataName(CompilationStartAnalysisContextFullName);
+            INamedTypeSymbol compilationStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(CompilationStartAnalysisContextFullName);
             if (compilationStartAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol codeBlockStartAnalysisContext = compilation.GetTypeByMetadataName(CodeBlockStartAnalysisContextFullName);
+            INamedTypeSymbol codeBlockStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(CodeBlockStartAnalysisContextFullName);
             if (codeBlockStartAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol operationBlockStartAnalysisContext = compilation.GetTypeByMetadataName(OperationBlockStartAnalysisContextFullName);
+            INamedTypeSymbol operationBlockStartAnalysisContext = compilation.GetOrCreateTypeByMetadataName(OperationBlockStartAnalysisContextFullName);
             if (operationBlockStartAnalysisContext == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol symbolKind = compilation.GetTypeByMetadataName(SymbolKindFullName);
+            INamedTypeSymbol symbolKind = compilation.GetOrCreateTypeByMetadataName(SymbolKindFullName);
             if (symbolKind == null)
             {
                 return null;

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -53,7 +54,7 @@ namespace Roslyn.Diagnostics.Analyzers
             analysisContext.RegisterCompilationStartAction(
                 (context) =>
                 {
-                    INamedTypeSymbol specializedCollectionsSymbol = context.Compilation.GetTypeByMetadataName(SpecializedCollectionsMetadataName);
+                    INamedTypeSymbol specializedCollectionsSymbol = context.Compilation.GetOrCreateTypeByMetadataName(SpecializedCollectionsMetadataName);
                     if (specializedCollectionsSymbol == null)
                     {
                         // TODO: In the future, we may want to run this analyzer even if the SpecializedCollections
@@ -63,13 +64,13 @@ namespace Roslyn.Diagnostics.Analyzers
                         return;
                     }
 
-                    INamedTypeSymbol genericEnumerableSymbol = context.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEnumerable1);
+                    INamedTypeSymbol genericEnumerableSymbol = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEnumerable1);
                     if (genericEnumerableSymbol == null)
                     {
                         return;
                     }
 
-                    INamedTypeSymbol linqEnumerableSymbol = context.Compilation.GetTypeByMetadataName(LinqEnumerableMetadataName);
+                    INamedTypeSymbol linqEnumerableSymbol = context.Compilation.GetOrCreateTypeByMetadataName(LinqEnumerableMetadataName);
                     if (linqEnumerableSymbol == null)
                     {
                         return;
