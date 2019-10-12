@@ -135,8 +135,8 @@ namespace Analyzer.Utilities.Extensions
         /// The symbol being examined.
         /// </param>
         /// <returns>
-        /// <c>true</c> if <paramref name="symbol"/> is a static holder type;
-        /// otherwise <c>false</c>.
+        /// <see langword="true"/> if <paramref name="symbol"/> is a static holder type;
+        /// otherwise <see langword="false"/>.
         /// </returns>
         /// <remarks>
         /// A symbol is a static holder type if it is a class with at least one
@@ -196,8 +196,8 @@ namespace Analyzer.Utilities.Extensions
         /// The member being examined.
         /// </param>
         /// <returns>
-        /// <c>true</c> if <paramref name="member"/> qualifies as a member of
-        /// a static holder class; otherwise <c>false</c>.
+        /// <see langword="true"/> if <paramref name="member"/> qualifies as a member of
+        /// a static holder class; otherwise <see langword="false"/>.
         /// </returns>
         private static bool IsQualifyingMember(ISymbol member)
         {
@@ -244,8 +244,8 @@ namespace Analyzer.Utilities.Extensions
         /// The member being examined.
         /// </param>
         /// <returns>
-        /// <c>true</c> if the presence of <paramref name="member"/> disqualifies the
-        /// current type as a static holder class; otherwise <c>false</c>.
+        /// <see langword="true"/> if the presence of <paramref name="member"/> disqualifies the
+        /// current type as a static holder class; otherwise <see langword="false"/>.
         /// </returns>
         private static bool IsDisqualifyingMember(ISymbol member)
         {
