@@ -12,13 +12,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
-    internal partial class GenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
         private class GenerateConstructorWithDialogCodeAction : CodeActionWithOptions
         {
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
-            private readonly GenerateConstructorFromMembersCodeRefactoringProvider _service;
+            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly TextSpan _textSpan;
             private readonly ImmutableArray<ISymbol> _viableMembers;
             private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public override string Title => FeaturesResources.Generate_constructor;
 
             public GenerateConstructorWithDialogCodeAction(
-                GenerateConstructorFromMembersCodeRefactoringProvider service,
+                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document, TextSpan textSpan,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> viableMembers,

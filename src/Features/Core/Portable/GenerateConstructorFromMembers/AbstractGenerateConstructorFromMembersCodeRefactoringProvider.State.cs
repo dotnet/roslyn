@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
-    internal partial class GenerateConstructorFromMembersCodeRefactoringProvider
+    internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
         private class State
         {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
 
             public static async Task<State> TryGenerateAsync(
-                GenerateConstructorFromMembersCodeRefactoringProvider service,
+                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             private async Task<bool> TryInitializeAsync(
-                GenerateConstructorFromMembersCodeRefactoringProvider service,
+                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
