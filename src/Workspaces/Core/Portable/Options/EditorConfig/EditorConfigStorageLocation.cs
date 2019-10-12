@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Options
             => CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<bool>>();
         private static readonly Func<CodeStyleOption<bool>, string> s_getBoolCodeStyleOptionEditorConfigStringForValue = GetBoolCodeStyleOptionEditorConfigStringForValue;
         private static string GetBoolCodeStyleOptionEditorConfigStringForValue(CodeStyleOption<bool> value)
-            => value.Value
-               ? $"true:{value.Notification.ToEditorConfigString()}"
-               : value.Notification != null ? $"false:{value.Notification.ToEditorConfigString()}" : "false";
+            => $"{(value.Value ? "true" : "false")}:{value.Notification.ToEditorConfigString()}";
 
         private static readonly Func<string, Optional<CodeStyleOption<string>>> s_parseStringCodeStyleOption = ParseStringCodeStyleOption;
         private static Optional<CodeStyleOption<string>> ParseStringCodeStyleOption(string str)
