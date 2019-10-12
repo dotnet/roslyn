@@ -7,10 +7,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (!options.GetOption(CodeStyleOptions.PreferThrowExpression).Value)
+            if (!GetPreferThrowExpressionOptionValue(options))
             {
                 return null;
             }
@@ -504,6 +504,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             return null;
         }
+
+        protected abstract bool GetPreferThrowExpressionOptionValue(DocumentOptionSet options);
 
         private static SyntaxNode GetTypeNode(
             Compilation compilation, SyntaxGenerator generator, Type type)

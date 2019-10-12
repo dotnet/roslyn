@@ -4,6 +4,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
@@ -38,6 +39,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
 
         Protected Overrides Function CanOffer(body As SyntaxNode) As Boolean
             Return True
+        End Function
+
+        Protected Overrides Function GetPreferThrowExpressionOptionValue(options As DocumentOptionSet) As Boolean
+            ' No throw expression preference option is defined for VB because it doesn't support throw expressions.
+            Return False
         End Function
 
         Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
