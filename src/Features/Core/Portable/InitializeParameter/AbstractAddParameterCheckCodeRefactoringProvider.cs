@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
+        protected abstract bool CanOffer(SyntaxNode body);
+        protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
+
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
             IBlockOperation blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan, CancellationToken cancellationToken)
@@ -94,8 +97,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             return result.ToImmutableAndFree();
         }
-
-        protected abstract bool CanOffer(SyntaxNode body);
 
         private async Task<Document> UpdateDocumentForRefactoringAsync(
             Document document,
@@ -472,7 +473,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (!GetPreferThrowExpressionOptionValue(options))
+            if (!PrefersThrowExpression(options))
             {
                 return null;
             }
@@ -504,8 +505,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             return null;
         }
-
-        protected abstract bool GetPreferThrowExpressionOptionValue(DocumentOptionSet options);
 
         private static SyntaxNode GetTypeNode(
             Compilation compilation, SyntaxGenerator generator, Type type)

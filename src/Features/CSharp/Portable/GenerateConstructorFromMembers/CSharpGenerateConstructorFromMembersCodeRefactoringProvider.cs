@@ -27,9 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers
         {
         }
 
-        protected override bool GetPreferThrowExpressionOptionValue(DocumentOptionSet options)
-        {
-            return options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression).Value;
-        }
+        protected override bool PrefersThrowExpression(DocumentOptionSet options)
+            => options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression).Value;
     }
 }

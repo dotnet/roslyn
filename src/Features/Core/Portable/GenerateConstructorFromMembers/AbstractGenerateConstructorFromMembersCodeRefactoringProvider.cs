@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             _pickMembersService_forTesting = pickMembersService_forTesting;
         }
 
+        protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
@@ -180,7 +182,5 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             return document;
         }
-
-        protected abstract bool GetPreferThrowExpressionOptionValue(DocumentOptionSet options);
     }
 }

@@ -29,25 +29,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return DirectCast(node, TypeStatementSyntax).Parent
         End Function
 
-        Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
-            Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
+        Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
+            Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
 
         Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, method As IMethodSymbol, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
             InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfterOpt, statement)
         End Sub
 
+        Protected Overrides Function IsImplicitConversion(compilation As Compilation, source As ITypeSymbol, destination As ITypeSymbol) As Boolean
+            Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
+        End Function
+
         Protected Overrides Function CanOffer(body As SyntaxNode) As Boolean
             Return True
         End Function
 
-        Protected Overrides Function GetPreferThrowExpressionOptionValue(options As DocumentOptionSet) As Boolean
+        Protected Overrides Function PrefersThrowExpression(options As DocumentOptionSet) As Boolean
             ' No throw expression preference option is defined for VB because it doesn't support throw expressions.
             Return False
-        End Function
-
-        Protected Overrides Function GetBody(functionDeclaration As SyntaxNode) As SyntaxNode
-            Return InitializeParameterHelpers.GetBody(functionDeclaration)
         End Function
     End Class
 End Namespace

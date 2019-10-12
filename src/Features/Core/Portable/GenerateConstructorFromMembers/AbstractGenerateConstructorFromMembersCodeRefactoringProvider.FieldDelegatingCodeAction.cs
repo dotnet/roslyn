@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxTree = semanticModel.SyntaxTree;
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var preferThrowExpression = _service.GetPreferThrowExpressionOptionValue(options);
+                var preferThrowExpression = _service.PrefersThrowExpression(options);
 
                 var (fields, constructor) = factory.CreateFieldDelegatingConstructor(
                     semanticModel,

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var assignStatements = ArrayBuilder<SyntaxNode>.GetInstance();
 
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var useThrowExpressions = _service.GetPreferThrowExpressionOptionValue(options);
+                var useThrowExpressions = _service.PrefersThrowExpression(options);
 
                 for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
                 {
