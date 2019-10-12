@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Options
         private static Optional<CodeStyleOption<string>> ParseStringCodeStyleOption(string str)
             => CodeStyleHelpers.TryParseStringEditorConfigCodeStyleOption(str, out var result) ? result : new Optional<CodeStyleOption<string>>();
         private static readonly Func<CodeStyleOption<string>, string> s_getStringCodeStyleOptionEditorConfigStringForValue = GetStringCodeStyleOptionEditorConfigStringForValue;
-        private static string GetStringCodeStyleOptionEditorConfigStringForValue(CodeStyleOption<string> value) => value.Value.ToLowerInvariant();
+        private static string GetStringCodeStyleOptionEditorConfigStringForValue(CodeStyleOption<string> value)
+            => $"{value.Value.ToLowerInvariant()}:{value.Notification.ToEditorConfigString()}";
     }
 }
