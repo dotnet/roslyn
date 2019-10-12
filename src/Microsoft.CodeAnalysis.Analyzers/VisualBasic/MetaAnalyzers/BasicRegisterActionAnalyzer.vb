@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Analyzer.Utilities.Extensions
 Imports Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -18,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
                                                  codeBlockStartAnalysisContext As INamedTypeSymbol,
                                                  operationBlockStartAnalysisContext As INamedTypeSymbol,
                                                  symbolKind As INamedTypeSymbol) As RegisterActionCodeBlockAnalyzer
-            Dim basicSyntaxKind = compilation.GetTypeByMetadataName(BasicSyntaxKindFullName)
-            Dim csharpSyntaxKind = compilation.GetTypeByMetadataName(CSharpSyntaxKindFullName)
+            Dim basicSyntaxKind = compilation.GetOrCreateTypeByMetadataName(BasicSyntaxKindFullName)
+            Dim csharpSyntaxKind = compilation.GetOrCreateTypeByMetadataName(CSharpSyntaxKindFullName)
             Return New BasicRegisterActionCodeBlockAnalyzer(basicSyntaxKind, csharpSyntaxKind, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext,
                                                             operationBlockStartAnalysisContext, symbolKind)
         End Function

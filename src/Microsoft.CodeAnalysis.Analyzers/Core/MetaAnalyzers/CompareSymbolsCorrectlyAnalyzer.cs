@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             context.RegisterCompilationStartAction(context =>
             {
                 var compilation = context.Compilation;
-                var symbolType = compilation.GetTypeByMetadataName(s_symbolTypeFullName);
+                var symbolType = compilation.GetOrCreateTypeByMetadataName(s_symbolTypeFullName);
                 if (symbolType is null)
                 {
                     return;
@@ -203,6 +203,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         }
 
         public static bool UseSymbolEqualityComparer(Compilation compilation)
-        => compilation.GetTypeByMetadataName(SymbolEqualityComparerName) is object;
+        => compilation.GetOrCreateTypeByMetadataName(SymbolEqualityComparerName) is object;
     }
 }
