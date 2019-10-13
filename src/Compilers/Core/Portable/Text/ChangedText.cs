@@ -296,10 +296,10 @@ tryAgain:
                         // new change starts after old change, but overlaps
                         // add as much of the old change as possible and try again
                         var oldChangeLeadingInsertion = newChange.Span.Start - (oldChange.Span.Start + oldDelta);
-                        AddRange(list, new TextChangeRange(oldChange.Span, oldChangeLeadingInsertion));
-                        oldDelta = oldDelta - oldChange.Span.Length + oldChangeLeadingInsertion;
-                        oldChange = new TextChangeRange(new TextSpan(oldChange.Span.Start, 0), oldChange.NewLength - oldChangeLeadingInsertion);
-                        newChange = new TextChangeRange(new TextSpan(oldChange.Span.Start + oldDelta, newChange.Span.Length), newChange.NewLength);
+                        var oldChangeLeadingDeletion = Math.Min(oldChange.Span.Length, oldChangeLeadingInsertion);
+                        AddRange(list, new TextChangeRange(new TextSpan(oldChange.Span.Start, oldChangeLeadingDeletion), oldChangeLeadingInsertion));
+                        oldDelta = oldDelta - oldChangeLeadingDeletion + oldChangeLeadingInsertion;
+                        oldChange = new TextChangeRange(new TextSpan(newChange.Span.Start - oldDelta, oldChange.Span.Length - oldChangeLeadingDeletion), oldChange.NewLength - oldChangeLeadingInsertion);
                         goto tryAgain;
                     }
                     else if (newChange.Span.Start == oldChange.Span.Start + oldDelta)
@@ -313,11 +313,11 @@ tryAgain:
                             oldIndex++;
                             goto nextOldChange;
                         }
-                        else if (newChange.Span.Length == 0)
+                        else if (newChange.Span.Length <= oldChange.NewLength)
                         {
-                            // new change is just an insertion, go ahead and tack it on with old change
-                            AddRange(list, new TextChangeRange(oldChange.Span, oldChange.NewLength + newChange.NewLength));
-                            oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength;
+                            // new change is smaller than old, go ahead and tack it on with old change
+                            AddRange(list, new TextChangeRange(oldChange.Span, oldChange.NewLength + newChange.NewLength - newChange.Span.Length));
+                            oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength - newChange.Span.Length;
                             oldIndex++;
                             newIndex++;
                             goto nextNewChange;

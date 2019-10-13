@@ -637,6 +637,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestMergeChanges_Overlapping_NewInsideOld_AndOldHasDeletion()
+        {
+            var original = SourceText.From("01234");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(1, 3), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(2, 0), "bb"));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("0aa4", change1.ToString());
+            Assert.Equal("0abba4", change2.ToString());
+            Assert.Equal(new[] { new TextChange(new TextSpan(1, 3), "abba") }, changes);
+        }
+
+        [Fact]
+        public void TestMergeChanges_Overlapping_NewInsideOld_AndBothHaveDeletion_NewDeletionSmallerThanOld()
+        {
+            var original = SourceText.From("01234");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(1, 3), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(2, 1), "bb"));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("0aa4", change1.ToString());
+            Assert.Equal("0abb4", change2.ToString());
+            Assert.Equal(new[] { new TextChange(new TextSpan(1, 3), "abb") }, changes);
+        }
+
+        [Fact]
         public void TestMergeChanges_Overlapping_OldInsideNew()
         {
             var original = SourceText.From("Hello World");
@@ -676,6 +702,84 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(6, 1), changes[0].Span);
             Assert.Equal("Cwazy V", changes[0].NewText);
+        }
+
+        [Fact]
+        public void TestMergeChanges_SameStart()
+        {
+            var original = SourceText.From("01234");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(1, 0), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(1, 0), "bb"));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("0aa1234", change1.ToString());
+            Assert.Equal("0bbaa1234", change2.ToString());
+            Assert.Equal(new[] { new TextChange(new TextSpan(1, 0), "bbaa") }, changes);
+        }
+
+        [Fact]
+        public void TestMergeChanges_SameStart_AndOldHasDeletion()
+        {
+            var original = SourceText.From("01234");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(1, 3), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(1, 0), "bb"));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("0aa4", change1.ToString());
+            Assert.Equal("0bbaa4", change2.ToString());
+            Assert.Equal(new[] { new TextChange(new TextSpan(1, 3), "bbaa") }, changes);
+        }
+
+        [Fact]
+        public void TestMergeChanges_SameStart_AndNewHasDeletion_SmallerThanOldInsertion()
+        {
+            var original = SourceText.From("01234");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(1, 0), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(1, 1), "bb"));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("0aa1234", change1.ToString());
+            Assert.Equal("0bba1234", change2.ToString());
+            Assert.Equal(new[] { new TextChange(new TextSpan(1, 0), "bba") }, changes);
+        }
+
+        [Fact]
+        public void TestMergeChanges_SameStart_AndNewHasDeletion_EqualToOldInsertion()
+        {
+            var original = SourceText.From("01234");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(1, 0), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(1, 2), "bb"));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("0aa1234", change1.ToString());
+            Assert.Equal("0bb1234", change2.ToString());
+            Assert.Equal(new[] { new TextChange(new TextSpan(1, 0), "bb") }, changes);
+        }
+
+        [Fact]
+        public void TestMergeChanges_SameStart_AndNewHasDeletion_LargerThanOldInsertion()
+        {
+            var original = SourceText.From("01234");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(1, 0), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(1, 3), "bb"));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("0aa1234", change1.ToString());
+            Assert.Equal("0bb234", change2.ToString());
+            Assert.Equal(new[] { new TextChange(new TextSpan(1, 1), "bb") }, changes);
+        }
+
+        [Fact]
+        public void TestMergeChanges_SameStart_AndBothHaveDeletion_NewDeletionSmallerThanOld()
+        {
+            var original = SourceText.From("01234");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(1, 3), "aa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(1, 1), "bb"));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("0aa4", change1.ToString());
+            Assert.Equal("0bba4", change2.ToString());
+            Assert.Equal(new[] { new TextChange(new TextSpan(1, 3), "bba") }, changes);
         }
 
         [Fact]
