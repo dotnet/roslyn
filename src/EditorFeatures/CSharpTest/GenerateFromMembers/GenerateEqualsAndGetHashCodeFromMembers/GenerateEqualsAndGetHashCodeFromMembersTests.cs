@@ -1736,7 +1736,7 @@ class Foo
 
 using System;
 
-class Foo : IEquatable<Foo>
+class Foo : IEquatable<Foo?>
 {
     public int Bar { get; }
 
@@ -1799,7 +1799,7 @@ namespace System.Diagnostics.CodeAnalysis
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-class Foo : IEquatable<Foo>
+class Foo : IEquatable<Foo?>
 {
     public bool Bar { get; }
 

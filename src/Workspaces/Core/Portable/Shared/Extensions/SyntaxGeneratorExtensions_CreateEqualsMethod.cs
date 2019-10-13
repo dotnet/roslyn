@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IMethodSymbol CreateIEquatableEqualsMethod(
             this SyntaxGenerator factory,
             SemanticModel semanticModel,
-            SyntaxNode typeDeclaration,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
+            INamedTypeSymbol constructedEquatableType,
             SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)
         {
@@ -65,21 +65,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 factory, semanticModel.Compilation, containingType, symbols, cancellationToken);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
-            var equatableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
-            var constructed = equatableType.Construct(containingType);
-            var methodSymbol = constructed.GetMembers(EqualsName)
-                                          .OfType<IMethodSymbol>()
-                                          .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+            var methodSymbol = constructedEquatableType
+                .GetMembers(EqualsName)
+                .OfType<IMethodSymbol>()
+                .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
 
             var originalParameter = methodSymbol.Parameters.First();
 
-            var parameters = ImmutableArray.Create(
-                CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    originalParameter,
-                    type: !originalParameter.Type.IsValueType && semanticModel.GetNullableContext(typeDeclaration.SpanStart).AnnotationsEnabled()
-                        ? originalParameter.Type.WithNullability(NullableAnnotation.Annotated)
-                        : originalParameter.Type,
-                    attributes: ImmutableArray<AttributeData>.Empty));
+            // Replace `[AllowNull] Foo` with `Foo` or `Foo?` (no longer needed after https://github.com/dotnet/roslyn/issues/39256?)
+            var parameters = ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                originalParameter,
+                type: constructedEquatableType.GetTypeArguments()[0],
+                attributes: ImmutableArray<AttributeData>.Empty));
 
             if (factory.RequiresExplicitImplementationForInterfaceMembers)
             {

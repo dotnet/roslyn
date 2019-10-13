@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         /// Generates an implementation of <see cref="IEquatable{T}.Equals"/> that works by
         /// comparing the provided <paramref name="members"/>.
         /// </summary>
-        Task<IMethodSymbol> GenerateIEquatableEqualsMethodAsync(Document document, SyntaxNode typeDeclaration, INamedTypeSymbol namedType, ImmutableArray<ISymbol> members, CancellationToken cancellationToken);
+        Task<IMethodSymbol> GenerateIEquatableEqualsMethodAsync(Document document, INamedTypeSymbol namedType, ImmutableArray<ISymbol> members, INamedTypeSymbol constructedEquatableType, CancellationToken cancellationToken);
 
         /// <summary>
         /// Generates an override of <see cref="object.GetHashCode"/> that computes a reasonable

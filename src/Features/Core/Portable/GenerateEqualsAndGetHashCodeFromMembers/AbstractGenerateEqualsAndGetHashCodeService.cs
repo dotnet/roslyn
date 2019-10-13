@@ -47,12 +47,12 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         }
 
         public async Task<IMethodSymbol> GenerateIEquatableEqualsMethodAsync(
-            Document document, SyntaxNode typeDeclaration, INamedTypeSymbol namedType,
-            ImmutableArray<ISymbol> members, CancellationToken cancellationToken)
+            Document document, INamedTypeSymbol namedType,
+            ImmutableArray<ISymbol> members, INamedTypeSymbol constructedEquatableType, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return document.GetLanguageService<SyntaxGenerator>().CreateIEquatableEqualsMethod(
-                semanticModel, typeDeclaration, namedType, members,
+                semanticModel, namedType, members, constructedEquatableType,
                 s_specializedFormattingAnnotation, cancellationToken);
         }
 
