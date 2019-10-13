@@ -271,6 +271,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDiffInterfaceChangedToClass()
+        {
+            var oldTree = SyntaxFactory.ParseSyntaxTree("interface A { }");
+            // the trailing space is necessary, so that ReduceChanges doesn't help
+            var newTree = SyntaxFactory.ParseSyntaxTree("class A { } ");
+
+            var changes = newTree.GetChanges(oldTree);
+            Assert.NotNull(changes);
+            Assert.Equal(2, changes.Count);
+            Assert.Equal(new TextSpan(0, 9), changes[0].Span);
+            Assert.Equal("class", changes[0].NewText);
+            Assert.Equal(new TextSpan(15, 0), changes[1].Span);
+            Assert.Equal(" ", changes[1].NewText);
+        }
+
+        [Fact]
         public void TestDiffMinusChangedToPlus()
         {
             var options = new CSharpParseOptions(kind: SourceCodeKind.Script);

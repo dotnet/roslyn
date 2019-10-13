@@ -24,4 +24,4 @@
             Return node1Group <> -1 AndAlso node1Group = kindGroup(node2)
         End Function
     End Class
-End NameSpace
+End Namespace

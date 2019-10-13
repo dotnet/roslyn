@@ -2796,23 +2796,38 @@ End Module
             Assert.Throws(Of ArgumentNullException)(Sub() newTree.GetChangedSpans(BlankTree))
         End Sub
 
+        Private Shared Function ParseLines(lines As String()) As SyntaxTree
+            Return SyntaxFactory.ParseSyntaxTree(String.Join(vbCrLf, lines))
+        End Function
+
         <Fact>
         Public Sub TestSyntaxTree_GetChangesWhenSubChangedToFunction()
-            Dim parseLines = 
-                Function(lines As String()) SyntaxFactory.ParseSyntaxTree(String.Join(vbCrLf, lines))
-
-            Dim oldTree = parseLines({ "Module M", "  Sub M()", "    Console.WriteLine(42)", "  End Sub", "End Module"})
-            Dim newTree = parseLines({ "Module M", "  Async Function M() of Task", "    Console.WriteLine(42)", "  End Function", "End Module"})
+            Dim oldTree = ParseLines({"Module M", "  Sub M()", "    Console.WriteLine(42)", "  End Sub", "End Module"})
+            Dim newTree = ParseLines({"Module M", "  Async Function M() of Task", "    Console.WriteLine(42)", "  End Function", "End Module"})
 
             Dim changes = newTree.GetChanges(oldTree)
             Assert.NotNull(changes)
             Assert.Equal(3, changes.Count)
-            Assert.Equal(new TextSpan(12, 3), changes(0).Span)
+            Assert.Equal(New TextSpan(12, 3), changes(0).Span)
             Assert.Equal("Async Function", changes(0).NewText)
-            Assert.Equal(new TextSpan(19, 0), changes(1).Span)
+            Assert.Equal(New TextSpan(19, 0), changes(1).Span)
             Assert.Equal(" of Task", changes(1).NewText)
-            Assert.Equal(new TextSpan(54, 3), changes(2).Span)
+            Assert.Equal(New TextSpan(54, 3), changes(2).Span)
             Assert.Equal("Function", changes(2).NewText)
+        End Sub
+
+        <Fact>
+        Public Sub TestSyntaxTree_GetChangesWhenClassChangedToStructure()
+            Dim oldTree = ParseLines({"Class C", "End Class"})
+            Dim newTree = ParseLines({"Structure C", "End Structure"})
+
+            Dim changes = newTree.GetChanges(oldTree)
+            Assert.NotNull(changes)
+            Assert.Equal(2, changes.Count)
+            Assert.Equal(New TextSpan(0, 5), changes(0).Span)
+            Assert.Equal("Structure", changes(0).NewText)
+            Assert.Equal(New TextSpan(13, 5), changes(1).Span)
+            Assert.Equal("Structure", changes(1).NewText)
         End Sub
 
         <Fact>

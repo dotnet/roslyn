@@ -508,27 +508,17 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            return AreSimilar(node1.AsNode(), node2.AsNode());
-        }
+            return areSimilar(node1.AsNode(), node2.AsNode());
 
-        private bool AreSimilar(SyntaxNode node1, SyntaxNode node2)
-        {
-            if (node1.RawKind == node2.RawKind)
+            bool areSimilar(SyntaxNode node1, SyntaxNode node2)
             {
-                return true;
-            }
+                if (node1.GetType() == node2.GetType())
+                {
+                    return true;
+                }
 
-            if (node1.GetType() == node2.GetType())
-            {
-                return true;
+                return AreSimilarCore(node1, node2);
             }
-
-            if (AreSimilarCore(node1, node2))
-            {
-                return true;
-            }
-
-            return false;
         }
 
         protected abstract bool AreSimilarCore(SyntaxNode node1, SyntaxNode node2);

@@ -1221,6 +1221,11 @@ recurse:
 
         #endregion
 
+        /// <summary>
+        /// Returns a <see cref="SyntaxDiffer"/> that compares this node with <paramref name="newNode"/>.
+        /// </summary>
+        /// <param name="newNode">The node this node is comapred with.</param>
+        /// <param name="computeNewText">When set to <see langword="true"/>, compute the text in <paramref name="newNode"/> for each change.</param>
         internal abstract SyntaxDiffer GetDiffer(SyntaxNode newNode, bool computeNewText);
 
         /// <summary>
