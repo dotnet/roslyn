@@ -713,6 +713,11 @@ class C
 {
     void M()
     {
+        local1();
+        local2();
+        local3();
+        local4();
+
         [A]
         void local1() { }
 
@@ -727,19 +732,7 @@ class C
 ";
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (10,14): warning CS8321: The local function 'local1' is declared but never used
-                //         void local1() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(10, 14),
-                // (13,14): warning CS8321: The local function 'local2' is declared but never used
-                //         void local2() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(13, 14),
-                // (15,14): warning CS8321: The local function 'local3' is declared but never used
-                //         void local3([A] int i) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local3").WithArguments("local3").WithLocation(15, 14),
-                // (17,14): warning CS8321: The local function 'local4' is declared but never used
-                //         void local4<[A] T>() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local4").WithArguments("local4").WithLocation(17, 14));
+            comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
