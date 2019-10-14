@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
@@ -33,32 +34,29 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             var generator = SyntaxGenerator.GetGenerator(document);
             var ifSpan = ifStatement.Span;
 
-            SyntaxNode @switch;
-            if (convertToSwitchExpression)
-            {
-                @switch = CreateSwitchExpressionStatement(target, sections);
-            }
-            else
-            {
-                var lastNode = sections.LastOrDefault()?.SyntaxToRemove ?? ifStatement;
-                @switch = CreateSwitchStatement(ifStatement, target, sections.Select(AsSwitchSectionSyntax))
-                    .WithLeadingTrivia(ifStatement.GetLeadingTrivia())
-                    .WithTrailingTrivia(lastNode.GetTrailingTrivia())
-                    .WithAdditionalAnnotations(Formatter.Annotation);
-            }
+            var @switch = convertToSwitchExpression
+                ? CreateSwitchExpressionStatement(target, sections)
+                : CreateSwitchStatement(ifStatement, target, sections.Select(section => AsSwitchSectionSyntax(section, generator)));
+
+            var lastNode = sections.Last().SyntaxToRemove;
+            @switch = @switch
+                .WithLeadingTrivia(ifStatement.GetLeadingTrivia())
+                .WithTrailingTrivia(lastNode.GetTrailingTrivia())
+                .WithAdditionalAnnotations(Formatter.Annotation)
+                .WithAdditionalAnnotations(Simplifier.Annotation);
 
             var nodesToRemove = sections.Skip(1).Select(s => s.SyntaxToRemove).Where(s => s.Parent == ifStatement.Parent);
             root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
             root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
             return document.WithSyntaxRoot(root);
+        }
 
-            SyntaxNode AsSwitchSectionSyntax(AnalyzedSwitchSection section)
-            {
-                var statements = AsSwitchSectionStatements(section.Body);
-                return section.Labels.IsDefault
-                    ? generator.DefaultSwitchSection(statements)
-                    : generator.SwitchSectionFromLabels(section.Labels.Select(AsSwitchLabelSyntax), statements);
-            }
+        private SyntaxNode AsSwitchSectionSyntax(AnalyzedSwitchSection section, SyntaxGenerator generator)
+        {
+            var statements = AsSwitchSectionStatements(section.Body);
+            return section.Labels.IsDefault
+                ? generator.DefaultSwitchSection(statements)
+                : generator.SwitchSectionFromLabels(section.Labels.Select(AsSwitchLabelSyntax), statements);
         }
     }
 }
