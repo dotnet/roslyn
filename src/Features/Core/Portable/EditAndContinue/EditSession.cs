@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -16,6 +17,8 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -145,7 +148,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var byInstruction = PooledDictionary<ActiveInstructionId, ActiveStatement>.GetInstance();
 
             bool supportsEditAndContinue(DocumentId documentId)
-                => EditAndContinueWorkspaceService.SupportsEditAndContinue(DebuggingSession.LastCommittedSolution.GetProject(documentId.ProjectId));
+                => EditAndContinueWorkspaceService.SupportsEditAndContinue(DebuggingSession.LastCommittedSolution.GetProject(documentId.ProjectId)!);
 
             foreach (var debugInfo in debugInfos)
             {
@@ -266,10 +269,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var (document, _) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(activeStatement.PrimaryDocumentId, cancellationToken).ConfigureAwait(false);
                     if (document != null)
                     {
+                        Debug.Assert(document.SupportsSyntaxTree);
+
                         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        Contract.ThrowIfNull(syntaxRoot);
 
-                        var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
+                        // The analyzer service have to be available as we only track active statements in projects that support EnC.
+                        var analyzer = document.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
                         exceptionRegions = analyzer.GetExceptionRegions(sourceText, syntaxRoot, activeStatement.Span, activeStatement.IsNonLeaf, out isCovered);
                     }
                     else
@@ -303,13 +310,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private async Task<(ImmutableArray<(Document Document, AsyncLazy<DocumentAnalysisResults> Results)>, ImmutableArray<Diagnostic> Diagnostics)> GetChangedDocumentsAnalysesAsync(
             Project baseProject, Project project, CancellationToken cancellationToken)
         {
-            var changedDocuments = ArrayBuilder<(Document Old, Document New)>.GetInstance();
+            var changedDocuments = ArrayBuilder<(Document? Old, Document New)>.GetInstance();
             var outOfSyncDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
 
             var changes = project.GetChanges(baseProject);
             foreach (var documentId in changes.GetChangedDocuments())
             {
-                var document = project.GetDocument(documentId);
+                var document = project.GetDocument(documentId)!;
                 if (EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(document))
                 {
                     continue;
@@ -334,7 +341,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var documentId in changes.GetAddedDocuments())
             {
-                var document = project.GetDocument(documentId);
+                var document = project.GetDocument(documentId)!;
                 if (EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(document))
                 {
                     continue;
@@ -356,7 +363,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return (result, outOfSyncDiagnostics.ToImmutableAndFree());
         }
 
-        public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document baseDocument, Document document)
+        public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document? baseDocument, Document document)
         {
             lock (_analysesGuard)
             {
@@ -367,9 +374,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Returns a document analysis or kicks off a new one if one is not available for the specified document snapshot.
         /// </summary>
-        /// <param name="baseDocumentOpt">Base document or null if the document did not exist in the baseline.</param>
+        /// <param name="baseDocument">Base document or null if the document did not exist in the baseline.</param>
         /// <param name="document">Document snapshot to analyze.</param>
-        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Document baseDocumentOpt, Document document)
+        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Document? baseDocument, Document document)
         {
             if (_analyses.TryGetValue(document.Id, out var analysis) && analysis.Document == document)
             {
@@ -391,7 +398,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         var trackingService = DebuggingSession.Workspace.Services.GetService<IActiveStatementTrackingService>();
 
-                        return await analyzer.AnalyzeDocumentAsync(baseDocumentOpt, documentBaseActiveStatements, document, trackingService, cancellationToken).ConfigureAwait(false);
+                        return await analyzer.AnalyzeDocumentAsync(baseDocument, documentBaseActiveStatements, document, trackingService, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
@@ -442,7 +449,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var projects = (sourceFilePath == null) ? solution.Projects :
                     from documentId in solution.GetDocumentIdsWithFilePath(sourceFilePath)
-                    select solution.GetDocument(documentId).Project;
+                    select solution.GetDocument(documentId)!.Project;
 
                 bool anyChanges = false;
                 foreach (var project in projects)
@@ -743,11 +750,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
+                    // project must support compilations since it supports EnC
+                    Contract.ThrowIfNull(currentCompilation);
+
                     // Exception regions of active statements in changed documents are calculated (non-default),
                     // since we already checked that no changed document is out-of-sync above.
                     var baseActiveExceptionRegions = await GetBaseActiveExceptionRegionsAsync(cancellationToken).ConfigureAwait(false);
 
-                    var lineEdits = projectChanges.LineChanges.SelectAsArray((lineChange, p) => (p.GetDocument(lineChange.DocumentId).FilePath, lineChange.Changes), project);
+                    var lineEdits = projectChanges.LineChanges.SelectAsArray((lineChange, p) => (p.GetDocument(lineChange.DocumentId)!.FilePath, lineChange.Changes), project);
 
                     // Dispatch to a background thread - the compiler reads symbols and ISymUnmanagedReader requires MTA thread.
                     // We also don't want to block the UI thread - emit might perform IO.
@@ -802,7 +812,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
 
-                        var emitResult = currentCompilation.EmitDifference(
+                        // TODO: ! should not be required (https://github.com/dotnet/roslyn/issues/38548)
+                        var emitResult = currentCompilation!.EmitDifference(
                             baseline,
                             projectChanges.SemanticEdits,
                             projectChanges.AddedSymbols.Contains,
@@ -890,9 +901,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static unsafe bool CreateInitialBaselineForDeferredModuleUpdate(
             CompilationOutputs compilationOutputs,
             out ImmutableArray<Diagnostic> diagnostics,
-            out EmitBaseline baseline,
-            out DebugInformationReaderProvider debugInfoReaderProvider,
-            out MetadataReaderProvider metadataReaderProvider)
+            [NotNullWhen(true)] out EmitBaseline? baseline,
+            [NotNullWhen(true)] out DebugInformationReaderProvider? debugInfoReaderProvider,
+            [NotNullWhen(true)] out MetadataReaderProvider? metadataReaderProvider)
         {
             // Since the module has not been loaded to the debuggee the debugger does not have its metadata or symbols available yet.
             // Read the metadata and symbols from the disk. Close the files as soon as we are done emitting the delta to minimize 
