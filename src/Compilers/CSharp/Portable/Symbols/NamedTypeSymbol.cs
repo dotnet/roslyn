@@ -846,18 +846,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             if (!IsGenericType)
             {
-                return this;
+                return other.IsDynamic() ? other : this;
             }
 
             var allTypeParameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            bool haveChanges = MergeTypeArgumentNullability(this, (NamedTypeSymbol)other, variance, allTypeParameters, allTypeArguments);
+            bool haveChanges = MergeEquivalentTypeArguments(this, (NamedTypeSymbol)other, variance, allTypeParameters, allTypeArguments);
 
             NamedTypeSymbol result;
             if (haveChanges)
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// type arguments are added to `allTypeArguments`; and the method
         /// returns true if there were changes from the original `typeA`.
         /// </summary>
-        private static bool MergeTypeArgumentNullability(
+        private static bool MergeEquivalentTypeArguments(
             NamedTypeSymbol typeA,
             NamedTypeSymbol typeB,
             VarianceKind variance,
@@ -890,6 +890,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(typeA.IsGenericType);
             Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+
+            // Tuple types act as covariant when merging equivalent types.
+            bool isTuple = typeA.IsTupleCompatible();
 
             var definition = typeA.OriginalDefinition;
             bool haveChanges = false;
@@ -906,8 +909,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         TypeWithAnnotations typeArgumentA = typeArgumentsA[i];
                         TypeWithAnnotations typeArgumentB = typeArgumentsB[i];
-                        VarianceKind typeArgumentVariance = GetTypeArgumentVariance(variance, typeParameters[i].Variance);
-                        TypeWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, typeArgumentVariance);
+                        VarianceKind typeArgumentVariance = GetTypeArgumentVariance(variance, isTuple ? VarianceKind.Out : typeParameters[i].Variance);
+                        TypeWithAnnotations merged = typeArgumentA.MergeEquivalentTypes(typeArgumentB, typeArgumentVariance);
                         allTypeArguments.Add(merged);
                         if (!typeArgumentA.IsSameAs(merged))
                         {

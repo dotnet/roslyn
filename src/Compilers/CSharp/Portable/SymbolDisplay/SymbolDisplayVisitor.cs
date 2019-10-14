@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
-                symbol.Type.Accept(this);
+                VisitTypeWithAnnotations(TypeWithAnnotations.Create((TypeSymbol)symbol.Type, symbol.NullableAnnotation.ToInternalAnnotation()));
                 AddSpace();
             }
 

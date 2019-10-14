@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
-        <target state="new">Adding analyzer config documents is not supported.</target>
+        <target state="translated">Přidávání dokumentů konfigurace analyzátoru se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
-        <target state="new">Changing analyzer config documents is not supported.</target>
+        <target state="translated">Změna dokumentů konfigurace analyzátoru se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_document_0_is_not_supported">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">Pravidla pojmenování</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_styles">
         <source>Naming styles</source>
-        <target state="new">Naming styles</target>
+        <target state="translated">Styly pojmenování</target>
         <note />
       </trans-unit>
       <trans-unit id="New_line_preferences">
@@ -104,102 +104,102 @@
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_long">
         <source>All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</source>
-        <target state="new">All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</target>
+        <target state="translated">Všechny řídicí znaky. Patří k nim kategorie Cc, Cf, Cs, Co a Cn.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_control_characters_short">
         <source>all control characters</source>
-        <target state="new">all control characters</target>
+        <target state="translated">všechny řídicí znaky</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_diacritic_marks_long">
         <source>All diacritic marks. This includes the Mn, Mc, and Me categories.</source>
-        <target state="new">All diacritic marks. This includes the Mn, Mc, and Me categories.</target>
+        <target state="translated">Všechny značky diakritických znamének. Patří k nim kategorie Mn, Mc a Me.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_diacritic_marks_short">
         <source>all diacritic marks</source>
-        <target state="new">all diacritic marks</target>
+        <target state="translated">všechny značky diakritických znamének</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_letter_characters_long">
         <source>All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</source>
-        <target state="new">All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</target>
+        <target state="translated">Všechny znaky písmen. Patří k nim znaky Lu, Ll, Lt, Lm a Lo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_letter_characters_short">
         <source>all letter characters</source>
-        <target state="new">all letter characters</target>
+        <target state="translated">všechny znaky písmen</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_numbers_long">
         <source>All numbers. This includes the Nd, Nl, and No categories.</source>
-        <target state="new">All numbers. This includes the Nd, Nl, and No categories.</target>
+        <target state="translated">Všechna čísla. Patří k nim kategorie Nd, Nl a No.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_numbers_short">
         <source>all numbers</source>
-        <target state="new">all numbers</target>
+        <target state="translated">všechna čísla</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_punctuation_characters_long">
         <source>All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</source>
-        <target state="new">All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</target>
+        <target state="translated">Všechny znaky interpunkce. Patří k nim kategorie Pc, Pd, Ps, Pe, Pi, Pf a Po.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_punctuation_characters_short">
         <source>all punctuation characters</source>
-        <target state="new">all punctuation characters</target>
+        <target state="translated">všechny znaky interpunkce</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_separator_characters_long">
         <source>All separator characters. This includes the Zs, Zl, and Zp categories.</source>
-        <target state="new">All separator characters. This includes the Zs, Zl, and Zp categories.</target>
+        <target state="translated">Všechny oddělovací znaky. Patří k nim kategorie Zs, Zl a Zp.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_separator_characters_short">
         <source>all separator characters</source>
-        <target state="new">all separator characters</target>
+        <target state="translated">všechny oddělovací znaky</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_symbols_long">
         <source>All symbols. This includes the Sm, Sc, Sk, and So categories.</source>
-        <target state="new">All symbols. This includes the Sm, Sc, Sk, and So categories.</target>
+        <target state="translated">Všechny symboly. Patří k nim kategorie Sm, Sc, Sk a So.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_all_symbols_short">
         <source>all symbols</source>
-        <target state="new">all symbols</target>
+        <target state="translated">všechny symboly</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_alternation_long">
         <source>You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.</source>
-        <target state="new">You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.</target>
+        <target state="translated">Můžete použít znak svislé čáry (|), pokud se má položka shodovat s libovolným vzorem z řady, ve které znak | odděluje jednotlivé vzory.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_alternation_short">
         <source>alternation</source>
-        <target state="new">alternation</target>
+        <target state="translated">alternace</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_long">
         <source>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</source>
-        <target state="new">The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the 's' option, . matches any character.</target>
+        <target state="translated">Znak tečky (.) odpovídá libovolnému znaku s výjimkou \n (znak nového řádku \u000A). Pokud je vzor regulárního výrazu modifikovaný možností RegexOptions.Singleline nebo pokud je část vzoru obsahující třídu znaků tečky modifikovaná parametrem s, pak znak tečky odpovídá libovolnému znaku.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_any_character_group_short">
         <source>any character</source>
-        <target state="new">any character</target>
+        <target state="translated">libovolný znak</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_long">
         <source>Matches a backspace character, \u0008</source>
-        <target state="new">Matches a backspace character, \u0008</target>
+        <target state="translated">Shoda se znakem Backspace \u0008</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_backspace_character_short">
         <source>backspace character</source>
-        <target state="new">backspace character</target>
+        <target state="translated">znak Backspace</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
@@ -208,205 +208,205 @@
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
+        <target state="translated">Definice vyrovnávací skupiny odstraní definici dříve definované skupiny a uloží interval mezi dříve definovanou skupinou a aktuální skupinou do aktuální skupiny.
     
-'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+Skupina name1 je aktuální skupina (volitelná), skupina name2 je dříve definovaná skupina a subexpression je libovolný platný vzor regulárního výrazu. Definice vyrovnávací skupiny odstraní definici skupiny name2 a uloží interval mezi skupinami name2 a name1 do skupiny name1. Pokud není definována žádná skupina name2, porovnávání se vrátí zpět. Vzhledem k tomu, že odstraněním poslední definice skupiny name2 se odkryje předchozí definice skupiny name2, umožňuje tento konstruktor použít zásobník zachycení pro skupinu name2 jako čítač pro uchování přehledu o vnořených konstruktorech, jako jsou kulaté nebo hranaté otevírací a uzavírací závorky.
 
-The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
+Definice vyrovnávací skupiny používá jako zásobník skupinu name2. Počáteční znak každého vnořeného konstruktoru se umístí do této skupiny a do její kolekce Group.Captures. Po nalezení uzavíracího znaku se odpovídající otevírací znak odebere ze skupiny a kolekce Captures se zmenší o jednu položku. Po nalezení otevíracích a uzavíracích znaků všech vnořených konstruktorů bude skupina name1 prázdná.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
         <source>balancing group</source>
-        <target state="new">balancing group</target>
+        <target state="translated">vyrovnávací skupina</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_base_group">
         <source>base-group</source>
-        <target state="new">base-group</target>
+        <target state="translated">základní skupina</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_bell_character_long">
         <source>Matches a bell (alarm) character, \u0007</source>
-        <target state="new">Matches a bell (alarm) character, \u0007</target>
+        <target state="translated">Shoda se znakem zvonku \u0007</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_bell_character_short">
         <source>bell character</source>
-        <target state="new">bell character</target>
+        <target state="translated">znak zvonku</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_long">
         <source>Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</source>
-        <target state="new">Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</target>
+        <target state="translated">Shoda se znakem návratu na začátek řádku \u000D. Upozorňujeme, že \r není ekvivalentem znaku nového řádku \n.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_carriage_return_character_short">
         <source>carriage-return character</source>
-        <target state="new">carriage-return character</target>
+        <target state="translated">znak návratu na začátek řádku</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_class_subtraction_long">
         <source>Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
 
 'base_group' is a positive or negative character group or range. The 'excluded_group' component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</source>
-        <target state="new">Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+        <target state="translated">Odčítání třídy znaků poskytuje sadu znaků, která je výsledkem vyloučení znaků v jedné třídě znaků z jiné třídy znaků.
 
-'base_group' is a positive or negative character group or range. The 'excluded_group' component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</target>
+Base_group je pozitivní nebo negativní skupina znaků nebo rozsah. Komponenta excluded_group je jiná pozitivní nebo negativní skupina znaků nebo jiný výraz odčítání třídy znaků (to znamená, že výrazy odčítání třídy znaků lze vnořovat).</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_class_subtraction_short">
         <source>character class subtraction</source>
-        <target state="new">character class subtraction</target>
+        <target state="translated">odčítání třídy znaků</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_character_group">
         <source>character-group</source>
-        <target state="new">character-group</target>
+        <target state="translated">skupina znaků</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_comment">
         <source>comment</source>
-        <target state="new">comment</target>
+        <target state="translated">komentář</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_expression_match_long">
         <source>This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
 
 'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</source>
-        <target state="new">This language element attempts to match one of two patterns depending on whether it can match an initial pattern.
+        <target state="translated">Tento element jazyka se pokusí najít shodu s jedním ze dvou vzorů na základě toho, jestli se najde shoda s počátečním vzorem.
 
-'expression' is the initial pattern to match, 'yes' is the pattern to match if expression is matched, and 'no' is the optional pattern to match if expression is not matched.</target>
+Expression je počáteční vzor, pro který se hledá shoda, yes je vzor, pro který se hledá shoda, pokud se pro expression najde shoda, a no je volitelný vzor, pro který se hledá shoda, pokud se pro expression nenajde shoda.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_expression_match_short">
         <source>conditional expression match</source>
-        <target state="new">conditional expression match</target>
+        <target state="translated">podmíněná shoda výrazu</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_group_match_long">
         <source>This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
 
 'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</source>
-        <target state="new">This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group.
+        <target state="translated">Tento element jazyka se pokusí najít shodu s jedním ze dvou vzorů na základě toho, jestli se najde shoda se zadanou zachycující skupinou.
 
-'name' is the name (or number) of a capturing group, 'yes' is the expression to match if 'name' (or 'number') has a match, and 'no' is the optional expression to match if it does not.</target>
+Name je název (nebo číslo) zachycující skupiny, yes je výraz, pro který se hledá shoda, pokud se daný název (nebo číslo) najde, a no je volitelný výraz, pro který se hledá shoda, pokud se tato položka nenajde.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_conditional_group_match_short">
         <source>conditional group match</source>
-        <target state="new">conditional group match</target>
+        <target state="translated">podmíněná shoda skupiny</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_contiguous_matches_long">
         <source>The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</source>
-        <target state="new">The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</target>
+        <target state="translated">Ukotvení \G určuje, že ke shodě musí dojít v místě, kde bylo předchozí porovnávání ukončeno. Pokud použijete toto ukotvení s metodou Regex.Matches nebo Match.NextMatch, zajistí se, že všechna porovnávání budou souvislá.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_contiguous_matches_short">
         <source>contiguous matches</source>
-        <target state="new">contiguous matches</target>
+        <target state="translated">souvislá porovnávání</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_control_character_long">
         <source>Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</source>
-        <target state="new">Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</target>
+        <target state="translated">Shoda s řídicím znakem ASCII, kde X je písmeno řídicího znaku. Například \cC je CTRL-C.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_control_character_short">
         <source>control character</source>
-        <target state="new">control character</target>
+        <target state="translated">řídicí znak</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_decimal_digit_character_long">
         <source>\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
 
 If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</source>
-        <target state="new">\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+        <target state="translated">\d odpovídá libovolné desítkové číslici. Jde o ekvivalent vzoru regulárního výrazu \p{Nd}, který zahrnuje standardní desítkové číslice 0–9 a také desítkové číslice některých jiných znakových sad.
 
-If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</target>
+Pokud je zadané chování kompatibilní s ECMAScriptem, je \d ekvivalentem [0-9].</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_decimal_digit_character_short">
         <source>decimal-digit character</source>
-        <target state="new">decimal-digit character</target>
+        <target state="translated">znak desítkové číslice</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_line_comment_long">
         <source>A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</source>
-        <target state="new">A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</target>
+        <target state="translated">Symbol čísla (#) označuje komentář v režimu X, který začíná znakem #, který není řídicím znakem, na konci vzoru regulárního výrazu a pokračuje do konce řádku. Pokud chcete použít tento konstruktor, musíte buď povolit možnost x (prostřednictvím vložených možností), nebo při vytváření instance objektu Regex nebo volání statické metody Regex zadat pro parametr možnosti hodnotu RegexOptions.IgnorePatternWhitespace.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_line_comment_short">
         <source>end-of-line comment</source>
-        <target state="new">end-of-line comment</target>
+        <target state="translated">komentář na konci řádku</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_only_long">
         <source>The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</source>
-        <target state="new">The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</target>
+        <target state="translated">Ukotvení \z určuje, že ke shodě musí dojít na konci vstupního řetězce. Podobně jako element jazyka $ i \z ignoruje možnost RegexOptions.Multiline. Na rozdíl od elementu jazyka \Z nenajde \z shodu se znakem \n na konci řetězce. Proto může hledat shodu jenom v posledním řádku vstupního řetězce.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_only_short">
         <source>end of string only</source>
-        <target state="new">end of string only</target>
+        <target state="translated">jen konec řetězce</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_before_ending_newline_long">
         <source>The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
 
 The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</source>
-        <target state="new">The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+        <target state="translated">Ukotvení \Z určuje, že ke shodě musí dojít na konci vstupního řetězce nebo před \n na konci vstupního řetězce. Je identické s ukotvením $, kromě toho, že \Z ignoruje možnost RegexOptions.Multiline. Proto ve víceřádkovém řetězci může najít shodu jenom na konci posledního řádku nebo v posledním řádku před \n.
 
-The \Z anchor matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</target>
+Ukotvení \Z najde shodu s \n, ale nenajde shodu s \r\n (kombinace znaků CR/LF). Pokud chcete hledat znaky CR/LF, zadejte do vzoru regulárního výrazu \r?\Z.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_before_ending_newline_short">
         <source>end of string or before ending newline</source>
-        <target state="new">end of string or before ending newline</target>
+        <target state="translated">konec řetězce nebo před koncem nového řádku</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_long">
         <source>The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
 
 The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</source>
-        <target state="new">The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string. If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line.
+        <target state="translated">Ukotvení $ určuje, že se předchozí vzor musí vyskytovat na konci vstupního řetězce nebo před \n na konci vstupního řetězce. Pokud použijete $ s možností RegexOptions.Multiline, může ke shodě dojít i na konci řádku.
 
-The $ anchor matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</target>
+Ukotvení $ najde shodu s \n, ale nenajde shodu s \r\n (kombinace znaků návratu na začátek řádku a nového řádku, tedy znaků CR/LF). Pokud chcete hledat kombinaci znaků CR/LF, zadejte do vzoru regulárního výrazu \r?$.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_end_of_string_or_line_short">
         <source>end of string or line</source>
-        <target state="new">end of string or line</target>
+        <target state="translated">konec řetězce nebo řádku</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_escape_character_long">
         <source>Matches an escape character, \u001B</source>
-        <target state="new">Matches an escape character, \u001B</target>
+        <target state="translated">Shoda s řídicím znakem \u001B</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_escape_character_short">
         <source>escape character</source>
-        <target state="new">escape character</target>
+        <target state="translated">řídicí znak</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_excluded_group">
         <source>excluded-group</source>
-        <target state="new">excluded-group</target>
+        <target state="translated">vyloučená skupina</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">výraz</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
         <source>Matches a form-feed character, \u000C</source>
-        <target state="new">Matches a form-feed character, \u000C</target>
+        <target state="translated">Shoda se znakem pro novou stránku \u000C</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_short">
         <source>form-feed character</source>
-        <target state="new">form-feed character</target>
+        <target state="translated">znak pro novou stránku</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_group_options_long">
@@ -421,42 +421,42 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 	named or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="new">This grouping construct applies or disables the specified options within a subexpression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+        <target state="translated">Tento seskupovací konstruktor povoluje nebo zakazuje možnosti zadané v rámci výrazu subexpression. Možnosti, které se povolují, se zadávají za otazník a možnosti, které se zakazují, za symbol minus. Povolené možnosti:
 
-    i	Use case-insensitive matching.
-    m	Use multiline mode, where ^ and $ match the beginning and end of each line
-	(instead of the beginning and end of the input string).
-    s	Use single-line mode, where the period (.) matches every character
-	(instead of every character except \n).
-    n	Do not capture unnamed groups. The only valid captures are explicitly
-	named or numbered groups of the form (?&lt;name&gt; subexpression).
-    x	Exclude unescaped white space from the pattern, and enable comments
-	after a number sign (#).</target>
+    i	Použije se porovnávání bez rozlišování malých a velkých písmen.
+    m	Použije se víceřádkový režim, kde ^ a $ odpovídají začátku a konci každého řádku
+	(místo začátku a konce vstupního řetězce).
+    s	Použije se jednořádkový režim, kde tečka (.) odpovídá každému znaku
+	(místo každému znaku kromě \n).
+    n	Nezachytává nepojmenované skupiny. Jediná platná zachycení představují explicitně
+	pojmenované nebo číslované skupiny formuláře (? &lt;name&gt; subexpression).
+    x	Vyloučí ze vzoru prázdné znaky, které nejsou řídicími znaky, a povolí komentáře
+	za symbolem čísla (#).</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_group_options_short">
         <source>group options</source>
-        <target state="new">group options</target>
+        <target state="translated">seskupovací možnosti</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_long">
         <source>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</source>
-        <target state="new">Matches an ASCII character, where ## is a two-digit hexadecimal character code.</target>
+        <target state="translated">Shoda se znakem ASCII, kde ## je dvouciferný šestnáctkový kód znaku</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
-        <source>hexidecimal escape</source>
-        <target state="new">hexidecimal escape</target>
+        <source>hexadecimal escape</source>
+        <target state="needs-review-translation">šestnáctkový řídicí znak</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
         <source>The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</source>
-        <target state="new">The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</target>
+        <target state="translated">Konstruktor (?# komentář) umožňuje zahrnout vložený komentář do regulárního výrazu. Modul regulárních výrazů nepoužije při porovnávání vzorů žádnou část komentáře, i když je komentář obsažený v řetězci, který vrací metoda Regex.ToString. Komentář končí první uzavírací závorkou.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_short">
         <source>inline comment</source>
-        <target state="new">inline comment</target>
+        <target state="translated">vložený komentář</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_options_long">
@@ -471,226 +471,226 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 	or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="new">Enables or disables specific pattern matching options for the remainder of a regular expression. The options to enable are specified after the question mark, and the options to disable after the minus sign. The allowed options are:
+        <target state="translated">Povoluje nebo zakazuje specifické možnosti pro porovnávání vzorů pro zbytek regulárního výrazu. Možnosti, které se povolují, se zadávají za otazník a možnosti, které se zakazují, za symbol minus. Povolené možnosti:
 
-    i	Use case-insensitive matching.
-    m	Use multiline mode, where ^ and $ match the beginning and end of each line
-	(instead of the beginning and end of the input string).
-    s	Use single-line mode, where the period (.) matches every character
-	(instead of every character except \n).
-    n	Do not capture unnamed groups. The only valid captures are explicitly named
-	or numbered groups of the form (?&lt;name&gt; subexpression).
-    x	Exclude unescaped white space from the pattern, and enable comments
-	after a number sign (#).</target>
+    i	Použije se porovnávání bez rozlišování malých a velkých písmen.
+    m	Použije se víceřádkový režim, kde ^ a $ odpovídají začátku a konci každého řádku
+	(místo začátku a konce vstupního řetězce).
+    s	Použije se jednořádkový režim, kde tečka (.) odpovídá každému znaku
+	(místo každému znaku kromě \n).
+    n	Nezachytává nepojmenované skupiny. Jediná platná zachycení představují explicitně
+	pojmenované nebo číslované skupiny formuláře (? &lt;name&gt; subexpression).
+    x	Vyloučí ze vzoru prázdné znaky, které nejsou řídicími znaky, a povolí komentáře
+	za symbolem čísla (#).</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_options_short">
         <source>inline options</source>
-        <target state="new">inline options</target>
+        <target state="translated">vložené možnosti</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_lowercase">
         <source>letter, lowercase</source>
-        <target state="new">letter, lowercase</target>
+        <target state="translated">písmeno, malá písmena</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_modifier">
         <source>letter, modifier</source>
-        <target state="new">letter, modifier</target>
+        <target state="translated">písmeno, modifikátor</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_other">
         <source>letter, other</source>
-        <target state="new">letter, other</target>
+        <target state="translated">písmeno, jiné</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_titlecase">
         <source>letter, titlecase</source>
-        <target state="new">letter, titlecase</target>
+        <target state="translated">písmeno, velká počáteční písmena</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_uppercase">
         <source>letter, uppercase</source>
-        <target state="new">letter, uppercase</target>
+        <target state="translated">písmeno, velká písmena</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_enclosing">
         <source>mark, enclosing</source>
-        <target state="new">mark, enclosing</target>
+        <target state="translated">značka, uzavření</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_nonspacing">
         <source>mark, nonspacing</source>
-        <target state="new">mark, nonspacing</target>
+        <target state="translated">značka, bez mezer</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_mark_spacing_combining">
         <source>mark, spacing combining</source>
-        <target state="new">mark, spacing combining</target>
+        <target state="translated">značka, kombinování mezer</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_long">
         <source>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</source>
-        <target state="new">The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</target>
+        <target state="translated">Kvantifikátor {n,}? najde shodu předchozího elementu nejméně n-krát, kde n je celé číslo, ale co nejméněkrát. Jedná se o líný protějšek hladového kvantifikátoru {n,}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_lazy_short">
         <source>match at least 'n' times (lazy)</source>
-        <target state="new">match at least 'n' times (lazy)</target>
+        <target state="translated">shoda nejméně n-krát (líný režim)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_long">
         <source>The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</source>
-        <target state="new">The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</target>
+        <target state="translated">Kvantifikátor {n,} najde shodu předchozího elementu nejméně n-krát, kde n je celé číslo. {n,} je hladový kvantifikátor, jehož líným ekvivalentem je {n,}?.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_at_least_n_times_short">
         <source>match at least 'n' times</source>
-        <target state="new">match at least 'n' times</target>
+        <target state="translated">shoda nejméně n-krát</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_long">
         <source>The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</source>
-        <target state="new">The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</target>
+        <target state="translated">Kvantifikátor {n,m}? najde shodu předchozího elementu v rozmezí n-krát a m-krát, kde n a m jsou celá čísla, ale co nejméněkrát. Jedná se o líný protějšek hladového kvantifikátoru {n,m}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_lazy_short">
         <source>match at least 'n' times (lazy)</source>
-        <target state="new">match at least 'n' times (lazy)</target>
+        <target state="translated">shoda nejméně n-krát (líný režim)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_long">
         <source>The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</source>
-        <target state="new">The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</target>
+        <target state="translated">Kvantifikátor {n,m} najde shodu předchozího elementu nejméně n-krát, ale nejvíce m-krát, kde n a m jsou celá čísla. {n,m} je hladový kvantifikátor, jehož líným ekvivalentem je {n,m}?.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_between_m_and_n_times_short">
         <source>match between 'm' and 'n' times</source>
-        <target state="new">match between 'm' and 'n' times</target>
+        <target state="translated">shoda v rozmezí m-krát a n-krát</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_long">
         <source>The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</source>
-        <target state="new">The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</target>
+        <target state="translated">Kvantifikátor {n}? najde shodu předchozího elementu přesně n-krát, kde n je celé číslo. Jedná se o líný protějšek hladového kvantifikátoru {n}+.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_lazy_short">
         <source>match exactly 'n' times (lazy)</source>
-        <target state="new">match exactly 'n' times (lazy)</target>
+        <target state="translated">shoda přesně n-krát (líný režim)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_long">
         <source>The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</source>
-        <target state="new">The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</target>
+        <target state="translated">Kvantifikátor {n} najde shodu předchozího elementu přesně n-krát, kde n je libovolné celé číslo. {n} je hladový kvantifikátor, jehož líným ekvivalentem je {n}?.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_exactly_n_times_short">
         <source>match exactly 'n' times</source>
-        <target state="new">match exactly 'n' times</target>
+        <target state="translated">shoda přesně n-krát</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_long">
         <source>The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</source>
-        <target state="new">The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</target>
+        <target state="translated">Kvantifikátor +? najde shodu předchozího elementu 1krát nebo vícekrát, ale co nejméněkrát. Jedná se o líný protějšek hladového kvantifikátoru +.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_lazy_short">
         <source>match one or more times (lazy)</source>
-        <target state="new">match one or more times (lazy)</target>
+        <target state="translated">shoda 1krát nebo vícekrát (líný režim)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_long">
         <source>The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</source>
-        <target state="new">The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?.</target>
+        <target state="translated">Kvantifikátor + najde shodu předchozího elementu 1krát nebo vícekrát. Jedná se o ekvivalent kvantifikátoru {1,}. + je hladový kvantifikátor, jehož líným ekvivalentem je +?.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_one_or_more_times_short">
         <source>match one or more times</source>
-        <target state="new">match one or more times</target>
+        <target state="translated">shoda 1krát nebo vícekrát</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_long">
         <source>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</source>
-        <target state="new">The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</target>
+        <target state="translated">Kvantifikátor *? najde shodu předchozího elementu 0krát nebo vícekrát, ale co nejméněkrát. Jedná se o líný protějšek hladového kvantifikátoru *.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_lazy_short">
         <source>match zero or more times (lazy)</source>
-        <target state="new">match zero or more times (lazy)</target>
+        <target state="translated">shoda 0krát nebo vícekrát (líný režim)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_long">
         <source>The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</source>
-        <target state="new">The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?.</target>
+        <target state="translated">Kvantifikátor * najde shodu předchozího elementu 0krát nebo vícekrát. Jedná se o ekvivalent kvantifikátoru {0,}. * je hladový kvantifikátor, jehož líným ekvivalentem je *?.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_more_times_short">
         <source>match zero or more times</source>
-        <target state="new">match zero or more times</target>
+        <target state="translated">shoda 0krát nebo vícekrát</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_long">
         <source>The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</source>
-        <target state="new">The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</target>
+        <target state="translated">Kvantifikátor ?? najde shodu předchozího elementu 0krát nebo 1krát, ale co nejméněkrát. Jedná se o líný protějšek hladového kvantifikátoru ?.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_lazy_short">
         <source>match zero or one time (lazy)</source>
-        <target state="new">match zero or one time (lazy)</target>
+        <target state="translated">shoda 0krát nebo 1krát (líný režim)</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_long">
         <source>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</source>
-        <target state="new">The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</target>
+        <target state="translated">Kvantifikátor ? najde shodu předchozího elementu 0krát nebo 1krát. Jedná se o ekvivalent kvantifikátoru {0,1}. ? je hladový kvantifikátor, jehož líným ekvivalentem je ??.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_match_zero_or_one_time_short">
         <source>match zero or one time</source>
-        <target state="new">match zero or one time</target>
+        <target state="translated">shoda 0krát nebo 1krát</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_long">
         <source>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</source>
-        <target state="new">This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</target>
+        <target state="translated">Tento seskupovací konstruktor zachytává porovnávaný dílčí výraz, kde dílčí výraz je libovolný platný vzor regulárního výrazu. Zachycení, která používají závorky, jsou automaticky číslována zleva doprava podle pořadí otevíracích závorek v regulárním výrazu, počínaje od hodnoty jedna. Zachycení s číslem nula je text odpovídající celému vzoru regulárního výrazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_short">
         <source>matched subexpression</source>
-        <target state="new">matched subexpression</target>
+        <target state="translated">porovnávaný dílčí výraz</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">název</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
         <source>name1</source>
-        <target state="new">name1</target>
+        <target state="translated">name1</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name2">
         <source>name2</source>
-        <target state="new">name2</target>
+        <target state="translated">name2</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name_or_number">
         <source>name-or-number</source>
-        <target state="new">name-or-number</target>
+        <target state="translated">název nebo číslo</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_backreference_long">
         <source>A named or numbered backreference.
 
 'name' is the name of a capturing group defined in the regular expression pattern.</source>
-        <target state="new">A named or numbered backreference.
+        <target state="translated">Pojmenovaná nebo číslovaná zpětná reference.
 
-'name' is the name of a capturing group defined in the regular expression pattern.</target>
+Název představuje název zachycující skupiny definované ve vzoru regulárního výrazu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_backreference_short">
         <source>named backreference</source>
-        <target state="new">named backreference</target>
+        <target state="translated">pojmenovaná zpětná reference</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_matched_subexpression_long">
@@ -699,107 +699,107 @@ The $ anchor matches \n but does not match \r\n (the combination of carriage ret
 'name' is a valid group name, and 'subexpression' is any valid regular expression pattern. 'name' must not contain any punctuation characters and cannot begin with a number.
 
 If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.</source>
-        <target state="new">Captures a matched subexpression and lets you access it by name or by number.
+        <target state="translated">Zachytává porovnávaný dílčí výraz a umožňuje k němu přístup pomocí názvu nebo čísla.
 
-'name' is a valid group name, and 'subexpression' is any valid regular expression pattern. 'name' must not contain any punctuation characters and cannot begin with a number.
+Název je platný název skupiny a dílčí výraz je libovolný platný vzor regulárního výrazu. Název nesmí obsahovat znaky interpunkce a nesmí začínat číslicí.
 
-If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.</target>
+Pokud parametr RegexOptions metody odpovídající vzoru regulárního výrazu obsahuje příznak RegexOptions.ExplicitCapture nebo pokud je u daného dílčího výrazu použitá možnost n, je jediným způsobem, jak zachytit dílčí výraz, explicitní pojmenování zachycujících skupin.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_named_matched_subexpression_short">
         <source>named matched subexpression</source>
-        <target state="new">named matched subexpression</target>
+        <target state="translated">pojmenovaný porovnávaný dílčí výraz</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_group_long">
         <source>A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
 
 Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</source>
-        <target state="new">A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters are specified individually.
+        <target state="translated">Negativní skupina znaků určuje seznam znaků, které se nesmí vyskytovat ve vstupním řetězci, aby došlo ke shodě. Seznam znaků se zadává jednotlivě.
 
-Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</target>
+Je možné zřetězit dva nebo více rozsahů znaků. Pokud chcete například zadat rozsah desítkových číslic od 0 do 9, rozsah malých písmen od a do f a rozsah velkých písmen od A do F, použijte [0-9A-fA-F].</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_group_short">
         <source>negative character group</source>
-        <target state="new">negative character group</target>
+        <target state="translated">negativní skupina znaků</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_range_long">
         <source>A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
 
 Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</source>
-        <target state="new">A negative character range specifies a list of characters that must not appear in an input string for a match to occur. 'firstCharacter' is the character that begins the range, and 'lastCharacter' is the character that ends the range.
+        <target state="translated">Negativní rozsah znaků určuje seznam znaků, které se nesmí vyskytovat ve vstupním řetězci, aby došlo ke shodě. firstCharacter je znak, kterým rozsah začíná, a lastCharacter je znak, kterým rozsah končí.
 
-Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].</target>
+Je možné zřetězit dva nebo více rozsahů znaků. Pokud chcete například zadat rozsah desítkových číslic od 0 do 9, rozsah malých písmen od a do f a rozsah velkých písmen od A do F, použijte [0-9A-fA-F].</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_character_range_short">
         <source>negative character range</source>
-        <target state="new">negative character range</target>
+        <target state="translated">negativní rozsah znaků</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_long">
         <source>The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="new">The regular expression construct \P{ name } matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</target>
+        <target state="translated">Konstruktor regulárního výrazu \P{ name } odpovídá libovolnému znaku, který nepatří do obecné kategorie Unicode nebo pojmenovaného bloku, kde name je zkratka pro kategorii nebo název pojmenovaného bloku.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_negative_unicode_category_short">
         <source>negative unicode category</source>
-        <target state="new">negative unicode category</target>
+        <target state="translated">negativní kategorie Unicode</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_new_line_character_long">
         <source>Matches a new-line character, \u000A</source>
-        <target state="new">Matches a new-line character, \u000A</target>
+        <target state="translated">Shoda se znakem pro nový řádek \u000A</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_new_line_character_short">
         <source>new-line character</source>
-        <target state="new">new-line character</target>
+        <target state="translated">znak pro nový řádek</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">ne</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
         <source>\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
 
 If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</source>
-        <target state="new">\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+        <target state="translated">\D odpovídá libovolnému nečíselnému znaku. Je ekvivalentem vzoru regulárního výrazu \P{Nd}.
 
-If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</target>
+Pokud je zadané chování kompatibilní s ECMAScriptem, je \D ekvivalentem [^0-9].</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_short">
         <source>non-digit character</source>
-        <target state="new">non-digit character</target>
+        <target state="translated">nečíselný znak</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_white_space_character_long">
         <source>\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
 
 If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</source>
-        <target state="new">\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+        <target state="translated">\S odpovídá libovolnému neprázdnému znaku. Je ekvivalentem vzoru regulárního výrazu [^\f\n\r\t\v\x85\p{Z}] nebo opakem vzoru regulárního výrazu, který je ekvivalentem \s, který najde prázdné znaky.
 
-If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</target>
+Pokud je zadané chování kompatibilní s ECMAScriptem, je \S ekvivalentem [^ \f\n\r\t\v].</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_white_space_character_short">
         <source>non-white-space character</source>
-        <target state="new">non-white-space character</target>
+        <target state="translated">neprázdný znak</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_boundary_long">
         <source>The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</source>
-        <target state="new">The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</target>
+        <target state="translated">Ukotvení \B určuje, že shoda se nesmí vyskytovat na hranici slova. Jedná se o opak ukotvení \b.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_boundary_short">
         <source>non-word boundary</source>
-        <target state="new">non-word boundary</target>
+        <target state="translated">mimo hranici slova</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_word_character_long">
@@ -815,37 +815,37 @@ If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</source>
-        <target state="new">\W matches any non-word character. It matches any character except for those in the following Unicode categories:
+        <target state="translated">\W odpovídá jakémukoli znaku, který není znakem slova. Odpovídá libovolnému znaku s výjimkou znaků v následujících kategoriích Unicode:
 
-    Ll	Letter, Lowercase
-    Lu	Letter, Uppercase
-    Lt	Letter, Titlecase
-    Lo	Letter, Other
-    Lm	Letter, Modifier
-    Mn	Mark, Nonspacing
-    Nd	Number, Decimal Digit
-    Pc	Punctuation, Connector
+    Ll	písmeno, malá písmena
+    Lu	písmeno, velká písmena
+    Lt	písmeno, velká počáteční písmena
+    Lo	písmeno, jiné
+    Lm	písmeno, modifikátor
+    Mn	značka, bez mezer
+    Nd	číslo, desítkové číslo
+    Pc	interpunkce, spojovník
 
-If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</target>
+Pokud je zadané chování kompatibilní s ECMAScriptem, je \W ekvivalentem [^a-zA-Z_0-9].</target>
         <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized. </note>
       </trans-unit>
       <trans-unit id="Regex_non_word_character_short">
         <source>non-word character</source>
-        <target state="new">non-word character</target>
+        <target state="translated">znak, který není znakem slova</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_long">
         <source>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</source>
-        <target state="new">This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+        <target state="translated">Tento konstruktor zakazuje zpětné navracení. Modul regulárních výrazů najde shodu s co nejvíce znaky ve vstupním řetězci. Pokud se žádná další shoda nenajde, neprovede se zpětné navracení za účelem pokusu o porovnávání alternativního vzoru. (To znamená, že dílčí výraz najde shodu jenom s řetězci, které by odpovídaly samotnému dílčímu výrazu. Nepokusí se porovnávat řetězec na základě dílčího výrazu a jakýchkoli dílčích výrazů, které následují.)
 
-This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</target>
+Tato možnost se doporučuje, pokud víte, že zpětné navracení nepovede k úspěchu. Když zabráníte, aby modul regulárních výrazů prováděl zbytečná hledání, zlepší se výkon.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_nonbacktracking_subexpression_short">
         <source>nonbacktracking subexpression</source>
-        <target state="new">nonbacktracking subexpression</target>
+        <target state="translated">dílčí výraz bez zpětného navracení</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_long">
@@ -854,230 +854,230 @@ This option is recommended if you know that backtracking will not succeed. Preve
 The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
 
 If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</source>
-        <target state="new">This construct does not capture the substring that is matched by a subexpression:
+        <target state="translated">Tento konstruktor nezachycuje dílčí řetězec, který odpovídá dílčímu výrazu:
 
-The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
+Konstruktor nezachycující skupiny se obvykle používá, když se kvantifikátor aplikuje pro skupinu, ale dílčí řetězce zachycené skupinou uživatele nezajímají.
 
-If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</target>
+Pokud regulární výraz obsahuje vnořené seskupovací konstruktory, vnější konstruktor nezachycující skupiny se neaplikuje na vnitřní vnořené konstruktory skupiny.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_short">
         <source>noncapturing group</source>
-        <target state="new">noncapturing group</target>
+        <target state="translated">nezachycující skupina</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_decimal_digit">
         <source>number, decimal digit</source>
-        <target state="new">number, decimal digit</target>
+        <target state="translated">číslo, desítkové číslo</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_letter">
         <source>number, letter</source>
-        <target state="new">number, letter</target>
+        <target state="translated">číslo, písmeno</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_number_other">
         <source>number, other</source>
-        <target state="new">number, other</target>
+        <target state="translated">číslo, jiné</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_numbered_backreference_long">
         <source>A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
 
 There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</source>
-        <target state="new">A numbered backreference, where 'number' is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group.
+        <target state="translated">Číslovaná zpětná reference, kde číslo je pořadové umístění zachycující skupiny v regulárním výrazu. Například \4 odpovídá obsahu čtvrté zachycující skupiny.
 
-There is an ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</target>
+Existuje nejednoznačnost mezi osmičkovými řídicími kódy (například \16) a zpětnými referencemi \číslo, které používají stejný zápis. Pokud nejednoznačnost způsobuje potíže, můžete použít zápis \k&lt;name&gt;, který je jednoznačný a nedá se zaměnit s osmičkovými kódy znaků. Stejně tak šestnáctkové kódy, například \xdd, jsou jednoznačné a nedají se zaměnit se zpětnými referencemi.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_numbered_backreference_short">
         <source>numbered backreference</source>
-        <target state="new">numbered backreference</target>
+        <target state="translated">číslovaná zpětná reference</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_control">
         <source>other, control</source>
-        <target state="new">other, control</target>
+        <target state="translated">jiné, řídicí</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_format">
         <source>other, format</source>
-        <target state="new">other, format</target>
+        <target state="translated">jiné, formát</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_not_assigned">
         <source>other, not assigned</source>
-        <target state="new">other, not assigned</target>
+        <target state="translated">jiné, nepřiřazeno</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_private_use">
         <source>other, private use</source>
-        <target state="new">other, private use</target>
+        <target state="translated">jiné, privátní použití</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_other_surrogate">
         <source>other, surrogate</source>
-        <target state="new">other, surrogate</target>
+        <target state="translated">jiné, náhradní</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_group_long">
         <source>A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur.</source>
-        <target state="new">A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur.</target>
+        <target state="translated">Pozitivní skupina znaků určuje seznam znaků, z nichž kterýkoli se může objevit ve vstupním řetězci, aby došlo ke shodě.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_group_short">
         <source>positive character group</source>
-        <target state="new">positive character group</target>
+        <target state="translated">pozitivní skupina znaků</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_range_long">
         <source>A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </source>
-        <target state="new">A positive character range specifies a range of characters, any one of which may appear in an input string for a match to occur.  'firstCharacter' is the character that begins the range and 'lastCharacter' is the character that ends the range. </target>
+        <target state="translated">Pozitivní rozsah znaků určuje rozsah znaků, z nichž kterýkoli se může objevit ve vstupním řetězci, aby došlo ke shodě. firstCharacter je znak, kterým rozsah začíná, a lastCharacter je znak, kterým rozsah končí.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_positive_character_range_short">
         <source>positive character range</source>
-        <target state="new">positive character range</target>
+        <target state="translated">pozitivní rozsah znaků</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_close">
         <source>punctuation, close</source>
-        <target state="new">punctuation, close</target>
+        <target state="translated">interpunkce, uzavření</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_connector">
         <source>punctuation, connector</source>
-        <target state="new">punctuation, connector</target>
+        <target state="translated">interpunkce, spojovník</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_dash">
         <source>punctuation, dash</source>
-        <target state="new">punctuation, dash</target>
+        <target state="translated">interpunkce, pomlčka</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_final_quote">
         <source>punctuation, final quote</source>
-        <target state="new">punctuation, final quote</target>
+        <target state="translated">interpunkce, koncová uvozovka</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_initial_quote">
         <source>punctuation, initial quote</source>
-        <target state="new">punctuation, initial quote</target>
+        <target state="translated">interpunkce, počáteční uvozovka</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_open">
         <source>punctuation, open</source>
-        <target state="new">punctuation, open</target>
+        <target state="translated">interpunkce, otevření</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_punctuation_other">
         <source>punctuation, other</source>
-        <target state="new">punctuation, other</target>
+        <target state="translated">interpunkce, jiné</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_line">
         <source>separator, line</source>
-        <target state="new">separator, line</target>
+        <target state="translated">oddělovač, čára</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_paragraph">
         <source>separator, paragraph</source>
-        <target state="new">separator, paragraph</target>
+        <target state="translated">oddělovač, odstavec</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_separator_space">
         <source>separator, space</source>
-        <target state="new">separator, space</target>
+        <target state="translated">oddělovač, mezera</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_only_long">
         <source>The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</source>
-        <target state="new">The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</target>
+        <target state="translated">Ukotvení \A určuje, že ke shodě musí dojít na začátku vstupního řetězce. Je identické s ukotvením ^, kromě toho, že \A ignoruje možnost RegexOptions.Multiline. Proto může hledat shodu jenom na začátku prvního řádku ve víceřádkovém vstupním řetězci.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_only_short">
         <source>start of string only</source>
-        <target state="new">start of string only</target>
+        <target state="translated">jen začátek řetězce</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_or_line_long">
         <source>The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</source>
-        <target state="new">The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</target>
+        <target state="translated">Ukotvení ^ určuje, že následující vzor musí začínat na pozici prvního znaku řetězce. Pokud použijete ^ s možností RegexOptions.Multiline, musí ke shodě dojít na začátku každého řádku.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_start_of_string_or_line_short">
         <source>start of string or line</source>
-        <target state="new">start of string or line</target>
+        <target state="translated">začátek řetězce nebo řádku</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_subexpression">
         <source>subexpression</source>
-        <target state="new">subexpression</target>
+        <target state="translated">dílčí výraz</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_currency">
         <source>symbol, currency</source>
-        <target state="new">symbol, currency</target>
+        <target state="translated">symbol, měna</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_math">
         <source>symbol, math</source>
-        <target state="new">symbol, math</target>
+        <target state="translated">symbol, matematický</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_modifier">
         <source>symbol, modifier</source>
-        <target state="new">symbol, modifier</target>
+        <target state="translated">symbol, modifikátor</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_other">
         <source>symbol, other</source>
-        <target state="new">symbol, other</target>
+        <target state="translated">symbol, jiné</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_tab_character_long">
         <source>Matches a tab character, \u0009</source>
-        <target state="new">Matches a tab character, \u0009</target>
+        <target state="translated">Shoda se znakem tabulátoru \u0009</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_tab_character_short">
         <source>tab character</source>
-        <target state="new">tab character</target>
+        <target state="translated">znak tabulátoru</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_long">
         <source>The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
-        <target state="new">The regular expression construct \p{ name } matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</target>
+        <target state="translated">Konstruktor regulárního výrazu \p{ name } odpovídá libovolnému znaku, který patří do obecné kategorie Unicode nebo pojmenovaného bloku, kde name je zkratka pro kategorii nebo název pojmenovaného bloku.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_category_short">
         <source>unicode category</source>
-        <target state="new">unicode category</target>
+        <target state="translated">kategorie Unicode</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_escape_long">
         <source>Matches a UTF-16 code unit whose value is #### hexadecimal.</source>
-        <target state="new">Matches a UTF-16 code unit whose value is #### hexadecimal.</target>
+        <target state="translated">Shoda s jednotkou kódu UTF-16, jejíž šestnáctková hodnota je ####</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_escape_short">
         <source>unicode escape</source>
-        <target state="new">unicode escape</target>
+        <target state="translated">řídicí znak Unicode</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_unicode_general_category_0">
         <source>Unicode General Category: {0}</source>
-        <target state="new">Unicode General Category: {0}</target>
+        <target state="translated">Obecná kategorie Unicode: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_vertical_tab_character_long">
         <source>Matches a vertical-tab character, \u000B</source>
-        <target state="new">Matches a vertical-tab character, \u000B</target>
+        <target state="translated">Shoda se znakem svislého tabulátoru \u000B</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_vertical_tab_character_short">
         <source>vertical-tab character</source>
-        <target state="new">vertical-tab character</target>
+        <target state="translated">znak svislého tabulátoru</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_white_space_character_long">
@@ -1092,36 +1092,36 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
     \p{Z}	Matches any separator character
 
 If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</source>
-        <target state="new">\s matches any white-space character. It is equivalent to the following escape sequences and Unicode categories:
+        <target state="translated">\s odpovídá jakémukoli prázdnému znaku. Je ekvivalentem následujících řídicích sekvencí a kategorií Unicode:
 
-    \f	The form feed character, \u000C
-    \n	The newline character, \u000A
-    \r	The carriage return character, \u000D
-    \t	The tab character, \u0009
-    \v	The vertical tab character, \u000B
-    \x85	The ellipsis or NEXT LINE (NEL) character (…), \u0085
-    \p{Z}	Matches any separator character
+    \f	znak pro novou stránku \u000C
+    \n	znak nového řádku \u000A
+    \r	znak návratu na začátek řádku \u000D
+    \t	znak tabulátoru \u0009
+    \v	znak svislého tabulátoru \u000B
+    \x85	znak tří teček nebo dalšího řádku (...) \u0085
+    \p{Z}	shoda s libovolným znakem oddělovače
 
-If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</target>
+Pokud je zadané chování kompatibilní s ECMAScriptem, je \s ekvivalentem [ \f\n\r\t\v].</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_white_space_character_short">
         <source>white-space character</source>
-        <target state="new">white-space character</target>
+        <target state="translated">prázdný znak</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_boundary_long">
         <source>The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
 
 The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</source>
-        <target state="new">The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+        <target state="translated">Ukotvení \b určuje, že ke shodě musí dojít na hranici mezi znakem slova (element jazyka \w) a znakem, který není znakem slova (element jazyka \W). Mezi znaky slova patří alfanumerické znaky a podtržítka. Znak, který není znakem slova, je jakýkoli znak, který není alfanumerický ani podtržítko. Ke shodě může dojít i na hranici slova na začátku nebo na konci řetězce.
 
-The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</target>
+Ukotvení \b se často používá k ověření, že dílčí výraz odpovídá celému slovu, nikoli jenom začátku nebo konci slova.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_boundary_short">
         <source>word boundary</source>
-        <target state="new">word boundary</target>
+        <target state="translated">hranice slova</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_word_character_long">
@@ -1137,84 +1137,84 @@ The \b anchor is frequently used to ensure that a subexpression matches an entir
     Pc	Punctuation, Connector
 
 If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</source>
-        <target state="new">\w matches any word character. A word character is a member of any of the following Unicode categories:
+        <target state="translated">\w odpovídá jakémukoli znaku slova. Znak slova je členem libovolné z následujících kategorií Unicode:
 
-    Ll	Letter, Lowercase
-    Lu	Letter, Uppercase
-    Lt	Letter, Titlecase
-    Lo	Letter, Other
-    Lm	Letter, Modifier
-    Mn	Mark, Nonspacing
-    Nd	Number, Decimal Digit
-    Pc	Punctuation, Connector
+    Ll	písmeno, malá písmena
+    Lu	písmeno, velká písmena
+    Lt	písmeno, velká počáteční písmena
+    Lo	písmeno, jiné
+    Lm	písmeno, modifikátor
+    Mn	značka, bez mezer
+    Nd	číslo, desítkové číslo
+    Pc	interpunkce, spojovník
 
-If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</target>
+Pokud je zadané chování kompatibilní s ECMAScriptem, je \w ekvivalentem [a-zA-Z_0-9].</target>
         <note>Note: Ll, Lu, Lt, Lo, Lm, Mn, Nd, and Pc are all things that should not be localized.</note>
       </trans-unit>
       <trans-unit id="Regex_word_character_short">
         <source>word character</source>
-        <target state="new">word character</target>
+        <target state="translated">znak slova</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">ano</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
         <source>A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
 
 A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</source>
-        <target state="new">A zero-width negative lookahead assertion, where for the match to be successful, the input string must not match the regular expression pattern in subexpression. The matched string is not included in the match result.
+        <target state="translated">Negativní kontrolní výraz dopředného vyhledávání s nulovou šířkou, při kterém úspěšná shoda nastane v případě, že vstupní řetězec neodpovídá vzoru regulárního výrazu v dílčím výrazu. Hledaný řetězec se do výsledku porovnávání nezahrnuje.
 
-A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</target>
+Negativní kontrolní výraz dopředného vyhledávání s nulovou šířkou se obvykle používá na začátku nebo na konci regulárního výrazu. Na začátku regulárního výrazu může definovat konkrétní vzor, který by se neměl shodovat, pokud začátek regulárního výrazu definuje podobný, ale obecnější vzor, který se má shodovat. V tomto případě se často používá k omezení zpětného navracení. Na konci regulárního výrazu může definovat dílčí výraz, který se nesmí vyskytovat na konci hledaného řetězce.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_short">
         <source>zero-width negative lookahead assertion</source>
-        <target state="new">zero-width negative lookahead assertion</target>
+        <target state="translated">negativní kontrolní výraz dopředného vyhledávání s nulovou šířkou</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_long">
         <source>A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
 
 Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</source>
-        <target state="new">A zero-width negative lookbehind assertion, where for a match to be successful, 'subexpression' must not occur at the input string to the left of the current position. Any substring that does not match 'subexpression' is not included in the match result.
+        <target state="translated">Negativní kontrolní výraz zpětného vyhledávání s nulovou šířkou, při kterém úspěšná shoda nastane v případě, že se dílčí výraz nenachází ve vstupním řetězci nalevo od aktuální pozice. Dílčí řetězce, které neodpovídají dílčímu výrazu, se do výsledku porovnávání nezahrnují.
 
-Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern.</target>
+Negativní kontrolní výrazy zpětného vyhledávání s nulovou šířkou se obvykle používají na začátku regulárních výrazů. Vzor, který definují, vylučuje shodu v řetězci, který následuje. Používají se také k omezení zpětného navracení, pokud poslední znak nebo znaky v zachycující skupině nesmí představovat jeden nebo více znaků, které odpovídají vzoru regulárního výrazu dané skupiny.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookbehind_assertion_short">
         <source>zero-width negative lookbehind assertion</source>
-        <target state="new">zero-width negative lookbehind assertion</target>
+        <target state="translated">negativní kontrolní výraz zpětného vyhledávání s nulovou šířkou</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_long">
         <source>A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
 
 Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</source>
-        <target state="new">A zero-width positive lookahead assertion, where for a match to be successful, the input string must match the regular expression pattern in 'subexpression'. The matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+        <target state="translated">Pozitivní kontrolní výraz dopředného vyhledávání s nulovou šířkou, při kterém úspěšná shoda nastane v případě, že vstupní řetězec odpovídá vzoru regulárního výrazu v dílčím výrazu. Odpovídající dílčí řetězec se do výsledku porovnávání nezahrnuje. Pozitivní kontrolní výraz dopředného vyhledávání s nulovou šířkou neprovádí zpětné navracení.
 
-Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group.</target>
+Pozitivní kontrolní výraz dopředného vyhledávání s nulovou šířkou se obvykle nachází na konci vzoru regulárního výrazu. Definuje dílčí řetězec, který musí být nalezen na konci řetězce, aby došlo ke shodě, ale který by shoda neměla zahrnovat. Je také užitečný k zabránění nadměrnému zpětnému navracení. Pomocí pozitivního kontrolního výrazu dopředného vyhledávání s nulovou šířkou můžete zajistit, aby určitá zachycující skupina začínala textem, který odpovídá podmnožině vzoru definovaného pro danou zachycující skupinu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookahead_assertion_short">
         <source>zero-width positive lookahead assertion</source>
-        <target state="new">zero-width positive lookahead assertion</target>
+        <target state="translated">pozitivní kontrolní výraz dopředného vyhledávání s nulovou šířkou</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_long">
         <source>A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
 
 Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</source>
-        <target state="new">A zero-width positive lookbehind assertion, where for a match to be successful, 'subexpression' must occur at the input string to the left of the current position. 'subexpression' is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
+        <target state="translated">Pozitivní kontrolní výraz zpětného vyhledávání s nulovou šířkou, při kterém úspěšná shoda nastane v případě, že se dílčí výraz nachází ve vstupním řetězci nalevo od aktuální pozice. Dílčí výraz se do výsledku porovnávání nezahrnuje. Pozitivní kontrolní výraz zpětného vyhledávání s nulovou šířkou neprovádí zpětné navracení.
 
-Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</target>
+Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou šířkou se obvykle používají na začátku regulárních výrazů. Vzor, který definují, je podmínkou pro shodu, i když není součástí výsledku porovnávání.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_positive_lookbehind_assertion_short">
         <source>zero-width positive lookbehind assertion</source>
-        <target state="new">zero-width positive lookbehind assertion</target>
+        <target state="translated">pozitivní kontrolní výraz zpětného vyhledávání s nulovou šířkou</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_the_line_below_if_you_want_to_inherit_dot_editorconfig_settings_from_higher_directories">
@@ -1224,7 +1224,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
-        <target state="new">Removing analyzer config documents is not supported.</target>
+        <target state="translated">Odebírání dokumentů konfigurace analyzátoru se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -1304,52 +1304,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>
-        <target state="new">Symbol specifications</target>
+        <target state="translated">Specifikace symbolů</target>
         <note />
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_BaseType">
-        <source>Base Type</source>
-        <target state="new">Base Type</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Construct">
-        <source>Construct</source>
-        <target state="new">Construct</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Declare">
-        <source>Declare</source>
-        <target state="new">Declare</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Import">
-        <source>Import</source>
-        <target state="new">Import</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_Qualify">
-        <source>Qualify</source>
-        <target state="new">Qualify</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_TypeArgument">
-        <source>Type Argument</source>
-        <target state="new">Type Argument</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="TypeOrNamespaceUsageInfo_TypeConstraint">
-        <source>Type Constraint</source>
-        <target state="new">Type Constraint</target>
-        <note>See xml doc comments on 'TypeOrNamespaceUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Name">
-        <source>Name</source>
-        <target state="new">Name</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Soubory jazyka Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
+        <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
+        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
@@ -2241,21 +2206,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Regex issue: {0}</source>
         <target state="translated">Problém s regulárním výrazem: {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. {0} will be the actual text of one of the above Regular Expression errors.</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Read">
-        <source>Read</source>
-        <target state="needs-review-translation">Číst</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Reference">
-        <source>Reference</source>
-        <target state="needs-review-translation">Odkaz</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
-      </trans-unit>
-      <trans-unit id="ValueUsageInfo_Write">
-        <source>Write</source>
-        <target state="needs-review-translation">Zapsat</target>
-        <note>See xml doc comments on 'ValueUsageInfo' enum for context</note>
       </trans-unit>
       <trans-unit id="Parameter_preferences">
         <source>Parameter preferences</source>

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -869,13 +868,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.DefaultExpression:
-                    var defaultExpression = (BoundDefaultExpression)sourceExpression;
-                    if ((object)defaultExpression.Type == null)
-                    {
-                        return Conversion.DefaultOrNullLiteral;
-                    }
-                    break;
+                case BoundKind.DefaultLiteral:
+                    return Conversion.DefaultLiteral;
 
                 case BoundKind.ExpressionWithNullability:
                     {
@@ -970,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // The spec defines a "null literal conversion" specifically as a conversion from
                 // null to nullable type.
-                return Conversion.DefaultOrNullLiteral;
+                return Conversion.NullLiteral;
             }
 
             // SPEC: An implicit conversion exists from the null literal to any reference type. 

@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             await TestWithOptionsAsync(workspace, expectedResults);
         }
 
+        private async Task TestWithOptionsAsync(CSharpCompilationOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(markup, compilationOptions: options);
+            await TestWithOptionsAsync(workspace, expectedResults);
+        }
+
         private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<QuickInfoItem>[] expectedResults)
         {
             var testDocument = workspace.DocumentWithCursor;
@@ -4915,7 +4921,7 @@ class C
         public async Task BindSymbolInOtherFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" LanguageVersion=""730"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
@@ -6605,6 +6611,24 @@ class X
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableShownWhenEnabledGlobally()
+        {
+            await TestWithOptionsAsync(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable),
+@"using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        string s = """";
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string s"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NullableNotShownForValueType()
         {
             await TestWithOptionsAsync(TestOptions.Regular8,
@@ -6659,6 +6683,23 @@ void $$M(int x, int y) { }";
             await TestInClassAsync(markup,
                 MainDescription("void C.M(int x, int y)"),
                 Documentation("Summary documentation"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(38794, "https://github.com/dotnet/roslyn/issues/38794")]
+        public async Task TestLinqGroupVariableDeclaration()
+        {
+            var code =
+@"
+void M(string[] a)
+{
+    var v = from x in a
+            group x by x.Length into $$g
+            select g;
+}";
+
+            await TestInClassAsync(code,
+                MainDescription($"({FeaturesResources.range_variable}) IGrouping<int, string> g"));
         }
     }
 }

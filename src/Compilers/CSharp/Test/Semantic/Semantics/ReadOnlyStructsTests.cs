@@ -1910,7 +1910,7 @@ public struct S2
         {
             // 'using' results in a boxing conversion when the struct implements 'IDisposable'.
             // Boxing conversions are out of scope of the implicit copy warning.
-            // 'await using' can't be used with ref structs, so implicity copy warnings can't be produced in that scenario.
+            // 'await using' can't be used with ref structs, so implicitly copy warnings can't be produced in that scenario.
             var csharp = @"
 public ref struct S1
 {

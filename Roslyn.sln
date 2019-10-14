@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.28620.130
+VisualStudioVersion = 16.0.28503.202
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynDeployment", "src\Deployment\RoslynDeployment.csproj", "{600AF682-E097-407B-AD85-EE3CED37E680}"
 EndProject
@@ -392,6 +392,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.TypeScript", "src\Tools\ExternalAccess\TypeScript\Microsoft.CodeAnalysis.ExternalAccess.TypeScript.csproj", "{1638FB04-0298-4341-B5E0-8A13B4823C81}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.CodeLens", "src\VisualStudio\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj", "{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Microsoft.Net.Compilers.Toolset.Package.csproj", "{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol", "src\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj", "{686BF57E-A6FF-467B-AAB3-44DE916A9772}"
@@ -413,8 +415,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.CodeLens", "src\Tools\ExternalAccess\CodeLens\Microsoft.CodeAnalysis.ExternalAccess.CodeLens.csproj", "{D5B1328C-A9EF-4E55-93D7-B8455855709A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace", "src\Tools\ExternalAccess\IntelliTrace\Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace.csproj", "{BDB3414C-35F8-4E2D-8603-DE9CF259540F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.LiveShare", "src\Tools\ExternalAccess\LiveShare\Microsoft.CodeAnalysis.ExternalAccess.LiveShare.csproj", "{D3AA159B-5DC6-420A-BD9B-1BB6BCD3DDB2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem", "src\Tools\ExternalAccess\ProjectSystem\Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem.csproj", "{620EA38F-F039-41B9-9003-5EBF5EC19D85}"
 EndProject
@@ -1073,6 +1073,10 @@ Global
 		{1638FB04-0298-4341-B5E0-8A13B4823C81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1638FB04-0298-4341-B5E0-8A13B4823C81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1638FB04-0298-4341-B5E0-8A13B4823C81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1117,10 +1121,6 @@ Global
 		{BDB3414C-35F8-4E2D-8603-DE9CF259540F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BDB3414C-35F8-4E2D-8603-DE9CF259540F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BDB3414C-35F8-4E2D-8603-DE9CF259540F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D3AA159B-5DC6-420A-BD9B-1BB6BCD3DDB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3AA159B-5DC6-420A-BD9B-1BB6BCD3DDB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D3AA159B-5DC6-420A-BD9B-1BB6BCD3DDB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3AA159B-5DC6-420A-BD9B-1BB6BCD3DDB2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{620EA38F-F039-41B9-9003-5EBF5EC19D85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{620EA38F-F039-41B9-9003-5EBF5EC19D85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{620EA38F-F039-41B9-9003-5EBF5EC19D85}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1324,6 +1324,7 @@ Global
 		{BD8CE303-5F04-45EC-8DCF-73C9164CD614} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{2FB6C157-DF91-4B1C-9827-A4D1C08C73EC} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{1638FB04-0298-4341-B5E0-8A13B4823C81} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{5E6E9184-DEC5-4EC5-B0A4-77CFDC8CDEBE} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 		{686BF57E-A6FF-467B-AAB3-44DE916A9772} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{1DDE89EE-5819-441F-A060-2FF4A986F372} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
@@ -1335,7 +1336,6 @@ Global
 		{FC32EF16-31B1-47B3-B625-A80933CB3F29} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{D5B1328C-A9EF-4E55-93D7-B8455855709A} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{BDB3414C-35F8-4E2D-8603-DE9CF259540F} = {8977A560-45C2-4EC2-A849-97335B382C74}
-		{D3AA159B-5DC6-420A-BD9B-1BB6BCD3DDB2} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{620EA38F-F039-41B9-9003-5EBF5EC19D85} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{453C8E28-81D4-431E-BFB0-F3D413346E51} = {8DBA5174-B0AA-4561-82B1-A46607697753}
 		{CE7F7553-DB2D-4839-92E3-F042E4261B4E} = {8DBA5174-B0AA-4561-82B1-A46607697753}

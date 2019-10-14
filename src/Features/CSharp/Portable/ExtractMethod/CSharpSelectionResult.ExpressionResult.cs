@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable 
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -52,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (!node.IsExpression())
                 {
                     Contract.Fail("this shouldn't happen");
-                    return null;
                 }
 
                 // special case for array initializer and explicit cast
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var variableDeclExpression = node.GetAncestorOrThis<VariableDeclarationSyntax>();
                     if (variableDeclExpression != null)
                     {
-                        return model.GetTypeInfo(variableDeclExpression.Type).Type;
+                        return model.GetTypeInfo(variableDeclExpression.Type).GetTypeWithAnnotatedNullability();
                     }
                 }
 
@@ -73,14 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     // 2. if it doesn't, even if the cast itself wasn't included in the selection, we will treat it 
                     //    as it was in the selection
                     var regularType = GetRegularExpressionType(model, node);
-                    if (regularType != null && !regularType.IsObjectType())
+                    if (regularType != null)
                     {
                         return regularType;
                     }
 
                     if (node.Parent is CastExpressionSyntax castExpression)
                     {
-                        return model.GetTypeInfo(castExpression.Type).Type;
+                        return model.GetTypeInfo(castExpression).GetTypeWithFlowNullability();
                     }
                 }
 
@@ -98,35 +99,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 if (info.ConvertedType == null || info.ConvertedType.IsErrorType())
                 {
                     // there is no implicit conversion involved. no need to go further
-                    return info.Type;
+                    return info.GetTypeWithAnnotatedNullability();
                 }
 
                 // always use converted type if method group
                 if ((!node.IsKind(SyntaxKind.ObjectCreationExpression) && semanticModel.GetMemberGroup(expression).Length > 0) ||
                     IsCoClassImplicitConversion(info, conv, semanticModel.Compilation.CoClassType()))
                 {
-                    return info.ConvertedType;
+                    return info.GetConvertedTypeWithAnnotatedNullability();
                 }
 
                 // check implicit conversion
                 if (conv.IsImplicit && (conv.IsConstantExpression || conv.IsEnumeration))
                 {
-                    return info.ConvertedType;
+                    return info.GetConvertedTypeWithAnnotatedNullability();
                 }
 
                 // use FormattableString if conversion between String and FormattableString
                 if (info.Type?.SpecialType == SpecialType.System_String &&
                     info.ConvertedType?.IsFormattableString() == true)
                 {
-                    return info.ConvertedType;
+                    return info.GetConvertedTypeWithAnnotatedNullability();
                 }
 
                 // always try to use type that is more specific than object type if possible.
-                return !info.Type.IsObjectType() ? info.Type : info.ConvertedType;
+                return !info.Type.IsObjectType() ? info.GetTypeWithAnnotatedNullability() : info.GetConvertedTypeWithAnnotatedNullability();
             }
         }
 
-        private static bool IsCoClassImplicitConversion(TypeInfo info, Conversion conversion, ISymbol coclassSymbol)
+        private static bool IsCoClassImplicitConversion(TypeInfo info, Conversion conversion, ISymbol? coclassSymbol)
         {
             if (!conversion.IsImplicit ||
                  info.ConvertedType == null ||

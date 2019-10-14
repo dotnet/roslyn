@@ -1,138 +1,97 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class CodeRefactoringHelpers
     {
-        public static Task<bool> RefactoringSelectionIsValidAsync(
-            Document document, TextSpan selection, SyntaxNode node, CancellationToken cancellation)
-        {
-            return RefactoringSelectionIsValidAsync(document, selection, node, ImmutableArray<SyntaxNode>.Empty, cancellation);
-        }
-
         /// <summary>
         /// <para>
-        /// Determines if a refactoring should be offered for a given node, given the specified selection in a document.
-        /// The refactoring is offered either if the selection is zero-width and not inside one of the specified holes
-        /// or if the selection contains the entire node and perhaps some whitespace.
+        /// Determines if a <paramref name="node"/> is underselected given <paramref name="selection"/>.
         /// </para>
         /// <para>
-        /// Note: this function considers the span containing the node to start at the earliest preceding whitespace
-        /// (including up to one newline) before the node’s <see cref="SyntaxNode.SpanStart"/> and up through the last
-        /// whitespace following the <see cref="SyntaxNode.Span"/>’s <see cref="TextSpan.End"/>.
+        /// Underselection is defined as omitting whole nodes from either the beginning or the end. It can be used e.g. to detect that
+        /// following selection `1 + [|2 + 3|]` is underselecting the whole expression node tree.
         /// </para>
         /// <para>
-        /// For the <paramref name="holes"/>, the position is considered invalid if it is *within* the hole, not if it
-        /// is touching the hole edges.
+        /// Returns false if only and precisely one <see cref="SyntaxToken"/> is selected. In that case the <paramref name="selection"/> 
+        /// is treated more as a caret location.
+        /// </para>
+        /// <para>
+        /// It's intended to be used in conjunction with <see cref="IRefactoringHelpersService.GetRelevantNodesAsync{TSyntaxNode}(Document, TextSpan, CancellationToken)"/>
+        /// that, for non-empty selections, returns the smallest encompassing node. A node that can, for certain refactorings, be too large given user-selection even though
+        /// it is the smallest that can be retrieved.
+        /// </para>
+        /// <para>
+        /// When <paramref name="selection"/> doesn't intersect the node in any way it's not considered to be underselected.
+        /// </para>
+        /// <para>
+        /// Null node is always considered underselected.
         /// </para>
         /// </summary>
-        public static async Task<bool> RefactoringSelectionIsValidAsync(
-            Document document,
-            TextSpan selection,
-            SyntaxNode node,
-            ImmutableArray<SyntaxNode> holes,
-            CancellationToken cancellationToken)
+        public static bool IsNodeUnderselected(SyntaxNode? node, TextSpan selection)
         {
-            if (selection.Length == 0)
-            {
-                return await RefactoringPositionIsValidAsync(
-                    document, selection.Start, node, holes, cancellationToken).ConfigureAwait(false);
-            }
-
-            // If we have a selection, it needs to be selecting at least the full node. We allow the selection to start
-            // in whitespace (including up to one newline) before the start of the node, and we allow it to end after
-            // the end of the node and the end of the line the node ends on.
-            var expandedSpan = await GetExpandedNodeSpan(document, node, cancellationToken).ConfigureAwait(false);
-            if ((selection.Start >= expandedSpan.Start && selection.Start <= node.SpanStart) &&
-                (selection.End >= node.Span.End && selection.End <= expandedSpan.End))
+            // Selection is null -> it's always underselected
+            // REASON: Easier API use -> underselected node, don't work on it further
+            if (node == null)
             {
                 return true;
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// <para>
-        /// Determines if a refactoring should be offered for a given node, given the specified position in a document.
-        /// The refactoring is offered if the position is somewhere on the span containing the node and not in any of
-        /// the specified <paramref name="holes"/> to avoid.
-        /// </para>
-        /// <para>
-        /// Note: this function considers the span containing the node to start at the earliest preceding whitespace
-        /// (including up to one newline) before the node’s <see cref="SyntaxNode.SpanStart"/> and up through the last
-        /// whitespace following the <see cref="SyntaxNode.Span"/>’s <see cref="TextSpan.End"/>.
-        /// </para>
-        /// <para>
-        /// For the <paramref name="holes"/>, the position is considered invalid if it is *within* the hole, not if it
-        /// is touching the hole edges.
-        /// </para>
-        /// </summary>
-        public static async Task<bool> RefactoringPositionIsValidAsync(
-            Document document,
-            int position,
-            SyntaxNode node,
-            ImmutableArray<SyntaxNode> holes,
-            CancellationToken cancellationToken)
-        {
-            var expandedSpan = await GetExpandedNodeSpan(document, node, cancellationToken).ConfigureAwait(false);
-            if (!expandedSpan.IntersectsWith(position))
+            // Selection or node is empty -> can't be underselected
+            if (selection.IsEmpty || node.Span.IsEmpty)
             {
-                // Position isn’t within the node’s widened span. Definitely not valid here.
                 return false;
             }
 
-            foreach (var hole in holes)
+            // Selection is larger than node.Span -> can't be underselecting
+            if (selection.Contains(node.Span))
             {
-                if (position > hole.Span.Start && position < hole.Span.End)
+                return false;
+            }
+
+            // Selection doesn't intersect node -> can't be underselecting.
+            // RATIONALE: If there's no intersection then we got the node in some other way, e.g. 
+            // extracting it after user selected `;` at the end of an expression statement 
+            // `foo()[|;|]` for `foo()` node.
+            if (!node.FullSpan.OverlapsWith(selection))
+            {
+                return false;
+            }
+
+            // Only precisely one token of the node is selected -> treat is as empty selection -> not 
+            // underselected. The rationale is that if only one Token is selected then the selection 
+            // wasn't about precisely getting the one node and nothing else & therefore we should treat 
+            // it as empty selection.
+            if (node.FullSpan.Contains(selection.Start))
+            {
+                var selectionStartToken = node.FindToken(selection.Start);
+                if (selection.IsAround(selectionStartToken))
                 {
-                    // Position was in one of the holes. Not valid here.
                     return false;
                 }
             }
 
-            return true;
+            var beginningNode = node.FindToken(node.Span.Start).Parent;
+            var endNode = node.FindToken(node.Span.End - 1).Parent;
+
+            // Node is underselected if either the first (lowest) child doesn't contain start of selection
+            // of the last child doesn't intersect with the end.
+
+            // Node is underselected if either the first (lowest) child ends before the selection has started
+            // or the last child starts after the selection ends (i.e. one of them is completely on the outside of selection).
+            // It's a crude heuristic but it allows omitting parts of nodes or trivial tokens from the beginning/end 
+            // but fires up e.g.: `1 + [|2 + 3|]`.
+            return beginningNode.Span.End <= selection.Start || endNode.Span.Start >= selection.End;
         }
 
-        private static Task<TextSpan> GetExpandedNodeSpan(Document document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return GetExpandedTextSpan(document, node.Span, cancellationToken);
-        }
-
-        private static async Task<TextSpan> GetExpandedTextSpan(Document document, TextSpan span, CancellationToken cancellationToken)
-        {
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var nodeStartLine = sourceText.Lines.GetLineFromPosition(span.Start);
-
-            // Enable vertical selections that catch the previous line break and perhaps some whitespace.
-            if (nodeStartLine.LineNumber != 0)
-            {
-                nodeStartLine = sourceText.Lines[nodeStartLine.LineNumber - 1];
-            }
-
-            var nodeEndLine = sourceText.Lines.GetLineFromPosition(span.End);
-
-            var start = span.Start;
-            var end = span.End;
-
-            while (start > nodeStartLine.Start && char.IsWhiteSpace(sourceText[start - 1]))
-            {
-                start--;
-            }
-
-            while (end < nodeEndLine.End && char.IsWhiteSpace(sourceText[end]))
-            {
-                end++;
-            }
-
-            return TextSpan.FromBounds(start, end);
-        }
 
         /// <summary>
         /// Trims leading and trailing whitespace from <paramref name="span"/>.

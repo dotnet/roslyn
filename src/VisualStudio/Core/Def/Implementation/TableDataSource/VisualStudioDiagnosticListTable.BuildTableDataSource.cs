@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -197,10 +198,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 var guids = item.ProjectGuids;
                                 content = guids;
                                 return guids.Length > 0;
-                            case SuppressionStateColumnDefinition.ColumnName:
+                            case StandardTableKeyNames.SuppressionState:
                                 // Build doesn't support suppression.
                                 Contract.ThrowIfTrue(data.IsSuppressed);
-                                content = ServicesVSResources.NotApplicable;
+                                content = SuppressionState.NotApplicable;
                                 return true;
                             default:
                                 content = null;

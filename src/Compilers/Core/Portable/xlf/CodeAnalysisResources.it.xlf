@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="new">A language name cannot be specified for this option.</target>
+        <target state="translated">Non è possibile specificare un nome di linguaggio per questa opzione.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="new">A language name must be specified for this option.</target>
+        <target state="translated">È necessario specificare un nome di linguaggio per questa opzione.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerAnalyzerThrowsDescription">
@@ -21,7 +21,7 @@
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
-        <target state="new">Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</target>
+        <target state="translated">L'ID diagnostica '{0}' eliminato non corrisponde all'ID eliminabile '{1}' per il descrittore di eliminazione specificato.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidOperationBlockForAnalysisContext">
@@ -41,7 +41,7 @@
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
         <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
-        <target state="new">Non-reported diagnostic with ID '{0}' cannot be suppressed.</target>
+        <target state="translated">Non è possibile eliminare la diagnostica non restituita con ID '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotARootOperation">
@@ -86,27 +86,27 @@
       </trans-unit>
       <trans-unit id="SupportedSuppressionsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
-        <target state="new">Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</target>
+        <target state="translated">L'analizzatore '{0}' contiene un descrittore Null nel relativo elemento 'SupportedSuppressions'.</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorMessage">
-        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</source>
-        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppresion ID '{2}' and justification '{3}'</target>
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="new">Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionDiagnosticDescriptorTitle">
         <source>Programmatic suppression of an analyzer diagnostic</source>
-        <target state="new">Programmatic suppression of an analyzer diagnostic</target>
+        <target state="translated">Eliminazione a livello di codice di una diagnostica dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
         <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
-        <target state="new">A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</target>
+        <target state="translated">L'ID di un elemento SuppressionDescriptor non deve essere Null, né una stringa vuota o una stringa composta solo da spazi vuoti.</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
-        <target state="new">If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</target>
+        <target state="translated">Se si specificano annotazioni nullable di elementi di tupla, il numero delle annotazioni deve corrispondere alla cardinalità della tupla.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved">
@@ -241,7 +241,7 @@
       </trans-unit>
       <trans-unit id="UnsupportedSuppressionReported">
         <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
-        <target state="new">Reported suppression with ID '{0}' is not supported by the suppressor.</target>
+        <target state="translated">L'eliminazione restituita con ID '{0}' non è supportata dall'elemento di eliminazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
@@ -521,12 +521,12 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
         <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
-        <target state="new">The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</target>
+        <target state="translated">Alla diagnostica ' {0}' è stato assegnato un livello di gravità non valido '{1}' nel file di configurazione dell'analizzatore alla posizione '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
         <source>Invalid severity in analyzer config file.</source>
-        <target state="new">Invalid severity in analyzer config file.</target>
+        <target state="translated">Gravità non valida nel file di configurazione dell'analizzatore.</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">

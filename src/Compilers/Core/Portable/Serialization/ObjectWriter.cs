@@ -826,7 +826,7 @@ namespace Roslyn.Utilities
         }
 
         // we have s_typeMap and s_reversedTypeMap since there is no bidirectional map in compiler
-        // Note: s_typeMap is effectively immutable.  However, for maxiumum perf we use mutable types because
+        // Note: s_typeMap is effectively immutable.  However, for maximum perf we use mutable types because
         // they are used in hotspots.
         internal static readonly Dictionary<Type, EncodingKind> s_typeMap;
 

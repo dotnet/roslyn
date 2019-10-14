@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -288,7 +290,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     if (!(statement is LocalDeclarationStatementSyntax declStatement))
                     {
-                        // found one
                         return OperationStatus.Succeeded;
                     }
 
@@ -652,6 +653,69 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 return SyntaxFactory.ExpressionStatement(callSignature);
+            }
+
+            protected override async Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
+                SemanticDocument originalDocument,
+                OperationStatus<IMethodSymbol> methodSymbolResult,
+                CancellationToken cancellationToken)
+            {
+                // Only need to update for nullable reference types in return
+                if (methodSymbolResult.Data.ReturnType.GetNullability() != NullableAnnotation.Annotated)
+                {
+                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                }
+
+                var syntaxNode = originalDocument.Root.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault().AsNode();
+                if (syntaxNode == null || !(syntaxNode is MethodDeclarationSyntax methodDeclaration))
+                {
+                    return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                }
+
+                var semanticModel = originalDocument.SemanticModel;
+                var methodOperation = semanticModel.GetOperation(methodDeclaration, cancellationToken);
+
+                var returnOperations = methodOperation.DescendantsAndSelf().OfType<IReturnOperation>();
+
+                foreach (var returnOperation in returnOperations)
+                {
+                    // If thereturn statement is located in a nested local function or lambda it
+                    // shouldn't contribute to the nullability of the extracted method's return type
+                    if (!ReturnOperationBelongsToMethod(returnOperation.Syntax, methodOperation.Syntax))
+                    {
+                        continue;
+                    }
+
+                    var syntax = returnOperation.ReturnedValue?.Syntax ?? returnOperation.Syntax;
+                    var returnTypeInfo = semanticModel.GetTypeInfo(syntax, cancellationToken);
+                    if (returnTypeInfo.Nullability.FlowState == NullableFlowState.MaybeNull)
+                    {
+                        // Flow state shows that return is correctly nullable
+                        return await base.UpdateMethodAfterGenerationAsync(originalDocument, methodSymbolResult, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
+                // Return type can be updated to not be null
+                var newType = methodSymbolResult.Data.ReturnType.WithNullability(NullableAnnotation.NotAnnotated);
+
+                var oldRoot = await originalDocument.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var newRoot = oldRoot.ReplaceNode(methodDeclaration.ReturnType, newType.GenerateTypeSyntax());
+
+                var newDocument = originalDocument.Document.WithSyntaxRoot(newRoot);
+                return await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+
+                static bool ReturnOperationBelongsToMethod(SyntaxNode returnOperationSyntax, SyntaxNode methodSyntax)
+                {
+                    var enclosingMethod = returnOperationSyntax.FirstAncestorOrSelf<SyntaxNode>(n => n switch
+                    {
+                        BaseMethodDeclarationSyntax _ => true,
+                        AnonymousFunctionExpressionSyntax _ => true,
+                        LocalFunctionStatementSyntax _ => true,
+                        _ => false
+                    });
+
+                    return enclosingMethod == methodSyntax;
+                }
             }
         }
     }

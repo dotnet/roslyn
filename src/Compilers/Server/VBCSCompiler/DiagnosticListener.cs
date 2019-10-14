@@ -26,16 +26,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         void ConnectionReceived();
 
         /// <summary>
-        /// Called when one or more connections have completed processing.  The number of connections
-        /// processed is provided in <paramref name="count"/>.
+        /// Called when a connection has finished processing and notes the <paramref name="reason"/>
         /// </summary>
-        void ConnectionCompleted(int count);
-
-        /// <summary>
-        /// Called when a bad client connection was detected and the server will be shutting down as a 
-        /// result.
-        /// </summary>
-        void ConnectionRudelyEnded();
+        void ConnectionCompleted(CompletionReason reason);
 
         /// <summary>
         /// Called when the server is shutting down because the keep alive timeout was reached.
@@ -57,11 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
         }
 
-        public void ConnectionCompleted(int count)
-        {
-        }
-
-        public void ConnectionRudelyEnded()
+        public void ConnectionCompleted(CompletionReason reason)
         {
         }
 

@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
         <source>Allow unsafe code in this project</source>
-        <target state="new">Allow unsafe code in this project</target>
+        <target state="translated">このプロジェクトでアンセーフ コードを許可する</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
-        <target state="new">Convert switch statement to expression</target>
+        <target state="translated">switch ステートメントを式に変換します</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
-        <target state="new">Fix return type</target>
+        <target state="translated">戻り値の型の修正</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -109,8 +109,13 @@
       </trans-unit>
       <trans-unit id="Make_ref_struct">
         <source>Make 'ref struct'</source>
-        <target state="new">Make 'ref struct'</target>
+        <target state="translated">'ref struct' を作成します</target>
         <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Pass_in_captured_variables_as_arguments">
+        <source>Pass in captured variables as arguments</source>
+        <target state="new">Pass in captured variables as arguments</target>
+        <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
@@ -137,11 +142,6 @@
         <target state="translated">不要な using の削除</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_Usings">
-        <source>&amp;Sort Usings</source>
-        <target state="new">&amp;Sort Usings</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">アクセシビリティ修飾子を並べ替える</target>
@@ -149,32 +149,42 @@
       </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
-        <target state="new">Unseal class '{0}'</target>
+        <target state="translated">クラス '{0}' のシールを解除</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
-        <target state="new">Use 'switch' expression</target>
+        <target state="translated">'switch' 式を使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
+        <source>Warning: Inlining temporary into conditional method call.</source>
+        <target state="new">Warning: Inlining temporary into conditional method call.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
+        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
+        <target state="new">Warning: Adding parameters to local function declaration may produce invalid code.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="new">'{0}' is not null here.</target>
+        <target state="translated">ここでは、'{0}' は null ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="new">'{0}' may be null here.</target>
+        <target state="translated">ここでは、'{0}' は null である可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
-        <target state="new">asynchronous foreach statement</target>
+        <target state="translated">非同期の foreach ステートメント</target>
         <note>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="asynchronous_using_declaration">
         <source>asynchronous using declaration</source>
-        <target state="new">asynchronous using declaration</target>
+        <target state="translated">非同期の using 宣言</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
@@ -194,7 +204,7 @@
       </trans-unit>
       <trans-unit id="local_variable_declaration">
         <source>local variable declaration</source>
-        <target state="new">local variable declaration</target>
+        <target state="translated">ローカル変数宣言</target>
         <note />
       </trans-unit>
       <trans-unit id="member_name">
@@ -352,11 +362,6 @@
         <target state="translated">using の整理</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_and_Sort_Usings">
-        <source>R&amp;emove and Sort Usings</source>
-        <target state="translated">Using の削除と並び替え(&amp;E)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
         <target state="translated">await' を挿入します。</target>
@@ -419,12 +424,12 @@
       </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
-        <target state="new">switch statement</target>
+        <target state="translated">switch ステートメント</target>
         <note>{Locked="switch"} "switch" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="switch_statement_case_clause">
         <source>switch statement case clause</source>
-        <target state="new">switch statement case clause</target>
+        <target state="translated">switch ステートメントの case 句</target>
         <note>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="try_block">
@@ -454,7 +459,7 @@
       </trans-unit>
       <trans-unit id="using_declaration">
         <source>using declaration</source>
-        <target state="new">using declaration</target>
+        <target state="translated">using 宣言</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_statement">
@@ -474,17 +479,17 @@
       </trans-unit>
       <trans-unit id="checked_statement">
         <source>checked statement</source>
-        <target state="translated">確認済みのステートメント</target>
+        <target state="translated">checked ステートメント</target>
         <note>{Locked="checked"} "checked" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="unchecked_statement">
         <source>unchecked statement</source>
-        <target state="translated">未確認のステートメント</target>
+        <target state="translated">unchecked ステートメント</target>
         <note>{Locked="unchecked"} "unchecked" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="await_expression">
         <source>await expression</source>
-        <target state="translated">Await 式</target>
+        <target state="translated">await 式</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="lambda">
@@ -574,7 +579,7 @@
       </trans-unit>
       <trans-unit id="global_statement">
         <source>global statement</source>
-        <target state="translated">グローバル ステートメント</target>
+        <target state="translated">global ステートメント</target>
         <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="using_namespace">
@@ -814,37 +819,37 @@
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
-        <target state="new">Misplaced using directive</target>
+        <target state="translated">using ディレクティブが正しく配置されていません</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_misplaced_using_directives">
         <source>Move misplaced using directives</source>
-        <target state="new">Move misplaced using directives</target>
+        <target state="translated">誤って配置された using ディレクティブを移動します</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
         <source>Using directives must be placed inside of a namespace declaration</source>
-        <target state="new">Using directives must be placed inside of a namespace declaration</target>
+        <target state="translated">using ディレクティブを namespace 宣言の中に配置する必要があります</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
         <source>Using directives must be placed outside of a namespace declaration</source>
-        <target state="new">Using directives must be placed outside of a namespace declaration</target>
+        <target state="translated">using ディレクティブを namespace 宣言の外に配置する必要があります</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
         <source>Warning: Moving using directives may change code meaning.</source>
-        <target state="new">Warning: Moving using directives may change code meaning.</target>
+        <target state="translated">警告: using ディレクティブを移動すると、コードの意味が変わる可能性があります。</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">
         <source>yield break statement</source>
-        <target state="new">yield break statement</target>
+        <target state="translated">yield break ステートメント</target>
         <note>{Locked="yield break"} "yield break" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_return_statement">
         <source>yield return statement</source>
-        <target state="new">yield return statement</target>
+        <target state="translated">yield return ステートメント</target>
         <note>{Locked="yield return"} "yield return" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>

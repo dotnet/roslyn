@@ -827,7 +827,7 @@ public class Outer<T, U>
   IL_0019:  ldc.i4.3
   IL_001a:  newarr     ""byte""
   IL_001f:  dup
-  IL_0020:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.A4E591DA7617172655FE45FC3878ECC8CC0D44B3""
+  IL_0020:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.D7FC9689723FC6A41ADF105022720FF986ABA464083E7F71C6B921F8164E8878""
   IL_0025:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_002a:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
   IL_002f:  ldstr      ""dd""
@@ -887,7 +887,7 @@ public class Outer<T, U>
                     typeName: out typeName,
                     testData: testData);
                 diagnostics.Free();
-                Assert.Equal(locals.Count, 2);
+                Assert.Equal(2, locals.Count);
 
                 VerifyCustomTypeInfo(locals[0], "d1", 0x01);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "d1", expectedILOpt:

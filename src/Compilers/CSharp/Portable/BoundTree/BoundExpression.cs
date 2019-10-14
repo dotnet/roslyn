@@ -54,11 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.TupleLiteral:
                 case BoundKind.UnconvertedSwitchExpression:
+                    return true;
 #if DEBUG
                 case BoundKind.Local when !WasConverted:
                 case BoundKind.Parameter when !WasConverted:
+                    return !WasCompilerGenerated;
 #endif
-                    return true;
                 default:
                     return false;
             }
@@ -455,11 +456,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultExpression
+    internal partial class BoundDefaultLiteral
     {
         public override ConstantValue ConstantValue
         {
-            get { return this.ConstantValueOpt; }
+            get { return null; }
         }
     }
 

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InvertConditional
 {
@@ -15,44 +16,32 @@ namespace Microsoft.CodeAnalysis.InvertConditional
         : CodeRefactoringProvider
         where TConditionalExpressionSyntax : SyntaxNode
     {
-        protected abstract bool ShouldOffer(TConditionalExpressionSyntax conditional, int position);
+        protected abstract bool ShouldOffer(TConditionalExpressionSyntax conditional);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
-            if (span.Length > 0)
-            {
-                return;
-            }
+            var conditional = await FindConditionalAsync(document, span, cancellationToken).ConfigureAwait(false);
 
-            var position = span.Start;
-            var conditional = await FindConditionalAsync(document, position, cancellationToken).ConfigureAwait(false);
-
-            if (conditional == null ||
-                position < conditional.Span.Start ||
-                !ShouldOffer(conditional, position))
+            if (conditional == null || !ShouldOffer(conditional))
             {
                 return;
             }
 
             context.RegisterRefactoring(new MyCodeAction(
                 FeaturesResources.Invert_conditional,
-                c => InvertConditionalAsync(document, position, c)),
+                c => InvertConditionalAsync(document, span, c)),
                 conditional.Span);
         }
 
-        private static async Task<TConditionalExpressionSyntax> FindConditionalAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-
-            return token.Parent.FirstAncestorOrSelf<TConditionalExpressionSyntax>();
-        }
+        private static async Task<TConditionalExpressionSyntax> FindConditionalAsync(
+            Document document, TextSpan span, CancellationToken cancellationToken)
+            => await document.TryGetRelevantNodeAsync<TConditionalExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
 
         private async Task<Document> InvertConditionalAsync(
-            Document document, int position, CancellationToken cancellationToken)
+            Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var conditional = await FindConditionalAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var conditional = await FindConditionalAsync(document, span, cancellationToken).ConfigureAwait(false);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private static bool IsValidContainer(SyntaxNode container)
             => container is TCompilationUnitSyntax || container is TNamespaceDeclarationSyntax;
 
+        protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
+            => parts.Length == 1 && parts[0].Length == 0;
+
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
             if (!IsValidContainer(container))
@@ -188,7 +191,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     ImmutableArray.Create(declaredNamespace, targetNamespace),
                     cancellationToken).ConfigureAwait(false);
 
-                return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+                var mergedSolution = await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+                (_, mergedSolution) = await mergedSolution.ExcludeDisallowedDocumentTextChangesAsync(solution, cancellationToken).ConfigureAwait(false);
+
+                return mergedSolution;
             }
             finally
             {
@@ -376,7 +382,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            // Separating references to declaredSymbols into two groups based on wheter it's located in the same 
+            // Separating references to declaredSymbols into two groups based on whether it's located in the same 
             // document as the namespace declaration. This is because code change required for them are different.
             var refLocationsInCurrentDocument = new List<LocationForAffectedSymbol>();
             var refLocationsInOtherDocuments = new List<LocationForAffectedSymbol>();
@@ -783,7 +789,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst);
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
 

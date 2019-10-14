@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                builder[documentState.FilePath] = builder.TryGetValue(documentState.FilePath, out var documentIdsWithPath)
+                builder[documentState.FilePath!] = builder.TryGetValue(documentState.FilePath!, out var documentIdsWithPath)
                     ? documentIdsWithPath.Add(documentState.Id)
                     : ImmutableArray.Create(documentState.Id);
             }
@@ -587,18 +587,18 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (!builder.TryGetValue(documentState.FilePath, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
+                if (!builder.TryGetValue(documentState.FilePath!, out var documentIdsWithPath) || !documentIdsWithPath.Contains(documentState.Id))
                 {
                     throw new ArgumentException($"The given documentId was not found in '{nameof(_filePathToDocumentIdsMap)}'.");
                 }
 
                 if (documentIdsWithPath.Length == 1)
                 {
-                    builder.Remove(documentState.FilePath);
+                    builder.Remove(documentState.FilePath!);
                 }
                 else
                 {
-                    builder[documentState.FilePath] = documentIdsWithPath.Remove(documentState.Id);
+                    builder[documentState.FilePath!] = documentIdsWithPath.Remove(documentState.Id);
                 }
             }
 
@@ -1943,7 +1943,7 @@ namespace Microsoft.CodeAnalysis
         public Task<bool> HasSuccessfullyLoadedAsync(ProjectState project, CancellationToken cancellationToken)
         {
             // return HasAllInformation when compilation is not supported. 
-            // regardless whether project support compilation or not, if projectInfo is not complete, we can't gurantee its reference completeness
+            // regardless whether project support compilation or not, if projectInfo is not complete, we can't guarantee its reference completeness
             return project.SupportsCompilation
                 ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
                 : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;

@@ -28,22 +28,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Ctor1()
         {
-            Assert.Throws(
-                typeof(ArgumentNullException),
+            Assert.Throws<ArgumentNullException>(
                 () =>
             {
                 var notUsed = new FileLinePositionSpan(null, new LinePosition(1, 2), new LinePosition(3, 5));
             });
 
-            Assert.Throws(
-                typeof(ArgumentException),
+            Assert.Throws<ArgumentException>(
                 () =>
             {
                 var notUsed = new FileLinePositionSpan("C:\\goo.cs", new LinePosition(3, 2), new LinePosition(2, 4));
             });
 
-            Assert.Throws(
-                typeof(ArgumentException),
+            Assert.Throws<ArgumentException>(
                 () =>
             {
                 var notUsed = new FileLinePositionSpan("C:\\goo.cs", new LinePosition(1, 2), new LinePosition(1, 1));

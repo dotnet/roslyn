@@ -51,6 +51,19 @@ Initially each type variable Xi is unfixed with an empty set of bounds.
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    internal static class PooledDictionaryIgnoringNullableModifiersForReferenceTypes
+    {
+        private static readonly ObjectPool<PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>> s_poolInstance
+            = PooledDictionary<NamedTypeSymbol, NamedTypeSymbol>.CreatePool(TypeSymbol.EqualsIgnoringNullableComparer);
+
+        internal static PooledDictionary<NamedTypeSymbol, NamedTypeSymbol> GetInstance()
+        {
+            var instance = s_poolInstance.Allocate();
+            Debug.Assert(instance.Count == 0);
+            return instance;
+        }
+    }
+
     // Method type inference can fail, but we still might have some best guesses. 
     internal struct MethodTypeInferenceResult
     {
@@ -1956,6 +1969,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
 
+            // duplicates with only nullability differences can be merged (to avoid an error in type inference)
+            allInterfaces = ModuloReferenceTypeNullabilityDifferences(allInterfaces, VarianceKind.In);
+
             NamedTypeSymbol matchingInterface = GetInterfaceInferenceBound(allInterfaces, target);
             if ((object)matchingInterface == null)
             {
@@ -1963,6 +1979,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             LowerBoundTypeArgumentInference(matchingInterface, target, ref useSiteDiagnostics);
             return true;
+        }
+
+        internal static ImmutableArray<NamedTypeSymbol> ModuloReferenceTypeNullabilityDifferences(ImmutableArray<NamedTypeSymbol> interfaces, VarianceKind variance)
+        {
+            var dictionary = PooledDictionaryIgnoringNullableModifiersForReferenceTypes.GetInstance();
+
+            foreach (var @interface in interfaces)
+            {
+                if (dictionary.TryGetValue(@interface, out var found))
+                {
+                    var merged = (NamedTypeSymbol)found.MergeEquivalentTypes(@interface, variance);
+                    dictionary[@interface] = merged;
+                }
+                else
+                {
+                    dictionary.Add(@interface, @interface);
+                }
+            }
+
+            var result = dictionary.Count != interfaces.Length ? dictionary.Values.ToImmutableArray() : interfaces;
+            dictionary.Free();
+            return result;
         }
 
         private void LowerBoundTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2247,7 +2285,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
             }
 
-            NamedTypeSymbol bestInterface = GetInterfaceInferenceBound(target.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics), source);
+            ImmutableArray<NamedTypeSymbol> allInterfaces = target.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+
+            // duplicates with only nullability differences can be merged (to avoid an error in type inference)
+            allInterfaces = ModuloReferenceTypeNullabilityDifferences(allInterfaces, VarianceKind.Out);
+
+            NamedTypeSymbol bestInterface = GetInterfaceInferenceBound(allInterfaces, source);
             if ((object)bestInterface == null)
             {
                 return false;
@@ -2455,80 +2498,6 @@ OuterBreak:
             return best;
         }
 
-        internal static TypeWithAnnotations Merge(TypeWithAnnotations first, TypeWithAnnotations second, VarianceKind variance, ConversionsBase conversions)
-        {
-            var merged = MergeTupleNames(MergeDynamic(first, second, conversions.CorLibrary), second);
-            if (!conversions.IncludeNullability)
-            {
-                // https://github.com/dotnet/roslyn/issues/30534: Should preserve
-                // distinct "not computed" state from initial binding.
-                return merged.SetUnknownNullabilityForReferenceTypes();
-            }
-
-            return merged.MergeNullability(second, variance);
-        }
-
-        /// <summary>
-        /// Returns first or a modified version of first with merged dynamic flags from both types.
-        /// </summary>
-        internal static TypeWithAnnotations MergeDynamic(TypeWithAnnotations firstWithAnnotations, TypeWithAnnotations secondWithAnnotations, AssemblySymbol corLibrary)
-        {
-            var first = firstWithAnnotations.Type;
-            var second = secondWithAnnotations.Type;
-
-            // SPEC: 4.7 The Dynamic Type
-            //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreDynamic))
-            {
-                return firstWithAnnotations;
-            }
-            ImmutableArray<bool> flags1 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(first, RefKind.None);
-            ImmutableArray<bool> flags2 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(second, RefKind.None);
-            ImmutableArray<bool> mergedFlags = flags1.ZipAsArray(flags2, (f1, f2) => f1 | f2);
-
-            var result = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(first, corLibrary, RefKind.None, mergedFlags);
-            return TypeWithAnnotations.Create(result); // https://github.com/dotnet/roslyn/issues/27961 Handle nullability.
-        }
-
-        /// <summary>
-        /// Returns first or a modified version of first with common tuple names from both types.
-        /// </summary>
-        internal static TypeWithAnnotations MergeTupleNames(TypeWithAnnotations firstWithAnnotations, TypeWithAnnotations secondWithAnnotations)
-        {
-            var first = firstWithAnnotations.Type;
-            var second = secondWithAnnotations.Type;
-
-            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreTupleNames) ||
-                !first.ContainsTupleNames())
-            {
-                return firstWithAnnotations;
-            }
-
-            Debug.Assert(first.ContainsTuple());
-
-            ImmutableArray<string> names1 = CSharpCompilation.TupleNamesEncoder.Encode(first);
-            ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);
-
-            ImmutableArray<string> mergedNames;
-            if (names1.IsDefault || names2.IsDefault)
-            {
-                mergedNames = default;
-            }
-            else
-            {
-                Debug.Assert(names1.Length == names2.Length);
-                mergedNames = names1.ZipAsArray(names2, (n1, n2) => string.CompareOrdinal(n1, n2) == 0 ? n1 : null);
-
-                if (mergedNames.All(n => n == null))
-                {
-                    mergedNames = default;
-                }
-            }
-
-            var result = TupleTypeDecoder.DecodeTupleTypesIfApplicable(first, mergedNames);
-            return TypeWithAnnotations.Create(result); // https://github.com/dotnet/roslyn/issues/27961 Handle nullability.
-        }
-
         private static bool ImplicitConversionExists(TypeWithAnnotations sourceWithAnnotations, TypeWithAnnotations destinationWithAnnotations, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConversionsBase conversions)
         {
             var source = sourceWithAnnotations.Type;
@@ -2647,13 +2616,13 @@ OuterBreak:
             NamedTypeSymbol matchingInterface = null;
             foreach (var currentInterface in interfaces)
             {
-                if (TypeSymbol.Equals(currentInterface.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
+                if (TypeSymbol.Equals(currentInterface.OriginalDefinition, target.OriginalDefinition, TypeCompareKind.ConsiderEverything))
                 {
                     if ((object)matchingInterface == null)
                     {
                         matchingInterface = currentInterface;
                     }
-                    else if (!TypeSymbol.Equals(matchingInterface, currentInterface, TypeCompareKind.ConsiderEverything2))
+                    else if (!TypeSymbol.Equals(matchingInterface, currentInterface, TypeCompareKind.ConsiderEverything))
                     {
                         // Not unique. Bail out.
                         return default;
@@ -2905,7 +2874,7 @@ OuterBreak:
                 // IOut<object?>, then merge that result with upper bound IOut<object!> (using VarianceKind.In)
                 // to produce IOut<object?>. But then conversion of argument IIn<IOut<object!>> to parameter
                 // IIn<IOut<object?>> will generate a warning at that point.)
-                TypeWithAnnotations merged = Merge(latest, newCandidate, variance, conversions);
+                TypeWithAnnotations merged = latest.MergeEquivalentTypes(newCandidate, variance);
                 candidates[oldCandidate] = merged;
             }
         }

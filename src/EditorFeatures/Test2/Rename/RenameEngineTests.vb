@@ -6187,6 +6187,37 @@ End Class
             End Using
         End Sub
 
+        <WorkItem(963225, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/963225")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameShouldIgnoreUnchangeableDocument()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#">
+                        <Document>
+                            class [|$$A|]
+                            {
+                                void M()
+                                {
+                                    [|A|] a = new [|A|]();
+                                }
+                            }
+                        </Document>
+                        <Document CanApplyChange="false">
+                            class B
+                            {
+                                void M()
+                                {
+                                    {|stmt:A|} a;
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="C")
+
+                result.AssertLabeledSpansAre("stmt", "A", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
 #Region "Rename in strings/comments"
 
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
@@ -7077,5 +7108,32 @@ class C
         End Sub
 #End Region
 
+        <WpfFact>
+        <WorkItem(28474, "https://github.com/dotnet/roslyn/issues/28474")>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub HandleProjectsWithoutCompilations()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" AssemblyName="CSharpProject" CommonReferences="true">
+                        <Document>
+                            public interface IGoo
+                            {
+                                void [|$$Goo|]();
+                            }
+                            public class C : IGoo
+                            {
+                                public void [|Goo|]() {}
+                            }
+                        </Document>
+                    </Project>
+                    <Project Language="NoCompilation" CommonReferences="false">
+                        <ProjectReference>CSharpProject</ProjectReference>
+                        <Document>
+                            // a no-compilation document
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="Cat")
+            End Using
+        End Sub
     End Class
 End Namespace

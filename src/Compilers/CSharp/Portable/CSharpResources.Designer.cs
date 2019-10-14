@@ -1501,15 +1501,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use a default literal as an argument to a dynamically dispatched operation..
-        /// </summary>
-        internal static string ERR_BadDynamicMethodArgDefaultLiteral {
-            get {
-                return ResourceManager.GetString("ERR_BadDynamicMethodArgDefaultLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type..
         /// </summary>
         internal static string ERR_BadDynamicMethodArgLambda {
@@ -2100,6 +2091,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadSwitch {
             get {
                 return ResourceManager.GetString("ERR_BadSwitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Command-line syntax error: &apos;{0}&apos; is not a valid value for the &apos;{1}&apos; option. The value must be of the form &apos;{2}&apos;..
+        /// </summary>
+        internal static string ERR_BadSwitchValue {
+            get {
+                return ResourceManager.GetString("ERR_BadSwitchValue", resourceCulture);
             }
         }
         
@@ -3454,15 +3454,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A default literal &apos;default&apos; is not valid as a case constant. Use another literal (e.g. &apos;0&apos; or &apos;null&apos;) as appropriate. If you intended to write the default label, use &apos;default:&apos; without &apos;case&apos;..
-        /// </summary>
-        internal static string ERR_DefaultInSwitch {
-            get {
-                return ResourceManager.GetString("ERR_DefaultInSwitch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a non-abstract member. Consider setting the &apos;Embed Interop Types&apos; property to false..
         /// </summary>
         internal static string ERR_DefaultInterfaceImplementationInNoPIAType {
@@ -3477,6 +3468,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DefaultInterfaceImplementationModifier {
             get {
                 return ResourceManager.GetString("ERR_DefaultInterfaceImplementationModifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no target type for the default literal..
+        /// </summary>
+        internal static string ERR_DefaultLiteralNoTargetType {
+            get {
+                return ResourceManager.GetString("ERR_DefaultLiteralNoTargetType", resourceCulture);
             }
         }
         
@@ -5979,6 +5979,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InterfacesCantContainFields {
             get {
                 return ResourceManager.GetString("ERR_InterfacesCantContainFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal error in the C# compiler..
+        /// </summary>
+        internal static string ERR_InternalError {
+            get {
+                return ResourceManager.GetString("ERR_InternalError", resourceCulture);
             }
         }
         
@@ -8859,6 +8868,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RbraceExpected {
             get {
                 return ResourceManager.GetString("ERR_RbraceExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the &apos;Embed Interop Types&apos; property to false..
+        /// </summary>
+        internal static string ERR_ReAbstractionInNoPIAType {
+            get {
+                return ResourceManager.GetString("ERR_ReAbstractionInNoPIAType", resourceCulture);
             }
         }
         
@@ -13994,7 +14012,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A possible null value may not be passed to a target marked with the [DisallowNull] attribute.
+        ///   Looks up a localized string similar to A possible null value may not be assigned to a target marked with the [DisallowNull] attribute.
         /// </summary>
         internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment {
             get {
@@ -14003,7 +14021,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A possible null value may not be passed to a target marked with the [DisallowNull] attribute.
+        ///   Looks up a localized string similar to A possible null value may not be assigned to a target marked with the [DisallowNull] attribute.
         /// </summary>
         internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title {
             get {
@@ -14269,6 +14287,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_ExplicitImplCollision_Title {
             get {
                 return ResourceManager.GetString("WRN_ExplicitImplCollision_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A member returning a [MaybeNull] value introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
+        /// </summary>
+        internal static string WRN_ExpressionMayIntroduceNullT {
+            get {
+                return ResourceManager.GetString("WRN_ExpressionMayIntroduceNullT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A member returning a [MaybeNull] value introduces a null value for a type parameter..
+        /// </summary>
+        internal static string WRN_ExpressionMayIntroduceNullT_Title {
+            get {
+                return ResourceManager.GetString("WRN_ExpressionMayIntroduceNullT_Title", resourceCulture);
             }
         }
         
@@ -15773,6 +15809,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Object or collection initializer implicitly dereferences possibly null member &apos;{0}&apos;..
+        /// </summary>
+        internal static string WRN_NullReferenceInitializer {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Object or collection initializer implicitly dereferences possibly null member..
+        /// </summary>
+        internal static string WRN_NullReferenceInitializer_Title {
+            get {
+                return ResourceManager.GetString("WRN_NullReferenceInitializer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
         /// </summary>
         internal static string WRN_NullReferenceIterationVariable {
@@ -16090,7 +16144,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch expression does not handle all possible inputs (it is not exhaustive)..
+        ///   Looks up a localized string similar to The switch expression does not handle all possible values of its input type (it is not exhaustive)..
         /// </summary>
         internal static string WRN_SwitchExpressionNotExhaustive {
             get {
@@ -16099,7 +16153,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch expression does not handle all possible inputs (it is not exhaustive)..
+        ///   Looks up a localized string similar to The switch expression does not handle all possible values of its input type (it is not exhaustive)..
         /// </summary>
         internal static string WRN_SwitchExpressionNotExhaustive_Title {
             get {

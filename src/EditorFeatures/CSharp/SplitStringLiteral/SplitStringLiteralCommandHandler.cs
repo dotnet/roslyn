@@ -16,16 +16,14 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(SplitStringLiteralCommandHandler))]
-    [Order(After = PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal partial class SplitStringLiteralCommandHandler : VSCommanding.ICommandHandler<ReturnKeyCommandArgs>
+    internal partial class SplitStringLiteralCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
@@ -41,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
         public string DisplayName => CSharpEditorResources.Split_string;
 
-        public VSCommanding.CommandState GetCommandState(ReturnKeyCommandArgs args)
+        public CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
-            return VSCommanding.CommandState.Unspecified;
+            return CommandState.Unspecified;
         }
 
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)

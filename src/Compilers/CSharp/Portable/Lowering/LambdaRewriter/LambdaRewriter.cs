@@ -143,6 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ImmutableHashSet<Symbol> _allCapturedVariables;
 
+#nullable enable
+
         private LambdaRewriter(
             Analysis analysis,
             NamedTypeSymbol thisType,
@@ -157,11 +159,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<LocalSymbol> assignLocals)
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
-            Debug.Assert(analysis != null);
-            Debug.Assert((object)thisType != null);
-            Debug.Assert(method != null);
-            Debug.Assert(compilationState != null);
-            Debug.Assert(diagnostics != null);
+            RoslynDebug.Assert(analysis != null);
+            RoslynDebug.Assert((object)thisType != null);
+            RoslynDebug.Assert(method != null);
+            RoslynDebug.Assert(compilationState != null);
+            RoslynDebug.Assert(diagnostics != null);
 
             _topLevelMethod = method;
             _substitutedSourceMethod = substitutedSourceMethod;
@@ -184,6 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             });
             _allCapturedVariables = allCapturedVars.ToImmutable();
         }
+
+#nullable restore
 
         protected override bool NeedsProxy(Symbol localOrParameter)
         {

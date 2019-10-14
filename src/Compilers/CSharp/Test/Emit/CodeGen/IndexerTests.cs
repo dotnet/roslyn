@@ -458,7 +458,7 @@ class Test
   IL_003f:  ldc.i4.3
   IL_0040:  newarr     ""int""
   IL_0045:  dup
-  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_004b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0050:  callvirt   ""int C.this[params int[]].get""
   IL_0055:  pop
@@ -466,7 +466,7 @@ class Test
   IL_0057:  ldc.i4.3
   IL_0058:  newarr     ""int""
   IL_005d:  dup
-  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_0063:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0068:  callvirt   ""int C.this[params int[]].get""
   IL_006d:  pop
@@ -606,7 +606,7 @@ class Test
   IL_003f:  ldc.i4.3
   IL_0040:  newarr     ""int""
   IL_0045:  dup
-  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_0046:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_004b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0050:  ldc.i4.4
   IL_0051:  callvirt   ""void C.this[params int[]].set""
@@ -614,7 +614,7 @@ class Test
   IL_0057:  ldc.i4.3
   IL_0058:  newarr     ""int""
   IL_005d:  dup
-  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_005e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_0063:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0068:  ldc.i4.4
   IL_0069:  callvirt   ""void C.this[params int[]].set""
@@ -800,7 +800,7 @@ class Test
   IL_0084:  ldc.i4.3
   IL_0085:  newarr     ""int""
   IL_008a:  dup
-  IL_008b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_008b:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_0090:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0095:  stloc.3
   IL_0096:  ldloc.2
@@ -818,7 +818,7 @@ class Test
   IL_00aa:  ldc.i4.3
   IL_00ab:  newarr     ""int""
   IL_00b0:  dup
-  IL_00b1:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_00b1:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_00b6:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00bb:  stloc.3
   IL_00bc:  ldloc.2
@@ -1030,7 +1030,7 @@ class Test
   IL_00a2:  ldc.i4.3
   IL_00a3:  newarr     ""int""
   IL_00a8:  dup
-  IL_00a9:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_00a9:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_00ae:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00b3:  stloc.2
   IL_00b4:  ldloc.1
@@ -1047,7 +1047,7 @@ class Test
   IL_00cb:  ldc.i4.3
   IL_00cc:  newarr     ""int""
   IL_00d1:  dup
-  IL_00d2:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.E429CCA3F703A39CC5954A6572FEC9086135B34E""
+  IL_00d2:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
   IL_00d7:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00dc:  stloc.2
   IL_00dd:  ldloc.1

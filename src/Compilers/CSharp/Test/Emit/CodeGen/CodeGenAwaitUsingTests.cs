@@ -1389,6 +1389,42 @@ struct S : System.IAsyncDisposable
         }
 
         [Fact]
+        public void Struct_ExplicitImplementation()
+        {
+            string source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    internal bool _disposed;
+}
+struct S : IAsyncDisposable
+{
+    C _c;
+    S(C c)
+    {
+        _c = c;
+    }
+    static async Task Main()
+    {
+        var s = new S(new C());
+        await using (s)
+        {
+        }
+        Console.WriteLine(s._c._disposed);
+    }
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        _c._disposed = true;
+        return new ValueTask(Task.CompletedTask);
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True");
+        }
+
+        [Fact]
         public void TestWithNullableExpression()
         {
             string source = @"
@@ -1616,19 +1652,27 @@ public class D
             var getAwaiter1 = (MethodSymbol)comp.GetMember("C.GetAwaiter");
             var isCompleted1 = (PropertySymbol)comp.GetMember("C.IsCompleted");
             var getResult1 = (MethodSymbol)comp.GetMember("C.GetResult");
-            var first = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, getResult1));
+            var first = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult1, false);
 
-            var nulls1 = new AwaitExpressionInfo(new AwaitableInfo(null, isCompleted1, getResult1));
-            var nulls2 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, null, getResult1));
-            var nulls3 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, null));
+            var nulls1 = new AwaitExpressionInfo(null, isCompleted1, getResult1, false);
+            var nulls2 = new AwaitExpressionInfo(getAwaiter1, null, getResult1, false);
+            var nulls3 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, null, false);
+            var nulls4 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, null, true);
 
             Assert.False(first.Equals(nulls1));
             Assert.False(first.Equals(nulls2));
             Assert.False(first.Equals(nulls3));
+            Assert.False(first.Equals(nulls4));
 
             Assert.False(nulls1.Equals(first));
             Assert.False(nulls2.Equals(first));
             Assert.False(nulls3.Equals(first));
+            Assert.False(nulls4.Equals(first));
+
+            _ = nulls1.GetHashCode();
+            _ = nulls2.GetHashCode();
+            _ = nulls3.GetHashCode();
+            _ = nulls4.GetHashCode();
 
             object nullObj = null;
             Assert.False(first.Equals(nullObj));
@@ -1636,10 +1680,10 @@ public class D
             var getAwaiter2 = (MethodSymbol)comp.GetMember("D.GetAwaiter");
             var isCompleted2 = (PropertySymbol)comp.GetMember("D.IsCompleted");
             var getResult2 = (MethodSymbol)comp.GetMember("D.GetResult");
-            var second1 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter2, isCompleted1, getResult1));
-            var second2 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted2, getResult1));
-            var second3 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, getResult2));
-            var second4 = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter2, isCompleted2, getResult2));
+            var second1 = new AwaitExpressionInfo(getAwaiter2, isCompleted1, getResult1, false);
+            var second2 = new AwaitExpressionInfo(getAwaiter1, isCompleted2, getResult1, false);
+            var second3 = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult2, false);
+            var second4 = new AwaitExpressionInfo(getAwaiter2, isCompleted2, getResult2, false);
 
             Assert.False(first.Equals(second1));
             Assert.False(first.Equals(second2));
@@ -1654,7 +1698,7 @@ public class D
             Assert.True(first.Equals(first));
             Assert.True(first.Equals((object)first));
 
-            var another = new AwaitExpressionInfo(new AwaitableInfo(getAwaiter1, isCompleted1, getResult1));
+            var another = new AwaitExpressionInfo(getAwaiter1, isCompleted1, getResult1, false);
             Assert.True(first.GetHashCode() == another.GetHashCode());
         }
 
@@ -1988,7 +2032,7 @@ public class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_UsingDeclaration()
         {
@@ -2014,7 +2058,176 @@ public class C
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+            var verifier = CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+
+            // Sequence point higlights `await using ...`
+            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      303 (0x12f)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                object V_2,
+                System.Runtime.CompilerServices.ValueTaskAwaiter V_3,
+                System.Threading.Tasks.ValueTask V_4,
+                C.<Main>d__0 V_5,
+                System.Exception V_6)
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<Main>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_0011
+    IL_000c:  br         IL_0091
+    // sequence point: {
+    IL_0011:  nop
+    // sequence point: {
+    IL_0012:  nop
+    // sequence point: await using var x = new C();
+    IL_0013:  ldarg.0
+    IL_0014:  newobj     ""C..ctor()""
+    IL_0019:  stfld      ""C C.<Main>d__0.<x>5__1""
+    // sequence point: <hidden>
+    IL_001e:  ldarg.0
+    IL_001f:  ldnull
+    IL_0020:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_0025:  ldarg.0
+    IL_0026:  ldc.i4.0
+    IL_0027:  stfld      ""int C.<Main>d__0.<>s__3""
+    .try
+    {
+      // sequence point: System.Console.Write(""using "");
+      IL_002c:  ldstr      ""using ""
+      IL_0031:  call       ""void System.Console.Write(string)""
+      IL_0036:  nop
+      // sequence point: <hidden>
+      IL_0037:  leave.s    IL_0043
+    }
+    catch object
+    {
+      // sequence point: <hidden>
+      IL_0039:  stloc.2
+      IL_003a:  ldarg.0
+      IL_003b:  ldloc.2
+      IL_003c:  stfld      ""object C.<Main>d__0.<>s__2""
+      IL_0041:  leave.s    IL_0043
+    }
+    // sequence point: <hidden>
+    IL_0043:  ldarg.0
+    IL_0044:  ldfld      ""C C.<Main>d__0.<x>5__1""
+    IL_0049:  brfalse.s  IL_00b5
+    IL_004b:  ldarg.0
+    IL_004c:  ldfld      ""C C.<Main>d__0.<x>5__1""
+    IL_0051:  callvirt   ""System.Threading.Tasks.ValueTask C.DisposeAsync()""
+    IL_0056:  stloc.s    V_4
+    IL_0058:  ldloca.s   V_4
+    IL_005a:  call       ""System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()""
+    IL_005f:  stloc.3
+    // sequence point: <hidden>
+    IL_0060:  ldloca.s   V_3
+    IL_0062:  call       ""bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get""
+    IL_0067:  brtrue.s   IL_00ad
+    IL_0069:  ldarg.0
+    IL_006a:  ldc.i4.0
+    IL_006b:  dup
+    IL_006c:  stloc.0
+    IL_006d:  stfld      ""int C.<Main>d__0.<>1__state""
+    // async: yield
+    IL_0072:  ldarg.0
+    IL_0073:  ldloc.3
+    IL_0074:  stfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_0079:  ldarg.0
+    IL_007a:  stloc.s    V_5
+    IL_007c:  ldarg.0
+    IL_007d:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<Main>d__0.<>t__builder""
+    IL_0082:  ldloca.s   V_3
+    IL_0084:  ldloca.s   V_5
+    IL_0086:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
+    IL_008b:  nop
+    IL_008c:  leave      IL_012e
+    // async: resume
+    IL_0091:  ldarg.0
+    IL_0092:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_0097:  stloc.3
+    IL_0098:  ldarg.0
+    IL_0099:  ldflda     ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__1""
+    IL_009e:  initobj    ""System.Runtime.CompilerServices.ValueTaskAwaiter""
+    IL_00a4:  ldarg.0
+    IL_00a5:  ldc.i4.m1
+    IL_00a6:  dup
+    IL_00a7:  stloc.0
+    IL_00a8:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_00ad:  ldloca.s   V_3
+    IL_00af:  call       ""void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()""
+    IL_00b4:  nop
+    // sequence point: <hidden>
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldfld      ""object C.<Main>d__0.<>s__2""
+    IL_00bb:  stloc.2
+    IL_00bc:  ldloc.2
+    IL_00bd:  brfalse.s  IL_00da
+    IL_00bf:  ldloc.2
+    IL_00c0:  isinst     ""System.Exception""
+    IL_00c5:  stloc.s    V_6
+    IL_00c7:  ldloc.s    V_6
+    IL_00c9:  brtrue.s   IL_00cd
+    IL_00cb:  ldloc.2
+    IL_00cc:  throw
+    IL_00cd:  ldloc.s    V_6
+    IL_00cf:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_00d4:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_00d9:  nop
+    IL_00da:  ldarg.0
+    IL_00db:  ldfld      ""int C.<Main>d__0.<>s__3""
+    IL_00e0:  pop
+    IL_00e1:  ldarg.0
+    IL_00e2:  ldnull
+    IL_00e3:  stfld      ""object C.<Main>d__0.<>s__2""
+    // sequence point: }
+    IL_00e8:  nop
+    IL_00e9:  ldarg.0
+    IL_00ea:  ldnull
+    IL_00eb:  stfld      ""C C.<Main>d__0.<x>5__1""
+    // sequence point: System.Console.Write(""return"");
+    IL_00f0:  ldstr      ""return""
+    IL_00f5:  call       ""void System.Console.Write(string)""
+    IL_00fa:  nop
+    // sequence point: return 1;
+    IL_00fb:  ldc.i4.1
+    IL_00fc:  stloc.1
+    IL_00fd:  leave.s    IL_0119
+  }
+  catch System.Exception
+  {
+    // async: catch handler, sequence point: <hidden>
+    IL_00ff:  stloc.s    V_6
+    IL_0101:  ldarg.0
+    IL_0102:  ldc.i4.s   -2
+    IL_0104:  stfld      ""int C.<Main>d__0.<>1__state""
+    IL_0109:  ldarg.0
+    IL_010a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<Main>d__0.<>t__builder""
+    IL_010f:  ldloc.s    V_6
+    IL_0111:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_0116:  nop
+    IL_0117:  leave.s    IL_012e
+  }
+  // sequence point: }
+  IL_0119:  ldarg.0
+  IL_011a:  ldc.i4.s   -2
+  IL_011c:  stfld      ""int C.<Main>d__0.<>1__state""
+  // sequence point: <hidden>
+  IL_0121:  ldarg.0
+  IL_0122:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<Main>d__0.<>t__builder""
+  IL_0127:  ldloc.1
+  IL_0128:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_012d:  nop
+  IL_012e:  ret
+}
+", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
         }
 
         [Fact]
@@ -2144,6 +2357,45 @@ class C
                 //         await using (var y = new object()) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var y = new object()").WithArguments("object").WithLocation(7, 22)
                 );
+        }
+
+        [Fact]
+        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
+        public void GetAwaiterBoxingConversion()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+struct StructAwaitable { }
+
+class Disposable
+{
+    public StructAwaitable DisposeAsync() => new StructAwaitable();
+}
+
+static class Extensions
+{
+    public static TaskAwaiter GetAwaiter(this object x)
+    {
+        if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
+        return Task.CompletedTask.GetAwaiter();
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        await using (new Disposable())
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_interfaces }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "StructAwaitable");
         }
     }
 }

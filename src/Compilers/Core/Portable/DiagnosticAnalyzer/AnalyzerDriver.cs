@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConcurrentSet<Suppression> _programmaticSuppressions;
 
         /// <summary>
+        /// Set of diagnostics that have already been processed for application of programmatic suppressions. 
+        /// </summary>
+        private readonly ConcurrentSet<Diagnostic> _diagnosticsProcessedForProgrammaticSuppressions;
+
+        /// <summary>
         /// Flag indicating if the <see cref="Analyzers"/> include any <see cref="DiagnosticSuppressor"/>
         /// which can suppress reported analyzer/compiler diagnostics.
         /// </summary>
@@ -90,6 +95,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableHashSet<DiagnosticAnalyzer> _unsuppressedAnalyzers;
 
         /// <summary>
+        /// Set of unsuppressed analyzers that report non-configurable diagnostics that cannot be suppressed with end user configuration. 
+        /// </summary>
+        private ImmutableHashSet<DiagnosticAnalyzer> _nonConfigurableAnalyzers;
+
+        /// <summary>
+        /// Set of analyzers that have registered symbol start analyzer actions. 
+        /// </summary>
+        private ImmutableHashSet<DiagnosticAnalyzer> _symbolStartAnalyzers;
+
+        /// <summary>
         /// True if all analyzers need to analyze and report diagnostics in generated code - we can assume all code to be non-generated code.
         /// </summary>
         private bool _treatAllCodeAsNonGeneratedCode;
@@ -108,6 +123,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Lazily populated dictionary from tree to declared symbols with GeneratedCodeAttribute.
         /// </summary>
         private Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>> _lazyGeneratedCodeSymbolsForTreeMap;
+
+        /// <summary>
+        /// Lazily populated dictionary from tree to analyzers that are suppressed on the entire tree.
+        /// </summary>
+        private ConcurrentDictionary<SyntaxTree, ImmutableHashSet<DiagnosticAnalyzer>> _lazySuppressedAnalyzersForTreeMap;
 
         /// <summary>
         /// Lazily populated dictionary from symbol to a bool indicating if it is a generated code symbol.
@@ -168,6 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _isGeneratedCode = (tree, ct) => GeneratedCodeUtilities.IsGeneratedCode(tree, isComment, ct);
             _hasDiagnosticSuppressors = this.Analyzers.Any(a => a is DiagnosticSuppressor);
             _programmaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
+            _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
         }
 
         /// <summary>
@@ -190,6 +211,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     (AnalyzerActions, _unsuppressedAnalyzers) = await GetAnalyzerActionsAsync(Analyzers, AnalyzerManager, analyzerExecutor).ConfigureAwait(false);
                     _analyzerGateMap = await CreateAnalyzerGateMapAsync(_unsuppressedAnalyzers, AnalyzerManager, analyzerExecutor).ConfigureAwait(false);
+                    _nonConfigurableAnalyzers = ComputeNonConfigurableAnalyzers(_unsuppressedAnalyzers);
+                    _symbolStartAnalyzers = ComputeSymbolStartAnalyzers(_unsuppressedAnalyzers);
                     _generatedCodeAnalysisFlagsMap = await CreateGeneratedCodeAnalysisFlagsMapAsync(_unsuppressedAnalyzers, AnalyzerManager, analyzerExecutor).ConfigureAwait(false);
                     _doNotAnalyzeGeneratedCode = ComputeShouldSkipAnalysisOnGeneratedCode(_unsuppressedAnalyzers);
                     _treatAllCodeAsNonGeneratedCode = ComputeShouldTreatAllCodeAsNonGeneratedCode(_unsuppressedAnalyzers, _generatedCodeAnalysisFlagsMap);
@@ -197,6 +220,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _lazyGeneratedCodeSymbolsForTreeMap = _treatAllCodeAsNonGeneratedCode ? null : new Dictionary<SyntaxTree, ImmutableHashSet<ISymbol>>();
                     _lazyIsGeneratedCodeSymbolMap = _treatAllCodeAsNonGeneratedCode ? null : new ConcurrentDictionary<ISymbol, bool>();
                     _lazyTreesWithHiddenRegionsMap = _treatAllCodeAsNonGeneratedCode ? null : new ConcurrentDictionary<SyntaxTree, bool>();
+                    _lazySuppressedAnalyzersForTreeMap = new ConcurrentDictionary<SyntaxTree, ImmutableHashSet<DiagnosticAnalyzer>>();
                     _generatedCodeAttribute = analyzerExecutor.Compilation?.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
 
                     _symbolActionsByKind = MakeSymbolActionsByKind(this.AnalyzerActions);
@@ -284,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var analyzerExecutor = AnalyzerExecutor.Create(
                 compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnosticOpt, newOnAnalyzerException, analysisOptions.AnalyzerExceptionFilter,
-                IsCompilerAnalyzer, AnalyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, GetAnalyzerGate,
+                IsCompilerAnalyzer, AnalyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, IsAnalyzerSuppressedForTree, GetAnalyzerGate,
                 getSemanticModel: tree => CurrentCompilationData.GetOrCreateCachedSemanticModel(tree, compilation, cancellationToken),
                 analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnosticOpt, addCategorizedNonLocalDiagnosticOpt, s => _programmaticSuppressions.Add(s), cancellationToken);
 
@@ -303,6 +327,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Concurrent analyzer.
             return null;
+        }
+
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeNonConfigurableAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
+            foreach (var analyzer in unsuppressedAnalyzers)
+            {
+                var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor);
+                foreach (var descriptor in descriptors)
+                {
+                    if (descriptor.IsNotConfigurable())
+                    {
+                        builder.Add(analyzer);
+                        break;
+                    }
+                }
+            }
+
+            return builder.ToImmutableHashSet();
+        }
+
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeSymbolStartAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
+            foreach (var action in this.AnalyzerActions.SymbolStartActions)
+            {
+                if (unsuppressedAnalyzers.Contains(action.Analyzer))
+                {
+                    builder.Add(action.Analyzer);
+                }
+            }
+
+            return builder.ToImmutableHashSet();
         }
 
         private bool ComputeShouldSkipAnalysisOnGeneratedCode(ImmutableHashSet<DiagnosticAnalyzer> analyzers)
@@ -631,42 +688,55 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(_hasDiagnosticSuppressors);
             Debug.Assert(!reportedDiagnostics.IsEmpty);
             Debug.Assert(_programmaticSuppressions != null);
+            Debug.Assert(_diagnosticsProcessedForProgrammaticSuppressions != null);
 
-            // We do not allow analyzer based suppressions for following category of diagnostics:
-            //  1. Diagnostics which are already suppressed in source via pragma/suppress message attribute.
-            //  2. Diagnostics explicitly tagged as not configurable by analyzer authors - this includes compiler error diagnostics.
-            //  3. Diagnostics which are marked as error by default by diagnostic authors.
-            var suppressableDiagnostics = reportedDiagnostics.Where(d => !d.IsSuppressed &&
-                                                                         !d.IsNotConfigurable() &&
-                                                                         d.DefaultSeverity != DiagnosticSeverity.Error);
-            if (suppressableDiagnostics.IsEmpty())
+            try
             {
-                return reportedDiagnostics;
-            }
+                // We do not allow analyzer based suppressions for following category of diagnostics:
+                //  1. Diagnostics which are already suppressed in source via pragma/suppress message attribute.
+                //  2. Diagnostics explicitly tagged as not configurable by analyzer authors - this includes compiler error diagnostics.
+                //  3. Diagnostics which are marked as error by default by diagnostic authors.
+                var suppressableDiagnostics = reportedDiagnostics.Where(d => !d.IsSuppressed &&
+                                                                             !d.IsNotConfigurable() &&
+                                                                             d.DefaultSeverity != DiagnosticSeverity.Error &&
+                                                                             !_diagnosticsProcessedForProgrammaticSuppressions.Contains(d));
 
-            executeSuppressionActions(suppressableDiagnostics, concurrent: compilation.Options.ConcurrentBuild);
-            if (_programmaticSuppressions.IsEmpty)
-            {
-                return reportedDiagnostics;
-            }
-
-            var builder = ArrayBuilder<Diagnostic>.GetInstance(reportedDiagnostics.Length);
-            ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> programmaticSuppressionsByDiagnostic = createProgrammaticSuppressionsByDiagnosticMap(_programmaticSuppressions);
-            foreach (var diagnostic in reportedDiagnostics)
-            {
-                if (programmaticSuppressionsByDiagnostic.TryGetValue(diagnostic, out var programmaticSuppressionInfo))
+                if (suppressableDiagnostics.IsEmpty())
                 {
-                    Debug.Assert(suppressableDiagnostics.Contains(diagnostic));
-                    Debug.Assert(!diagnostic.IsSuppressed);
-                    builder.Add(diagnostic.WithProgrammaticSuppression(programmaticSuppressionInfo));
+                    return reportedDiagnostics;
                 }
-                else
-                {
-                    builder.Add(diagnostic);
-                }
-            }
 
-            return builder.ToImmutableAndFree();
+                executeSuppressionActions(suppressableDiagnostics, concurrent: compilation.Options.ConcurrentBuild);
+                if (_programmaticSuppressions.IsEmpty)
+                {
+                    return reportedDiagnostics;
+                }
+
+                var builder = ArrayBuilder<Diagnostic>.GetInstance(reportedDiagnostics.Length);
+                ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> programmaticSuppressionsByDiagnostic = createProgrammaticSuppressionsByDiagnosticMap(_programmaticSuppressions);
+                foreach (var diagnostic in reportedDiagnostics)
+                {
+                    if (programmaticSuppressionsByDiagnostic.TryGetValue(diagnostic, out var programmaticSuppressionInfo))
+                    {
+                        Debug.Assert(suppressableDiagnostics.Contains(diagnostic));
+                        Debug.Assert(!diagnostic.IsSuppressed);
+                        var suppressedDiagnostic = diagnostic.WithProgrammaticSuppression(programmaticSuppressionInfo);
+                        Debug.Assert(suppressedDiagnostic.IsSuppressed);
+                        builder.Add(suppressedDiagnostic);
+                    }
+                    else
+                    {
+                        builder.Add(diagnostic);
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+            finally
+            {
+                // Mark the reported diagnostics as processed for programmatic suppressions to avoid duplicate callbacks to suppressors for same diagnostics.
+                _diagnosticsProcessedForProgrammaticSuppressions.AddRange(reportedDiagnostics);
+            }
 
             void executeSuppressionActions(IEnumerable<Diagnostic> reportedDiagnostics, bool concurrent)
             {
@@ -881,6 +951,63 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             declarationInfoBuilder.Free();
             return generatedSymbolsBuilderOpt != null ? generatedSymbolsBuilderOpt.ToImmutable() : ImmutableHashSet<ISymbol>.Empty;
+        }
+
+        private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
+        {
+            if (!_lazySuppressedAnalyzersForTreeMap.TryGetValue(tree, out var suppressedAnalyzers))
+            {
+                suppressedAnalyzers = _lazySuppressedAnalyzersForTreeMap.GetOrAdd(tree, ComputeSuppressedAnalyzersForTree(tree));
+            }
+
+            return suppressedAnalyzers.Contains(analyzer);
+        }
+
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeSuppressedAnalyzersForTree(SyntaxTree tree)
+        {
+            if (tree.DiagnosticOptions.IsEmpty)
+            {
+                return ImmutableHashSet<DiagnosticAnalyzer>.Empty;
+            }
+
+            ImmutableHashSet<DiagnosticAnalyzer>.Builder suppressedAnalyzersBuilderOpt = null;
+            foreach (var analyzer in _unsuppressedAnalyzers)
+            {
+                if (_nonConfigurableAnalyzers.Contains(analyzer))
+                {
+                    // Analyzers reporting non-configurable diagnostics cannot be suppressed as user configuration is ignored for these analyzers.
+                    continue;
+                }
+
+                if ((_symbolStartAnalyzers.Contains(analyzer) || _compilationEndActionsMap.ContainsKey(analyzer)) &&
+                    !ShouldSkipAnalysisOnGeneratedCode(analyzer))
+                {
+                    // SymbolStart/End analyzers and CompilationStart/End analyzers that analyze generated code
+                    // cannot have any of their callbacks suppressed as they need to analyze the entire compilation for correctness.
+                    continue;
+                }
+
+                var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor);
+                var hasUnsuppressedDiagnostic = false;
+                foreach (var descriptor in descriptors)
+                {
+                    if (!tree.DiagnosticOptions.TryGetValue(descriptor.Id, out var configuredSeverity) ||
+                        configuredSeverity != ReportDiagnostic.Suppress)
+                    {
+                        // Analyzer reports a diagnostic that is not suppressed by the diagnostic options for this tree.
+                        hasUnsuppressedDiagnostic = true;
+                        break;
+                    }
+                }
+
+                if (!hasUnsuppressedDiagnostic)
+                {
+                    suppressedAnalyzersBuilderOpt ??= ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
+                    suppressedAnalyzersBuilderOpt.Add(analyzer);
+                }
+            }
+
+            return suppressedAnalyzersBuilderOpt != null ? suppressedAnalyzersBuilderOpt.ToImmutable() : ImmutableHashSet<DiagnosticAnalyzer>.Empty;
         }
 
         /// <summary>

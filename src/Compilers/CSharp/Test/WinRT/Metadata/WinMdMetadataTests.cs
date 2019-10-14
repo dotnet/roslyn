@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var itextrange = wns1.GetMember<PENamedTypeSymbol>("ITextRange");
             var func = itextrange.GetMember<PEMethodSymbol>("SetPoint");
             var pt = ((PEParameterSymbol)(func.Parameters[0])).Type as PENamedTypeSymbol;
-            Assert.Equal(pt.ContainingAssembly.Name, "System.Runtime.WindowsRuntime");
+            Assert.Equal("System.Runtime.WindowsRuntime", pt.ContainingAssembly.Name);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             wns1 = wns1.GetMember<NamespaceSymbol>("Xaml");
             var itextrange = wns1.GetMember<PENamedTypeSymbol>("SuspendingEventHandler");
             var func = itextrange.GetMember<PEMethodSymbol>(".ctor");
-            Assert.Equal(func.DeclaredAccessibility, Accessibility.Public);
+            Assert.Equal(Accessibility.Public, func.DeclaredAccessibility);
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var iref = wns1.GetMember<PENamedTypeSymbol>("IUriRuntimeClass");
             var func = iref.GetMember<PEMethodSymbol>("CombineUri");
             var ret = func.ReturnTypeWithAnnotations;
-            Assert.Equal(func.ReturnType.ToTestDisplayString(), "System.Uri");
+            Assert.Equal("System.Uri", func.ReturnType.ToTestDisplayString());
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var wns2 = wns1.GetMember<NamespaceSymbol>("Foundation");
             var clas = wns2.GetMember<PENamedTypeSymbol>("Point");
-            Assert.Equal(clas.DeclaredAccessibility, Accessibility.Internal);
+            Assert.Equal(Accessibility.Internal, clas.DeclaredAccessibility);
         }
 
         /// <summary>
@@ -131,9 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var blk = clas.GetMembers("Black").Single();
             //The windows.winmd module points to a Windows.UI.Color which should be modified to belong
             //to System.Runtime.WindowsRuntime
-            Assert.Equal(((Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PENamedTypeSymbol)
-                ((((Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol)(blk)).GetMethod).ReturnType)).ContainingModule.ToString(),
-                   "System.Runtime.WindowsRuntime.dll");
+            Assert.Equal("System.Runtime.WindowsRuntime.dll", ((PENamedTypeSymbol)((((PropertySymbol)(blk)).GetMethod).ReturnType)).ContainingModule.ToString());
         }
 
         /// <summary>

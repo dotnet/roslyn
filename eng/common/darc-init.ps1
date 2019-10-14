@@ -1,9 +1,9 @@
 param (
     $darcVersion = $null,
-    $versionEndpoint = "https://maestro-prod.westus2.cloudapp.azure.com/api/assets/darc-version?api-version=2019-01-16"
+    $versionEndpoint = "https://maestro-prod.westus2.cloudapp.azure.com/api/assets/darc-version?api-version=2019-01-16",
+    $verbosity = "m"
 )
 
-$verbosity = "m"
 . $PSScriptRoot\tools.ps1
 
 function InstallDarcCli ($darcVersion) {
@@ -23,7 +23,7 @@ function InstallDarcCli ($darcVersion) {
     $darcVersion = $(Invoke-WebRequest -Uri $versionEndpoint -UseBasicParsing).Content
   }
 
-  $arcadeServicesSource = 'https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json'
+  $arcadeServicesSource = 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json'
 
   Write-Host "Installing Darc CLI version $darcVersion..."
   Write-Host "You may need to restart your command window if this is the first dotnet tool you have installed."

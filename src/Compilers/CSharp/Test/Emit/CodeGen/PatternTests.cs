@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class PatternTests : EmitMetadataTestBase
     {
-        #region Miscallaneous
+        #region Miscellaneous
 
         [Fact, WorkItem(18811, "https://github.com/dotnet/roslyn/issues/18811")]
         public void MissingNullable_01()
@@ -3026,7 +3026,7 @@ static class C {
 ";
             var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify(
-                // (9,38): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
                 );
@@ -3036,7 +3036,7 @@ static class C {
                 // (9,36): error CS0656: Missing compiler required member 'System.InvalidOperationException..ctor'
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "i switch { 1 => true }").WithArguments("System.InvalidOperationException", ".ctor").WithLocation(9, 36),
-                // (9,38): warning CS8509: The switch expression does not handle all possible inputs (it is not exhaustive).
+                // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
                 //     public static bool M(int i) => i switch { 1 => true };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(9, 38)
                 );
@@ -4118,6 +4118,31 @@ class C
 @"new A; A->new B; B->new C; .
 new B; B->new C; .";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TargetTypedSwitch_StringInsert()
+        {
+            var source = @"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write($""{false switch { false => new A(), true => new B() }}"");
+        Console.Write($""{true switch { false => new A(), true => new B() }}"");
+    }
+}
+class A
+{
+}
+class B
+{
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "AB");
         }
 
         #endregion Target Typed Switch

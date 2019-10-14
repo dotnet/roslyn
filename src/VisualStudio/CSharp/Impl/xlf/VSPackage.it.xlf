@@ -79,9 +79,9 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;</source>
-        <target state="needs-review-translation">Mostra diagnostica per file chiusi;
-Colora espressione regolare;
-Evidenzia componenti correlati sotto il cursore;
+        <target state="translated">Mostra diagnostica per file chiusi;
+Colora espressione regolare; 
+Evidenzia componenti correlati sotto il cursore; 
 Segnala espressioni regolari non valide;
 Abilita analisi della soluzione completa;
 Esegui analisi delle funzionalità dell'editor in processo esterno;
@@ -118,10 +118,13 @@ Non inserire ref o out in struct personalizzato;
 Implementa interfaccia o classe astratta;
 Posiziona proprietà, eventi e metodi inseriti;
 con altri membri dello stesso tipo;
-alla fine;
+al termine;
 Durante la generazione della proprietà;
 preferisci proprietà generate;
-preferisci proprietà automatiche;</target>
+preferisci proprietà automatiche;
+regex;
+espressione regolare;
+Usa colori migliorati;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -147,14 +150,14 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">Imposta rientro per contenuto del blocco;
-imposta rientro per parentesi graffe di apertura e chiusura;
-imposta rientro per contenuto case;
-imposta rientro per contenuto case (quando è un blocco);
-imposta rientro per etichette case;
-imposta rientro per etichetta;
-inserisci etichette goto nella colonna più a sinistra;
-imposta rientro per etichette normalmente;
+        <target state="translated">Imposta rientro per contenuto del blocco; 
+imposta rientro per parentesi graffe di apertura e chiusura; 
+imposta rientro per contenuto case; 
+imposta rientro per contenuto case (quando è un blocco); 
+imposta rientro per etichette case; 
+imposta rientro per etichetta; 
+inserisci etichette goto nella colonna più a sinistra; 
+imposta rientro per etichette normalmente; 
 inserisci etichette goto con un livello di rientro inferiore al corrente;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
@@ -176,7 +179,7 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="translated">Nuova opzione formattazione riga per parentesi graffe;Nuove opzioni formattazione riga per parole chiave;Opzioni relative alla nuova riga per parentesi graffe;
+        <target state="translated">Opzione relativa alla nuova riga per parentesi graffe;Opzioni relative alla formattazione nuova riga per parole chiave;Opzioni di nuova riga per parentesi graffe;
 Inserisci parentesi graffa di apertura in una nuova riga per i tipi;
 Inserisci parentesi graffa di apertura in una nuova riga per metodi e funzioni locali;
 Inserisci parentesi graffa di apertura in una nuova riga per proprietà, indicizzatori ed eventi;
@@ -185,11 +188,11 @@ Inserisci parentesi graffa di apertura in una nuova riga per i metodi anonimi;
 Inserisci parentesi graffa di apertura in una nuova riga per i blocchi di controllo;
 Inserisci parentesi graffa di apertura in una nuova riga per i tipi anonimi;
 Inserisci parentesi graffa di apertura in una nuova riga per inizializzatori di oggetto, raccolta e matrice;
-Opzioni relative alla nuova riga per le parole chiave;
-Inserisci else in una nuova riga;
-Inserisci catch in una nuova riga;
-Inserisci finally in una nuova riga;
-Opzioni relative alla nuova riga per le espressioni;
+Opzioni di nuova riga per parole chiave;
+Inserisci "else" in una nuova riga;
+Inserisci "catch" in una nuova riga;
+Inserisci "finally" in una nuova riga;
+Opzioni di nuova riga per espressioni;
 Inserisci membri di inizializzatori di oggetto in una nuova riga;
 Inserisci membri di tipi anonimi in una nuova riga;
 Inserisci clausole di espressione di query in una nuova riga;</target>
@@ -240,7 +243,7 @@ Inserisci spazio tra le parentesi delle espressioni;
 Inserisci spazio tra le parentesi dei cast di tipo;
 Inserisci spazio tra le parentesi delle istruzioni del flusso di controllo;
 Inserisci spazio dopo il cast;
-Ignora gli spazi nelle istruzioni di dichiarazione;
+Ignora spazi nelle istruzioni di dichiarazione;
 Imposta spaziatura per le parentesi quadre;
 Inserisci spazio prima della parentesi quadra di apertura;
 Inserisci spazio tra parentesi quadre vuote;
@@ -256,13 +259,13 @@ Inserisci spazio prima del punto;
 Inserisci spazio prima del punto e virgola nell'istruzione for;
 Imposta spaziatura per gli operatori;
 Ignora spazi prima e dopo gli operatori binari;
-Rimuovi gli spazi prima e dopo gli operatori binari;
+Rimuovi spazi prima e dopo gli operatori binari;
 Inserisci spazio prima e dopo gli operatori binari;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
         <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
-        <target state="translated">Modifica opzioni di formattazione per wrapping;Lascia blocco su una sola riga;Lascia istruzioni e dichiarazioni di membri sulla stessa riga</target>
+        <target state="translated">Modifica opzioni di formattazione per ritorno a capo;Lascia blocco su una sola riga;Lascia istruzioni e dichiarazioni di membri sulla stessa riga</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
@@ -328,12 +331,12 @@ Mostra suggerimenti per nomi;</target>
       </trans-unit>
       <trans-unit id="2358">
         <source>C# Editor</source>
-        <target state="needs-review-translation">Editor CSharp</target>
+        <target state="translated">Editor C#</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
         <source>C# Editor with Encoding</source>
-        <target state="needs-review-translation">Editor CSharp con codifica</target>
+        <target state="translated">Editor C# con codifica</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -373,12 +376,12 @@ Mostra suggerimenti per nomi;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">File di script C# vuoto.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Script Visual C#</target>
         <note />
       </trans-unit>
     </body>

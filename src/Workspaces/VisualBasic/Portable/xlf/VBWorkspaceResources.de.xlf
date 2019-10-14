@@ -12,6 +12,16 @@
         <target state="translated">Nur Attribute, Ausdrücke oder Anweisungen können explizit gemacht werden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_and_Sort_Imports">
+        <source>R&amp;emove and Sort Imports</source>
+        <target state="translated">Import-Direktiven &amp;entfernen und sortieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Imports">
+        <source>&amp;Sort Imports</source>
+        <target state="translated">Importe &amp;sortieren</target>
+        <note />
+      </trans-unit>
       <trans-unit id="event_">
         <source>&lt;event&gt;</source>
         <target state="translated">&lt;Ereignis&gt;</target>
@@ -39,7 +49,7 @@
       </trans-unit>
       <trans-unit id="typeName">
         <source>&lt;typeName&gt;</source>
-        <target state="translated">&lt;Typname&gt;</target>
+        <target state="translated">&lt;typeName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time">
@@ -134,7 +144,7 @@
       </trans-unit>
       <trans-unit id="stringName">
         <source>&lt;stringName&gt;</source>
-        <target state="translated">&lt;Zeichenfolgenname&gt;</target>
+        <target state="translated">&lt;stringName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="startIndex">
@@ -174,7 +184,7 @@
       </trans-unit>
       <trans-unit id="If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse">
         <source>If &lt;condition&gt; returns True, the function calculates and returns &lt;expressionIfTrue&gt;. Otherwise, it returns &lt;expressionIfFalse&gt;.</source>
-        <target state="translated">Falls &lt;Bedingung&gt; True zurückgibt, berechnet die Funktion &lt;expressionIfTrue&gt; und gibt es zurück. Andernfalls gibt sie &lt;expressionIfFalse&gt; zurück.</target>
+        <target state="translated">Falls &lt;condition&gt; True zurückgibt, berechnet die Funktion &lt;expressionIfTrue&gt; und gibt es zurück. Andernfalls gibt sie &lt;expressionIfFalse&gt; zurück.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_expression_to_evaluate">

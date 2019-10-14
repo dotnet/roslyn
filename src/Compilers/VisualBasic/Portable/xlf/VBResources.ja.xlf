@@ -2,19 +2,44 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_BadSwitchValue">
+        <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
+        <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
-        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <target state="translated">行連結文字の後のコメントを使用するには、言語バージョン {0} 以上をご使用ください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
+        <target state="translated">複数のアナライザー構成ファイルを同じディレクトリに入れることはできません ('{0}')。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReAbstractionInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</source>
+        <target state="new">Target runtime doesn't support 'Protected', 'Protected Friend', or 'Private Protected' accessibility for a member of an interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
-        <target state="new">comments after line continuation</target>
+        <target state="translated">行連結後のコメント</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -95,8 +120,11 @@
 -warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 -ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
                                   diagnostics.
--errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
-                                  diagnostics.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
+                                  Specify a file to log all compiler and analyzer
+                                  diagnostics in SARIF format.
+                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
+                                  both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
 
@@ -183,7 +211,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic コンパイラのオプション
+        <target state="needs-review-translation">                  Visual Basic コンパイラのオプション
 
                                   - 出力ファイル -
 -out:&lt;file&gt;                       出力ファイル名を指定します。
@@ -3235,7 +3263,7 @@
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
         <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
-        <target state="needs-review-translation">行連結文字 '_' の前には、少なくとも 1 つのスペース文字が必要です。また、行連結文字は行の最後の文字でなければなりません。</target>
+        <target state="translated">行連結文字 ' _ ' の前には少なくとも 1 つの空白を指定する必要があります。その後にコメントを続けるか、' _ ' を行の最後の文字にしなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
@@ -9105,7 +9133,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
+        <target state="translated">ファイル名 '{0}' は、空である、無効な文字を含んでいる、絶対パスが指定されていないドライブ指定がある、または長すぎるかのいずれかです。</target>
         <note />
       </trans-unit>
     </body>

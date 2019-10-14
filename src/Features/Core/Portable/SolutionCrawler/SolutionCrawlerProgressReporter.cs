@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public bool InProgress => _progressStartCount > 0;
 
             public void Start() => ChangeProgressStatus(ref _progressStartCount, ProgressStatus.Started);
-            public void Stop() => ChangeProgressStatus(ref _progressStartCount, ProgressStatus.Stoped);
+            public void Stop() => ChangeProgressStatus(ref _progressStartCount, ProgressStatus.Stopped);
 
             private void Evaluate() => ChangeProgressStatus(ref _progressEvaluateCount, ProgressStatus.Evaluating);
             private void Pause() => ChangeProgressStatus(ref _progressEvaluateCount, ProgressStatus.Paused);

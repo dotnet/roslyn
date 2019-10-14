@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = (BoundConversion)operand;
                 if (!conversion.ConversionKind.IsUserDefinedConversion() &&
                     conversion.ConversionKind.IsImplicitConversion() &&
-                    conversion.ConversionKind != ConversionKind.DefaultOrNullLiteral &&
+                    conversion.ConversionKind != ConversionKind.NullLiteral &&
                     conversion.Type.StrippedType().IsEnumType())
                 {
                     operand = conversion.Operand;
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var e1 = Convert(Visit(node.Operand), node.Operand.Type, intermediate, node.Checked, false);
                         return Convert(e1, intermediate, node.Type, node.Checked, false);
                     }
-                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.NullLiteral:
                     return Convert(Constant(_bound.Null(_objectType)), _objectType, node.Type, false, node.ExplicitCastInCode);
                 default:
                     return Convert(Visit(node.Operand), node.Operand.Type, node.Type, node.Checked, node.ExplicitCastInCode);
@@ -665,10 +665,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ExprFactory(isChecked ? "ConvertChecked" : "Convert", expr, _bound.Typeof(type));
         }
 
-        private BoundExpression DelegateCreation(BoundExpression receiver, MethodSymbol method, TypeSymbol delegateType, bool requiresInstanceReciever)
+        private BoundExpression DelegateCreation(BoundExpression receiver, MethodSymbol method, TypeSymbol delegateType, bool requiresInstanceReceiver)
         {
             var nullObject = _bound.Null(_objectType);
-            receiver = requiresInstanceReciever ? nullObject : receiver.Type.IsReferenceType ? receiver : _bound.Convert(_objectType, receiver);
+            receiver = requiresInstanceReceiver ? nullObject : receiver.Type.IsReferenceType ? receiver : _bound.Convert(_objectType, receiver);
 
             var createDelegate = _bound.WellKnownMethod(WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, isOptional: true);
             BoundExpression unquoted;

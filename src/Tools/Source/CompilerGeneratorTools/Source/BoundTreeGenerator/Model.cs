@@ -91,6 +91,9 @@ namespace BoundTreeGenerator
 
         [XmlAttribute]
         public string SkipInVisitor;
+
+        [XmlAttribute]
+        public string SkipInNullabilityRewriter;
     }
 
     public class EnumType : TreeType

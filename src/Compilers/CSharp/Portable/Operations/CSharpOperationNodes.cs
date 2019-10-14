@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly BoundForEachStatement _forEachStatement;
 
         internal CSharpLazyForEachLoopOperation(CSharpOperationFactory operationFactory, BoundForEachStatement forEachStatement, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(LoopKind.ForEach, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+            base(forEachStatement.AwaitOpt != null, LoopKind.ForEach, locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _forEachStatement = forEachStatement;
@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly BoundUsingStatement _usingStatement;
 
         internal CSharpLazyUsingOperation(CSharpOperationFactory operationFactory, BoundUsingStatement usingStatement, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
+            base(locals, usingStatement.AwaitOpt != null, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _operationFactory = operationFactory;
             _usingStatement = usingStatement;

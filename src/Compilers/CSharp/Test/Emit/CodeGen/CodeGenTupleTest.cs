@@ -4466,6 +4466,7 @@ namespace System
 
     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
     {
+        public TRest Rest;
     }
 }
 ";
@@ -5595,7 +5596,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         private static ImmutableArray<string> GetTupleElementNames(INamedTypeSymbol tuple)
@@ -5652,7 +5653,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithoutNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5671,7 +5672,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String" }, ElementTypeNames(tupleWithNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
             Assert.All(tupleWithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5690,7 +5691,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32" }, ElementTypeNames(tupleWithSomeNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithSomeNames.Kind);
             Assert.All(tupleWithSomeNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5708,7 +5709,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.Int32" }, ElementTypeNames(tupleWithNames));
             Assert.Equal(SymbolKind.NamedType, tupleWithNames.Kind);
             Assert.All(tupleWithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5732,7 +5733,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
                         ElementTypeNames(tuple8WithoutNames));
             Assert.All(tuple8WithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5757,7 +5758,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String" },
                         ElementTypeNames(tuple8WithNames));
             Assert.All(tuple8WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5782,7 +5783,7 @@ class C
             Assert.Equal(new[] { "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32", "System.String", "System.Int32" },
                         ElementTypeNames(tuple9WithoutNames));
             Assert.All(tuple9WithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5808,7 +5809,7 @@ class C
                         ElementTypeNames(tuple9WithNames));
 
             Assert.All(tuple9WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5837,7 +5838,7 @@ class C
                         ElementTypeNames(tuple9WithNames));
 
             Assert.All(tuple9WithNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact]
@@ -5859,7 +5860,7 @@ class C
             Assert.Equal(SymbolKind.NamedType, types[0].Kind);
             Assert.Equal(SymbolKind.ErrorType, types[1].Kind);
             Assert.All(tupleWithoutNames.GetMembers().OfType<IFieldSymbol>().Select(f => f.Locations.FirstOrDefault()),
-                loc => Assert.Equal(loc, null));
+                loc => Assert.Null(loc));
         }
 
         [Fact, WorkItem(13277, "https://github.com/dotnet/roslyn/issues/13277")]
@@ -7293,7 +7294,7 @@ class C
         // this works
         Test(()=>(()=>(short)1, 1));
 
-        // this does not
+        // this works
         Test(()=>(()=>(byte)1, 1));
 
         // this does not
@@ -7303,9 +7304,6 @@ class C
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
-                //         Test(()=>(()=>(byte)1, 1));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(23, 9),
                 // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(Func<(Func<short>, int)>)' and 'C.Test(Func<(Func<byte>, int)>)'
                 //         Test(()=>(()=>1, 1));
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.Func<(System.Func<short>, int)>)", "C.Test(System.Func<(System.Func<byte>, int)>)").WithLocation(26, 9)
@@ -15063,13 +15061,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 24),
                 // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18),
-                // (6,19): error CS0150: A constant value is expected
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 19),
-                // (6,24): error CS0150: A constant value is expected
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18)
                 );
         }
 
@@ -15168,13 +15160,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 24),
                 // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18),
-                // (7,19): error CS0150: A constant value is expected
-                //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 19),
-                // (7,24): error CS0150: A constant value is expected
-                //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 24)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18)
                );
         }
 
@@ -15319,10 +15305,10 @@ class TestAttribute : System.Attribute
 
             var comp = CreateCompilation(source, references: new[] { SystemRef });
             comp.VerifyDiagnostics(
-                // (6,32): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (6,32): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         var x0 = new {tuple = (null, null)};
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(6, 32),
-                // (6,38): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (6,38): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         var x0 = new {tuple = (null, null)};
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(6, 38),
                 // (8,31): error CS8330: Cannot implicitly convert tuple expression to 'ValueType'
@@ -15340,7 +15326,7 @@ class TestAttribute : System.Attribute
                 // (14,20): error CS0655: 'Val' is not a valid named attribute argument because it is not a valid attribute parameter type
                 //     [TestAttribute(Val = (5, "5"))]
                 Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "Val").WithArguments("Val").WithLocation(14, 20),
-                // (19,16): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (19,16): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         await (null, "6");
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(19, 16),
                 // (20,9): error CS1061: '(int, string)' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type '(int, string)' could be found (are you missing a using directive or an assembly reference?)
@@ -15370,7 +15356,7 @@ class TestAttribute : System.Attribute
                 // (36,14): error CS8330: Cannot implicitly convert tuple expression to 'int'
                 //         V3 = ("15", "15"),
                 Diagnostic(ErrorCode.Unknown, @"(""15"", ""15"")").WithArguments("int").WithLocation(36, 14),
-                // (41,28): error CS8129: Type of the tuple element cannot be infered from '<null>'.
+                // (41,28): error CS8129: Type of the tuple element cannot be inferred from '<null>'.
                 //         var x = (16, (16 , null));
                 Diagnostic(ErrorCode.Unknown, "null").WithArguments("<null>").WithLocation(41, 28),
                 // (44,17): error CS8330: Cannot implicitly convert tuple expression to 'TypedReference'
@@ -20711,9 +20697,40 @@ namespace System
 " + TestResources.NetFX.ValueTuple.tupleattributes_cs;
 
             var comp = CreateCompilation(source,
+                assemblyName: "comp",
                 parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
+                // (8,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             (string I1, 
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 13),
+                // (30,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             (string I1, 
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(30, 13),
+                // (52,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             (string I1, 
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1, 
+                string I2, 
+                string I3, 
+                string I4, 
+                string I5, 
+                string I6, 
+                string I7, 
+                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(52, 13),
                 // (70,38): error CS0165: Use of unassigned local variable 'ss'
                 //             System.Console.WriteLine(ss); // should fail
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(70, 38)
@@ -21202,6 +21219,8 @@ namespace System
     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
     {
         public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest) { }
+
+        public TRest Rest;
     }
 }
 public class D
@@ -21282,7 +21301,9 @@ namespace System
     }
     public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
     {
-        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest) { }
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest) { Rest = rest; }
+
+        public TRest Rest;
     }
 }
 ";

@@ -9,8 +9,7 @@
     <RootNamespace>Roslyn.Compilers.Internal.BoundTreeGenerator</RootNamespace>
     <AssemblyName>BoundTreeGenerator</AssemblyName>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>

@@ -7,9 +7,14 @@
         <target state="translated">Добавить имя элемента</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_null_checks_for_all_parameters">
+        <source>Add null checks for all parameters</source>
+        <target state="new">Add null checks for all parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_optional_parameter_to_constructor">
         <source>Add optional parameter to constructor</source>
-        <target state="new">Add optional parameter to constructor</target>
+        <target state="translated">Добавить необязательный параметр в конструктор</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
@@ -19,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Add_parameter_to_constructor">
         <source>Add parameter to constructor</source>
-        <target state="new">Add parameter to constructor</target>
+        <target state="translated">Добавить параметр в конструктор</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -44,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into an interface method will prevent the debug session from continuing.</target>
+        <target state="translated">Добавление "{0}" в метод интерфейса сделает продолжение сеанса отладки невозможным.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into an interface will prevent the debug session from continuing.</target>
+        <target state="translated">Добавление "{0}" в интерфейс сделает продолжение сеанса отладки невозможным.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -69,12 +74,17 @@
       </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <target state="translated">Избегайте ненужных операций присваивания значений в коде, так как это может свидетельствовать об избыточных вычислениях значений. Если вычисление значения не является избыточным и предполагается сохранить присваивание, измените целевой объект присваивания на локальную переменную, имя которой начинается с символа подчеркивания, за которым при необходимости следует целое число, например, "_", "_1", "_2" и т. д. Эти имена рассматриваются как специальные имена для освобождаемых переменных.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Avoid_unused_paramereters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
-        <source>Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
-        <target state="new">Avoid unused paramereters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+      <trans-unit id="Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names">
+        <source>Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
+        <target state="new">Avoid unused parameters in your code. If the parameter cannot be removed, then change its name so it starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotApplyChangesUnexpectedError">
+        <source>Cannot apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">Не удается применить изменения, так как возникла непредвиденная ошибка: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -87,14 +97,24 @@
         <target state="translated">Изменить на глобальное пространство имен</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesDisallowedWhileStoppedAtException">
+        <source>Changes are not allowed while stopped at exception</source>
+        <target state="translated">Изменения запрещены, когда выполнение остановлено при исключении</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesNotAppliedWhileRunning">
+        <source>Changes made in project '{0}' will not be applied while the application is running</source>
+        <target state="translated">Изменения, внесенные в проект "{0}", не будут применены во время выполнения приложения.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
         <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
-        <target state="new">Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</target>
+        <target state="translated">Изменение "{0}" с асинхронного на синхронное сделает продолжение сеанса отладки невозможным.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
-        <target state="new">Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</target>
+        <target state="translated">Изменение "{0}" на "{1}" сделает продолжение сеанса отладки невозможным, так как меняет форму конечной машины.</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Quality">
@@ -104,12 +124,12 @@
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
-        <target state="new">Configure {0} code style</target>
+        <target state="translated">Настройка стиля кода {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_severity">
         <source>Configure {0} severity</source>
-        <target state="new">Configure {0} severity</target>
+        <target state="translated">Настройка серьезности {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -144,27 +164,52 @@
       </trans-unit>
       <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
         <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
-        <target state="new">A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</target>
+        <target state="translated">Тип, который реализует System.IDisposable, объявляет поля, относящиеся к типам, которые также реализуют IDisposable. Метод Dispose поля не вызывается методом Dispose объявляющего типа. Чтобы устранить нарушение этого правила, вызовите Dispose для полей, относящихся к типам, которые реализуют IDisposable, если вы отвечаете за выделение и освобождение неуправляемых ресурсов, хранящихся в поле.</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_field_0_is_never_disposed">
         <source>Disposable field '{0}' is never disposed</source>
-        <target state="new">Disposable field '{0}' is never disposed</target>
+        <target state="translated">Освобождаемое поле "{0}" никогда не освобождается.</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_fields_should_be_disposed">
         <source>Disposable fields should be disposed</source>
-        <target state="new">Disposable fields should be disposed</target>
+        <target state="translated">Следует высвобождать высвобождаемые поля</target>
         <note />
       </trans-unit>
       <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
         <source>Disposable object created by '{0}' is never disposed</source>
-        <target state="new">Disposable object created by '{0}' is never disposed</target>
+        <target state="translated">Освобождаемый объект, созданный "{0}", никогда не освобождается.</target>
         <note />
       </trans-unit>
       <trans-unit id="Dispose_objects_before_losing_scope">
         <source>Dispose objects before losing scope</source>
-        <target state="new">Dispose objects before losing scope</target>
+        <target state="translated">Ликвидировать объекты перед потерей области</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
+        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
+        <target state="new">The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">Операция "Изменить и продолжить"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByModule">
+        <source>Edit and Continue disallowed by module</source>
+        <target state="translated">Операция "Изменить и продолжить" запрещена модулем</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditAndContinueDisallowedByProject">
+        <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
+        <target state="translated">Изменения, внесенные в проект "{0}", препятствуют продолжению сеанса отладки: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ErrorReadingFile">
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="translated">Ошибка при чтении файла "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -194,12 +239,12 @@
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
         <source>Generate parameter '{0}'</source>
-        <target state="new">Generate parameter '{0}'</target>
+        <target state="translated">Создать параметр "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="new">Generate parameter '{0}' (and overrides/implementations)</target>
+        <target state="translated">Создать параметр "{0}" (а также переопределения или реализации)</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_arguments">
@@ -249,7 +294,7 @@
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
         <source>Make readonly fields writable</source>
-        <target state="new">Make readonly fields writable</target>
+        <target state="translated">Сделать поля readonly доступными для записи</target>
         <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Invert_conditional">
@@ -259,47 +304,47 @@
       </trans-unit>
       <trans-unit id="Local_function_can_be_made_static">
         <source>Local function can be made static</source>
-        <target state="new">Local function can be made static</target>
+        <target state="translated">Локальную функцию можно сделать статической</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_local_function_static">
         <source>Make local function 'static'</source>
-        <target state="new">Make local function 'static'</target>
+        <target state="translated">Сделать локальную функцию статической</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
         <source>Merge with nested '{0}' statement</source>
-        <target state="new">Merge with nested '{0}' statement</target>
+        <target state="translated">Объединить с вложенным оператором "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_next_0_statement">
         <source>Merge with next '{0}' statement</source>
-        <target state="new">Merge with next '{0}' statement</target>
+        <target state="translated">Объединить со следующим оператором "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_outer_0_statement">
         <source>Merge with outer '{0}' statement</source>
-        <target state="new">Merge with outer '{0}' statement</target>
+        <target state="translated">Объединить с внешним оператором "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Merge_with_previous_0_statement">
         <source>Merge with previous '{0}' statement</source>
-        <target state="new">Merge with previous '{0}' statement</target>
+        <target state="translated">Объединить с предыдущим оператором "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
         <source>{0} must return a stream that supports read and seek operations.</source>
-        <target state="new">{0} must return a stream that supports read and seek operations.</target>
+        <target state="translated">{0} должен возвращать поток, который поддерживает операции чтения и поиска.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
         <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="new">Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</target>
+        <target state="translated">Изменение "{0}", которое содержит выражение switch, сделает продолжение сеанса отладки невозможным.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
         <source>Move contents to namespace...</source>
-        <target state="new">Move contents to namespace...</target>
+        <target state="translated">Переместить содержимое в пространство имен...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -314,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
-        <target state="new">Move to namespace...</target>
+        <target state="translated">Переместить в пространство имен...</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
@@ -339,7 +384,7 @@
       </trans-unit>
       <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
         <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="new">Private property '{0}' can be converted to a method as its get accessor is never invoked.</target>
+        <target state="translated">Частное свойство "{0}" можно преобразовать в метод, так как его метод доступа get никогда не вызывается.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_0_up">
@@ -412,39 +457,44 @@
         <target state="translated">Замените '{0}' на '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="RudeEdit">
+        <source>Rude edit</source>
+        <target state="translated">Грубая редакция</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
         <source>Split into consecutive '{0}' statements</source>
-        <target state="new">Split into consecutive '{0}' statements</target>
+        <target state="translated">Разделить на последовательные операторы "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_nested_0_statements">
         <source>Split into nested '{0}' statements</source>
-        <target state="new">Split into nested '{0}' statements</target>
+        <target state="translated">Разделить на вложенные операторы "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportReadAndSeek">
         <source>Stream must support read and seek operations.</source>
-        <target state="new">Stream must support read and seek operations.</target>
+        <target state="translated">Поток должен поддерживать операции чтения и поиска.</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
-        <target state="new">Suppress {0}</target>
+        <target state="translated">Скрыть {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
-        <target state="new">Target type matches</target>
+        <target state="translated">Соответствия целевого типа</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
-        <target state="new">Unnecessary assignment of a value</target>
+        <target state="translated">Ненужное присваивание значения</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value_to_0">
         <source>Unnecessary assignment of a value to '{0}'</source>
-        <target state="new">Unnecessary assignment of a value to '{0}'</target>
+        <target state="translated">Ненужное присваивание значения "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -474,7 +524,7 @@
       </trans-unit>
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
-        <target state="new">Unwrap call chain</target>
+        <target state="translated">Развернуть цепочку вызовов</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -489,12 +539,12 @@
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="new">Updating a '{0}' around an active statement will prevent the debug session from continuing.</target>
+        <target state="translated">Обновление "{0}" рядом с активной инструкцией сделает продолжение сеанса отладки невозможным.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseRecommendedDisposePatternDescription">
-        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="new">Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transfered to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</target>
+        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
+        <target state="needs-review-translation">Используйте рекомендуемый шаблон Dispose, чтобы убедиться, что все освобождаемые объекты в локальной области освобождены для всех путей. Если это возможно, заключите создание объекта в оператор "using" или в объявление "using". В противном случае используйте шаблон try-finally с выделенной локальной переменной, объявляемой до области try, и безусловным вызовом Dispose для отличного от NULL значения в области "finally", например "x?.Dispose()". Если объект явно освобождается в области try или если права владения для операции освобождения передаются другому объекту или методу, присвойте значение "null" локальной переменной сразу после такой операции, чтобы предотвратить двойное освобождение в области "finally".</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -549,17 +599,17 @@
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern">
         <source>Use recommended dispose pattern</source>
-        <target state="new">Use recommended dispose pattern</target>
+        <target state="translated">Использовать рекомендуемый шаблон Dispose</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
         <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="new">Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</target>
+        <target state="translated">Используйте рекомендуемый шаблон Dispose, чтобы убедиться, что объект, созданный "{0}", освобожден для всех путей: инструкцию или объявление using либо конструкцию try/finally.</target>
         <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_simple_using_statement">
         <source>Use simple 'using' statement</source>
-        <target state="new">Use simple 'using' statement</target>
+        <target state="translated">Использовать простой оператор using</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -567,29 +617,29 @@
         <target state="translated">Предупреждение: изменение пространства имен может привести к появлению недопустимого кода и к изменению значения кода.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Wrap_and_align_call_chain">
-        <source>Wrap and align call chain</source>
-        <target state="new">Wrap and align call chain</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_colon_semantics_may_change_when_converting_statement">
         <source>Warning: Semantics may change when converting statement.</source>
-        <target state="new">Warning: Semantics may change when converting statement.</target>
+        <target state="translated">Внимание! При преобразовании инструкции семантика может измениться.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_call_chain">
+        <source>Wrap and align call chain</source>
+        <target state="translated">Свернуть и выровнять цепочку вызовов</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_expression">
         <source>Wrap and align expression</source>
-        <target state="new">Wrap and align expression</target>
+        <target state="translated">Перенос и выравнивание выражения</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_and_align_long_call_chain">
         <source>Wrap and align long call chain</source>
-        <target state="new">Wrap and align long call chain</target>
+        <target state="translated">Свернуть и выровнять длинную цепочку вызовов</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_call_chain">
         <source>Wrap call chain</source>
-        <target state="new">Wrap call chain</target>
+        <target state="translated">Свернуть цепочку вызовов</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -614,7 +664,7 @@
       </trans-unit>
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
-        <target state="new">Wrap long call chain</target>
+        <target state="translated">Свернуть длинную цепочку вызовов</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -644,7 +694,7 @@
       </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
-        <target state="new">in Source (attribute)</target>
+        <target state="translated">в источнике (атрибут)</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -1473,11 +1523,6 @@ Do you want to continue?</source>
         <target state="translated">Удалить квалификацию</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue1">
-        <source>Edit and Continue</source>
-        <target state="translated">Операция "Изменить и продолжить"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
         <source>This signature does not contain parameters that can be changed.</source>
         <target state="translated">Эта подпись не содержит параметры, которые можно изменить.</target>
@@ -1563,11 +1608,6 @@ Do you want to continue?</source>
         <target state="translated">Компилятор</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_and_Continue2">
-        <source>Edit and Continue</source>
-        <target state="translated">Операция "Изменить и продолжить"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Style">
         <source>Style</source>
         <target state="translated">Стиль</target>
@@ -1643,11 +1683,6 @@ Do you want to continue?</source>
         <target state="translated">Компилятор</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_And_Continue">
-        <source>Edit And Continue</source>
-        <target state="translated">Изменить и продолжить</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Live">
         <source>Live</source>
         <target state="translated">В реальном времени</target>
@@ -1655,12 +1690,12 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="enum_value">
         <source>enum value</source>
-        <target state="translated">значение перечисления</target>
+        <target state="translated">значение enum</target>
         <note>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="const_field">
         <source>const field</source>
-        <target state="translated">поле константы</target>
+        <target state="translated">поле const</target>
         <note>{Locked="const"} "const" is a C#/VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="method">
@@ -2577,7 +2612,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="using_statement_can_be_simplified">
         <source>'using' statement can be simplified</source>
-        <target state="new">'using' statement can be simplified</target>
+        <target state="translated">Оператор using можно упростить</target>
         <note />
       </trans-unit>
     </body>

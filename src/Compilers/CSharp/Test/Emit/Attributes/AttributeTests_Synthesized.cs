@@ -1543,7 +1543,7 @@ namespace System.Runtime.CompilerServices
 
             // Attribute cannot be synthesized because ctor has a use-site error (String type missing)
             var attribute = comp.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor);
-            Assert.Equal(null, attribute);
+            Assert.Null(attribute);
 
             // Attribute cannot be synthesized because type in named argument has use-site error (String type missing)
             var attribute2 = comp.TrySynthesizeAttribute(
@@ -1551,7 +1551,7 @@ namespace System.Runtime.CompilerServices
                                 namedArguments: ImmutableArray.Create(new KeyValuePair<WellKnownMember, TypedConstant>(
                                                     WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
                                                     new TypedConstant(comp.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, "unused"))));
-            Assert.Equal(null, attribute2);
+            Assert.Null(attribute2);
         }
     }
 }

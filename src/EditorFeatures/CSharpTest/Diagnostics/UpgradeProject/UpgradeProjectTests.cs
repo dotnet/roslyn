@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-                var operations = await VerifyActionAndGetOperationsAsync(action, default);
+                var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
 
                 var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
                 var oldSolution = appliedChanges.Item1;

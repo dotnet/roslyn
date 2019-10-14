@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             {
                 editor.ReplaceNode(
                     localFunction,
-                    (current, generator) => generator.WithModifiers(
-                        current,
-                        generator.GetModifiers(current).WithIsStatic(true)));
+                    (current, generator) => MakeLocalFunctionStaticHelper.AddStaticModifier(current, generator));
             }
 
             return Task.CompletedTask;

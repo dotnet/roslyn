@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
 
             // ownership of information on document has moved to project state. clear out documentInfo the state is
-            // holding on. otherwise, these information will be held onto unnecesarily by projectInfo even after
+            // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
             // the info has changed by DocumentState.
             _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
             _lazyLatestDocumentTopLevelChangeVersion = new AsyncLazy<VersionStamp>(c => ComputeLatestDocumentTopLevelChangeVersionAsync(docStates, additionalDocStates, c), cacheResult: true);
 
             // ownership of information on document has moved to project state. clear out documentInfo the state is
-            // holding on. otherwise, these information will be held onto unnecesarily by projectInfo even after
+            // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
             // the info has changed by DocumentState.
             // we hold onto the info so that we don't need to duplicate all information info already has in the state
             _projectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
@@ -262,6 +262,37 @@ namespace Microsoft.CodeAnalysis
 
                 return _analyzerOptionsDoNotAccessDirectly;
             }
+        }
+
+        public ImmutableDictionary<string, ReportDiagnostic> GetAnalyzerConfigSpecialDiagnosticOptions()
+        {
+            // We need to find the analyzer config options at the root of the project.
+            // Currently, there is no compiler API to query analyzer config options for a directory in a language agnostic fashion.
+            // So, we use a dummy language-specific file name appended to the project directory to query analyzer config options.
+
+            var projectDirectory = PathUtilities.GetDirectoryName(_projectInfo.FilePath);
+            if (!PathUtilities.IsAbsolute(projectDirectory))
+            {
+                return ImmutableDictionary<string, ReportDiagnostic>.Empty;
+            }
+
+            var fileName = Guid.NewGuid().ToString();
+            string sourceFilePath;
+            switch (_projectInfo.Language)
+            {
+                case LanguageNames.CSharp:
+                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.cs");
+                    break;
+
+                case LanguageNames.VisualBasic:
+                    sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, $"{fileName}.vb");
+                    break;
+
+                default:
+                    return ImmutableDictionary<string, ReportDiagnostic>.Empty;
+            }
+
+            return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath).TreeOptions;
         }
 
         private sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
