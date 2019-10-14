@@ -557,13 +557,14 @@ namespace System.Linq
             return true;
         }
 
+        [return: MaybeNull]
         public static T AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> func)
         {
             using (var e = source.GetEnumerator())
             {
                 if (!e.MoveNext())
                 {
-                    return default;
+                    return default!;
                 }
 
                 var result = e.Current;
