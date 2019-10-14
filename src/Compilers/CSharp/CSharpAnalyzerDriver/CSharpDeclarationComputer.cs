@@ -155,8 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArrowExpressionClause:
                     {
                         // Arrow expression clause declares getter symbol for properties and indexers.
-                        var parentProperty = node.Parent as BasePropertyDeclarationSyntax;
-                        if (parentProperty != null)
+                        if (node.Parent is BasePropertyDeclarationSyntax parentProperty)
                         {
                             builder.Add(GetExpressionBodyDeclarationInfo(parentProperty, (ArrowExpressionClauseSyntax)node, model, getSymbol, cancellationToken));
                         }
@@ -233,8 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var codeBlocks = GetParameterListInitializersAndAttributes(t.ParameterList);
                         codeBlocks = codeBlocks.Concat(t.Body);
 
-                        var ctorDecl = t as ConstructorDeclarationSyntax;
-                        if (ctorDecl != null && ctorDecl.Initializer != null)
+                        if (t is ConstructorDeclarationSyntax ctorDecl && ctorDecl.Initializer != null)
                         {
                             codeBlocks = codeBlocks.Concat(ctorDecl.Initializer);
                         }

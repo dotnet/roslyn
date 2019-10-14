@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
             catch (TypeLoadException)
             {
-                // We're targetting a version of the BlockTagging infrastructure in 
+                // We're targeting a version of the BlockTagging infrastructure in 
                 // VS that may not match the version that the user is currently
                 // developing against.  Be resilient to this until everything moves
                 // forward to the right VS version.

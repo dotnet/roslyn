@@ -680,7 +680,9 @@ tryAgain:
                 arms.Add(switchExpressionCase);
                 if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
                 {
-                    var commaToken = this.EatToken(SyntaxKind.CommaToken);
+                    var commaToken = this.CurrentToken.Kind == SyntaxKind.SemicolonToken
+                        ? this.EatTokenAsKind(SyntaxKind.CommaToken)
+                        : this.EatToken(SyntaxKind.CommaToken);
                     arms.AddSeparator(commaToken);
                 }
             }

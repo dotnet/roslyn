@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -132,9 +133,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             await TaskScheduler.Default;
 
-            // Perf: Initialize the command handlers.
-            var commandHandlerServiceFactory = this.ComponentModel.GetService<ICommandHandlerServiceFactory>();
-            commandHandlerServiceFactory.Initialize(ContentTypeNames.RoslynContentType);
             await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
 
             // Initialize any experiments async
@@ -157,11 +155,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await TaskScheduler.Default;
 
             await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
-                .InitializeResetInteractiveFromProjectCommandAsync(cancellationToken)
+                .InitializeResetInteractiveFromProjectCommandAsync()
                 .ConfigureAwait(true);
 
             await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
-                .InitializeResetInteractiveFromProjectCommandAsync(cancellationToken)
+                .InitializeResetInteractiveFromProjectCommandAsync()
                 .ConfigureAwait(true);
         }
 
@@ -198,6 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             SolutionLogger.ReportTelemetry();
             AsyncCompletionLogger.ReportTelemetry();
             CompletionProvidersLogger.ReportTelemetry();
+            SyntacticLspLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()

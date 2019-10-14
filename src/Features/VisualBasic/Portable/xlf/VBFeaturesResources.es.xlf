@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="translated">Agregar importaciones que faltan</target>
+        <target state="translated">Agregar instancias de Import que faltan</target>
         <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
@@ -69,12 +69,12 @@
       </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
-        <target state="translated">Introducir instrucción "using"</target>
+        <target state="translated">Introducir instrucción "Using"</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="translated">Hacer que "{0}" se pueda heredar</target>
+        <target state="translated">Hacer "{0}" heredable</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
@@ -95,11 +95,6 @@
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">Quitar instrucciones Import innecesarias</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_Imports">
-        <source>&amp;Sort Imports</source>
-        <target state="new">&amp;Sort Imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -342,16 +337,11 @@
         <target state="translated">&lt;nueva variable&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">Quitar y ord&amp;enar instrucciones Import</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
         <source>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</source>
         <target state="translated">Crea una instancia del procedimiento delegado que hace referencia al procedimiento especificado.
-AddressOf &lt;nombreDeProcedimiento&gt;</target>
+AddressOf &lt;procedureName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Indicates_that_an_external_procedure_has_another_name_in_its_DLL">
@@ -902,7 +892,7 @@ Iterator Function(&lt;listaDeParámetros&gt;) As IEnumerable(Of &lt;T&gt;)</targ
         <source>Determines the run-time type of an object reference variable and compares it to a data type. Returns True or False depending, on whether the two types are compatible.
 &lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</source>
         <target state="translated">Determina el tipo en tiempo de ejecución de una variable de referencia de objetos y lo compara con un tipo de datos. Devuelve True o False dependiendo de si los dos tipos son compatibles.
-&lt;resultado&gt; = TypeOf &lt;expresiónDeObjeto&gt; Is &lt;nombreDeTipo&gt;</target>
+&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_Specifies_that_Visual_Basic_should_marshal_all_strings_to_Unicode_values_in_a_call_into_an_external_procedure_and_should_look_up_the_procedure_without_modifying_its_name">
@@ -1365,7 +1355,7 @@ Option Strict {On | Off}</target>
         <source>Ensures that multiple threads do not execute the statement block at the same time.
 SyncLock &lt;object&gt;...End Synclock</source>
         <target state="translated">Garantiza que varios subprocesos no ejecuten el bloque de instrucciones al mismo tiempo.
-SyncLock &lt;objeto&gt;...End Synclock</target>
+SyncLock &lt;object&gt;...End Synclock</target>
         <note />
       </trans-unit>
       <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
@@ -1431,14 +1421,14 @@ Using &lt;recurso1&gt;[, &lt;recurso2&gt;]...End Using</target>
         <source>Specifies the declaration of property initializations in an object initializer.
 New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</source>
         <target state="translated">Especifica la declaración de inicialización de propiedades en un inicializador de objetos.
-New &lt;nombreDeTipo&gt; With {[.&lt;propiedad&gt; = &lt;expresión&gt;][,...]}</target>
+New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</target>
         <note />
       </trans-unit>
       <trans-unit id="Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With">
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
         <target state="translated">Ejecuta una serie de instrucciones que hacen referencia a un único objeto o estructura.
-With &lt;objeto&gt;...End With</target>
+With &lt;object&gt;...End With</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
@@ -1599,12 +1589,12 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="For_Each_statement">
         <source>For Each statement</source>
-        <target state="translated">Para cada instrucción</target>
+        <target state="translated">instrucción For Each</target>
         <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="For_Each_block">
         <source>For Each block</source>
-        <target state="translated">Para cada bloque</target>
+        <target state="translated">bloque For Each</target>
         <note>{Locked="For Each"} "For Each" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="On_Error_statement">
@@ -1694,7 +1684,7 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="Join_condition">
         <source>Join condition</source>
-        <target state="translated">Condición de combinación</target>
+        <target state="translated">condición Join</target>
         <note>{Locked="Join"} "Join" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="WithEvents_field">

@@ -228,8 +228,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The path to the output in obj.
         /// </summary>
-        /// <remarks>This is internal for now, as it's only consumed by <see cref="EditAndContinue.VsENCRebuildableProjectImpl"/>
-        /// which directly takes a <see cref="VisualStudioProject"/>.</remarks>
         internal string IntermediateOutputFilePath
         {
             get => _intermediateOutputFilePath;
@@ -312,6 +310,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        value,
                        s => s.WithProjectDefaultNamespace(Id, value),
                        w => w.OnDefaultNamespaceChanged(Id, value));
+        }
+
+        /// <summary>
+        /// The max language version supported for this project, if applicable. Useful to help indicate what 
+        /// language version features should be suggested to a user, as well as if they can be upgraded. 
+        /// </summary>
+        internal string MaxLangVersion
+        {
+            set => _workspace.SetMaxLanguageVersion(Id, value);
         }
 
 
@@ -428,9 +435,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         var projectReferencesCreated = new List<ProjectReference>();
                         var metadataReferencesCreated = new List<MetadataReference>();
 
-                        foreach (var metadataReferenceAddedInBatch in _metadataReferencesAddedInBatch)
+                        foreach (var (path, properties) in _metadataReferencesAddedInBatch)
                         {
-                            var projectReference = _workspace.TryCreateConvertedProjectReference(Id, metadataReferenceAddedInBatch.path, metadataReferenceAddedInBatch.properties);
+                            var projectReference = _workspace.TryCreateConvertedProjectReference(Id, path, properties);
 
                             if (projectReference != null)
                             {
@@ -438,7 +445,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             }
                             else
                             {
-                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(metadataReferenceAddedInBatch.path, metadataReferenceAddedInBatch.properties);
+                                var metadataReference = _workspace.FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(path, properties);
                                 metadataReferencesCreated.Add(metadataReference);
                             }
                         }
@@ -452,9 +459,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     // Metadata reference removing...
-                    foreach (var metadataReferenceRemovedInBatch in _metadataReferencesRemovedInBatch)
+                    foreach (var (path, properties) in _metadataReferencesRemovedInBatch)
                     {
-                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, metadataReferenceRemovedInBatch.path, metadataReferenceRemovedInBatch.properties);
+                        var projectReference = _workspace.TryRemoveConvertedProjectReference(Id, path, properties);
 
                         if (projectReference != null)
                         {
@@ -466,7 +473,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         {
                             // TODO: find a cleaner way to fetch this
                             var metadataReference = _workspace.CurrentSolution.GetProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                    .Single(m => m.FilePath == metadataReferenceRemovedInBatch.path && m.Properties == metadataReferenceRemovedInBatch.properties);
+                                                                                    .Single(m => m.FilePath == path && m.Properties == properties);
 
                             _workspace.FileWatchedReferenceFactory.StopWatchingReference(metadataReference);
 
@@ -637,11 +644,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     continue;
                 }
 
-                // don't get confused by _filePath and filePath
+                // Don't get confused by _filePath and filePath.
                 // VisualStudioProject._filePath points to csproj/vbproj of the project
-                // and the parameter filePath points to dynamic file such as cshtml and etc
+                // and the parameter filePath points to dynamic file such as ASP.NET .g.cs files.
                 // 
-                // also, provider is free-threaded. so fine to call Wait rather than JTF
+                // Also, provider is free-threaded. so fine to call Wait rather than JTF.
                 var fileInfo = provider.Value.GetDynamicFileInfoAsync(
                     projectId: Id, projectFilePath: _filePath, filePath: dynamicFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
@@ -1573,7 +1580,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var documentId = DocumentId.CreateNewId(_project.Id, filePath);
 
                 var textLoader = fileInfo.TextLoader;
-                var documentServiceProvider = fileInfo.DocumentServiceProvider;
+                var documentServiceProvider = new DynamicFileDocumentServiceProvider(fileInfo.DocumentServiceProvider);
 
                 return DocumentInfo.Create(
                     documentId,
@@ -1584,6 +1591,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     filePath: filePath,
                     isGenerated: false,
                     documentServiceProvider: documentServiceProvider);
+            }
+
+            private sealed class DynamicFileDocumentServiceProvider : IDocumentServiceProvider
+            {
+                private sealed class DesignTimeOnlyDocumentPropertiesService : DocumentPropertiesService
+                {
+                    public static readonly DesignTimeOnlyDocumentPropertiesService Instance = new DesignTimeOnlyDocumentPropertiesService();
+                    public override bool DesignTimeOnly => true;
+                }
+
+                private readonly IDocumentServiceProvider _provider;
+
+                public DynamicFileDocumentServiceProvider(IDocumentServiceProvider provider)
+                {
+                    _provider = provider;
+                }
+
+                TService IDocumentServiceProvider.GetService<TService>()
+                {
+                    if (DesignTimeOnlyDocumentPropertiesService.Instance is TService documentPropertiesService)
+                    {
+                        return documentPropertiesService;
+                    }
+
+                    return _provider.GetService<TService>();
+                }
             }
 
             private sealed class SourceTextLoader : TextLoader

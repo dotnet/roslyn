@@ -697,15 +697,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         {
             if (b) /*8*/
             { /*9*/
-              /*10*/
+                /*10*/
                 goo(); /*11*/
-                       /*12*/
+                /*12*/
             } /*13*/
             else /*14*/
             { /*15*/
-              /*16*/
+                /*16*/
                 goo(); /*17*/
-                       /*18*/
+                /*18*/
             } /*19*/
         }
         else

@@ -1752,7 +1752,7 @@ class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [WorkItem(3019, "DevDiv_Projects/Roslyn")]
@@ -3942,7 +3942,7 @@ public class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [WorkItem(538215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538215")]
@@ -8215,7 +8215,8 @@ class Program
 
             var symbolInfo = semanticModel.GetSymbolInfo(selectClauseNode);
 
-            Assert.NotNull(symbolInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, symbolInfo);
             Assert.Null(symbolInfo.Symbol);
         }
 
@@ -8511,7 +8512,7 @@ public class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [Fact]
@@ -8716,7 +8717,7 @@ public class Test
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [Fact]
@@ -11453,7 +11454,7 @@ class Program
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
             Assert.True(semanticInfo.IsCompileTimeConstant);
-            Assert.Equal(null, semanticInfo.ConstantValue.Value);
+            Assert.Null(semanticInfo.ConstantValue.Value);
         }
 
         [WorkItem(542850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542850")]
@@ -11599,7 +11600,7 @@ class Test
             Assert.Equal("global", aliasInfo.Name);
             Assert.Equal("<global namespace>", aliasInfo.Target.ToTestDisplayString());
             Assert.True(((NamespaceSymbol)(aliasInfo.Target)).IsGlobalNamespace);
-            Assert.Equal(false, aliasInfo.IsExtern);
+            Assert.False(aliasInfo.IsExtern);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -11633,7 +11634,7 @@ class Test
             Assert.Equal("global", aliasInfo.Name);
             Assert.Equal("<global namespace>", aliasInfo.Target.ToTestDisplayString());
             Assert.True(((NamespaceSymbol)(aliasInfo.Target)).IsGlobalNamespace);
-            Assert.Equal(false, aliasInfo.IsExtern);
+            Assert.False(aliasInfo.IsExtern);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -14399,7 +14400,7 @@ class A
             var model = compilation.GetSemanticModel(tree);
             var typeInfo = model.GetTypeInfo(node); // Ensure that this doesn't throw.
 
-            Assert.NotNull(typeInfo);
+            Assert.NotEqual(default, typeInfo);
         }
 
         [WorkItem(11451, "DevDiv_Projects/Roslyn")]
@@ -14653,7 +14654,7 @@ class C2
 
                 var info1 = model.GetTypeInfo(syntaxToBind);
 
-                Assert.NotNull(info1);
+                Assert.NotEqual(default, info1);
                 Assert.Equal("System.Int32", info1.Type.ToTestDisplayString());
             }
         }

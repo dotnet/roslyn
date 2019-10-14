@@ -24,10 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(markup, options))
-            {
-                await TestWithOptionsAsync(workspace, expectedResults);
-            }
+            using var workspace = TestWorkspace.CreateCSharp(markup, options);
+            await TestWithOptionsAsync(workspace, expectedResults);
+        }
+
+        private async Task TestWithOptionsAsync(CSharpCompilationOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(markup, compilationOptions: options);
+            await TestWithOptionsAsync(workspace, expectedResults);
         }
 
         private async Task TestWithOptionsAsync(TestWorkspace workspace, params Action<QuickInfoItem>[] expectedResults)
@@ -86,28 +90,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     </Project>
 </Workspace>", SecurityElement.Escape(markup));
 
-            using (var workspace = TestWorkspace.Create(xmlString))
+            using var workspace = TestWorkspace.Create(xmlString);
+            var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
+            var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+
+            var service = QuickInfoService.GetService(document);
+
+            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+
+            if (expectedResults.Length == 0)
             {
-                var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
-                var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
-                var document = workspace.CurrentSolution.GetDocument(documentId);
+                Assert.Null(info);
+            }
+            else
+            {
+                Assert.NotNull(info);
 
-                var service = QuickInfoService.GetService(document);
-
-                var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
-
-                if (expectedResults.Length == 0)
+                foreach (var expected in expectedResults)
                 {
-                    Assert.Null(info);
-                }
-                else
-                {
-                    Assert.NotNull(info);
-
-                    foreach (var expected in expectedResults)
-                    {
-                        expected(info);
-                    }
+                    expected(info);
                 }
             }
         }
@@ -232,28 +234,26 @@ using System.Linq;
 
         private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<QuickInfoItem>[] expectedResults)
         {
-            using (var workspace = TestWorkspace.Create(xmlString))
+            using var workspace = TestWorkspace.Create(xmlString);
+            var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
+            var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+
+            var service = QuickInfoService.GetService(document);
+
+            var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
+
+            if (expectedResults.Length == 0)
             {
-                var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
-                var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
-                var document = workspace.CurrentSolution.GetDocument(documentId);
+                Assert.Null(info);
+            }
+            else
+            {
+                Assert.NotNull(info);
 
-                var service = QuickInfoService.GetService(document);
-
-                var info = await service.GetQuickInfoAsync(document, position, cancellationToken: CancellationToken.None);
-
-                if (expectedResults.Length == 0)
+                foreach (var expected in expectedResults)
                 {
-                    Assert.Null(info);
-                }
-                else
-                {
-                    Assert.NotNull(info);
-
-                    foreach (var expected in expectedResults)
-                    {
-                        expected(info);
-                    }
+                    expected(info);
                 }
             }
         }
@@ -3728,8 +3728,7 @@ $@"
         }
 
         [WorkItem(543873, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543873")]
-        [WorkItem(30035, "https://github.com/dotnet/roslyn/issues/30035")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30035"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestNestedAnonymousType()
         {
             // verify nested anonymous types are listed in the same order for different properties
@@ -4922,7 +4921,7 @@ class C
         public async Task BindSymbolInOtherFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" LanguageVersion=""730"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
@@ -5705,10 +5704,8 @@ class C
     </Submission>
 </Workspace>
 ";
-            using (var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
-            {
-                await TestWithOptionsAsync(workspace, MainDescription($"({ FeaturesResources.parameter }) int x = 1"));
-            }
+            using var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive);
+            await TestWithOptionsAsync(workspace, MainDescription($"({ FeaturesResources.parameter }) int x = 1"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -6590,6 +6587,119 @@ class X
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string s"),
                 NullabilityAnalysis(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableNotShownInNullableDisableContextEvenIfAnalysisIsRunning()
+        {
+            var options = TestOptions.Regular8.WithFeature(CompilerFeatureFlags.RunNullableAnalysis, "true");
+            await TestWithOptionsAsync(options,
+@"#nullable disable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        string s = """";
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string s"),
+                NullabilityAnalysis(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableShownWhenEnabledGlobally()
+        {
+            await TestWithOptionsAsync(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable),
+@"using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        string s = """";
+        string s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) string s"),
+                NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableNotShownForValueType()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        int a = 0;
+        int b = $$a;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) int a"),
+                NullabilityAnalysis(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task NullableNotShownForConst()
+        {
+            await TestWithOptionsAsync(TestOptions.Regular8,
+@"#nullable enable
+
+using System.Collections.Generic;
+
+class X
+{
+    void N()
+    {
+        const string? s = null;
+        string? s2 = $$s;
+    }
+}",
+                MainDescription($"({FeaturesResources.local_constant}) string? s = null"),
+                NullabilityAnalysis(""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocInlineSummary()
+        {
+            var markup =
+@"
+/// <summary>Summary documentation</summary>
+/// <remarks>Remarks documentation</remarks>
+void M(int x) { }
+
+/// <summary><inheritdoc cref=""M(int)""/></summary>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation("Summary documentation"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(38794, "https://github.com/dotnet/roslyn/issues/38794")]
+        public async Task TestLinqGroupVariableDeclaration()
+        {
+            var code =
+@"
+void M(string[] a)
+{
+    var v = from x in a
+            group x by x.Length into $$g
+            select g;
+}";
+
+            await TestInClassAsync(code,
+                MainDescription($"({FeaturesResources.range_variable}) IGrouping<int, string> g"));
         }
     }
 }

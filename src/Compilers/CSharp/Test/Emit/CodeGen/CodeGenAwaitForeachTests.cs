@@ -717,6 +717,7 @@ class C
             var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
+            Assert.True(info.IsAsynchronous);
             Assert.Equal("C.Enumerator C.GetAsyncEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<System.Boolean> C.Enumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 C.Enumerator.Current { get; }", info.CurrentProperty.ToTestDisplayString());
@@ -2498,7 +2499,7 @@ public class C
     IL_000c:  br         IL_009a
     // sequence point: {
     IL_0011:  nop
-    // sequence point: foreach
+    // sequence point: await foreach
     IL_0012:  nop
     // sequence point: new C()
     IL_0013:  ldarg.0
@@ -4208,7 +4209,7 @@ class C
     IL_0012:  ldarg.0
     IL_0013:  newobj     ""Collection<int>..ctor()""
     IL_0018:  stfld      ""ICollection<int> C.<Main>d__0.<c>5__1""
-    // sequence point: foreach
+    // sequence point: await foreach
     IL_001d:  nop
     // sequence point: c
     IL_001e:  ldarg.0
@@ -4915,6 +4916,60 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+        }
+
+        [Fact]
+        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
+        public void GetAwaiterBoxingConversion()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+interface I1 { }
+interface I2 { }
+struct StructAwaitable1 : I1 { }
+struct StructAwaitable2 : I2 { }
+
+class Enumerable
+{
+    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    internal class Enumerator
+    {
+        public object Current => null;
+        public StructAwaitable1 MoveNextAsync() => new StructAwaitable1();
+        public StructAwaitable2 DisposeAsync() => new StructAwaitable2();
+    }
+}
+
+static class Extensions
+{
+    internal static TaskAwaiter<bool> GetAwaiter(this I1 x)
+    {
+        if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
+        return Task.FromResult(false).GetAwaiter();
+    }
+    internal static TaskAwaiter GetAwaiter(this I2 x)
+    {
+        if (x == null) throw new ArgumentNullException(nameof(x));
+        Console.Write(x);
+        return Task.CompletedTask.GetAwaiter();
+    }
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        await foreach (var o in new Enumerable())
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "StructAwaitable1StructAwaitable2");
         }
     }
 }

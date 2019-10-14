@@ -349,10 +349,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
-                var methodSymbol = symbolInfo.Symbol as IMethodSymbol;
                 var isReducedExtensionMethod = false;
 
-                if (methodSymbol != null && methodSymbol.MethodKind == MethodKind.ReducedExtension)
+                if (symbolInfo.Symbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.ReducedExtension)
                 {
                     isReducedExtensionMethod = true;
                 }
@@ -527,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
             var declaredParameters = declarationSymbol.GetParameters();
-            if (paramNodes.Count() != declaredParameters.Count())
+            if (paramNodes.Count() != declaredParameters.Length)
             {
                 return null;
             }
@@ -576,8 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     continue;
                 }
 
-                var structuredTrivia = trivia.GetStructure() as DocumentationCommentTriviaSyntax;
-                if (structuredTrivia == null)
+                if (!(trivia.GetStructure() is DocumentationCommentTriviaSyntax structuredTrivia))
                 {
                     updatedLeadingTrivia.Add(trivia);
                     continue;

@@ -71,7 +71,17 @@ namespace Microsoft.CodeAnalysis.Host
 
                 case WorkspaceChangeKind.SolutionChanged:
                 case WorkspaceChangeKind.ProjectRemoved:
-                    Rebuild(args.NewSolution);
+                    if (args.NewSolution.ProjectIds.Count == 0)
+                    {
+                        // Close solution no longer triggers a SolutionRemoved event,
+                        // so we need to make an explicitly check for ProjectRemoved event.
+                        CancelBuild(releasePreviousCompilations: true);
+                    }
+                    else
+                    {
+                        Rebuild(args.NewSolution);
+                    }
+
                     break;
 
                 default:

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _owner = owner;
                 _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
 
-                // currently option is a bit wierd since it is not part of snapshot and 
+                // currently option is a bit weird since it is not part of snapshot and 
                 // we can't load all options without loading all language specific dlls.
                 // we have tracking issue for this.
                 // https://github.com/dotnet/roslyn/issues/13643
@@ -127,42 +127,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var solution = project.Solution;
                 var snapshotService = solution.Workspace.Services.GetService<IRemotableDataService>();
 
-                using (var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject())
+                using var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject();
+                var analyzerMap = pooledObject.Object;
+
+                analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Workspace)));
+                if (analyzerMap.Count == 0)
                 {
-                    var analyzerMap = pooledObject.Object;
-
-                    analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Workspace)));
-                    if (analyzerMap.Count == 0)
-                    {
-                        return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
-                    }
-
-                    var optionAsset = GetOptionsAsset(solution, project.Language, cancellationToken);
-
-                    var argument = new DiagnosticArguments(
-                        forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
-                        project.Id, optionAsset.Checksum, analyzerMap.Keys.ToArray());
-
-                    using (var session = await client.TryCreateCodeAnalysisSessionAsync(solution, cancellationToken).ConfigureAwait(false))
-                    {
-                        if (session == null)
-                        {
-                            // session is not available
-                            return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
-                        }
-
-                        session.AddAdditionalAssets(optionAsset);
-
-                        var result = await session.InvokeAsync(
-                            nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
-                            new object[] { argument },
-                            (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
-
-                        ReportAnalyzerExceptions(project, result.Exceptions);
-
-                        return result;
-                    }
+                    return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
                 }
+
+                var optionAsset = GetOptionsAsset(solution, project.Language, cancellationToken);
+
+                var argument = new DiagnosticArguments(
+                    forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
+                    project.Id, optionAsset.Checksum, analyzerMap.Keys.ToArray());
+
+                using var session = await client.TryCreateCodeAnalysisSessionAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (session == null)
+                {
+                    // session is not available
+                    return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
+                }
+
+                session.AddAdditionalAssets(optionAsset);
+
+                var result = await session.InvokeAsync(
+                    nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
+                    new object[] { argument },
+                    (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
+
+                ReportAnalyzerExceptions(project, result.Exceptions);
+
+                return result;
             }
 
             private CustomAsset GetOptionsAsset(Solution solution, string language, CancellationToken cancellationToken)
@@ -191,13 +187,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // handling of cancellation and exception
                 var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-                using (var reader = ObjectReader.TryGetReader(stream))
-                {
-                    Debug.Assert(reader != null,
-    @"We only ge a reader for data transmitted between live processes.
+                using var reader = ObjectReader.TryGetReader(stream);
+                Debug.Assert(reader != null,
+@"We only ge a reader for data transmitted between live processes.
 This data should always be correct as we're never persisting the data between sessions.");
-                    return DiagnosticResultSerializer.Deserialize(reader, analyzerMap, project, version, cancellationToken);
-                }
+                return DiagnosticResultSerializer.Deserialize(reader, analyzerMap, project, version, cancellationToken);
             }
 
             private void ReportAnalyzerExceptions(Project project, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> exceptions)

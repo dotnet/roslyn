@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
     public abstract partial class BooleanCodeStyleOptionConfigurationTests : AbstractSuppressionDiagnosticTest
     {
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-        => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         protected override string GetLanguage() => LanguageNames.CSharp;
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
         internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider(performExperimentCheck: false));
+                        new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider());
         }
 
         public class TrueConfigurationTests : BooleanCodeStyleOptionConfigurationTests
@@ -94,7 +94,7 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:suggestion
@@ -243,7 +243,7 @@ class Program1
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_style_object_initializer = false:suggestion
 
-[*.cs]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = true:suggestion
@@ -467,7 +467,7 @@ class Program1
     }
 }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = false:suggestion
@@ -616,7 +616,7 @@ class Program1
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.vb]
 dotnet_style_object_initializer = true:suggestion
 
-[*.cs]
+[*.{cs,vb}]
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = false:suggestion

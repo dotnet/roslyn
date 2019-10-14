@@ -7844,24 +7844,24 @@ unsafe class C
                 .GetDiagnostics()
                 .Where(d => d.Severity == DiagnosticSeverity.Error)
                 .Verify(
-                    // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-                    //     object* _object;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"),
-                    // (22,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+                    // (22,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
                     //     string* _string;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "string*").WithArguments("string"),
-                    // (27,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_string").WithArguments("string").WithLocation(22, 13),
+                    // (27,14): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                     //     dynamic* _dynamic;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic*").WithArguments("dynamic"),
-                    // (29,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('D')
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_dynamic").WithArguments("dynamic").WithLocation(27, 14),
+                    // (29,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('D')
                     //     D* d;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("D"),
-                    // (31,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('I')
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "d").WithArguments("D").WithLocation(29, 8),
+                    // (31,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('I')
                     //     I* i;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "I*").WithArguments("I"),
-                    // (32,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "i").WithArguments("I").WithLocation(31, 8),
+                    // (32,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                     //     C* c;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C"));
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("C").WithLocation(32, 8),
+                    // (7,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
+                    //     object* _object;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "_object").WithArguments("object").WithLocation(7, 13));
         }
 
         [Fact]
@@ -10489,6 +10489,26 @@ class Tester
         }
 
         [Fact]
+        [WorkItem(36203, "https://github.com/dotnet/roslyn/issues/36203")]
+        public void CS0452_GenericConstraintError_HasHigherPriorityThanMethodOverloadError()
+        {
+            var code = @"
+class Code
+{
+    void GenericMethod<T>(int i) where T: class => throw null;
+    void GenericMethod<T>(string s) => throw null;
+
+    void IncorrectMethodCall()
+    {
+        GenericMethod<int>(1);
+    }
+}";
+            CreateCompilation(code).VerifyDiagnostics(
+                // (9,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'Code.GenericMethod<T>(int)'
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "GenericMethod<int>").WithArguments("Code.GenericMethod<T>(int)", "T", "int").WithLocation(9, 9));
+        }
+
+        [Fact]
         public void CS0457ERR_AmbigUDConv()
         {
             var text = @"
@@ -11411,6 +11431,28 @@ public class Test
 }";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_ConvertToStaticClass, Line = 12, Column = 34 } });
+        }
+
+        [Fact]
+        [WorkItem(36203, "https://github.com/dotnet/roslyn/issues/36203")]
+        public void CS0718_StaticClassError_HasHigherPriorityThanMethodOverloadError()
+        {
+            var code = @"
+static class StaticClass { }
+
+class Code
+{
+    void GenericMethod<T>(int i) => throw null;
+    void GenericMethod<T>(string s) => throw null;
+
+    void IncorrectMethodCall()
+    {
+        GenericMethod<StaticClass>(1);
+    }
+}";
+            CreateCompilation(code).VerifyDiagnostics(
+                // (11,9): error CS0718: 'StaticClass': static types cannot be used as type arguments
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GenericMethod<StaticClass>").WithArguments("StaticClass").WithLocation(11, 9));
         }
 
         [Fact]
@@ -16859,9 +16901,9 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-                // (14,23): error CS1943: An expression of type 'int' is not allowed in a subsequent from clause in a query expression with source type 'Test.F1'.  Type inference failed in the call to 'SelectMany'.
-                //             from g in 3
-                Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailedSelectMany, "3").WithArguments("int", "Test.F1", "SelectMany")
+                    // (14,23): error CS1943: An expression of type 'int' is not allowed in a subsequent from clause in a query expression with source type 'Test.F1'.  Type inference failed in the call to 'SelectMany'.
+                    //             from g in 3
+                    Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailedSelectMany, "3").WithArguments("int", "Test.F1", "SelectMany").WithLocation(14, 23)
             );
         }
 
@@ -21936,7 +21978,7 @@ class C
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T1)[1]").WithArguments("T1").WithLocation(35, 9),
                 // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T3)[1]").WithLocation(37, 9), // Incorrect? See CS0131ERR_AssgLvalueExpected03 unit test.
-                // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
+                                                                                                    // (38,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T4' is null
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T4)[1]").WithArguments("T4").WithLocation(38, 9));
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (37,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer

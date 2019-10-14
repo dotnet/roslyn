@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             protected async Task AppendDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
             {
-                // PERF; run projects parallely rather than running CompilationWithAnalyzer with concurrency == true.
+                // PERF; run projects parallelly rather than running CompilationWithAnalyzer with concurrency == true.
                 //       we doing this to be safe (not get into thread starvation causing hundreds of threads to be spawn up).
                 var includeProjectNonLocalResult = true;
 

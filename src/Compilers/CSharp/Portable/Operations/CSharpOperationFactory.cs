@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
             // implicit receiver can be shared between multiple bound nodes.
             // always return cloned one
-            if (boundNode.Kind == BoundKind.ImplicitReceiver)
+            if (boundNode.Kind == BoundKind.ImplicitReceiver ||
+                boundNode.Kind == BoundKind.ObjectOrCollectionValuePlaceholder)
             {
                 return OperationCloner.CloneOperation(CreateInternal(boundNode));
             }
@@ -126,6 +127,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundArrayCreationOperation((BoundArrayCreation)boundNode);
                 case BoundKind.ArrayInitialization:
                     return CreateBoundArrayInitializationOperation((BoundArrayInitialization)boundNode);
+                case BoundKind.DefaultLiteral:
+                    return CreateBoundDefaultLiteralOperation((BoundDefaultLiteral)boundNode);
                 case BoundKind.DefaultExpression:
                     return CreateBoundDefaultExpressionOperation((BoundDefaultExpression)boundNode);
                 case BoundKind.BaseReference:
@@ -285,6 +288,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
                 case BoundKind.UsingLocalDeclarations:
                     return CreateUsingLocalDeclarationsOperation((BoundUsingLocalDeclarations)boundNode);
+                case BoundKind.ObjectOrCollectionValuePlaceholder:
+                    return CreateCollectionValuePlaceholderOperation((BoundObjectOrCollectionValuePlaceholder)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -650,7 +655,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             switch (receiver)
             {
-                case BoundImplicitReceiver implicitReceiver:
+                case BoundObjectOrCollectionValuePlaceholder implicitReceiver:
                     return CreateBoundDynamicMemberAccessOperation(implicitReceiver, typeArgumentsOpt: ImmutableArray<TypeSymbol>.Empty, memberName: "Add",
                                                                    implicitReceiver.Syntax, type: null, value: default, isImplicit: true);
 
@@ -1062,6 +1067,14 @@ namespace Microsoft.CodeAnalysis.Operations
             return new CSharpLazyArrayInitializerOperation(this, boundArrayInitialization, _semanticModel, syntax, constantValue, isImplicit);
         }
 
+        private IDefaultValueOperation CreateBoundDefaultLiteralOperation(BoundDefaultLiteral boundDefaultLiteral)
+        {
+            SyntaxNode syntax = boundDefaultLiteral.Syntax;
+            Optional<object> constantValue = ConvertToOptional(null);
+            bool isImplicit = boundDefaultLiteral.WasCompilerGenerated;
+            return new DefaultValueOperation(_semanticModel, syntax, type: null, constantValue, isImplicit);
+        }
+
         private IDefaultValueOperation CreateBoundDefaultExpressionOperation(BoundDefaultExpression boundDefaultExpression)
         {
             SyntaxNode syntax = boundDefaultExpression.Syntax;
@@ -1387,12 +1400,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             ImmutableArray<IPropertySymbol> initializedProperties = ImmutableArray.Create<IPropertySymbol>(boundPropertyEqualsValue.Property);
             BoundNode value = boundPropertyEqualsValue.Value;
-            OperationKind kind = OperationKind.PropertyInitializer;
             SyntaxNode syntax = boundPropertyEqualsValue.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundPropertyEqualsValue.WasCompilerGenerated;
-            return new CSharpLazyPropertyInitializerOperation(this, value, boundPropertyEqualsValue.Locals.As<ILocalSymbol>(), initializedProperties, kind, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new CSharpLazyPropertyInitializerOperation(this, value, boundPropertyEqualsValue.Locals.As<ILocalSymbol>(), initializedProperties, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IParameterInitializerOperation CreateBoundParameterEqualsValueOperation(BoundParameterEqualsValue boundParameterEqualsValue)
@@ -1534,7 +1546,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.GetEnumeratorMethod,
                                                     (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
                                                     enumeratorInfoOpt.MoveNextMethod,
-                                                    enumeratorInfoOpt.NeedsDisposal,
+                                                    isAsynchronous: enumeratorInfoOpt.IsAsync,
+                                                    needsDispose: enumeratorInfoOpt.NeedsDisposal,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
                                                                                      compilation.Conversions.
                                                                                          ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,
@@ -2073,7 +2086,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         var receiver = new InstanceReferenceOperation(
                             InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, constantValue: default, isImplicit: true);
                         return new PropertyReferenceOperation(
-                            property, receiver, ImmutableArray<IArgumentOperation>.Empty, _semanticModel, nameSyntax, property.Type,
+                            property, ImmutableArray<IArgumentOperation>.Empty, receiver, _semanticModel, nameSyntax, property.Type,
                             constantValue: default, isImplicit: isImplicit);
                     }
                 default:
@@ -2081,6 +2094,16 @@ namespace Microsoft.CodeAnalysis.Operations
                     // https://github.com/dotnet/roslyn/issues/33175
                     return OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit);
             }
+        }
+
+        private IInstanceReferenceOperation CreateCollectionValuePlaceholderOperation(BoundObjectOrCollectionValuePlaceholder placeholder)
+        {
+            InstanceReferenceKind referenceKind = InstanceReferenceKind.ImplicitReceiver;
+            SyntaxNode syntax = placeholder.Syntax;
+            ITypeSymbol type = placeholder.Type;
+            Optional<object> constantValue = ConvertToOptional(placeholder.ConstantValue);
+            bool isImplicit = placeholder.WasCompilerGenerated;
+            return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
     }
 }

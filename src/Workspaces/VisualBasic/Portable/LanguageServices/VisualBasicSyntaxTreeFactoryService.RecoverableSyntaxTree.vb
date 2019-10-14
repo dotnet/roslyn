@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If(diagnosticOptions, EmptyDiagnosticOptions)))
                 End Function
 
-                Public Overrides ReadOnly Property FilePath As String
+                Public Overrides ReadOnly Property FilePath As String Implements IRecoverableSyntaxTree(Of CompilationUnitSyntax).FilePath
                     Get
                         Return _info.FilePath
                     End Get

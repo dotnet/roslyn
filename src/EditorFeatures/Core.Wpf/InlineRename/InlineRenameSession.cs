@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
@@ -157,10 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _debuggingWorkspaceService = workspace.Services.GetService<IDebuggingWorkspaceService>();
             _debuggingWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
 
-            var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-
-            if (experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynInlineRenameFile)
-                && _renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename)
+            if (_renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename)
             {
                 FileRenameInfo = renameInfoWithFileRename.GetFileRenameInfo();
             }
@@ -740,57 +736,55 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
-            using (var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename))
+            using var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
+            var finalSolution = newSolution.Workspace.CurrentSolution;
+            foreach (var id in changedDocumentIDs)
             {
-                var finalSolution = newSolution.Workspace.CurrentSolution;
-                foreach (var id in changedDocumentIDs)
+                // If the document supports syntax tree, then create the new solution from the
+                // updated syntax root.  This should ensure that annotations are preserved, and
+                // prevents the solution from having to reparse documents when we already have
+                // the trees for them.  If we don't support syntax, then just use the text of
+                // the document.
+                var newDocument = newSolution.GetDocument(id);
+
+                if (newDocument.SupportsSyntaxTree)
                 {
-                    // If the document supports syntax tree, then create the new solution from the
-                    // updated syntax root.  This should ensure that annotations are preserved, and
-                    // prevents the solution from having to reparse documents when we already have
-                    // the trees for them.  If we don't support syntax, then just use the text of
-                    // the document.
-                    var newDocument = newSolution.GetDocument(id);
-
-                    if (newDocument.SupportsSyntaxTree)
-                    {
-                        var root = newDocument.GetSyntaxRootSynchronously(waitContext.CancellationToken);
-                        finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
-                    }
-                    else
-                    {
-                        var newText = newDocument.GetTextAsync(waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
-                        finalSolution = finalSolution.WithDocumentText(id, newText);
-                    }
-
-                    // Make sure to include any document rename as well
-                    finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
+                    var root = newDocument.GetSyntaxRootSynchronously(waitContext.CancellationToken);
+                    finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
+                }
+                else
+                {
+                    var newText = newDocument.GetTextAsync(waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                    finalSolution = finalSolution.WithDocumentText(id, newText);
                 }
 
-                if (_workspace.TryApplyChanges(finalSolution))
+                // Make sure to include any document rename as well
+                finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
+            }
+
+            if (_workspace.TryApplyChanges(finalSolution))
+            {
+                // Since rename can apply file changes as well, and those file 
+                // changes can generate new document ids, include added documents
+                // as well as changed documents. This also ensures that any document
+                // that was removed is not included
+                var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);
+
+                var finalChangedIds = finalChanges
+                        .GetProjectChanges()
+                        .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
+                        .ToList();
+
+                if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
                 {
-                    // Since rename can apply file changes as well, and those file 
-                    // changes can generate new document ids, include added documents
-                    // as well as changed documents. This also ensures that any document
-                    // that was removed is not included
-                    var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);
-
-                    var finalChangedIds = finalChanges
-                            .GetProjectChanges()
-                            .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
-                            .ToList();
-
-                    if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
-                    {
-                        var notificationService = _workspace.Services.GetService<INotificationService>();
-                        notificationService.SendNotification(
-                            EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
-                            EditorFeaturesResources.Rename_Symbol,
-                            NotificationSeverity.Information);
-                    }
-
-                    undoTransaction.Commit();
+                    var notificationService = _workspace.Services.GetService<INotificationService>();
+                    notificationService.SendNotification(
+                        EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
+                        EditorFeaturesResources.Rename_Symbol,
+                        NotificationSeverity.Information);
                 }
+
+                undoTransaction.Commit();
             }
         }
 

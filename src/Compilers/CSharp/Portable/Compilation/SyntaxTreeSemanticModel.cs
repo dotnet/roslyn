@@ -740,6 +740,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
         }
 
+        internal AttributeSemanticModel CreateSpeculativeAttributeSemanticModel(int position, AttributeSyntax attribute, Binder binder, AliasSymbol aliasOpt, NamedTypeSymbol attributeType)
+        {
+            var memberModel = Compilation.NullableSemanticAnalysisEnabled ? GetMemberModel(position) : null;
+            return AttributeSemanticModel.CreateSpeculative(this, attribute, attributeType, aliasOpt, binder, memberModel?.GetRemappedSymbols(), position);
+        }
+
         private MemberSemanticModel GetMemberModel(int position)
         {
             AssertPositionAdjusted(position);
@@ -880,7 +886,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return GetOrAddModelForAttribute((AttributeSyntax)memberDecl);
 
                     case SyntaxKind.Parameter:
-                        return GetOrAddModelForParameter((ParameterSyntax)memberDecl, span);
+                        if (node != memberDecl)
+                        {
+                            return GetOrAddModelForParameter((ParameterSyntax)memberDecl, span);
+                        }
+                        else
+                        {
+                            return GetMemberModel(memberDecl.Parent);
+                        }
                 }
             }
 
@@ -902,8 +915,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return ImmutableInterlocked.GetOrAdd(ref _memberModels, attribute,
-                                                 (node, binder) => CreateModelForAttribute(binder, (AttributeSyntax)node),
-                                                 containing.GetEnclosingBinder(attribute.SpanStart));
+                                                 (node, binderAndModel) => CreateModelForAttribute(binderAndModel.binder, (AttributeSyntax)node, binderAndModel.model),
+                                                 (binder: containing.GetEnclosingBinder(attribute.SpanStart), model: containing));
         }
 
         private static bool IsInDocumentationComment(SyntaxNode node)
@@ -944,11 +957,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                 tuple.parameterSymbol,
                                                                 tuple.containing.GetEnclosingBinder(tuple.paramDecl.SpanStart).
                                                                     CreateBinderForParameterDefaultValue(tuple.parameterSymbol,
-                                                                                            (EqualsValueClauseSyntax)equalsValue)),
+                                                                                            (EqualsValueClauseSyntax)equalsValue),
+                                                                tuple.containing.GetRemappedSymbols()),
                                                          (compilation: this.Compilation,
-                                                          paramDecl: paramDecl,
-                                                          parameterSymbol: parameterSymbol,
-                                                          containing: containing)
+                                                          paramDecl,
+                                                          parameterSymbol,
+                                                          containing)
                                                          );
                 }
             }
@@ -1079,7 +1093,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     this,
                                     parameterDecl,
                                     parameterSymbol,
-                                    defaultOuter().CreateBinderForParameterDefaultValue(parameterSymbol, (EqualsValueClauseSyntax)node));
+                                    defaultOuter().CreateBinderForParameterDefaultValue(parameterSymbol, (EqualsValueClauseSyntax)node),
+                                    parentRemappedSymbolsOpt: null);
                             }
 
                         case SyntaxKind.EnumMemberDeclaration:
@@ -1155,13 +1170,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.Attribute:
-                    return CreateModelForAttribute(defaultOuter(), (AttributeSyntax)node);
+                    return CreateModelForAttribute(defaultOuter(), (AttributeSyntax)node, containingModel: null);
             }
 
             return null;
         }
 
-        private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute)
+        private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute, MemberSemanticModel containingModel)
         {
             AliasSymbol aliasOpt;
             DiagnosticBag discarded = DiagnosticBag.GetInstance();
@@ -1173,7 +1188,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 attribute,
                 attributeType,
                 aliasOpt,
-                enclosingBinder.WithAdditionalFlags(BinderFlags.AttributeArgument));
+                enclosingBinder.WithAdditionalFlags(BinderFlags.AttributeArgument),
+                containingModel?.GetRemappedSymbols());
         }
 
         private SourceMemberFieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
@@ -1769,8 +1785,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binder?.LookupDeclaredField(declarationSyntax);
         }
 
-        internal override LocalSymbol GetAdjustedLocalSymbol(LocalSymbol originalSymbol, int position) =>
-            GetMemberModel(position)?.GetAdjustedLocalSymbol(originalSymbol, position) ?? originalSymbol;
+        internal override LocalSymbol GetAdjustedLocalSymbol(SourceLocalSymbol originalSymbol)
+        {
+            var position = originalSymbol.IdentifierToken.SpanStart;
+            return GetMemberModel(position)?.GetAdjustedLocalSymbol(originalSymbol) ?? originalSymbol;
+        }
 
         /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
@@ -2226,6 +2245,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MemberSemanticModel memberModel = GetMemberModel(node);
             return memberModel?.GetDeconstructionInfo(node) ?? default;
+        }
+
+        internal override Symbol RemapSymbolIfNecessaryCore(Symbol symbol)
+        {
+            if (!(symbol is LocalSymbol || symbol is ParameterSymbol || symbol is MethodSymbol)
+                || symbol.Locations.IsDefaultOrEmpty)
+            {
+                return symbol;
+            }
+
+            var memberModel = GetMemberModel(symbol.Locations[0].SourceSpan.Start);
+            return memberModel?.RemapSymbolIfNecessaryCore(symbol) ?? symbol;
         }
     }
 }

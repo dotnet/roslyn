@@ -77,7 +77,7 @@ End Class");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)]
-        public void CaseInsensitveSubToFunction()
+        public void CaseInsensitiveSubToFunction()
         {
             SetUpEditor(@"
 Class C

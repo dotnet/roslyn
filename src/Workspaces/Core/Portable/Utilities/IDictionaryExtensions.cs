@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -11,6 +13,7 @@ namespace Roslyn.Utilities
     {
         // Copied from ConcurrentDictionary since IDictionary doesn't have this useful method
         public static V GetOrAdd<K, V>(this IDictionary<K, V> dictionary, K key, Func<K, V> function)
+            where K : notnull
         {
             if (!dictionary.TryGetValue(key, out var value))
             {
@@ -21,17 +24,20 @@ namespace Roslyn.Utilities
             return value;
         }
 
+        [return: MaybeNull]
         public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
+            where TKey : notnull
         {
             if (dictionary.TryGetValue(key, out var value))
             {
                 return value;
             }
 
-            return default;
+            return default!;
         }
 
         public static void MultiAdd<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
+            where TKey : notnull
             where TCollection : ICollection<TValue>, new()
         {
             if (!dictionary.TryGetValue(key, out var collection))
@@ -44,6 +50,7 @@ namespace Roslyn.Utilities
         }
 
         public static void MultiAdd<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value, ImmutableArray<TValue> defaultArray)
+            where TKey : notnull
             where TValue : IEquatable<TValue>
         {
             if (!dictionary.TryGetValue(key, out var collection))
@@ -55,6 +62,7 @@ namespace Roslyn.Utilities
         }
 
         public static void MultiRemove<TKey, TValue, TCollection>(this IDictionary<TKey, TCollection> dictionary, TKey key, TValue value)
+            where TKey : notnull
             where TCollection : ICollection<TValue>
         {
             if (dictionary.TryGetValue(key, out var collection))
@@ -69,6 +77,7 @@ namespace Roslyn.Utilities
         }
 
         public static void MultiRemove<TKey, TValue>(this IDictionary<TKey, ImmutableArray<TValue>> dictionary, TKey key, TValue value)
+            where TKey : notnull
         {
             if (dictionary.TryGetValue(key, out var collection))
             {

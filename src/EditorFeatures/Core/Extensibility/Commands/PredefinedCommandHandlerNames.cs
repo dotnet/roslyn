@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+
 namespace Microsoft.CodeAnalysis.Editor
 {
     /// <summary>
@@ -42,11 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string Commit = "Commit Command Handler";
 
         /// <summary>
-        /// Command handler name for Completion.
-        /// </summary>
-        public const string Completion = "Completion Command Handler";
-
-        /// <summary>
         /// Command handler name for Documentation Comments.
         /// </summary>
         public const string DocumentationComments = "Documentation Comments Command Handler";
@@ -85,6 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Command handler name for Format Document.
         /// </summary>
         public const string FormatDocument = "Format Document Command Handler";
+
+        /// <summary>
+        /// Command handler name for Go to Base.
+        /// </summary>
+        public const string GoToBase = "Go To Base Command Handler";
 
         /// <summary>
         /// Command handler name for Go to Definition.
@@ -132,14 +134,26 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string RenameTrackingCancellation = "Rename Tracking Cancellation Command Handler";
 
         /// <summary>
-        /// Command handler name for a Signature Help command handler executing before <see cref="Completion"/>.
+        /// Command handler name for a Signature Help command handler executing before <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>.
         /// </summary>
         public const string SignatureHelpBeforeCompletion = "Signature Help Before Completion Command Handler";
 
         /// <summary>
-        /// Command handler name for a Signature Help command handler executing after <see cref="Completion"/>.
+        /// Command handler name for a Signature Help command handler executing after <see cref="PredefinedCompletionNames.CompletionCommandHandler"/>.
         /// </summary>
         public const string SignatureHelpAfterCompletion = "Signature Help After Completion Command Handler";
+
+        /// <summary>
+        /// Command handler name for Toggle Block Comments.
+        /// </summary>
+        /// <remarks></remarks>
+        public const string ToggleBlockComment = "Toggle Block Comment Command Handler";
+
+        /// <summary>
+        /// Command handler name for Toggle Line Comments.
+        /// </summary>
+        /// <remarks></remarks>
+        public const string ToggleLineComment = "Toggle Line Comment Command Handler";
 
         /// <summary>
         /// Command handler name for Paste Content in Interactive Format. 
@@ -150,5 +164,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Command handler name for Paste in Paste Tracking.
         /// </summary>
         public const string PasteTrackingPaste = "Paste Tracking Paste Command Handler";
+
+        /// <summary>
+        /// Command handler name for Edit and Continue file save handler.
+        /// </summary>
+        public const string EditAndContinueFileSave = "Edit and Continue Save File Handler";
     }
 }

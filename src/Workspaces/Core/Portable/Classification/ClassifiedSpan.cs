@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Classification
             return Hash.Combine(this.ClassificationType, this.TextSpan.GetHashCode());
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is ClassifiedSpan &&
                 Equals((ClassifiedSpan)obj);

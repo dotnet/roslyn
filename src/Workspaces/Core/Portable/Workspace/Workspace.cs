@@ -764,7 +764,10 @@ namespace Microsoft.CodeAnalysis
 
                 if (oldAttributes.FilePath != newInfo.FilePath)
                 {
-                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath);
+                    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
+                    // filePath is null, but it's odd because we *do* support null file paths. The suppression here is to silence it
+                    // but should be removed when the bug is fixed.
+                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath!);
                 }
 
                 if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
@@ -1024,12 +1027,12 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!string.IsNullOrEmpty(p.OutputFilePath))
                 {
-                    outputAssemblyToProjectIdMap[p.OutputFilePath] = p.Id;
+                    outputAssemblyToProjectIdMap[p.OutputFilePath!] = p.Id;
                 }
 
                 if (!string.IsNullOrEmpty(p.OutputRefFilePath))
                 {
-                    outputAssemblyToProjectIdMap[p.OutputRefFilePath] = p.Id;
+                    outputAssemblyToProjectIdMap[p.OutputRefFilePath!] = p.Id;
                 }
             }
 
@@ -1185,10 +1188,13 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
+            // It's OK to use the null-suppression operator when calling CanApplyCompilationOptionChange: if they were both null,
+            // we'd bail right away since they didn't change. Thus, at least one is non-null, and once you have a non-null CompilationOptions and ParseOptions
+            // you can't ever make it null again, and it'll be non-null as long as the language supported it in the first place.
             if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions
                 && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions)
                 && !this.CanApplyCompilationOptionChange(
-                    projectChanges.OldProject.CompilationOptions, projectChanges.NewProject.CompilationOptions, projectChanges.NewProject))
+                    projectChanges.OldProject.CompilationOptions!, projectChanges.NewProject.CompilationOptions!, projectChanges.NewProject))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_compilation_options_is_not_supported);
             }
@@ -1196,7 +1202,7 @@ namespace Microsoft.CodeAnalysis
             if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions
                 && !this.CanApplyChange(ApplyChangesKind.ChangeParseOptions)
                 && !this.CanApplyParseOptionChange(
-                    projectChanges.OldProject.ParseOptions, projectChanges.NewProject.ParseOptions, projectChanges.NewProject))
+                    projectChanges.OldProject.ParseOptions!, projectChanges.NewProject.ParseOptions!, projectChanges.NewProject))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_parse_options_is_not_supported);
             }
@@ -1212,15 +1218,25 @@ namespace Microsoft.CodeAnalysis
             }
 
             if (!this.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo)
-                && projectChanges.GetChangedDocuments().Any(id => projectChanges.NewProject.GetDocument(id).HasInfoChanged(projectChanges.OldProject.GetDocument(id))))
+                && projectChanges.GetChangedDocuments().Any(id => projectChanges.NewProject.GetDocument(id)!.HasInfoChanged(projectChanges.OldProject.GetDocument(id)!)))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_document_property_is_not_supported);
             }
 
-            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument)
-                && projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Any())
+            var changedDocumentIds = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).ToImmutableArray();
+
+            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument) && changedDocumentIds.Length > 0)
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
+            }
+
+            foreach (var changedDocumentId in changedDocumentIds)
+            {
+                var changedDocument = projectChanges.OldProject.GetDocumentState(changedDocumentId) ?? projectChanges.NewProject.GetDocumentState(changedDocumentId)!;
+                if (!changedDocument.CanApplyChange())
+                {
+                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, changedDocument.FilePath ?? changedDocument.Name));
+                }
             }
 
             if (projectChanges.GetAddedAdditionalDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.AddAdditionalDocument))
@@ -1282,21 +1298,12 @@ namespace Microsoft.CodeAnalysis
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_analyzer_references_is_not_supported);
             }
-
-            foreach (var documentId in projectChanges.GetChangedDocuments())
-            {
-                var document = projectChanges.OldProject.GetDocumentState(documentId) ?? projectChanges.NewProject.GetDocumentState(documentId);
-                if (!document.CanApplyChange())
-                {
-                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, document.FilePath ?? document.Name));
-                }
-            }
         }
 
         protected virtual bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
             => false;
 
-        protected virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
+        public virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
             => false;
 
         /// <summary>
@@ -1307,16 +1314,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected virtual void ApplyProjectChanges(ProjectChanges projectChanges)
         {
+            // It's OK to use the null-suppression operator when calling ApplyCompilation/ParseOptionsChanged: the only change that is allowed
+            // is going from one non-null value to another which is blocked by the Project.WithCompilationOptions() API directly.
+
             // changed compilation options
             if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions)
             {
-                this.ApplyCompilationOptionsChanged(projectChanges.ProjectId, projectChanges.NewProject.CompilationOptions);
+                this.ApplyCompilationOptionsChanged(projectChanges.ProjectId, projectChanges.NewProject.CompilationOptions!);
             }
 
             // changed parse options
             if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions)
             {
-                this.ApplyParseOptionsChanged(projectChanges.ProjectId, projectChanges.NewProject.ParseOptions);
+                this.ApplyParseOptionsChanged(projectChanges.ProjectId, projectChanges.NewProject.ParseOptions!);
             }
 
             // removed project references
@@ -1376,7 +1386,7 @@ namespace Microsoft.CodeAnalysis
             // added documents
             foreach (var documentId in projectChanges.GetAddedDocuments())
             {
-                var document = projectChanges.NewProject.GetDocument(documentId);
+                var document = projectChanges.NewProject.GetDocument(documentId)!;
                 var text = document.GetTextSynchronously(CancellationToken.None);
                 var info = this.CreateDocumentInfoWithoutText(document);
                 this.ApplyDocumentAdded(info, text);
@@ -1385,7 +1395,7 @@ namespace Microsoft.CodeAnalysis
             // added additional documents
             foreach (var documentId in projectChanges.GetAddedAdditionalDocuments())
             {
-                var document = projectChanges.NewProject.GetAdditionalDocument(documentId);
+                var document = projectChanges.NewProject.GetAdditionalDocument(documentId)!;
                 var text = document.GetTextSynchronously(CancellationToken.None);
                 var info = this.CreateDocumentInfoWithoutText(document);
                 this.ApplyAdditionalDocumentAdded(info, text);
@@ -1394,7 +1404,7 @@ namespace Microsoft.CodeAnalysis
             // added analyzer config documents
             foreach (var documentId in projectChanges.GetAddedAnalyzerConfigDocuments())
             {
-                var document = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId);
+                var document = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId)!;
                 var text = document.GetTextSynchronously(CancellationToken.None);
                 var info = this.CreateDocumentInfoWithoutText(document);
                 this.ApplyAnalyzerConfigDocumentAdded(info, text);
@@ -1409,8 +1419,8 @@ namespace Microsoft.CodeAnalysis
             // changed additional documents
             foreach (var documentId in projectChanges.GetChangedAdditionalDocuments())
             {
-                var oldDoc = projectChanges.OldProject.GetAdditionalDocument(documentId);
-                var newDoc = projectChanges.NewProject.GetAdditionalDocument(documentId);
+                var oldDoc = projectChanges.OldProject.GetAdditionalDocument(documentId)!;
+                var newDoc = projectChanges.NewProject.GetAdditionalDocument(documentId)!;
 
                 // We don't understand the text of additional documents and so we just replace the entire text.
                 var currentText = newDoc.GetTextSynchronously(CancellationToken.None); // needs wait
@@ -1420,8 +1430,8 @@ namespace Microsoft.CodeAnalysis
             // changed analyzer config documents
             foreach (var documentId in projectChanges.GetChangedAnalyzerConfigDocuments())
             {
-                var oldDoc = projectChanges.OldProject.GetAnalyzerConfigDocument(documentId);
-                var newDoc = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId);
+                var oldDoc = projectChanges.OldProject.GetAnalyzerConfigDocument(documentId)!;
+                var newDoc = projectChanges.NewProject.GetAnalyzerConfigDocument(documentId)!;
 
                 // We don't understand the text of analyzer config documents and so we just replace the entire text.
                 var currentText = newDoc.GetTextSynchronously(CancellationToken.None); // needs wait
@@ -1432,8 +1442,8 @@ namespace Microsoft.CodeAnalysis
         private void ApplyChangedDocument(
             ProjectChanges projectChanges, DocumentId documentId)
         {
-            var oldDoc = projectChanges.OldProject.GetDocument(documentId);
-            var newDoc = projectChanges.NewProject.GetDocument(documentId);
+            var oldDoc = projectChanges.OldProject.GetDocument(documentId)!;
+            var newDoc = projectChanges.NewProject.GetDocument(documentId)!;
 
             // update text if changed
             if (newDoc.HasTextChanged(oldDoc))

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
             var service = document.GetLanguageService<IReplaceMethodWithPropertyService>();
             if (service == null)
             {
@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                 string.Format(FeaturesResources.Replace_0_with_property, methodName),
                 c => ReplaceMethodsWithProperty(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
-                methodName));
+                methodName),
+                methodDeclaration.Span);
 
             // If this method starts with 'Get' see if there's an associated 'Set' method we could 
             // replace as well.
@@ -76,7 +77,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                     context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
                         string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
                         c => ReplaceMethodsWithProperty(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
-                        methodName + "-get/set"));
+                        methodName + "-get/set"),
+                        methodDeclaration.Span);
                 }
             }
         }
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return IsValidSetMethod(setMethod) &&
                 setMethod.Parameters.Length == 1 &&
                 setMethod.Parameters[0].RefKind == RefKind.None &&
-                Equals(setMethod.Parameters[0].Type, getMethod.ReturnType) &&
+                Equals(setMethod.Parameters[0].GetTypeWithAnnotatedNullability(), getMethod.GetReturnTypeWithAnnotatedNullability()) &&
                 setMethod.IsAbstract == getMethod.IsAbstract;
         }
 

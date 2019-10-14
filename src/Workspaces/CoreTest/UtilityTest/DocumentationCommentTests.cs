@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var document = DocumentationComment.FromXmlFragment("");
 
-            Assert.Equal(null, document.ExampleText);
-            Assert.Equal(null, document.ReturnsText);
-            Assert.Equal(null, document.SummaryText);
+            Assert.Null(document.ExampleText);
+            Assert.Null(document.ReturnsText);
+            Assert.Null(document.SummaryText);
         }
 
         [Fact]

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,8 +15,8 @@ namespace Microsoft.Cci
 {
     internal sealed class ManagedResource
     {
-        private readonly Func<Stream> _streamProvider;
-        private readonly IFileReference _fileReference;
+        private readonly Func<Stream>? _streamProvider;
+        private readonly IFileReference? _fileReference;
         private readonly uint _offset;
         private readonly string _name;
         private readonly bool _isPublic;
@@ -40,7 +42,9 @@ namespace Microsoft.Cci
             {
                 try
                 {
+#nullable disable // Can '_streamProvider' be null? https://github.com/dotnet/roslyn/issues/39166
                     using (Stream stream = _streamProvider())
+#nullable enable
                     {
                         if (stream == null)
                         {
@@ -66,7 +70,7 @@ namespace Microsoft.Cci
             }
         }
 
-        public IFileReference ExternalFile
+        public IFileReference? ExternalFile
         {
             get
             {

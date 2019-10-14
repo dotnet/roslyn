@@ -83,39 +83,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
         private static void ApplyChanges(ITextBuffer buffer, IList<TextChange> changes)
         {
-            using (var edit = buffer.CreateEdit())
+            using var edit = buffer.CreateEdit();
+            foreach (var change in changes)
             {
-                foreach (var change in changes)
-                {
-                    edit.Replace(change.Span.ToSpan(), change.NewText);
-                }
-
-                edit.Apply();
+                edit.Replace(change.Span.ToSpan(), change.NewText);
             }
+
+            edit.Apply();
         }
 
         protected async Task<int> GetSmartTokenFormatterIndentationAsync(
             string code,
             int indentationLine,
             char ch,
+            bool useTabs,
             int? baseIndentation = null,
             TextSpan span = default)
         {
             // create tree service
-            using (var workspace = TestWorkspace.CreateCSharp(code))
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
+
+            if (baseIndentation.HasValue)
             {
-                if (baseIndentation.HasValue)
-                {
-                    var factory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>()
-                                as TestFormattingRuleFactoryServiceFactory.Factory;
+                var factory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>()
+                            as TestFormattingRuleFactoryServiceFactory.Factory;
 
-                    factory.BaseIndentation = baseIndentation.Value;
-                    factory.TextSpan = span;
-                }
-
-                var buffer = workspace.Documents.First().GetTextBuffer();
-                return await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
+                factory.BaseIndentation = baseIndentation.Value;
+                factory.TextSpan = span;
             }
+
+            var buffer = workspace.Documents.First().GetTextBuffer();
+            return await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
         }
     }
 }

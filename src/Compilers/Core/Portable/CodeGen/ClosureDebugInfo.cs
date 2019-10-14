@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                    ClosureId.Equals(other.ClosureId);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is ClosureDebugInfo && Equals((ClosureDebugInfo)obj);
         }

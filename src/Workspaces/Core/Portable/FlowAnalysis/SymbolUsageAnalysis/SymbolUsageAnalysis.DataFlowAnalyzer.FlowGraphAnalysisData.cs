@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 public void SetBlockAnalysisDataFrom(BasicBlock basicBlock, BasicBlockAnalysisData data, CancellationToken cancellationToken)
                     => GetOrCreateBlockAnalysisData(basicBlock, cancellationToken).SetAnalysisDataFrom(data);
 
-                public void SetAnalysisDataOnExitBlockEnd()
+                public void SetAnalysisDataOnMethodExit()
                 {
                     if (SymbolsWriteBuilder.Count == 0)
                     {

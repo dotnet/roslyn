@@ -105,15 +105,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             => PackageName.Equals(other.PackageName);
 
         public int CompareTo(PackageWithAssemblyResult other)
-        {
-            var diff = Rank - other.Rank;
-            if (diff != 0)
-            {
-                return -diff;
-            }
+         => ComparerWithState.CompareTo(this, other, s_comparers);
 
-            return PackageName.CompareTo(other.PackageName);
-        }
+        private readonly static ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
+            ImmutableArray.Create<Func<PackageWithAssemblyResult, IComparable>>(p => p.Rank, p => p.PackageName);
     }
 
     internal class ReferenceAssemblyWithTypeResult

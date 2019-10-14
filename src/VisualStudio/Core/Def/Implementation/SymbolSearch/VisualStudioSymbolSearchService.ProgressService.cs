@@ -2,14 +2,11 @@
 
 using System;
 using System.Composition;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.TaskStatusCenter;
-using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
@@ -29,18 +26,18 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService)));
         }
 
-        public async Task OnDownloadFullDatabaseStartedAsync(string title, CancellationToken cancellationToken)
+        public async Task OnDownloadFullDatabaseStartedAsync(string title)
         {
             try
             {
-                await OnDownloadFullDatabaseStartedWorkerAsync(title, cancellationToken).ConfigureAwait(false);
+                await OnDownloadFullDatabaseStartedWorkerAsync(title).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
             }
         }
 
-        private Task OnDownloadFullDatabaseStartedWorkerAsync(string title, CancellationToken cancellationToken)
+        private Task OnDownloadFullDatabaseStartedWorkerAsync(string title)
         {
             var options = GetOptions(title);
             var data = new TaskProgressData
@@ -79,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return options;
         }
 
-        public Task OnDownloadFullDatabaseSucceededAsync(CancellationToken cancellation)
+        public Task OnDownloadFullDatabaseSucceededAsync()
         {
             lock (_gate)
             {
@@ -88,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
         }
 
-        public Task OnDownloadFullDatabaseCanceledAsync(CancellationToken cancellationToken)
+        public Task OnDownloadFullDatabaseCanceledAsync()
         {
             lock (_gate)
             {
@@ -97,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
         }
 
-        public Task OnDownloadFullDatabaseFailedAsync(string message, CancellationToken cancellationToken)
+        public Task OnDownloadFullDatabaseFailedAsync(string message)
         {
             lock (_gate)
             {

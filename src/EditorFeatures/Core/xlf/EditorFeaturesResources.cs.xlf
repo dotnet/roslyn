@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
+        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
+        <target state="translated">Relace přejmenování na řádku je pro identifikátor {0} aktivní. Pokud chcete získat přístup k dalším možnostem, znovu volejte přejmenování na řádku. Můžete kdykoli pokračovat v úpravách identifikátoru, který se přejmenovává.</target>
+        <note>For screenreaders. {0} is the identifier being renamed.</note>
+      </trans-unit>
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">Aplikují se změny.</target>
@@ -32,6 +37,16 @@
         <target state="translated">Chcete přesto pokračovat? Výsledkem může být poškozený kód.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="translated">položky z neimportovaných oborů názvů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="translated">Rozbalování</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_method_encountered_the_following_issues">
         <source>Extract method encountered the following issues:</source>
         <target state="translated">Při extrahování metody došlo k následujícím problémům:</target>
@@ -45,6 +60,11 @@
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">Příkaz Formátovat dokument provedl další čištění.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="new">Go To Base</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -62,9 +82,9 @@
         <target state="translated">Klíčové slovo – Control</target>
         <note />
       </trans-unit>
-      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
-        <source>Operation is not ready for "{0}" yet. See bottom left corner for more details.</source>
-        <target state="new">Operation is not ready for "{0}" yet. See bottom left corner for more details.</target>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="new">Locating bases...</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -89,17 +109,17 @@
       </trans-unit>
       <trans-unit id="Rename_file">
         <source>Rename _file</source>
-        <target state="new">Rename _file</target>
+        <target state="translated">Přejmenovat _soubor</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
-        <target state="new">Rename _file (type does not match file name)</target>
+        <target state="translated">Přejmenovat _soubor (typ neodpovídá názvu souboru)</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_partial_type">
         <source>Rename _file (not allowed on partial types)</source>
-        <target state="new">Rename _file (not allowed on partial types)</target>
+        <target state="translated">Přejmenovat _soubor (nepovoleno pro dílčí typy)</target>
         <note>Disabled text status for file rename</note>
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -114,7 +134,27 @@
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
-        <target state="new">The symbol has no base.</target>
+        <target state="translated">Tento symbol nemá žádný základ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="translated">Přepnout komentář k bloku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="translated">Přepnout komentář k řádku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="translated">Přepíná se komentář k bloku...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="translated">Přepíná se komentář k řádku...</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -205,6 +245,11 @@
       <trans-unit id="String_Verbatim">
         <source>String - Verbatim</source>
         <target state="translated">Řetězec – Verbatim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="translated">Čeká se na dokončení aktivity na pozadí...</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_image_element">
@@ -334,7 +379,7 @@
       </trans-unit>
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
-        <target state="new">'{0}' bases</target>
+        <target state="translated">Základy {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -1223,11 +1268,6 @@ Chcete pokračovat?</target>
         <source>'{0}' declarations</source>
         <target state="translated">'Deklarace symbolů {0}</target>
         <note />
-      </trans-unit>
-      <trans-unit id="An_inline_rename_session_is_active">
-        <source>An inline rename session is active</source>
-        <target state="translated">Relace přejmenování na řádku je aktivní.</target>
-        <note>For screenreaders</note>
       </trans-unit>
       <trans-unit id="Inline_Rename_Conflict">
         <source>Inline Rename Conflict</source>

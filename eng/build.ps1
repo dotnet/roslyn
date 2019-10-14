@@ -42,6 +42,7 @@ param (
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
+  [switch]$sourceBuild = $false,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -58,7 +59,6 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testIOperation,
-  [switch]$testLegacyCompletion,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -90,7 +90,6 @@ function Print-Usage() {
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
-  Write-Host "  -testLegacyCompletion     Run integration tests with legacy completion"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -102,6 +101,7 @@ function Print-Usage() {
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
+  Write-Host "  -sourceBuild              Simulate building source-build"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
@@ -222,14 +222,19 @@ function BuildSolution() {
   # Do not set this property to true explicitly, since that would override values set in projects.
   $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
+  # The warnAsError flag for MSBuild will promote all warnings to errors. This is true for warnings
+  # that MSBuild output as well as ones that custom tasks output.
+  #
+  # In all cases we pass /p:TreatWarningsAsErrors=true to promote compiler warnings to errors
+  $msbuildWarnAsError = if ($warnAsError) { "/warnAsError" } else { "" }
+
   # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
   $ibcDir = Join-Path $RepoRoot ".o%5c"
 
+  # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
+  $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
+
   try {
-    # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
-    # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
-    # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
-    # Warnings reported from other msbuild tasks are not treated as errors for now.
     MSBuild $toolsetBuildProj `
       $bl `
       /p:Configuration=$configuration `
@@ -253,6 +258,8 @@ function BuildSolution() {
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
       $suppressExtensionDeployment `
+      $msbuildWarnAsError `
+      $buildFromSource `
       @properties
   }
   finally {
@@ -341,10 +348,6 @@ function TestUsingOptimizedRunner() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  if ($testLegacyCompletion) {
-    $env:ROSLYN_TEST_LEGACY_COMPLETION = "true"
-  }
-
   $secondaryLogDir = Join-Path (Join-Path $ArtifactsDir "log2") $configuration
   Create-Directory $secondaryLogDir
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
@@ -420,9 +423,6 @@ function TestUsingOptimizedRunner() {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
-    }
-    if ($testLegacyCompletion) {
-      Remove-Item env:\ROSLYN_TEST_LEGACY_COMPLETION
     }
   }
 }

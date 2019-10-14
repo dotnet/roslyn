@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         private static readonly ImmutableArray<AbstractReducer> s_reducers =
             ImmutableArray.Create<AbstractReducer>(
                 new CSharpNameReducer(),
+                new CSharpNullableAnnotationReducer(),
                 new CSharpCastReducer(),
                 new CSharpExtensionMethodReducer(),
                 new CSharpParenthesesReducer(),

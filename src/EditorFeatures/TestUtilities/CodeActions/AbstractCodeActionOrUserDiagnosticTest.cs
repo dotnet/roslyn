@@ -70,6 +70,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public TestParameters WithIndex(int index)
                 => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title);
+
+            public TestParameters WithRetainNonFixableDiagnostics(bool retainNonFixableDiagnostics)
+                => new TestParameters(parseOptions, compilationOptions, options, fixProviderData, index, priority, title: title, retainNonFixableDiagnostics: retainNonFixableDiagnostics);
         }
 
         protected abstract string GetLanguage();
@@ -241,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedDocumentName,
             CodeAction action)
         {
-            var operations = await VerifyActionAndGetOperationsAsync(action, default);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
             return await TestAddDocument(
                 workspace,
                 expectedMarkup,
@@ -398,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             ImmutableArray<TextSpan> navigationSpans,
             TestParameters parameters)
         {
-            var operations = await VerifyActionAndGetOperationsAsync(action, parameters);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, parameters);
             return await TestOperationsAsync(
                 workspace, expected, operations, conflictSpans, renameSpans,
                 warningSpans, navigationSpans, expectedChangedDocumentId: null, parseOptions: parameters.parseOptions);
@@ -432,14 +435,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             // To help when a user just writes a test (and supplied no 'expectedText') just print
             // out the entire 'actualText' (without any trimming).  in the case that we have both,
-            // call the normal Assert helper which will print out a good trimmed diff.
+            // call the normal AssertEx helper which will print out a good diff.
             if (expectedText == "")
             {
                 Assert.Equal((object)expectedText, actualText);
             }
             else
             {
-                Assert.Equal(expectedText, actualText);
+                AssertEx.EqualOrDiff(expectedText, actualText);
             }
 
             TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
@@ -539,10 +542,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        internal static Task<ImmutableArray<CodeActionOperation>> VerifyActionAndGetOperationsAsync(
-            CodeAction action, TestParameters parameters)
+        internal async Task<ImmutableArray<CodeActionOperation>> VerifyActionAndGetOperationsAsync(
+            TestWorkspace workspace, CodeAction action, TestParameters parameters)
         {
-            Assert.False(action is null, "No action was offered when one was expected.");
+            if (action is null)
+            {
+                var diagnostics = await GetDiagnosticsWorkerAsync(workspace, parameters.WithRetainNonFixableDiagnostics(true));
+
+                throw new Exception("No action was offered when one was expected. Diagnostics from the compilation: " + string.Join("", diagnostics.Select(d => Environment.NewLine + d.ToString())));
+            }
 
             if (parameters.priority != null)
             {
@@ -554,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 Assert.Equal(parameters.title, action.Title);
             }
 
-            return action.GetOperationsAsync(CancellationToken.None);
+            return await action.GetOperationsAsync(CancellationToken.None);
         }
 
         protected Tuple<Solution, Solution> ApplyOperationsAndGetSolution(

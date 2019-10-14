@@ -86,6 +86,45 @@ parameters: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestNullableReferenceIEquatable()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class S : IEquatable<S> { }
+
+class Program
+{
+    [|S? a;|]
+}",
+@"#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+class S : IEquatable<S> { }
+
+class Program
+{
+    S? a;
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Program program &&
+               EqualityComparer<S?>.Default.Equals(a, program.a);
+    }
+
+    public override int GetHashCode()
+    {
+        return -1757793268 + EqualityComparer<S?>.Default.GetHashCode(a);
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestValueIEquatable()
         {
             await TestInRegularAndScript1Async(
@@ -396,6 +435,30 @@ class Program<T>
 
             await TestInRegularAndScript1Async(code, expected,
 parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsNullableContext()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+
+class Program
+{
+    [|int a;|]
+}",
+@"#nullable enable
+
+class Program
+{
+    int a;
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Program program &&
+               a == program.a;
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -877,6 +940,264 @@ class Program
     public override int GetHashCode()
     {
         return 165851236 + i.GetHashCode();
+    }
+}",
+index: 1,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task StructWithoutGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+
+class Foo
+{
+    [|Bar bar;|]
+}
+
+struct Bar
+{
+}",
+@"using System.Collections.Generic;
+
+class Foo
+{
+    Bar bar;
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo;
+        return foo != null &&
+               EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+
+struct Bar
+{
+}",
+index: 1,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task StructWithGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+
+class Foo
+{
+    [|Bar bar;|]
+}
+
+struct Bar
+{
+    public override int GetHashCode() => 0;
+}",
+@"using System.Collections.Generic;
+
+class Foo
+{
+    Bar bar;
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo;
+        return foo != null &&
+               EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+
+struct Bar
+{
+    public override int GetHashCode() => 0;
+}",
+index: 1,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task NullableStructWithoutGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+
+class Foo
+{
+    [|Bar? bar;|]
+}
+
+struct Bar
+{
+}",
+@"using System.Collections.Generic;
+
+class Foo
+{
+    Bar? bar;
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo;
+        return foo != null &&
+               EqualityComparer<Bar?>.Default.Equals(bar, foo.bar);
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+
+struct Bar
+{
+}",
+index: 1,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task StructTypeParameter_ShouldCallGetHashCodeDirectly()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+
+class Foo<TBar> where TBar : struct
+{
+    [|TBar bar;|]
+}",
+@"using System.Collections.Generic;
+
+class Foo<TBar> where TBar : struct
+{
+    TBar bar;
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo<TBar>;
+        return foo != null &&
+               EqualityComparer<TBar>.Default.Equals(bar, foo.bar);
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}",
+index: 1,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task NullableStructTypeParameter_ShouldCallGetHashCodeDirectly()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+
+class Foo<TBar> where TBar : struct
+{
+    [|TBar? bar;|]
+}",
+@"using System.Collections.Generic;
+
+class Foo<TBar> where TBar : struct
+{
+    TBar? bar;
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo<TBar>;
+        return foo != null &&
+               EqualityComparer<TBar?>.Default.Equals(bar, foo.bar);
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}",
+index: 1,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task Enum_ShouldCallGetHashCodeDirectly()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+
+class Foo
+{
+    [|Bar bar;|]
+}
+
+enum Bar
+{
+}",
+@"using System.Collections.Generic;
+
+class Foo
+{
+    Bar bar;
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo;
+        return foo != null &&
+               bar == foo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
+    }
+}
+
+enum Bar
+{
+}",
+index: 1,
+parameters: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task PrimitiveValueType_ShouldCallGetHashCodeDirectly()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+
+class Foo
+{
+    [|ulong bar;|]
+}",
+@"using System.Collections.Generic;
+
+class Foo
+{
+    ulong bar;
+
+    public override bool Equals(object obj)
+    {
+        var foo = obj as Foo;
+        return foo != null &&
+               bar == foo.bar;
+    }
+
+    public override int GetHashCode()
+    {
+        return 999205674 + bar.GetHashCode();
     }
 }",
 index: 1,

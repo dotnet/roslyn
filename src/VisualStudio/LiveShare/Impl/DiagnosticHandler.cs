@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -22,9 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// open. This type also provides notifications when diagnostics change.
     /// TODO - Move implementation to lower LSP layer once we figure out how to deal with notify / client interactions.
     /// </summary>
-    internal class DiagnosticsHandler : ILspRequestHandler<TextDocumentParams, LSP.Diagnostic[], Solution>, ILspNotificationProvider
+    internal abstract class DiagnosticsHandler : ILspRequestHandler<TextDocumentParams, LSP.Diagnostic[], Solution>, ILspNotificationProvider
     {
         private readonly IDiagnosticService _diagnosticService;
+
+        protected abstract ImmutableArray<string> SupportedLanguages { get; }
 
         public event AsyncEventHandler<LanguageServiceNotifyEventArgs> NotifyAsync;
 
@@ -35,7 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void DiagnosticService_DiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             // Since this is an async void method, exceptions here will crash the host VS. We catch exceptions here to make sure that we don't crash the host since
             // the worst outcome here is that guests may not see all diagnostics.
@@ -46,6 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 {
                     var document = e.Solution.GetDocument(e.DocumentId);
                     if (document == null || document.FilePath == null)
+                    {
+                        return;
+                    }
+
+                    // Only publish document diagnostics for the languages this provider supports.
+                    if (!SupportedLanguages.Contains(document.Project.Language))
                     {
                         return;
                     }

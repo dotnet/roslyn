@@ -2565,8 +2565,8 @@ public class C
                 Assert.Equal(CharSet.Unicode, info.CharacterSet);
                 Assert.True(info.ExactSpelling);
                 Assert.True(info.SetLastError);
-                Assert.Equal(true, info.BestFitMapping);
-                Assert.Equal(true, info.ThrowOnUnmappableCharacter);
+                Assert.True(info.BestFitMapping);
+                Assert.True(info.ThrowOnUnmappableCharacter);
 
                 Assert.Equal(
                     MethodImportAttributes.ExactSpelling |
@@ -2606,8 +2606,8 @@ public class C
                 Assert.Equal(CallingConvention.Winapi, info.CallingConvention);
                 Assert.False(info.ExactSpelling);
                 Assert.False(info.SetLastError);
-                Assert.Equal(null, info.BestFitMapping);
-                Assert.Equal(null, info.ThrowOnUnmappableCharacter);
+                Assert.Null(info.BestFitMapping);
+                Assert.Null(info.ThrowOnUnmappableCharacter);
 
                 var n = c.GetMember<MethodSymbol>("N");
                 Assert.Null(n.GetDllImportData());
@@ -3170,7 +3170,7 @@ abstract class C
                 foreach (var ca in peReader.CustomAttributes)
                 {
                     var ctor = peReader.GetCustomAttribute(ca).Constructor;
-                    Assert.NotEqual(ctor.Kind, HandleKind.MethodDefinition);
+                    Assert.NotEqual(HandleKind.MethodDefinition, ctor.Kind);
                 }
             });
         }
@@ -4997,8 +4997,8 @@ namespace System
                 // Verify AttributeUsage
                 var attributeUsage = attrType.GetAttributeUsageInfo();
                 Assert.Equal(AttributeTargets.Class, attributeUsage.ValidTargets);
-                Assert.Equal(true, attributeUsage.AllowMultiple);
-                Assert.Equal(true, attributeUsage.Inherited);
+                Assert.True(attributeUsage.AllowMultiple);
+                Assert.True(attributeUsage.Inherited);
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.

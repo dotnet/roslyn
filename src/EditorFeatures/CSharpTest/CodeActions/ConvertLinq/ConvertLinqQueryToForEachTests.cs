@@ -1824,7 +1824,7 @@ public class Test
 }
 ";
 
-            // No support for expresison bodied constructors yet.
+            // No support for expression bodied constructors yet.
             await TestMissingAsync(source);
         }
 

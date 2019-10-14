@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     // HashSet that can be recycled via an object pool
     // NOTE: these HashSets always have the default comparer.
-    internal sealed class PooledHashSet<T> : HashSet<T>
+    internal sealed partial class PooledHashSet<T> : HashSet<T>
     {
         private readonly ObjectPool<PooledHashSet<T>> _pool;
 

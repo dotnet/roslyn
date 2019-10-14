@@ -121,7 +121,7 @@ class A {
 
             var comp = CreateCompilation(text);
             var v = comp.GlobalNamespace.GetTypeMembers("MyDel", 0).Single();
-            Assert.NotEqual(null, v);
+            Assert.NotNull(v);
             Assert.Equal(SymbolKind.NamedType, v.Kind);
             Assert.Equal(TypeKind.Delegate, v.TypeKind);
             Assert.True(v.IsReferenceType);
@@ -774,14 +774,14 @@ class C
 
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);
-            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.In);
+            Assert.Equal(RefKind.In, lambda.Parameters[0].RefKind);
 
             lambdaSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
             lambda = (LambdaSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
 
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);
-            Assert.Equal(lambda.Parameters[0].RefKind, RefKind.In);
+            Assert.Equal(RefKind.In, lambda.Parameters[0].RefKind);
         }
     }
 }

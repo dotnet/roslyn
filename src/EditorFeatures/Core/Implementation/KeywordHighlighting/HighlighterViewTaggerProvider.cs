@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             // It turns out a document might be associated with a project of wrong language, e.g. C# document in a Xaml project. 
             // Even though we couldn't repro the crash above, a fix is made in one of possibly multiple code paths that could cause 
             // us to end up in this situation. 
-            // Regardless of the effective of the fix, we want to enhance the guard aginst such scenario here until an audit in 
+            // Regardless of the effective of the fix, we want to enhance the guard against such scenario here until an audit in 
             // workspace is completed to eliminate the root cause.
             if (document?.SupportsSyntaxTree != true)
             {

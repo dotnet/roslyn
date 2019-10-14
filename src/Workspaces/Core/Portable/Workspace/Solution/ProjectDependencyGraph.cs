@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
             // To update our forward transitive map, we need to add referencedProjectIds (and their transitive dependencies) to the transitive references
             // of projects. First, let's just compute the new set of transitive references. It's possible while doing so we'll discover that we don't
             // know the transitive project references for one of our new references. In that case, we'll use null as a sentinel to mean "we don't know" and
-            // we propogate the not-knowingness. But let's not worry about that yet. First, let's just get the new transitive reference set.
+            // we propagate the not-knowingness. But let's not worry about that yet. First, let's just get the new transitive reference set.
             var newTransitiveReferences = new HashSet<ProjectId>(referencedProjectIds);
 
             foreach (var referencedProjectId in referencedProjectIds)
@@ -416,13 +416,11 @@ namespace Microsoft.CodeAnalysis
         {
             if (!_transitiveReferencesMap.TryGetValue(projectId, out var transitiveReferences))
             {
-                using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
-                {
-                    var results = pooledObject.Object;
-                    this.ComputeTransitiveReferences(projectId, results);
-                    transitiveReferences = results.ToImmutableHashSet();
-                    _transitiveReferencesMap = _transitiveReferencesMap.Add(projectId, transitiveReferences);
-                }
+                using var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                var results = pooledObject.Object;
+                this.ComputeTransitiveReferences(projectId, results);
+                transitiveReferences = results.ToImmutableHashSet();
+                _transitiveReferencesMap = _transitiveReferencesMap.Add(projectId, transitiveReferences);
             }
 
             return transitiveReferences;
@@ -470,14 +468,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (!_reverseTransitiveReferencesMap.TryGetValue(projectId, out var reverseTransitiveReferences))
             {
-                using (var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
-                {
-                    var results = pooledObject.Object;
+                using var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                var results = pooledObject.Object;
 
-                    ComputeReverseTransitiveReferences(projectId, results);
-                    reverseTransitiveReferences = results.ToImmutableHashSet();
-                    _reverseTransitiveReferencesMap = _reverseTransitiveReferencesMap.Add(projectId, reverseTransitiveReferences);
-                }
+                ComputeReverseTransitiveReferences(projectId, results);
+                reverseTransitiveReferences = results.ToImmutableHashSet();
+                _reverseTransitiveReferencesMap = _reverseTransitiveReferencesMap.Add(projectId, reverseTransitiveReferences);
             }
 
             return reverseTransitiveReferences;
@@ -517,12 +513,10 @@ namespace Microsoft.CodeAnalysis
         {
             if (_lazyTopologicallySortedProjects.IsDefault)
             {
-                using (var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
-                using (var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject())
-                {
-                    this.TopologicalSort(_projectIds, seenProjects.Object, resultList.Object, cancellationToken);
-                    _lazyTopologicallySortedProjects = resultList.Object.ToImmutableArray();
-                }
+                using var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                using var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject();
+                this.TopologicalSort(_projectIds, seenProjects.Object, resultList.Object, cancellationToken);
+                _lazyTopologicallySortedProjects = resultList.Object.ToImmutableArray();
             }
         }
 
@@ -571,12 +565,10 @@ namespace Microsoft.CodeAnalysis
         {
             if (_lazyDependencySets == null)
             {
-                using (var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
-                using (var results = SharedPools.Default<List<IEnumerable<ProjectId>>>().GetPooledObject())
-                {
-                    this.ComputeDependencySets(seenProjects.Object, results.Object, cancellationToken);
-                    _lazyDependencySets = results.Object.ToImmutableArray();
-                }
+                using var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                using var results = SharedPools.Default<List<IEnumerable<ProjectId>>>().GetPooledObject();
+                this.ComputeDependencySets(seenProjects.Object, results.Object, cancellationToken);
+                _lazyDependencySets = results.Object.ToImmutableArray();
             }
 
             return _lazyDependencySets;
@@ -590,21 +582,17 @@ namespace Microsoft.CodeAnalysis
                 {
                     // We've never seen this project before, so we have not yet dealt with any projects
                     // in its dependency set.
-                    using (var dependencySet = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
-                    {
-                        ComputedDependencySet(project, dependencySet.Object);
+                    using var dependencySet = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                    ComputedDependencySet(project, dependencySet.Object);
 
-                        // add all items in the dependency set to seen projects so we don't revisit any of them
-                        seenProjects.UnionWith(dependencySet.Object);
+                    // add all items in the dependency set to seen projects so we don't revisit any of them
+                    seenProjects.UnionWith(dependencySet.Object);
 
-                        // now make sure the items within the sets are topologically sorted.
-                        using (var topologicallySeenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
-                        using (var sortedProjects = SharedPools.Default<List<ProjectId>>().GetPooledObject())
-                        {
-                            this.TopologicalSort(dependencySet.Object, topologicallySeenProjects.Object, sortedProjects.Object, cancellationToken);
-                            results.Add(sortedProjects.Object.ToImmutableArrayOrEmpty());
-                        }
-                    }
+                    // now make sure the items within the sets are topologically sorted.
+                    using var topologicallySeenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
+                    using var sortedProjects = SharedPools.Default<List<ProjectId>>().GetPooledObject();
+                    this.TopologicalSort(dependencySet.Object, topologicallySeenProjects.Object, sortedProjects.Object, cancellationToken);
+                    results.Add(sortedProjects.Object.ToImmutableArrayOrEmpty());
                 }
             }
         }

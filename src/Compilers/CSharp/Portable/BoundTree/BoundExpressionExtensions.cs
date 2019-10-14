@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsLiteralDefault(this BoundExpression node)
         {
-            return node.Kind == BoundKind.DefaultExpression && node.Syntax.Kind() == SyntaxKind.DefaultLiteralExpression;
+            return node.Kind == BoundKind.DefaultLiteral;
         }
 
         public static bool IsLiteralNullOrDefault(this BoundExpression node)
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //       after some folding/propagation/algebraic transformations.
         public static bool IsDefaultValue(this BoundExpression node)
         {
-            if (node.Kind == BoundKind.DefaultExpression)
+            if (node.Kind == BoundKind.DefaultExpression || node.Kind == BoundKind.DefaultLiteral)
             {
                 return true;
             }

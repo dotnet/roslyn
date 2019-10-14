@@ -95,8 +95,8 @@ public void Method()
             Assert.NotNull(symbol01);
             Assert.NotNull(symbol02);
 
-            Assert.NotEqual(symbol01.Kind, SymbolKind.ErrorType);
-            Assert.NotEqual(symbol02.Kind, SymbolKind.ErrorType);
+            Assert.NotEqual(SymbolKind.ErrorType, symbol01.Kind);
+            Assert.NotEqual(SymbolKind.ErrorType, symbol02.Kind);
 
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);

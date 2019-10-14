@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
@@ -27,12 +28,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         public override string AssemblyDisplayPath => AssemblyFilePath;
+
+        // heuristic for error messages (determining the actual path requires opening the assembly):
         public override string PdbDisplayPath => Path.GetFileNameWithoutExtension(AssemblyFilePath) + ".pdb";
 
         protected override Stream OpenAssemblyStream()
-            => AssemblyFilePath != null ? FileUtilities.OpenRead(AssemblyFilePath) : null;
+            => TryOpenFileStream(AssemblyFilePath);
 
+        // Not gonna be called since we override OpenPdb.
         protected override Stream OpenPdbStream()
+            => throw ExceptionUtilities.Unreachable;
+
+        public override DebugInformationReaderProvider OpenPdb()
         {
             var assemblyStream = OpenAssemblyStream();
             if (assemblyStream == null)
@@ -44,30 +51,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string pdbPath;
             using (var peReader = new PEReader(assemblyStream))
             {
-                var pdbEntry = peReader.ReadDebugDirectory().FirstOrDefault(
-                    e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb || e.Type == DebugDirectoryEntryType.CodeView);
+                var debugDirectory = peReader.ReadDebugDirectory();
+                var embeddedPdbEntry = debugDirectory.FirstOrDefault(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                if (embeddedPdbEntry.DataSize != 0)
+                {
+                    return DebugInformationReaderProvider.CreateFromMetadataReader(peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedPdbEntry));
+                }
 
-                if (pdbEntry.Type != DebugDirectoryEntryType.CodeView)
+                var codeViewEntry = debugDirectory.FirstOrDefault(e => e.Type == DebugDirectoryEntryType.CodeView);
+                if (codeViewEntry.DataSize == 0)
                 {
                     return null;
                 }
 
-                pdbPath = peReader.ReadCodeViewDebugDirectoryData(pdbEntry).Path;
+                pdbPath = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry).Path;
             }
 
             // First try to use the full path as specified in the PDB, then look next to the assembly.
-            Stream result;
+            var pdbStream =
+                TryOpenFileStream(pdbPath) ??
+                TryOpenFileStream(Path.Combine(Path.GetDirectoryName(AssemblyFilePath), PathUtilities.GetFileName(pdbPath)));
+
+            return (pdbStream != null) ? DebugInformationReaderProvider.CreateFromStream(pdbStream) : null;
+        }
+
+        private static Stream TryOpenFileStream(string path)
+        {
+            if (path == null)
+            {
+                return null;
+            }
+
             try
             {
-                result = new FileStream(pdbPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
             }
             catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
             {
-                pdbPath = Path.Combine(Path.GetDirectoryName(AssemblyFilePath), PathUtilities.GetFileName(pdbPath));
-                result = FileUtilities.OpenRead(pdbPath);
+                return null;
             }
-
-            return result;
+            catch (Exception e) when (!(e is IOException))
+            {
+                throw new IOException(e.Message, e);
+            }
         }
     }
 }

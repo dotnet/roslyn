@@ -54,7 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
-            SaveEventsService saveEventsService,
             VisualStudioWorkspace visualStudioWorkspace,
             SVsServiceProvider serviceProvider)
             : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
@@ -68,7 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
-            saveEventsService.StartSendingSaveEvents();
         }
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _) => TrackOpenedDocument(moniker, textBuffer);

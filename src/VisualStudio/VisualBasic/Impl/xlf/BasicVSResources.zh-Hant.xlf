@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces (experimental)</source>
-        <target state="new">Show items from unimported namespaces (experimental)</target>
+        <target state="translated">顯示來自未匯入命名空間的項目 (實驗性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -275,6 +275,11 @@
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
         <target state="translated">VB 編碼慣例</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_language_server_client">
+        <source>Visual Basic Language Server Client</source>
+        <target state="translated">Visual Basic 語言伺服器用戶端</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

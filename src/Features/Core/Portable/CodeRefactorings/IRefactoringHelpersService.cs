@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// - Selection is zero-width and in whitespace that corresponds to a Token whose direct ancestor is of type of type <typeparamref name="TSyntaxNode"/>.
         /// - Selection is zero-width and in a header (defined by ISyntaxFacts helpers) of an node of type of type <typeparamref name="TSyntaxNode"/>.
         /// - Token whose direct parent of type <typeparamref name="TSyntaxNode"/> is selected.
-        /// - Wanted node is an expression / argument and curent empty selection is within such syntax node (arbitrarily deep) on its first line.
+        /// - Selection is zero-width and wanted node is an expression / argument with selection within such syntax node (arbitrarily deep) on its first line.
         /// - Whole node of a type <typeparamref name="TSyntaxNode"/> is selected.
         /// </para>
         /// <para>

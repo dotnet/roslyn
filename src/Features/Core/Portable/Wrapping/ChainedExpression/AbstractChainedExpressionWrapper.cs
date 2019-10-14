@@ -234,13 +234,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         private ImmutableArray<SyntaxNodeOrToken> GetSubRange(
             ArrayBuilder<SyntaxNodeOrToken> pieces, int start, int end)
         {
-            var result = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start);
+            using var resultDisposer = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(end - start, out var result);
             for (var i = start; i < end; i++)
             {
                 result.Add(pieces[i]);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private bool IsDecomposableChainPart(SyntaxNode node)
