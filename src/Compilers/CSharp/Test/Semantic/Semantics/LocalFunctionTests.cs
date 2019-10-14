@@ -25,6 +25,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact]
+        public void ErrorTest_Multiline()
+        {
+            Assert.True(false, @"
+Hello
+World");
+        }
+
+        [Fact]
+        public void ErrorTest_UnixLineEnding()
+        {
+            Assert.True(false, "\nHello\nWorld");
+        }
+
+        [Fact]
+        public void ErrorTest_WindowsLineEnding()
+        {
+            Assert.True(false, "\r\nHello\r\nWorld");
+        }
+
         [Fact, WorkItem(29656, "https://github.com/dotnet/roslyn/issues/29656")]
         public void RefReturningAsyncLocalFunction()
         {
