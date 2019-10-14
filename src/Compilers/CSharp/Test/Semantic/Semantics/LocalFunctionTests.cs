@@ -715,8 +715,8 @@ class C
     {
         local1();
         local2();
-        local3();
-        local4();
+        local3(0);
+        local4<object>();
 
         [A]
         void local1() { }
