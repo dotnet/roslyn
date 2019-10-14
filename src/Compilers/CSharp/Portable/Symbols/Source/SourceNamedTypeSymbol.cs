@@ -517,7 +517,7 @@ next:;
                             mergedConstraintTypes.AddRange(originalConstraintTypes);
                         }
 
-                        mergedConstraintTypes[index1] = constraintType1.MergeNullability(constraintType2, VarianceKind.None);
+                        mergedConstraintTypes[index1] = constraintType1.MergeEquivalentTypes(constraintType2, VarianceKind.None);
                     }
                 }
 
