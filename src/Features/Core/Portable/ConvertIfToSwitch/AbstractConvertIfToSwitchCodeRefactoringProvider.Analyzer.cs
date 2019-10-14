@@ -50,8 +50,13 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             public abstract bool CanConvert(IConditionalOperation operation);
             public abstract bool HasUnreachableEndPoint(IOperation operation);
 
-            // Holds the expression determined to be used as the target expression of the switch
-            private SyntaxNode? _switchTargetExpression;
+            /// <summary>
+            /// Holds the expression determined to be used as the target expression of the switch
+            /// </summary>
+            /// <remarks>
+            /// Note that this is initially unset until we find a non-constant expression.
+            /// </remarks>
+            private SyntaxNode _switchTargetExpression = null!;
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly Feature _features;
 
@@ -64,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             public bool Supports(Feature feature)
                 => (_features & feature) != 0;
 
-            public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
+            public (ImmutableArray<AnalyzedSwitchSection>, SyntaxNode TargetExpression) AnalyzeIfStatementSequence(ReadOnlySpan<IOperation> operations)
             {
                 var sections = ArrayBuilder<AnalyzedSwitchSection>.GetInstance();
                 if (!ParseIfStatementSequence(operations, sections, out var defaultBodyOpt))
@@ -78,7 +83,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     sections.Add(new AnalyzedSwitchSection(labels: default, defaultBodyOpt, defaultBodyOpt.Syntax));
                 }
 
-                return (sections.ToImmutableAndFree(), _switchTargetExpression!);
+                RoslynDebug.Assert(_switchTargetExpression is object);
+                return (sections.ToImmutableAndFree(), _switchTargetExpression);
             }
 
             // Tree to parse:
@@ -216,9 +222,18 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private enum ConstantResult
             {
+                /// <summary>
+                /// None of operands were constant.
+                /// </summary>
                 None,
-                Left, // Signifies that the left operand is the constant
-                Right, // Signifies that the right operand is the constant
+                /// <summary>
+                /// Signifies that the left operand is the constant.
+                /// </summary>
+                Left,
+                /// <summary>
+                /// Signifies that the right operand is the constant.
+                /// </summary>
+                Right,
             }
 
             private ConstantResult DetermineConstant(IBinaryOperation op)
@@ -295,9 +310,18 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private enum BoundKind
             {
+                /// <summary>
+                /// Not a range bound.
+                /// </summary>
                 None,
-                Lower, // Signifies the lower-bound of a range pattern
-                Higher, // Signifies the higher-bound of a range pattern
+                /// <summary>
+                /// Signifies that the lower-bound of a range pattern
+                /// </summary>
+                Lower,
+                /// <summary>
+                /// Signifies that the higher-bound of a range pattern
+                /// </summary>
+                Higher,
             }
 
             private (SyntaxNode Lower, SyntaxNode Higher) GetRangeBounds(IBinaryOperation op)
@@ -336,6 +360,9 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 };
             }
 
+            /// <summary>
+            /// Changes the direction the operator is pointing
+            /// </summary>
             private static BinaryOperatorKind Flip(BinaryOperatorKind operatorKind)
             {
                 return operatorKind switch
