@@ -6619,15 +6619,15 @@ oneMoreTime:
             else
             {
                 result = visitInvalidOperationExpression(operation);
+                children.Free();
             }
 
-            children.Free();
             return result;
 
             IOperation visitInvalidOperationStatement(IInvalidOperation invalidOperation)
             {
                 Debug.Assert(_currentStatement == invalidOperation);
-                VisitStatements(children.ToImmutable());
+                VisitStatements(children.ToImmutableAndFree());
                 return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(invalidOperation));
             }
 
@@ -6851,7 +6851,7 @@ oneMoreTime:
             // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
             BlockOperation logicalBlock = new BlockOperation(
                 operations: statements,
-                locals: default,
+                locals: ImmutableArray<ILocalSymbol>.Empty,
                 operation.OwningSemanticModel,
                 operation.Syntax,
                 operation.Type,
@@ -6861,7 +6861,7 @@ oneMoreTime:
             HandleUsingOperationParts(
                 resources: operation,
                 body: logicalBlock,
-                locals: default,
+                locals: ImmutableArray<ILocalSymbol>.Empty,
                 isAsynchronous: declarationKind == VariableDeclarationKind.AsynchronousUsing);
 
             FinishVisitingStatement(operation);

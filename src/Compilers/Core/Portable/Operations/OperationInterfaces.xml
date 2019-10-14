@@ -2009,8 +2009,8 @@
         Current Usage:
           (1) C# VariableDeclaration
           (2) C# fixed declarations
-          (4) VB Dim statement declaration groups
-          (5) VB Using statement variable declarations
+          (3) VB Dim statement declaration groups
+          (4) VB Using statement variable declarations
       </para>
       <remarks>
         The initializer of this node is applied to all individual declarations in <see cref="Declarators" />. There cannot

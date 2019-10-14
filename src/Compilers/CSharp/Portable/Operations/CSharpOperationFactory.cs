@@ -224,7 +224,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.LocalDeclaration:
                     return CreateBoundLocalDeclarationOperation((BoundLocalDeclaration)boundNode);
                 case BoundKind.MultipleLocalDeclarations:
-                    return CreateBoundMultipleLocalDeclarationsOperation((BoundMultipleLocalDeclarations)boundNode);
+                case BoundKind.UsingLocalDeclarations:
+                    return CreateBoundMultipleLocalDeclarationsBaseOperation((BoundMultipleLocalDeclarationsBase)boundNode);
                 case BoundKind.LabelStatement:
                     return CreateBoundLabelStatementOperation((BoundLabelStatement)boundNode);
                 case BoundKind.LabeledStatement:
@@ -288,8 +289,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return CreateCollectionValuePlaceholderOperation((BoundObjectOrCollectionValuePlaceholder)boundNode);
-                case BoundKind.UsingLocalDeclarations:
-                    return CreateBoundUsingLocalDeclarationOperation((BoundUsingLocalDeclarations)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -1738,9 +1737,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), VariableDeclarationKind.Default, _semanticModel, varStatement, type, constantValue, isImplicit);
         }
 
-        private IVariableDeclarationGroupOperation CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
+        private IVariableDeclarationGroupOperation CreateBoundMultipleLocalDeclarationsBaseOperation(BoundMultipleLocalDeclarationsBase boundMultipleLocalDeclarations)
         {
-            // The syntax for the boundMultipleLocalDeclarations can either be a LocalDeclarationStatement or a VariableDeclaration, depending on the context
+            // The syntax for the boundMultipleLocalDeclarationsBase can either be a LocalDeclarationStatement or a VariableDeclaration, depending on the context
             // (using/fixed statements vs variable declaration)
             // We generate a DeclarationGroup for these scenarios (using/fixed) to maintain tree shape consistency across IOperation.
             SyntaxNode declarationGroupSyntax = boundMultipleLocalDeclarations.Syntax;
@@ -1751,12 +1750,19 @@ namespace Microsoft.CodeAnalysis.Operations
             bool declarationIsImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
             IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundMultipleLocalDeclarations, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
 
+            // If this is a using declaration, work out it's declaration kind
+            VariableDeclarationKind declKind = boundMultipleLocalDeclarations is BoundUsingLocalDeclarations usingDecl
+                                               ? usingDecl.AwaitOpt is object
+                                                    ? VariableDeclarationKind.AsynchronousUsing
+                                                    : VariableDeclarationKind.Using
+                                               : VariableDeclarationKind.Default;
+
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             // If the syntax was the same, we're in a fixed statement or using statement. We make the Group operation implicit in this scenario, as the
             // syntax itself is a VariableDeclaration
             bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated;
-            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), VariableDeclarationKind.Default, _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
+            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), declKind, _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
         }
 
         private ILabeledOperation CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
@@ -2081,15 +2087,15 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IVariableDeclarationGroupOperation CreateBoundUsingLocalDeclarationOperation(BoundUsingLocalDeclarations boundUsingLocalDeclarations)
-        {
-            bool isAsync = boundUsingLocalDeclarations.AwaitOpt is object;
-            VariableDeclarationKind declarationKid = isAsync ? VariableDeclarationKind.AsynchronousUsing : VariableDeclarationKind.Using;
-            SyntaxNode declarationSyntax = ((LocalDeclarationStatementSyntax)boundUsingLocalDeclarations.Syntax).Declaration;
-            bool declarationIsImplicit = boundUsingLocalDeclarations.WasCompilerGenerated;
+        //private IVariableDeclarationGroupOperation CreateBoundUsingLocalDeclarationOperation(BoundUsingLocalDeclarations boundUsingLocalDeclarations)
+        //{
+        //    bool isAsync = boundUsingLocalDeclarations.AwaitOpt is object;
+        //    VariableDeclarationKind declarationKid = isAsync ? VariableDeclarationKind.AsynchronousUsing : VariableDeclarationKind.Using;
+        //    SyntaxNode declarationSyntax = ((LocalDeclarationStatementSyntax)boundUsingLocalDeclarations.Syntax).Declaration;
+        //    bool declarationIsImplicit = boundUsingLocalDeclarations.WasCompilerGenerated;
 
-            IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundUsingLocalDeclarations, _semanticModel, declarationSyntax, type: null, constantValue: default, declarationIsImplicit);
-            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), declarationKid, _semanticModel, boundUsingLocalDeclarations.Syntax, type: null, constantValue: default, isImplicit: false);
-        }
+        //    IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundUsingLocalDeclarations, _semanticModel, declarationSyntax, type: null, constantValue: default, declarationIsImplicit);
+        //    return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), declarationKid, _semanticModel, boundUsingLocalDeclarations.Syntax, type: null, constantValue: default, isImplicit: false);
+        //}
     }
 }
