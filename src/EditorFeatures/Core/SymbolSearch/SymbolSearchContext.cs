@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,24 +11,26 @@ namespace Microsoft.CodeAnalysis.Editor.SymbolSearch
 {
     class SymbolSearchContext : FindUsagesContext
     {
+        private RoslynSymbolSource SymbolSource;
         private IStreamingSymbolSearchSink SymbolSink;
 
-        public SymbolSearchContext(IStreamingSymbolSearchSink sink)
+        public SymbolSearchContext(RoslynSymbolSource symbolSource, IStreamingSymbolSearchSink sink)
         {
-            SymbolSink = sink;
+            this.SymbolSource = symbolSource;
+            this.SymbolSink = sink;
         }
 
         public override Task OnDefinitionFoundAsync(DefinitionItem definition)
         {
-            var result = new RoslynSymbolResult(definition);
-            SymbolSink.Add(result);
+            var result = new RoslynSymbolResult(this.SymbolSource, definition);
+            this.SymbolSink.Add(result);
             return Task.CompletedTask;
         }
 
         public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
         {
-            var result = new RoslynSymbolResult(reference);
-            SymbolSink.Add(result);
+            var result = new RoslynSymbolResult(this.SymbolSource, reference);
+            this.SymbolSink.Add(result);
             return Task.CompletedTask;
         }
     }

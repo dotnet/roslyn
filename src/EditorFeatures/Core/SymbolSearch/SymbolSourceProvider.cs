@@ -12,13 +12,19 @@ namespace Microsoft.CodeAnalysis.Editor.SymbolSearch
     [Name("Roslyn symbol source")]
     class SymbolSourceProvider : ISymbolSourceProvider
     {
+        [Import]
+        internal IPersistentSpanFactory PersistentSpanFactory { get; private set; }
+
+        [Import]
+        internal ISymbolSearchBroker SymbolSearchBroker { get; private set; }
+
         ImmutableArray<ISymbolSource> ExportedSources;
 
         public ImmutableArray<ISymbolSource> GetOrCreate(ITextBuffer buffer)
         {
             if (ExportedSources == default)
             {
-                ExportedSources = ImmutableArray.Create<ISymbolSource>(new SymbolSource(this));
+                ExportedSources = ImmutableArray.Create<ISymbolSource>(new RoslynSymbolSource(this));
             }
             return ExportedSources;
         }

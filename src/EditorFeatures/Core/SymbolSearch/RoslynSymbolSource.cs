@@ -10,13 +10,13 @@ using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Editor.SymbolSearch
 {
-    class SymbolSource : ISymbolSourceFromLocation
+    internal class RoslynSymbolSource : ISymbolSourceFromLocation
     {
-        private SymbolSourceProvider _symbolSourceProvider;
+        internal SymbolSourceProvider ServiceProvider { get; private set; }
 
-        public SymbolSource(SymbolSourceProvider symbolSourceProvider)
+        public RoslynSymbolSource(SymbolSourceProvider symbolSourceProvider)
         {
-            _symbolSourceProvider = symbolSourceProvider;
+            ServiceProvider = symbolSourceProvider;
         }
 
         public string UniqueId => "Roslyn symbol source";
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.SymbolSearch
         {
             var snapshot = sourceLocation.PersistentSpan.Document.TextBuffer.CurrentSnapshot;
             var roslynDocument = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var symbolSearchContext = new SymbolSearchContext(sink);
+            var symbolSearchContext = new SymbolSearchContext(this, sink);
             switch (navigationKind)
             {
                 case PredefinedSymbolNavigationKinds.Definition:
