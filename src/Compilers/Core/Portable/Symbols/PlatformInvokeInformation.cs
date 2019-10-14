@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
@@ -11,11 +13,11 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public sealed class DllImportData : Cci.IPlatformInvokeInformation
     {
-        private readonly string _moduleName;
-        private readonly string _entryPointName;            // null if unspecified, the name of the target method should be used
+        private readonly string? _moduleName;
+        private readonly string? _entryPointName;            // null if unspecified, the name of the target method should be used
         private readonly MethodImportAttributes _flags;
 
-        internal DllImportData(string moduleName, string entryPointName, MethodImportAttributes flags)
+        internal DllImportData(string? moduleName, string? entryPointName, MethodImportAttributes flags)
         {
             _moduleName = moduleName;
             _entryPointName = entryPointName;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Module name. Null if value specified in the attribute is not valid.
         /// </summary>
-        public string ModuleName
+        public string? ModuleName
         {
             get { return _moduleName; }
         }
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Name of the native entry point or null if not specified (the effective name is the same as the name of the target method).
         /// </summary>
-        public string EntryPointName
+        public string? EntryPointName
         {
             get { return _entryPointName; }
         }
