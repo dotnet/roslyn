@@ -601,8 +601,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "string";
                 case SpecialType.System_Object:
                     return "object";
+                default:
+                    return null;
             }
-            return null;
         }
 
         private void AddTypeKind(INamedTypeSymbol symbol)

@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -74,11 +78,119 @@ interface I
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE: Test all conversions from ConversionEasyOut.s_convkind.
+        // PROTOTYPE: Test void* -> nint
+        // PROTOTYPE: Test {any} -> nuint
+        // PROTOTYPE: Test nint -> {any} and nuint -> {any}
+        // PROTOTYPE: Test nint? and nuint?
+        // PROTOTYPE: Test explicit conversions.
+        public static IEnumerable<object[]> ConversionsData()
+        {
+            string conv_none =
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}";
+            string conv_i =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i
+  IL_0002:  ret
+}";
+            string conv_u =
+@"{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u
+  IL_0002:  ret
+}";
+            yield return new object[] { "object", "nint", null };
+            yield return new object[] { "string", "nint", null, false };
+            yield return new object[] { "bool", "nint", null, false };
+            yield return new object[] { "char", "nint", conv_u };
+            yield return new object[] { "sbyte", "nint", conv_i };
+            yield return new object[] { "byte", "nint", conv_u };
+            yield return new object[] { "short", "nint", conv_i };
+            yield return new object[] { "ushort", "nint", conv_u };
+            yield return new object[] { "int", "nint", conv_i };
+            yield return new object[] { "uint", "nint", null };
+            yield return new object[] { "long", "nint", null };
+            yield return new object[] { "ulong", "nint", null };
+            yield return new object[] { "float", "nint", null };
+            yield return new object[] { "double", "nint", null };
+            yield return new object[] { "decimal", "nint", null };
+            yield return new object[] { "System.IntPtr", "nint", conv_none };
+            yield return new object[] { "System.UIntPtr", "nint", null, false };
+            yield return new object[] { "bool?", "nint", null, false };
+            yield return new object[] { "char?", "nint", null };
+            yield return new object[] { "sbyte?", "nint", null };
+            yield return new object[] { "byte?", "nint", null };
+            yield return new object[] { "short?", "nint", null };
+            yield return new object[] { "ushort?", "nint", null };
+            yield return new object[] { "int?", "nint", null };
+            yield return new object[] { "uint?", "nint", null };
+            yield return new object[] { "long?", "nint", null };
+            yield return new object[] { "ulong?", "nint", null };
+            yield return new object[] { "float?", "nint", null };
+            yield return new object[] { "double?", "nint", null };
+            yield return new object[] { "decimal?", "nint", null };
+            yield return new object[] { "System.IntPtr?", "nint", null };
+            yield return new object[] { "System.UIntPtr?", "nint", null, false };
+        }
+
+        [Theory]
+        [MemberData(nameof(ConversionsData))]
+        public void Conversions(string sourceType, string destType, string expectedIL, bool hasExplicitCast = true)
+        {
+            string source =
+$@"class Program
+{{
+    static {destType} Convert({sourceType} value)
+    {{
+        return value;
+    }}
+}}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var expectedDiagnostics = expectedIL == null ?
+                new[] { Diagnostic(hasExplicitCast ? ErrorCode.ERR_NoImplicitConvCast : ErrorCode.ERR_NoImplicitConv, "value").WithArguments(sourceType, destType).WithLocation(5, 16) } :
+                Array.Empty<DiagnosticDescription>();
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+            var typeInfo = model.GetTypeInfo(expr);
+
+            if (!usesIntPtrOrUIntPtr(sourceType) && !usesIntPtrOrUIntPtr(destType)) // PROTOTYPE: Not distinguishing IntPtr from nint.
+            {
+                Assert.Equal(sourceType, typeInfo.Type.ToString());
+                Assert.Equal(destType, typeInfo.ConvertedType.ToString());
+            }
+
+            if (expectedIL != null)
+            {
+                var verifier = CompileAndVerify(comp);
+                verifier.VerifyIL("Program.Convert", expectedIL);
+            }
+
+            static bool usesIntPtrOrUIntPtr(string type) => type.Contains("IntPtr");
+        }
+
+        // PROTOTYPE: Test conversions from ConversionsBase.HasSpecialIntPtrConversion()
+        // (which appear to be allowed for explicit conversions):
+        // IntPtr  <---> int
+        // IntPtr  <---> long
+        // IntPtr  <---> void*
+        // UIntPtr <---> uint
+        // UIntPtr <---> ulong
+        // UIntPtr <---> void*
+
         // PROTOTYPE: Test unary operators.
 
-        // PROTOTYPE: Test lifted operators.
-        // PROTOTYPE: Test all combinations from BinaryOperatorEasyOut tables.
         [Fact]
         public void BinaryOperators_NInt()
         {
