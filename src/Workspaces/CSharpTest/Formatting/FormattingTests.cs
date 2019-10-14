@@ -9498,5 +9498,64 @@ enum TestEnum
 }", changedOptionSet: changingOptions);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
+        public async Task NewLinesForBraces_SwitchExpression_Default()
+        {
+            await AssertFormatAsync(
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch
+        {
+            _ => null
+        };
+    }
+}",
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch {
+            _ => null
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
+        public async Task NewLinesForBraces_SwitchExpression_NonDefault()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { NewLinesForBracesInControlBlocks, false },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch {
+            _ => null
+        };
+    }
+}",
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch
+{
+            _ => null
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
     }
 }
