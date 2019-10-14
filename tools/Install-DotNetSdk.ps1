@@ -63,7 +63,7 @@ Function Get-InstallerExe($Version, [switch]$Runtime) {
 
     # Get the latest/actual version for the specified one
     if (([Version]$Version).Build -eq -1) {
-        $versionInfo = -Split (Invoke-WebRequest -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sdkOrRuntime/$Version/latest.version")
+        $versionInfo = -Split (Invoke-WebRequest -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sdkOrRuntime/$Version/latest.version" -UseBasicParsing)
         $Version = $versionInfo[-1]
     }
 
@@ -133,7 +133,7 @@ if ($IsMacOS -or $IsLinux) {
 }
 
 if (-not (Test-Path $DotNetInstallScriptPath)) {
-    Invoke-WebRequest -Uri $DownloadUri -OutFile $DotNetInstallScriptPath
+    Invoke-WebRequest -Uri $DownloadUri -OutFile $DotNetInstallScriptPath -UseBasicParsing
     if ($IsMacOS -or $IsLinux) {
         chmod +x $DotNetInstallScriptPath
     }
