@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Text
         private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
 
         private readonly SourceHashAlgorithm _checksumAlgorithm;
-        private SourceTextContainer _lazyContainer;
-        private TextLineCollection _lazyLineInfo;
+        private SourceTextContainer? _lazyContainer;
+        private TextLineCollection? _lazyLineInfo;
         private ImmutableArray<byte> _lazyChecksum;
         private ImmutableArray<byte> _precomputedEmbeddedTextBlob;
 
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
-        protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer container = null)
+        protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
         {
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
@@ -89,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </param>
         /// <exception cref="ArgumentNullException"><paramref name="text"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
-        public static SourceText From(string text, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+        public static SourceText From(string text, Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             if (text == null)
             {
@@ -118,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Text
         public static SourceText From(
             TextReader reader,
             int length,
-            Encoding encoding = null,
+            Encoding? encoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             if (reader == null)
@@ -138,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         // 1.0 BACKCOMPAT OVERLOAD - DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static SourceText From(Stream stream, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected)
+        public static SourceText From(Stream stream, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected)
           => From(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded: false);
 
         /// <summary>
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <remarks>Reads from the beginning of the stream. Leaves the stream open.</remarks>
         public static SourceText From(
             Stream stream,
-            Encoding encoding = null,
+            Encoding? encoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool throwIfBinaryDetected = false,
             bool canBeEmbedded = false)
@@ -206,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         // 1.0 BACKCOMPAT OVERLOAD - DO NOT TOUCH
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static SourceText From(byte[] buffer, int length, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected)
+        public static SourceText From(byte[] buffer, int length, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected)
             => From(buffer, length, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded: false);
 
         /// <summary>
@@ -233,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Text
         public static SourceText From(
             byte[] buffer,
             int length,
-            Encoding encoding = null,
+            Encoding? encoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool throwIfBinaryDetected = false,
             bool canBeEmbedded = false)
@@ -273,8 +276,8 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="DecoderFallbackException">If the given encoding is set to use a throwing decoder as a fallback</exception>
         private static string Decode(Stream stream, Encoding encoding, out Encoding actualEncoding)
         {
-            Debug.Assert(stream != null);
-            Debug.Assert(encoding != null);
+            RoslynDebug.Assert(stream != null);
+            RoslynDebug.Assert(encoding != null);
 
             stream.Seek(0, SeekOrigin.Begin);
 
@@ -309,8 +312,8 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="DecoderFallbackException">If the given encoding is set to use a throwing decoder as a fallback</exception>
         private static string Decode(byte[] buffer, int length, Encoding encoding, out Encoding actualEncoding)
         {
-            Debug.Assert(buffer != null);
-            Debug.Assert(encoding != null);
+            RoslynDebug.Assert(buffer != null);
+            RoslynDebug.Assert(encoding != null);
             int preambleLength;
             actualEncoding = TryReadByteOrderMark(buffer, length, out preambleLength) ?? encoding;
             return actualEncoding.GetString(buffer, preambleLength, length - preambleLength);
@@ -360,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// If the encoding is not specified the source isn't debuggable.
         /// If an encoding-less <see cref="SourceText"/> is written to a file a <see cref="Encoding.UTF8"/> shall be used as a default.
         /// </remarks>
-        public abstract Encoding Encoding { get; }
+        public abstract Encoding? Encoding { get; }
 
         /// <summary>
         /// The length of the text in characters.
@@ -555,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
             {
-                Debug.Assert(algorithm != null);
+                RoslynDebug.Assert(algorithm != null);
                 return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
             }
         }
@@ -564,7 +567,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
             {
-                Debug.Assert(algorithm != null);
+                RoslynDebug.Assert(algorithm != null);
                 if (stream.CanSeek)
                 {
                     stream.Seek(0, SeekOrigin.Begin);
@@ -664,7 +667,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 if (newTextLength > 0)
                 {
-                    var segment = SourceText.From(change.NewText, this.Encoding, this.ChecksumAlgorithm);
+                    var segment = SourceText.From(change.NewText!, this.Encoding, this.ChecksumAlgorithm);
                     CompositeText.AddSegments(segments, segment);
                 }
 
@@ -795,7 +798,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal bool TryGetLines(out TextLineCollection lines)
+        internal bool TryGetLines([NotNullWhen(returnValue: true)] out TextLineCollection? lines)
         {
             lines = _lazyLineInfo;
             return lines != null;
@@ -1062,9 +1065,9 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="length">The length of valid data in the buffer.</param>
         /// <param name="preambleLength">The length of any detected byte order marks.</param>
         /// <returns>The detected encoding or null if no recognized byte order mark was present.</returns>
-        internal static Encoding TryReadByteOrderMark(byte[] source, int length, out int preambleLength)
+        internal static Encoding? TryReadByteOrderMark(byte[] source, int length, out int preambleLength)
         {
-            Debug.Assert(source != null);
+            RoslynDebug.Assert(source != null);
             Debug.Assert(length <= source.Length);
 
             if (length >= 2)

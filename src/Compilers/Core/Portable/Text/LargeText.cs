@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -25,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly ImmutableArray<char[]> _chunks;
         private readonly int[] _chunkStartOffsets;
         private readonly int _length;
-        private readonly Encoding _encodingOpt;
+        private readonly Encoding? _encodingOpt;
 
-        internal LargeText(ImmutableArray<char[]> chunks, Encoding encodingOpt, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, ImmutableArray<byte> embeddedTextBlob)
+        internal LargeText(ImmutableArray<char[]> chunks, Encoding? encodingOpt, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, ImmutableArray<byte> embeddedTextBlob)
             : base(checksum, checksumAlgorithm, embeddedTextBlob)
         {
             _chunks = chunks;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Text
             _length = offset;
         }
 
-        internal LargeText(ImmutableArray<char[]> chunks, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm)
+        internal LargeText(ImmutableArray<char[]> chunks, Encoding? encodingOpt, SourceHashAlgorithm checksumAlgorithm)
             : this(chunks, encodingOpt, default(ImmutableArray<byte>), checksumAlgorithm, default(ImmutableArray<byte>))
         {
         }
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal static SourceText Decode(TextReader reader, int length, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm)
+        internal static SourceText Decode(TextReader reader, int length, Encoding? encodingOpt, SourceHashAlgorithm checksumAlgorithm)
         {
             if (length == 0)
             {
@@ -174,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override Encoding Encoding => _encodingOpt;
+        public override Encoding? Encoding => _encodingOpt;
 
         public override int Length => _length;
 

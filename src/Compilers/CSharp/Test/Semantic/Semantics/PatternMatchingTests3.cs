@@ -1603,5 +1603,46 @@ public static class C {
             compilation.VerifyOperationTree(node1, expectedOperationTree: expectedOperationTree);
             VerifyFlowGraph(compilation, node1, expectedFlowGraph: expectedFlowGraph);
         }
+
+        [Fact, WorkItem(39082, "https://github.com/dotnet/roslyn/issues/39082")]
+        public void TargetTypedSwitch_CastSwitchContainingOnlyLambda()
+        {
+            var source = @"
+using System;
+public static class C {
+    static void Main() {
+        var x = ((Func<int, decimal>)(0 switch { 0 => _ => {}}))(0);
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,41): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => _ => {}}))(0);
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 41),
+                // (5,57): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int, decimal>'
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => _ => {}}))(0);
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int, decimal>").WithLocation(5, 57)
+                );
+        }
+
+        [Fact, WorkItem(39082, "https://github.com/dotnet/roslyn/issues/39082")]
+        public void TargetTypedSwitch_CastSwitchContainingOnlyMethodGroup()
+        {
+            var source = @"
+using System;
+public static class C {
+    static void Main() {
+        var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
+    }
+    static void M(int x) {}
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,41): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 41),
+                // (5,55): error CS0407: 'void C.M(int)' has the wrong return type
+                //         var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
+                Diagnostic(ErrorCode.ERR_BadRetType, "M").WithArguments("C.M(int)", "void").WithLocation(5, 55)
+                );
+        }
     }
 }
