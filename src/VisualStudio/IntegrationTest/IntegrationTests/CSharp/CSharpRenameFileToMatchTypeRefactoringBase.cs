@@ -11,12 +11,12 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpRenameFileToMatchTypeRefactoring : AbstractEditorTest
+    public abstract class CSharpRenameFileToMatchTypeRefactoringBase : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpRenameFileToMatchTypeRefactoring(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpGenerateFromUsage))
+        public CSharpRenameFileToMatchTypeRefactoringBase(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpGenerateFromUsage), projectTemplate)
         {
         }
 
