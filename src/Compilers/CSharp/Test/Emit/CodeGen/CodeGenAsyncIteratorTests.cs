@@ -224,7 +224,7 @@ public class C
       IL_0057:  ldarg.0
       IL_0058:  ldfld      ""bool C.<GetSplits>d__1.<>w__disposeMode""
       IL_005d:  brfalse.s  IL_0061
-      IL_005f:  leave.s    IL_0026
+      IL_005f:  leave.s    IL_0098
       IL_0061:  ldstr      ""world""
       IL_0066:  call       ""void System.Console.WriteLine(string)""
       IL_006b:  endfinally
@@ -350,7 +350,7 @@ public class C
       IL_0040:  ldarg.0
       IL_0041:  ldfld      ""bool C.<GetSplits>d__1.<>w__disposeMode""
       IL_0046:  brfalse.s  IL_004a
-      IL_0048:  leave.s    IL_001f
+      IL_0048:  leave.s    IL_007f
       IL_004a:  ldstr      ""!""
       IL_004f:  call       ""void System.Console.WriteLine(string)""
       IL_0054:  endfinally
