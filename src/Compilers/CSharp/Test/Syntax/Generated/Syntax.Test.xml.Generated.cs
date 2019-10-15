@@ -275,25 +275,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.GlobalStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateBlock());
 
         private static Syntax.InternalSyntax.BlockSyntax GenerateBlock()
-<<<<<<< HEAD
             => InternalSyntaxFactory.Block(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.StatementSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-        
+
         private static Syntax.InternalSyntax.LocalFunctionStatementSyntax GenerateLocalFunctionStatement()
             => InternalSyntaxFactory.LocalFunctionStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName(), InternalSyntaxFactory.Identifier("Identifier"), null, GenerateParameterList(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), null, null, null);
-        
+
         private static Syntax.InternalSyntax.LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement()
             => InternalSyntaxFactory.LocalDeclarationStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), null, null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateVariableDeclaration(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
-=======
-            => InternalSyntaxFactory.Block(InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.StatementSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
-        private static Syntax.InternalSyntax.LocalFunctionStatementSyntax GenerateLocalFunctionStatement()
-            => InternalSyntaxFactory.LocalFunctionStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateIdentifierName(), InternalSyntaxFactory.Identifier("Identifier"), null, GenerateParameterList(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), null, null, null);
-
-        private static Syntax.InternalSyntax.LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement()
-            => InternalSyntaxFactory.LocalDeclarationStatement(null, null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateVariableDeclaration(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
->>>>>>> upstream/master
         private static Syntax.InternalSyntax.VariableDeclarationSyntax GenerateVariableDeclaration()
             => InternalSyntaxFactory.VariableDeclaration(GenerateIdentifierName(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDeclaratorSyntax>());
 
@@ -313,138 +302,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.ParenthesizedVariableDesignation(InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.VariableDesignationSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         private static Syntax.InternalSyntax.ExpressionStatementSyntax GenerateExpressionStatement()
-<<<<<<< HEAD
             => InternalSyntaxFactory.ExpressionStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static Syntax.InternalSyntax.EmptyStatementSyntax GenerateEmptyStatement()
             => InternalSyntaxFactory.EmptyStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static Syntax.InternalSyntax.LabeledStatementSyntax GenerateLabeledStatement()
             => InternalSyntaxFactory.LabeledStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Identifier("Identifier"), InternalSyntaxFactory.Token(SyntaxKind.ColonToken), GenerateBlock());
-        
+
         private static Syntax.InternalSyntax.GotoStatementSyntax GenerateGotoStatement()
             => InternalSyntaxFactory.GotoStatement(SyntaxKind.GotoStatement, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.GotoKeyword), null, null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static Syntax.InternalSyntax.BreakStatementSyntax GenerateBreakStatement()
             => InternalSyntaxFactory.BreakStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.BreakKeyword), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static Syntax.InternalSyntax.ContinueStatementSyntax GenerateContinueStatement()
             => InternalSyntaxFactory.ContinueStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.ContinueKeyword), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static Syntax.InternalSyntax.ReturnStatementSyntax GenerateReturnStatement()
             => InternalSyntaxFactory.ReturnStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.ReturnKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static Syntax.InternalSyntax.ThrowStatementSyntax GenerateThrowStatement()
             => InternalSyntaxFactory.ThrowStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.ThrowKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static Syntax.InternalSyntax.YieldStatementSyntax GenerateYieldStatement()
             => InternalSyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.YieldKeyword), InternalSyntaxFactory.Token(SyntaxKind.ReturnKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static Syntax.InternalSyntax.WhileStatementSyntax GenerateWhileStatement()
             => InternalSyntaxFactory.WhileStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.WhileKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static Syntax.InternalSyntax.DoStatementSyntax GenerateDoStatement()
             => InternalSyntaxFactory.DoStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.DoKeyword), GenerateBlock(), InternalSyntaxFactory.Token(SyntaxKind.WhileKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static Syntax.InternalSyntax.ForStatementSyntax GenerateForStatement()
             => InternalSyntaxFactory.ForStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.ForKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static Syntax.InternalSyntax.ForEachStatementSyntax GenerateForEachStatement()
             => InternalSyntaxFactory.ForEachStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), null, InternalSyntaxFactory.Token(SyntaxKind.ForEachKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Identifier("Identifier"), InternalSyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static Syntax.InternalSyntax.ForEachVariableStatementSyntax GenerateForEachVariableStatement()
             => InternalSyntaxFactory.ForEachVariableStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), null, InternalSyntaxFactory.Token(SyntaxKind.ForEachKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static Syntax.InternalSyntax.UsingStatementSyntax GenerateUsingStatement()
             => InternalSyntaxFactory.UsingStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), null, InternalSyntaxFactory.Token(SyntaxKind.UsingKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), null, null, InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static Syntax.InternalSyntax.FixedStatementSyntax GenerateFixedStatement()
             => InternalSyntaxFactory.FixedStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.FixedKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateVariableDeclaration(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static Syntax.InternalSyntax.CheckedStatementSyntax GenerateCheckedStatement()
             => InternalSyntaxFactory.CheckedStatement(SyntaxKind.CheckedStatement, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CheckedKeyword), GenerateBlock());
-        
+
         private static Syntax.InternalSyntax.UnsafeStatementSyntax GenerateUnsafeStatement()
             => InternalSyntaxFactory.UnsafeStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.UnsafeKeyword), GenerateBlock());
-        
+
         private static Syntax.InternalSyntax.LockStatementSyntax GenerateLockStatement()
             => InternalSyntaxFactory.LockStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.LockKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static Syntax.InternalSyntax.IfStatementSyntax GenerateIfStatement()
             => InternalSyntaxFactory.IfStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.IfKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock(), null);
-        
-=======
-            => InternalSyntaxFactory.ExpressionStatement(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-        private static Syntax.InternalSyntax.EmptyStatementSyntax GenerateEmptyStatement()
-            => InternalSyntaxFactory.EmptyStatement(InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static Syntax.InternalSyntax.LabeledStatementSyntax GenerateLabeledStatement()
-            => InternalSyntaxFactory.LabeledStatement(InternalSyntaxFactory.Identifier("Identifier"), InternalSyntaxFactory.Token(SyntaxKind.ColonToken), GenerateBlock());
-
-        private static Syntax.InternalSyntax.GotoStatementSyntax GenerateGotoStatement()
-            => InternalSyntaxFactory.GotoStatement(SyntaxKind.GotoStatement, InternalSyntaxFactory.Token(SyntaxKind.GotoKeyword), null, null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static Syntax.InternalSyntax.BreakStatementSyntax GenerateBreakStatement()
-            => InternalSyntaxFactory.BreakStatement(InternalSyntaxFactory.Token(SyntaxKind.BreakKeyword), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static Syntax.InternalSyntax.ContinueStatementSyntax GenerateContinueStatement()
-            => InternalSyntaxFactory.ContinueStatement(InternalSyntaxFactory.Token(SyntaxKind.ContinueKeyword), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static Syntax.InternalSyntax.ReturnStatementSyntax GenerateReturnStatement()
-            => InternalSyntaxFactory.ReturnStatement(InternalSyntaxFactory.Token(SyntaxKind.ReturnKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static Syntax.InternalSyntax.ThrowStatementSyntax GenerateThrowStatement()
-            => InternalSyntaxFactory.ThrowStatement(InternalSyntaxFactory.Token(SyntaxKind.ThrowKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static Syntax.InternalSyntax.YieldStatementSyntax GenerateYieldStatement()
-            => InternalSyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, InternalSyntaxFactory.Token(SyntaxKind.YieldKeyword), InternalSyntaxFactory.Token(SyntaxKind.ReturnKeyword), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static Syntax.InternalSyntax.WhileStatementSyntax GenerateWhileStatement()
-            => InternalSyntaxFactory.WhileStatement(InternalSyntaxFactory.Token(SyntaxKind.WhileKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static Syntax.InternalSyntax.DoStatementSyntax GenerateDoStatement()
-            => InternalSyntaxFactory.DoStatement(InternalSyntaxFactory.Token(SyntaxKind.DoKeyword), GenerateBlock(), InternalSyntaxFactory.Token(SyntaxKind.WhileKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static Syntax.InternalSyntax.ForStatementSyntax GenerateForStatement()
-            => InternalSyntaxFactory.ForStatement(InternalSyntaxFactory.Token(SyntaxKind.ForKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken), null, InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static Syntax.InternalSyntax.ForEachStatementSyntax GenerateForEachStatement()
-            => InternalSyntaxFactory.ForEachStatement(null, InternalSyntaxFactory.Token(SyntaxKind.ForEachKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Identifier("Identifier"), InternalSyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static Syntax.InternalSyntax.ForEachVariableStatementSyntax GenerateForEachVariableStatement()
-            => InternalSyntaxFactory.ForEachVariableStatement(null, InternalSyntaxFactory.Token(SyntaxKind.ForEachKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static Syntax.InternalSyntax.UsingStatementSyntax GenerateUsingStatement()
-            => InternalSyntaxFactory.UsingStatement(null, InternalSyntaxFactory.Token(SyntaxKind.UsingKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), null, null, InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static Syntax.InternalSyntax.FixedStatementSyntax GenerateFixedStatement()
-            => InternalSyntaxFactory.FixedStatement(InternalSyntaxFactory.Token(SyntaxKind.FixedKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateVariableDeclaration(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static Syntax.InternalSyntax.CheckedStatementSyntax GenerateCheckedStatement()
-            => InternalSyntaxFactory.CheckedStatement(SyntaxKind.CheckedStatement, InternalSyntaxFactory.Token(SyntaxKind.CheckedKeyword), GenerateBlock());
-
-        private static Syntax.InternalSyntax.UnsafeStatementSyntax GenerateUnsafeStatement()
-            => InternalSyntaxFactory.UnsafeStatement(InternalSyntaxFactory.Token(SyntaxKind.UnsafeKeyword), GenerateBlock());
-
-        private static Syntax.InternalSyntax.LockStatementSyntax GenerateLockStatement()
-            => InternalSyntaxFactory.LockStatement(InternalSyntaxFactory.Token(SyntaxKind.LockKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static Syntax.InternalSyntax.IfStatementSyntax GenerateIfStatement()
-            => InternalSyntaxFactory.IfStatement(InternalSyntaxFactory.Token(SyntaxKind.IfKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock(), null);
-
->>>>>>> upstream/master
         private static Syntax.InternalSyntax.ElseClauseSyntax GenerateElseClause()
             => InternalSyntaxFactory.ElseClause(InternalSyntaxFactory.Token(SyntaxKind.ElseKeyword), GenerateBlock());
 
         private static Syntax.InternalSyntax.SwitchStatementSyntax GenerateSwitchStatement()
-<<<<<<< HEAD
             => InternalSyntaxFactory.SwitchStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.SwitchKeyword), null, GenerateIdentifierName(), null, InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SwitchSectionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-        
-=======
-            => InternalSyntaxFactory.SwitchStatement(InternalSyntaxFactory.Token(SyntaxKind.SwitchKeyword), null, GenerateIdentifierName(), null, InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SwitchSectionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
->>>>>>> upstream/master
         private static Syntax.InternalSyntax.SwitchSectionSyntax GenerateSwitchSection()
             => InternalSyntaxFactory.SwitchSection(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SwitchLabelSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.StatementSyntax>());
 
@@ -464,13 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.SwitchExpressionArm(GenerateDiscardPattern(), null, InternalSyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.TryStatementSyntax GenerateTryStatement()
-<<<<<<< HEAD
             => InternalSyntaxFactory.TryStatement(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.TryKeyword), GenerateBlock(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.CatchClauseSyntax>(), null);
-        
-=======
-            => InternalSyntaxFactory.TryStatement(InternalSyntaxFactory.Token(SyntaxKind.TryKeyword), GenerateBlock(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.CatchClauseSyntax>(), null);
 
->>>>>>> upstream/master
         private static Syntax.InternalSyntax.CatchClauseSyntax GenerateCatchClause()
             => InternalSyntaxFactory.CatchClause(InternalSyntaxFactory.Token(SyntaxKind.CatchKeyword), null, null, GenerateBlock());
 
@@ -1785,12 +1702,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestBlockFactoryAndProperties()
         {
             var node = GenerateBlock();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
             Assert.Equal(default, node.Statements);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
@@ -1802,12 +1715,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalFunctionStatementFactoryAndProperties()
         {
             var node = GenerateLocalFunctionStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.ReturnType);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
@@ -1825,12 +1734,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementFactoryAndProperties()
         {
             var node = GenerateLocalDeclarationStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Null(node.AwaitKeyword);
             Assert.Null(node.UsingKeyword);
             Assert.Equal(default, node.Modifiers);
@@ -1910,12 +1815,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestExpressionStatementFactoryAndProperties()
         {
             var node = GenerateExpressionStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
 
@@ -1926,12 +1827,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestEmptyStatementFactoryAndProperties()
         {
             var node = GenerateEmptyStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
@@ -1941,12 +1838,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLabeledStatementFactoryAndProperties()
         {
             var node = GenerateLabeledStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind);
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind);
             Assert.NotNull(node.Statement);
@@ -1958,12 +1851,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGotoStatementFactoryAndProperties()
         {
             var node = GenerateGotoStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.GotoKeyword, node.GotoKeyword.Kind);
             Assert.Null(node.CaseOrDefaultKeyword);
             Assert.Null(node.Expression);
@@ -1976,12 +1865,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestBreakStatementFactoryAndProperties()
         {
             var node = GenerateBreakStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.BreakKeyword, node.BreakKeyword.Kind);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
 
@@ -1992,12 +1877,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestContinueStatementFactoryAndProperties()
         {
             var node = GenerateContinueStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.ContinueKeyword, node.ContinueKeyword.Kind);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
 
@@ -2008,12 +1889,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestReturnStatementFactoryAndProperties()
         {
             var node = GenerateReturnStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.ReturnKeyword, node.ReturnKeyword.Kind);
             Assert.Null(node.Expression);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
@@ -2025,12 +1902,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestThrowStatementFactoryAndProperties()
         {
             var node = GenerateThrowStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.ThrowKeyword, node.ThrowKeyword.Kind);
             Assert.Null(node.Expression);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
@@ -2042,12 +1915,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestYieldStatementFactoryAndProperties()
         {
             var node = GenerateYieldStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.YieldKeyword, node.YieldKeyword.Kind);
             Assert.Equal(SyntaxKind.ReturnKeyword, node.ReturnOrBreakKeyword.Kind);
             Assert.Null(node.Expression);
@@ -2060,12 +1929,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestWhileStatementFactoryAndProperties()
         {
             var node = GenerateWhileStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.WhileKeyword, node.WhileKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.NotNull(node.Condition);
@@ -2079,12 +1944,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDoStatementFactoryAndProperties()
         {
             var node = GenerateDoStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.DoKeyword, node.DoKeyword.Kind);
             Assert.NotNull(node.Statement);
             Assert.Equal(SyntaxKind.WhileKeyword, node.WhileKeyword.Kind);
@@ -2100,12 +1961,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForStatementFactoryAndProperties()
         {
             var node = GenerateForStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.ForKeyword, node.ForKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.Null(node.Declaration);
@@ -2124,12 +1981,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForEachStatementFactoryAndProperties()
         {
             var node = GenerateForEachStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Null(node.AwaitKeyword);
             Assert.Equal(SyntaxKind.ForEachKeyword, node.ForEachKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
@@ -2147,12 +2000,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForEachVariableStatementFactoryAndProperties()
         {
             var node = GenerateForEachVariableStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Null(node.AwaitKeyword);
             Assert.Equal(SyntaxKind.ForEachKeyword, node.ForEachKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
@@ -2169,12 +2018,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingStatementFactoryAndProperties()
         {
             var node = GenerateUsingStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Null(node.AwaitKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, node.UsingKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
@@ -2190,12 +2035,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFixedStatementFactoryAndProperties()
         {
             var node = GenerateFixedStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.FixedKeyword, node.FixedKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.NotNull(node.Declaration);
@@ -2209,12 +2050,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCheckedStatementFactoryAndProperties()
         {
             var node = GenerateCheckedStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.CheckedKeyword, node.Keyword.Kind);
             Assert.NotNull(node.Block);
 
@@ -2225,12 +2062,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnsafeStatementFactoryAndProperties()
         {
             var node = GenerateUnsafeStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.UnsafeKeyword, node.UnsafeKeyword.Kind);
             Assert.NotNull(node.Block);
 
@@ -2241,12 +2074,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLockStatementFactoryAndProperties()
         {
             var node = GenerateLockStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.LockKeyword, node.LockKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.NotNull(node.Expression);
@@ -2260,12 +2089,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestIfStatementFactoryAndProperties()
         {
             var node = GenerateIfStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.IfKeyword, node.IfKeyword.Kind);
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
             Assert.NotNull(node.Condition);
@@ -2291,12 +2116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSwitchStatementFactoryAndProperties()
         {
             var node = GenerateSwitchStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.SwitchKeyword, node.SwitchKeyword.Kind);
             Assert.Null(node.OpenParenToken);
             Assert.NotNull(node.Expression);
@@ -2386,12 +2207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTryStatementFactoryAndProperties()
         {
             var node = GenerateTryStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.TryKeyword, node.TryKeyword.Kind);
             Assert.NotNull(node.Block);
             Assert.Equal(default, node.Catches);
@@ -9465,25 +9282,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.GlobalStatement(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateBlock());
 
         private static BlockSyntax GenerateBlock()
-<<<<<<< HEAD
             => SyntaxFactory.Block(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<StatementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-        
+
         private static LocalFunctionStatementSyntax GenerateLocalFunctionStatement()
             => SyntaxFactory.LocalFunctionStatement(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateIdentifierName(), SyntaxFactory.Identifier("Identifier"), default(TypeParameterListSyntax), GenerateParameterList(), new SyntaxList<TypeParameterConstraintClauseSyntax>(), default(BlockSyntax), default(ArrowExpressionClauseSyntax), default(SyntaxToken));
-        
+
         private static LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement()
             => SyntaxFactory.LocalDeclarationStatement(new SyntaxList<AttributeListSyntax>(), default(SyntaxToken), default(SyntaxToken), new SyntaxTokenList(), GenerateVariableDeclaration(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
-=======
-            => SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<StatementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
-        private static LocalFunctionStatementSyntax GenerateLocalFunctionStatement()
-            => SyntaxFactory.LocalFunctionStatement(new SyntaxTokenList(), GenerateIdentifierName(), SyntaxFactory.Identifier("Identifier"), default(TypeParameterListSyntax), GenerateParameterList(), new SyntaxList<TypeParameterConstraintClauseSyntax>(), default(BlockSyntax), default(ArrowExpressionClauseSyntax), default(SyntaxToken));
-
-        private static LocalDeclarationStatementSyntax GenerateLocalDeclarationStatement()
-            => SyntaxFactory.LocalDeclarationStatement(default(SyntaxToken), default(SyntaxToken), new SyntaxTokenList(), GenerateVariableDeclaration(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
->>>>>>> upstream/master
         private static VariableDeclarationSyntax GenerateVariableDeclaration()
             => SyntaxFactory.VariableDeclaration(GenerateIdentifierName(), new SeparatedSyntaxList<VariableDeclaratorSyntax>());
 
@@ -9503,138 +9309,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.ParenthesizedVariableDesignation(SyntaxFactory.Token(SyntaxKind.OpenParenToken), new SeparatedSyntaxList<VariableDesignationSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         private static ExpressionStatementSyntax GenerateExpressionStatement()
-<<<<<<< HEAD
             => SyntaxFactory.ExpressionStatement(new SyntaxList<AttributeListSyntax>(), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static EmptyStatementSyntax GenerateEmptyStatement()
             => SyntaxFactory.EmptyStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static LabeledStatementSyntax GenerateLabeledStatement()
             => SyntaxFactory.LabeledStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Identifier("Identifier"), SyntaxFactory.Token(SyntaxKind.ColonToken), GenerateBlock());
-        
+
         private static GotoStatementSyntax GenerateGotoStatement()
             => SyntaxFactory.GotoStatement(SyntaxKind.GotoStatement, new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.GotoKeyword), default(SyntaxToken), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static BreakStatementSyntax GenerateBreakStatement()
             => SyntaxFactory.BreakStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.BreakKeyword), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static ContinueStatementSyntax GenerateContinueStatement()
             => SyntaxFactory.ContinueStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static ReturnStatementSyntax GenerateReturnStatement()
             => SyntaxFactory.ReturnStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.ReturnKeyword), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static ThrowStatementSyntax GenerateThrowStatement()
             => SyntaxFactory.ThrowStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.ThrowKeyword), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static YieldStatementSyntax GenerateYieldStatement()
             => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.YieldKeyword), SyntaxFactory.Token(SyntaxKind.ReturnKeyword), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static WhileStatementSyntax GenerateWhileStatement()
             => SyntaxFactory.WhileStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.WhileKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static DoStatementSyntax GenerateDoStatement()
             => SyntaxFactory.DoStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.DoKeyword), GenerateBlock(), SyntaxFactory.Token(SyntaxKind.WhileKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        
+
         private static ForStatementSyntax GenerateForStatement()
             => SyntaxFactory.ForStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.ForKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), default(VariableDeclarationSyntax), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.SemicolonToken), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static ForEachStatementSyntax GenerateForEachStatement()
             => SyntaxFactory.ForEachStatement(new SyntaxList<AttributeListSyntax>(), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.ForEachKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Identifier("Identifier"), SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static ForEachVariableStatementSyntax GenerateForEachVariableStatement()
             => SyntaxFactory.ForEachVariableStatement(new SyntaxList<AttributeListSyntax>(), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.ForEachKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static UsingStatementSyntax GenerateUsingStatement()
             => SyntaxFactory.UsingStatement(new SyntaxList<AttributeListSyntax>(), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.UsingKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), default(VariableDeclarationSyntax), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static FixedStatementSyntax GenerateFixedStatement()
             => SyntaxFactory.FixedStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.FixedKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateVariableDeclaration(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static CheckedStatementSyntax GenerateCheckedStatement()
             => SyntaxFactory.CheckedStatement(SyntaxKind.CheckedStatement, new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.CheckedKeyword), GenerateBlock());
-        
+
         private static UnsafeStatementSyntax GenerateUnsafeStatement()
             => SyntaxFactory.UnsafeStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.UnsafeKeyword), GenerateBlock());
-        
+
         private static LockStatementSyntax GenerateLockStatement()
             => SyntaxFactory.LockStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.LockKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-        
+
         private static IfStatementSyntax GenerateIfStatement()
             => SyntaxFactory.IfStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.IfKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock(), default(ElseClauseSyntax));
-        
-=======
-            => SyntaxFactory.ExpressionStatement(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-        private static EmptyStatementSyntax GenerateEmptyStatement()
-            => SyntaxFactory.EmptyStatement(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static LabeledStatementSyntax GenerateLabeledStatement()
-            => SyntaxFactory.LabeledStatement(SyntaxFactory.Identifier("Identifier"), SyntaxFactory.Token(SyntaxKind.ColonToken), GenerateBlock());
-
-        private static GotoStatementSyntax GenerateGotoStatement()
-            => SyntaxFactory.GotoStatement(SyntaxKind.GotoStatement, SyntaxFactory.Token(SyntaxKind.GotoKeyword), default(SyntaxToken), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static BreakStatementSyntax GenerateBreakStatement()
-            => SyntaxFactory.BreakStatement(SyntaxFactory.Token(SyntaxKind.BreakKeyword), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static ContinueStatementSyntax GenerateContinueStatement()
-            => SyntaxFactory.ContinueStatement(SyntaxFactory.Token(SyntaxKind.ContinueKeyword), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static ReturnStatementSyntax GenerateReturnStatement()
-            => SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static ThrowStatementSyntax GenerateThrowStatement()
-            => SyntaxFactory.ThrowStatement(SyntaxFactory.Token(SyntaxKind.ThrowKeyword), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static YieldStatementSyntax GenerateYieldStatement()
-            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, SyntaxFactory.Token(SyntaxKind.YieldKeyword), SyntaxFactory.Token(SyntaxKind.ReturnKeyword), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static WhileStatementSyntax GenerateWhileStatement()
-            => SyntaxFactory.WhileStatement(SyntaxFactory.Token(SyntaxKind.WhileKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static DoStatementSyntax GenerateDoStatement()
-            => SyntaxFactory.DoStatement(SyntaxFactory.Token(SyntaxKind.DoKeyword), GenerateBlock(), SyntaxFactory.Token(SyntaxKind.WhileKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        private static ForStatementSyntax GenerateForStatement()
-            => SyntaxFactory.ForStatement(SyntaxFactory.Token(SyntaxKind.ForKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), default(VariableDeclarationSyntax), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.SemicolonToken), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.SemicolonToken), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static ForEachStatementSyntax GenerateForEachStatement()
-            => SyntaxFactory.ForEachStatement(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.ForEachKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Identifier("Identifier"), SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static ForEachVariableStatementSyntax GenerateForEachVariableStatement()
-            => SyntaxFactory.ForEachVariableStatement(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.ForEachKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.InKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static UsingStatementSyntax GenerateUsingStatement()
-            => SyntaxFactory.UsingStatement(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.UsingKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), default(VariableDeclarationSyntax), default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static FixedStatementSyntax GenerateFixedStatement()
-            => SyntaxFactory.FixedStatement(SyntaxFactory.Token(SyntaxKind.FixedKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateVariableDeclaration(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static CheckedStatementSyntax GenerateCheckedStatement()
-            => SyntaxFactory.CheckedStatement(SyntaxKind.CheckedStatement, SyntaxFactory.Token(SyntaxKind.CheckedKeyword), GenerateBlock());
-
-        private static UnsafeStatementSyntax GenerateUnsafeStatement()
-            => SyntaxFactory.UnsafeStatement(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword), GenerateBlock());
-
-        private static LockStatementSyntax GenerateLockStatement()
-            => SyntaxFactory.LockStatement(SyntaxFactory.Token(SyntaxKind.LockKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock());
-
-        private static IfStatementSyntax GenerateIfStatement()
-            => SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), GenerateBlock(), default(ElseClauseSyntax));
-
->>>>>>> upstream/master
         private static ElseClauseSyntax GenerateElseClause()
             => SyntaxFactory.ElseClause(SyntaxFactory.Token(SyntaxKind.ElseKeyword), GenerateBlock());
 
         private static SwitchStatementSyntax GenerateSwitchStatement()
-<<<<<<< HEAD
             => SyntaxFactory.SwitchStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.SwitchKeyword), default(SyntaxToken), GenerateIdentifierName(), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<SwitchSectionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
-        
-=======
-            => SyntaxFactory.SwitchStatement(SyntaxFactory.Token(SyntaxKind.SwitchKeyword), default(SyntaxToken), GenerateIdentifierName(), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<SwitchSectionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
->>>>>>> upstream/master
         private static SwitchSectionSyntax GenerateSwitchSection()
             => SyntaxFactory.SwitchSection(new SyntaxList<SwitchLabelSyntax>(), new SyntaxList<StatementSyntax>());
 
@@ -9654,13 +9393,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.SwitchExpressionArm(GenerateDiscardPattern(), default(WhenClauseSyntax), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), GenerateIdentifierName());
 
         private static TryStatementSyntax GenerateTryStatement()
-<<<<<<< HEAD
             => SyntaxFactory.TryStatement(new SyntaxList<AttributeListSyntax>(), SyntaxFactory.Token(SyntaxKind.TryKeyword), GenerateBlock(), new SyntaxList<CatchClauseSyntax>(), default(FinallyClauseSyntax));
-        
-=======
-            => SyntaxFactory.TryStatement(SyntaxFactory.Token(SyntaxKind.TryKeyword), GenerateBlock(), new SyntaxList<CatchClauseSyntax>(), default(FinallyClauseSyntax));
 
->>>>>>> upstream/master
         private static CatchClauseSyntax GenerateCatchClause()
             => SyntaxFactory.CatchClause(SyntaxFactory.Token(SyntaxKind.CatchKeyword), default(CatchDeclarationSyntax), default(CatchFilterClauseSyntax), GenerateBlock());
 
@@ -10975,12 +10709,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestBlockFactoryAndProperties()
         {
             var node = GenerateBlock();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
             Assert.Equal(default, node.Statements);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
@@ -10992,12 +10722,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalFunctionStatementFactoryAndProperties()
         {
             var node = GenerateLocalFunctionStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
             Assert.NotNull(node.ReturnType);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
@@ -11015,12 +10741,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementFactoryAndProperties()
         {
             var node = GenerateLocalDeclarationStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.None, node.AwaitKeyword.Kind());
             Assert.Equal(SyntaxKind.None, node.UsingKeyword.Kind());
             Assert.Equal(default, node.Modifiers);
@@ -11100,12 +10822,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestExpressionStatementFactoryAndProperties()
         {
             var node = GenerateExpressionStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.NotNull(node.Expression);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithExpression(node.Expression).WithSemicolonToken(node.SemicolonToken);
@@ -11116,12 +10834,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestEmptyStatementFactoryAndProperties()
         {
             var node = GenerateEmptyStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
@@ -11131,12 +10845,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLabeledStatementFactoryAndProperties()
         {
             var node = GenerateLabeledStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             Assert.NotNull(node.Statement);
@@ -11148,12 +10858,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGotoStatementFactoryAndProperties()
         {
             var node = GenerateGotoStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.GotoKeyword, node.GotoKeyword.Kind());
             Assert.Equal(SyntaxKind.None, node.CaseOrDefaultKeyword.Kind());
             Assert.Null(node.Expression);
@@ -11166,12 +10872,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestBreakStatementFactoryAndProperties()
         {
             var node = GenerateBreakStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.BreakKeyword, node.BreakKeyword.Kind());
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithBreakKeyword(node.BreakKeyword).WithSemicolonToken(node.SemicolonToken);
@@ -11182,12 +10884,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestContinueStatementFactoryAndProperties()
         {
             var node = GenerateContinueStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.ContinueKeyword, node.ContinueKeyword.Kind());
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithContinueKeyword(node.ContinueKeyword).WithSemicolonToken(node.SemicolonToken);
@@ -11198,12 +10896,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestReturnStatementFactoryAndProperties()
         {
             var node = GenerateReturnStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.ReturnKeyword, node.ReturnKeyword.Kind());
             Assert.Null(node.Expression);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
@@ -11215,12 +10909,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestThrowStatementFactoryAndProperties()
         {
             var node = GenerateThrowStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.ThrowKeyword, node.ThrowKeyword.Kind());
             Assert.Null(node.Expression);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
@@ -11232,12 +10922,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestYieldStatementFactoryAndProperties()
         {
             var node = GenerateYieldStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.YieldKeyword, node.YieldKeyword.Kind());
             Assert.Equal(SyntaxKind.ReturnKeyword, node.ReturnOrBreakKeyword.Kind());
             Assert.Null(node.Expression);
@@ -11250,12 +10936,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestWhileStatementFactoryAndProperties()
         {
             var node = GenerateWhileStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.WhileKeyword, node.WhileKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.NotNull(node.Condition);
@@ -11269,12 +10951,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDoStatementFactoryAndProperties()
         {
             var node = GenerateDoStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.DoKeyword, node.DoKeyword.Kind());
             Assert.NotNull(node.Statement);
             Assert.Equal(SyntaxKind.WhileKeyword, node.WhileKeyword.Kind());
@@ -11290,12 +10968,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForStatementFactoryAndProperties()
         {
             var node = GenerateForStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.ForKeyword, node.ForKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.Null(node.Declaration);
@@ -11314,12 +10988,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForEachStatementFactoryAndProperties()
         {
             var node = GenerateForEachStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.None, node.AwaitKeyword.Kind());
             Assert.Equal(SyntaxKind.ForEachKeyword, node.ForEachKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
@@ -11337,12 +11007,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForEachVariableStatementFactoryAndProperties()
         {
             var node = GenerateForEachVariableStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.None, node.AwaitKeyword.Kind());
             Assert.Equal(SyntaxKind.ForEachKeyword, node.ForEachKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
@@ -11359,12 +11025,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingStatementFactoryAndProperties()
         {
             var node = GenerateUsingStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.None, node.AwaitKeyword.Kind());
             Assert.Equal(SyntaxKind.UsingKeyword, node.UsingKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
@@ -11380,12 +11042,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFixedStatementFactoryAndProperties()
         {
             var node = GenerateFixedStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.FixedKeyword, node.FixedKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.NotNull(node.Declaration);
@@ -11399,12 +11057,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCheckedStatementFactoryAndProperties()
         {
             var node = GenerateCheckedStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.CheckedKeyword, node.Keyword.Kind());
             Assert.NotNull(node.Block);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithKeyword(node.Keyword).WithBlock(node.Block);
@@ -11415,12 +11069,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnsafeStatementFactoryAndProperties()
         {
             var node = GenerateUnsafeStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.UnsafeKeyword, node.UnsafeKeyword.Kind());
             Assert.NotNull(node.Block);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithUnsafeKeyword(node.UnsafeKeyword).WithBlock(node.Block);
@@ -11431,12 +11081,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLockStatementFactoryAndProperties()
         {
             var node = GenerateLockStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.LockKeyword, node.LockKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.NotNull(node.Expression);
@@ -11450,12 +11096,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestIfStatementFactoryAndProperties()
         {
             var node = GenerateIfStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.IfKeyword, node.IfKeyword.Kind());
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
             Assert.NotNull(node.Condition);
@@ -11481,12 +11123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSwitchStatementFactoryAndProperties()
         {
             var node = GenerateSwitchStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.SwitchKeyword, node.SwitchKeyword.Kind());
             Assert.Equal(SyntaxKind.None, node.OpenParenToken.Kind());
             Assert.NotNull(node.Expression);
@@ -11576,12 +11214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTryStatementFactoryAndProperties()
         {
             var node = GenerateTryStatement();
-<<<<<<< HEAD
-            
-            Assert.Equal(default, node.AttributeLists);
-=======
 
->>>>>>> upstream/master
+            Assert.Equal(default, node.AttributeLists);
             Assert.Equal(SyntaxKind.TryKeyword, node.TryKeyword.Kind());
             Assert.NotNull(node.Block);
             Assert.Equal(default, node.Catches);
