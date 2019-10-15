@@ -191,6 +191,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return VSConstants.S_OK;
             }
 
+            int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+            {
+                _scopeCreator._solutionLoaded = true;
+                _scopeCreator.StopTrackingAllProjects();
+
+                return VSConstants.S_OK;
+            }
+
             #region Unimplemented Members
 
             int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
@@ -224,11 +232,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
-            {
-                return VSConstants.E_NOTIMPL;
-            }
-
-            int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
             {
                 return VSConstants.E_NOTIMPL;
             }
