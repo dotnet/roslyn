@@ -681,6 +681,73 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Check that slots for member symbols indicate members of the enclosing slot's type.
+        /// </summary>
+        [Conditional("DEBUG")]
+        private void ValidateLastSlot()
+        {
+            int i = nextVariableSlot - 1;
+            if (i <= 1)
+                return;
+
+            var variable = variableBySlot[i].Symbol;
+            var containingSlot = variableBySlot[i].ContainingSlot;
+            if (containingSlot < 1)
+                return;
+
+            var containingSlotType = variableBySlot[containingSlot].Symbol.GetTypeOrReturnType().Type;
+            Debug.Assert(IsMember(variable, containingSlotType));
+        }
+
+        static bool IsMember(Symbol member, TypeSymbol possibleContainer)
+        {
+            TypeSymbol memberContainer = member.ContainingType;
+            if (memberContainer.Equals(possibleContainer, TypeCompareKind.AllIgnoreOptions))
+                return true;
+
+            switch (memberContainer.TypeKind)
+            {
+                case TypeKind.Interface:
+                    {
+                        var allInterfaces = possibleContainer switch
+                        {
+                            // interface members are only inherited into interfaces and type parameters.
+                            TypeParameterSymbol typeParameter => typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics,
+                            { TypeKind: TypeKind.Interface } => possibleContainer.AllInterfacesNoUseSiteDiagnostics,
+                            _ => ImmutableArray<NamedTypeSymbol>.Empty,
+                        };
+
+                        foreach (var possibleContainerBase in allInterfaces)
+                        {
+                            if (memberContainer.Equals(possibleContainerBase, TypeCompareKind.AllIgnoreOptions))
+                                return true;
+                        }
+
+                        return false;
+                    }
+                default:
+                    {
+                        var effectiveBase = possibleContainer switch
+                        {
+                            // interface members are only inherited into interfaces and type parameters.
+                            TypeParameterSymbol typeParameter => typeParameter.EffectiveBaseClassNoUseSiteDiagnostics,
+                            _ => possibleContainer.BaseTypeNoUseSiteDiagnostics,
+                        };
+
+                        for (var possibleContainerBase = effectiveBase;
+                            !(possibleContainerBase is null);
+                            possibleContainerBase = possibleContainerBase.BaseTypeNoUseSiteDiagnostics)
+                        {
+                            if (memberContainer.Equals(possibleContainerBase, TypeCompareKind.AllIgnoreOptions))
+                                return true;
+                        }
+
+                        return false;
+                    }
+            }
+        }
+
         private SharedWalkerState SaveSharedState() =>
             new SharedWalkerState(
                 _variableSlot.ToImmutableDictionary(),
@@ -1181,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var newState = valueType.State;
                 SetStateAndTrackForFinally(ref this.State, targetSlot, newState);
-                InheritDefaultState(targetSlot);
+                InheritDefaultState(targetType.Type, targetSlot);
 
                 // https://github.com/dotnet/roslyn/issues/33428: Can the areEquivalentTypes check be removed
                 // if InheritNullableStateOfMember asserts the member is valid for target and value?
@@ -1254,7 +1321,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(targetContainerSlot > 0);
             Debug.Assert(skipSlot > 0);
-            // https://github.com/dotnet/roslyn/issues/33428: Ensure member is valid for target and value.
+
+            // Ensure member is valid for target and value.
+            if (!IsMember(member, variableBySlot[targetContainerSlot].Symbol.GetTypeOrReturnType().Type))
+                return;
+            // PROTOTYPE(ngafter): The above line is a good place to set a breakpoint to diagnose this set of changes.
 
             TypeWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
 
@@ -1263,6 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fieldOrPropertyType.IsNullableType())
             {
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
+                ValidateLastSlot();
                 if (targetMemberSlot > 0)
                 {
                     NullableFlowState value = isDefaultValue ? NullableFlowState.MaybeNull : fieldOrPropertyType.ToTypeWithState().State;
@@ -1290,9 +1362,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (EmptyStructTypeCache.IsTrackableStructType(fieldOrPropertyType.Type))
             {
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
+                ValidateLastSlot();
                 if (targetMemberSlot > 0)
                 {
                     int valueMemberSlot = (valueContainerSlot > 0) ? GetOrCreateSlot(member, valueContainerSlot) : -1;
+                    ValidateLastSlot();
                     if (valueMemberSlot == skipSlot)
                     {
                         return;
@@ -1319,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void InheritDefaultState(int targetSlot)
+        private void InheritDefaultState(TypeSymbol targetType, int targetSlot)
         {
             Debug.Assert(targetSlot > 0);
 
@@ -1328,12 +1402,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var variable = variableBySlot[slot];
                 if (variable.ContainingSlot != targetSlot)
-                {
                     continue;
-                }
 
-                SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(variable.Symbol));
-                InheritDefaultState(slot);
+                var symbol = AsMemberOfType(targetType, variable.Symbol);
+                SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(symbol));
+                InheritDefaultState(symbol.GetTypeOrReturnType().Type, slot);
             }
         }
 
@@ -1607,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0)
                 {
                     PopulateOneSlot(ref this.State, slot);
-                    InheritDefaultState(slot);
+                    InheritDefaultState(_variableTypes.TryGetValue(local, out var typeWithAnootations) ? typeWithAnootations.Type : local.Type, slot);
                 }
             }
         }
@@ -1953,7 +2026,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if ((object)symbol != null)
                         {
-                            int slot = (containingSlot < 0) ? -1 : GetOrCreateSlot(symbol, containingSlot);
+                            if (containingSlot > 0 && !IsMember(symbol, base.variableBySlot[containingSlot].Symbol.GetTypeOrReturnType().Type))
+                            {
+                                // PROTOTYPE(ngafter): This block is here to help0 debug things.
+                            }
+                            int slot = (containingSlot < 0 || !IsMember(symbol, base.variableBySlot[containingSlot].Symbol.GetTypeOrReturnType().Type)) ? -1 : GetOrCreateSlot(symbol, containingSlot);
+                            ValidateLastSlot();
                             VisitObjectCreationInitializer(symbol, slot, node.Right, GetLValueAnnotations(node.Left));
                             // https://github.com/dotnet/roslyn/issues/35040: Should likely be setting _resultType in VisitObjectCreationInitializer
                             // and using that value instead of reconstructing here
@@ -2073,7 +2151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var argument = arguments[i];
                     var argumentType = argumentTypes[i];
                     var property = AnonymousTypeManager.GetAnonymousTypeProperty(anonymousType, i);
-                    TrackNullableStateForAssignment(argument, property.TypeWithAnnotations, GetOrCreateSlot(property, receiverSlot), argumentType, MakeSlot(argument));
+                    var slot = GetOrCreateSlot(property, receiverSlot);
+                    ValidateLastSlot();
+                    TrackNullableStateForAssignment(argument, property.TypeWithAnnotations, slot, argumentType, MakeSlot(argument));
 
                     var currentDeclaration = getDeclaration(node, property, ref currentDeclarationIndex);
                     if (currentDeclaration is object)
@@ -4759,8 +4839,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void trackState(BoundExpression value, FieldSymbol field, TypeWithState valueType) =>
-                TrackNullableStateForAssignment(value, field.TypeWithAnnotations, GetOrCreateSlot(field, slot), valueType, MakeSlot(value));
+            void trackState(BoundExpression value, FieldSymbol field, TypeWithState valueType)
+            {
+                int targetSlot = GetOrCreateSlot(field, slot);
+                ValidateLastSlot();
+                TrackNullableStateForAssignment(value, field.TypeWithAnnotations, targetSlot, valueType, MakeSlot(value));
+            }
         }
 
         private void TrackNullableStateOfNullableValue(int containingSlot, TypeSymbol containingType, BoundExpression value, TypeWithState valueType, int valueSlot)
@@ -4851,10 +4935,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.ExplicitTuple:
                         {
                             int targetFieldSlot = GetOrCreateSlot(targetField, slot);
+                            ValidateLastSlot();
                             if (targetFieldSlot > 0)
                             {
                                 this.State[targetFieldSlot] = NullableFlowState.NotNull;
                                 int valueFieldSlot = GetOrCreateSlot(valueField, valueSlot);
+                                ValidateLastSlot();
                                 if (valueFieldSlot > 0)
                                 {
                                     TrackNullableStateOfTupleConversion(conversionOpt, convertedNode, conversion, targetField.Type, valueField.Type, targetFieldSlot, valueFieldSlot, assignmentKind, parameterOpt, reportWarnings);
@@ -4868,10 +4954,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (AreNullableAndUnderlyingTypes(targetField.Type, valueField.Type, out _))
                         {
                             int targetFieldSlot = GetOrCreateSlot(targetField, slot);
+                            ValidateLastSlot();
                             if (targetFieldSlot > 0)
                             {
                                 this.State[targetFieldSlot] = NullableFlowState.NotNull;
                                 int valueFieldSlot = GetOrCreateSlot(valueField, valueSlot);
+                                ValidateLastSlot();
                                 if (valueFieldSlot > 0)
                                 {
                                     TrackNullableStateOfNullableValue(targetFieldSlot, targetField.Type, null, valueField.TypeWithAnnotations.ToTypeWithState(), valueFieldSlot);
@@ -4895,6 +4983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 reportRemainingWarnings: reportWarnings,
                                 diagnosticLocation: (conversionOpt ?? convertedNode).Syntax.GetLocation());
                             int targetFieldSlot = GetOrCreateSlot(targetField, slot);
+                            ValidateLastSlot();
                             if (targetFieldSlot > 0)
                             {
                                 this.State[targetFieldSlot] = convertedType.State;
@@ -6750,7 +6839,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
             valueProperty = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
-            return (valueProperty is null) ? -1 : GetOrCreateSlot(valueProperty, containingSlot, forceSlotEvenIfEmpty: forceSlotEvenIfEmpty);
+            var result = (valueProperty is null) ? -1 : GetOrCreateSlot(valueProperty, containingSlot, forceSlotEvenIfEmpty: forceSlotEvenIfEmpty);
+            ValidateLastSlot();
+            return result;
         }
 
         protected override void VisitForEachExpression(BoundForEachStatement node)
