@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _previousDisposalLabels.Push(_enclosingFinallyEntryOrFinallyExitOrExitLabel);
 
             var finallyExit = F.GenerateLabel("finallyExit");
-            //_previousDisposalLabels.Push(finallyExit);
+            _previousDisposalLabels.Push(finallyExit);
 
             if (node.FinallyBlockOpt != null)
             {
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // While inside the try and catch blocks, we'll use the current finallyEntry label for disposal
             // As soon as we close the try and catch blocks (ie. possibly enter the finally block), we'll use the finallyExit label for disposal (restored/popped from the stack by CloseTryCatchBlocks)
             // When exiting the try statement, we restore the previous disposal label.
-            //_enclosingFinallyEntryOrFinallyExitOrExitLabel = _previousDisposalLabels.Pop();
+            _enclosingFinallyEntryOrFinallyExitOrExitLabel = _previousDisposalLabels.Pop();
 
             if (node.FinallyBlockOpt != null)
             {
