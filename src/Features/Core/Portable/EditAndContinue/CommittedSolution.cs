@@ -269,7 +269,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Dispatch to a background thread - reading symbols requires MTA thread.
                 if (Thread.CurrentThread.GetApartmentState() != ApartmentState.MTA)
                 {
-                    return await Task.Factory.SafeStartNew(ReadChecksum, cancellationToken, TaskScheduler.Default).ConfigureAwait(false);
+                    return await Task.Factory.StartNew(() =>
+                    {
+                        try
+                        {
+                            return ReadChecksum();
+                        }
+                        catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                        {
+                            EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: unexpected exception: {1}", sourceFilePath, e.Message);
+                            return default;
+                        }
+                    }, cancellationToken, TaskCreationOptions.None, TaskScheduler.Default).ConfigureAwait(false);
                 }
                 else
                 {
@@ -315,6 +326,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
+                EditAndContinueWorkspaceService.Log.Write("Source '{0}' doesn't match PDB: unexpected exception: {1}", sourceFilePath, e.Message);
                 return default;
             }
         }

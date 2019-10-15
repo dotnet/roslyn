@@ -70,7 +70,11 @@ namespace CSharpSyntaxGenerator
 
         protected void WriteLine(string msg)
         {
-            WriteIndentIfNeeded();
+            if (msg != "")
+            {
+                WriteIndentIfNeeded();
+            }
+
             _writer.WriteLine(msg);
             _needIndent = true; //need an indent after each line break
         }
@@ -97,10 +101,10 @@ namespace CSharpSyntaxGenerator
             Indent();
         }
 
-        protected void CloseBlock()
+        protected void CloseBlock(string extra = "")
         {
             Unindent();
-            WriteLine("}");
+            WriteLine("}" + extra);
         }
 
         #endregion Output helpers
