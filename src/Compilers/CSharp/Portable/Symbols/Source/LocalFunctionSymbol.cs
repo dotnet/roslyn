@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LocalFunctionSymbol : SourceMethodSymbol
+    internal sealed class LocalFunctionSymbol : SourceMethodSymbol, IAttributeTargetSymbol
     {
         private readonly Binder _binder;
         private readonly LocalFunctionStatementSyntax _syntax;
@@ -25,8 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _lazyIsVarArg;
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
-        private TypeWithAnnotations.Boxed _lazyReturnType;
-        private TypeWithAnnotations.Boxed _lazyIteratorElementType;
+        private TypeWithAnnotations.Boxed? _lazyReturnType;
+        private TypeWithAnnotations.Boxed? _lazyIteratorElementType;
+
+        private CustomAttributesBag<CSharpAttributeData>? _lazyCustomAttributesBag;
+        private CustomAttributesBag<CSharpAttributeData>? _lazyReturnTypeCustomAttributesBag;
 
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
@@ -121,6 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ComputeReturnType();
 
+            GetAttributes();
+            GetReturnTypeAttributes();
+
             addTo.AddRange(_declarationDiagnostics);
         }
 
@@ -202,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 ComputeReturnType();
-                return _lazyReturnType.Value;
+                return _lazyReturnType!.Value;
             }
         }
 
@@ -341,9 +349,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData => null;
+        internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation => null;
+        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
 
         internal override CallingConvention CallingConvention => CallingConvention.Default;
 
@@ -351,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool RequiresSecurityObject => false;
 
-        public override Symbol AssociatedSymbol => null;
+        public override Symbol? AssociatedSymbol => null;
 
         public override Accessibility DeclaredAccessibility => ModifierUtils.EffectiveAccessibility(_declarationModifiers);
 
@@ -375,7 +383,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => false;
 
-        public override DllImportData GetDllImportData() => null;
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => this;
+
+        AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations => AttributeLocation.Method | AttributeLocation.Return;
+
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Method;
+
+        public override DllImportData? GetDllImportData() => null;
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
 
@@ -393,25 +407,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             // Local function symbols have no "this" parameter
             thisParameter = null;
             return true;
         }
 
-        private static void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
+        private void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
         {
-            foreach (var attrList in attributes)
+            var diagnosticInfo = MessageID.IDS_FeatureLocalFunctionAttributes.GetFeatureAvailabilityDiagnosticInfoOpt((CSharpParseOptions)_syntax.SyntaxTree.Options);
+            if (diagnosticInfo is object)
             {
-                diagnostics.Add(ErrorCode.ERR_AttributesInLocalFuncDecl, attrList.Location);
+                foreach (var attrList in attributes)
+                {
+                    diagnostics.Add(diagnosticInfo, attrList.Location);
+                }
             }
         }
 
         private ImmutableArray<SourceMethodTypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<SourceMethodTypeParameterSymbol>.GetInstance();
-            var typeParameters = _syntax.TypeParameterList.Parameters;
+            var typeParameters = _syntax.TypeParameterList?.Parameters ?? default;
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
                 var parameter = typeParameters[ordinal];
@@ -420,7 +438,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
                 }
 
-                // Attributes are currently disallowed on local function type parameters
                 ReportAttributesDisallowed(parameter.AttributeLists, diagnostics);
 
                 var identifier = parameter.Identifier;
@@ -493,6 +510,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyTypeParameterConstraints;
         }
 
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            var lazyCustomAttributesBag = _lazyCustomAttributesBag;
+            if (lazyCustomAttributesBag == null)
+            {
+                LoadAndValidateAttributes(OneOrMany.Create(_syntax.AttributeLists), ref _lazyCustomAttributesBag);
+                lazyCustomAttributesBag = _lazyCustomAttributesBag;
+            }
+
+            return lazyCustomAttributesBag.Attributes;
+        }
+
+        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        {
+            var lazyReturnTypeCustomAttributesBag = _lazyReturnTypeCustomAttributesBag;
+            if (lazyReturnTypeCustomAttributesBag == null)
+            {
+                LoadAndValidateAttributes(
+                    OneOrMany.Create(_syntax.AttributeLists),
+                    ref _lazyReturnTypeCustomAttributesBag,
+                    symbolPart: AttributeLocation.Return);
+                lazyReturnTypeCustomAttributesBag = _lazyReturnTypeCustomAttributesBag;
+            }
+
+            return lazyReturnTypeCustomAttributesBag.Attributes;
+        }
+
         public override int GetHashCode()
         {
             // this is what lambdas do (do not use hashes of other fields)
@@ -504,8 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)this == symbol) return true;
 
             var localFunction = symbol as LocalFunctionSymbol;
-            return (object)localFunction != null
-                && localFunction._syntax == _syntax;
+            return localFunction?._syntax == _syntax;
         }
     }
 }
