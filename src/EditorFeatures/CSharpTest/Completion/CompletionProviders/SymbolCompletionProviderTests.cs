@@ -7179,6 +7179,33 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AwaitableDotsLikeRangeExpression()
+        {
+            var markup = @"
+using System.IO;
+using System.Threading.Tasks;
+
+namespace N
+{
+    class C
+    {
+        Task M()
+        {
+            var request = new Request();
+            var m = await request.$$.ReadAsStreamAsync();
+        }
+    }
+
+    class Request
+    {
+        public Task<Stream> ReadAsStreamAsync() => null;
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "ReadAsStreamAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ObsoleteItem()
         {
             var markup = @"
