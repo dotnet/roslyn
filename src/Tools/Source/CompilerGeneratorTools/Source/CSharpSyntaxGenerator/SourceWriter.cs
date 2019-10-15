@@ -1972,7 +1972,6 @@ namespace CSharpSyntaxGenerator
 
             this.WriteLine();
 
-<<<<<<< HEAD
             var hasOptional = minimalFactoryfields.Any(f => !IsRequiredFactoryField(nd, f));
             var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
 
@@ -1981,12 +1980,8 @@ namespace CSharpSyntaxGenerator
                 WriteLine("#pragma warning disable RS0027");
             }
 
-            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name), "    ");
-            Write("    {0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
-=======
             WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name));
             Write("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
->>>>>>> upstream/master
 
             bool hasPreviousParameter = false;
             if (nd.Kinds.Count > 1)
@@ -2082,16 +2077,11 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteLine(");");
-<<<<<<< HEAD
-
-            WriteLine("    }");
 
             if (hasOptional && hasAttributeOrModifiersList)
             {
                 WriteLine("#pragma warning restore RS0027");
             }
-=======
->>>>>>> upstream/master
         }
 
         private bool CanAutoConvertFromString(Field field)
