@@ -750,27 +750,18 @@ namespace CSharpSyntaxGenerator
             {
                 Write("SyntaxKind kind, ");
             }
-            foreach (var field in nd.Fields)
-            {
-                if (field != nd.Fields.First())
-                    Write(", ");
-                var type = field.Type;
-                if (type == "SyntaxNodeOrTokenList")
-                {
-                    type = "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>";
-                }
-                else if (IsSeparatedNodeList(field.Type) ||
-                         IsNodeList(field.Type))
-                {
-                    type = "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + type;
-                }
-                else
-                {
-                    type = GetFieldType(field, green: true);
-                }
 
-                Write($"{type} {CamelCase(field.Name)}");
-            }
+            Write(Join(", ", nd.Fields.Select(f =>
+            {
+                var type = f.Type switch
+                {
+                    "SyntaxNodeOrTokenList" => "Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>",
+                    _ when IsSeparatedNodeList(f.Type) || IsNodeList(f.Type) => $"Microsoft.CodeAnalysis.Syntax.InternalSyntax.{f.Type}",
+                    _ => GetFieldType(f, green: true),
+                };
+
+                return $"{type} {CamelCase(f.Name)}";
+            })));
         }
 
         private void WriteCtorArgList(Node nd, bool withSyntaxFactoryContext, List<Field> valueFields, List<Field> nodeFields)
