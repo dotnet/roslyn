@@ -365,26 +365,18 @@ namespace CSharpSyntaxGenerator
         }
 
         private string GetWriterMethod(string type)
-        {
-            switch (type)
+            => type switch
             {
-                case "bool":
-                    return "WriteBoolean";
-                default:
-                    throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization.");
-            }
-        }
+                "bool" => "WriteBoolean",
+                _ => throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization."),
+            };
 
         private string GetReaderMethod(string type)
-        {
-            switch (type)
+            => type switch
             {
-                case "bool":
-                    return "ReadBoolean";
-                default:
-                    throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization.");
-            }
-        }
+                "bool" => "ReadBoolean",
+                _ => throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization."),
+            };
 
         private void WriteCtorBody(List<Field> valueFields, List<Field> nodeFields)
         {
@@ -1548,9 +1540,7 @@ namespace CSharpSyntaxGenerator
         }
 
         protected bool CanBeAutoCreated(Node node, Field field)
-        {
-            return IsAutoCreatableToken(node, field) || IsAutoCreatableNode(node, field);
-        }
+            => IsAutoCreatableToken(node, field) || IsAutoCreatableNode(field);
 
         private bool IsAutoCreatableToken(Node node, Field field)
         {
@@ -1559,7 +1549,7 @@ namespace CSharpSyntaxGenerator
                 && ((field.Kinds.Count == 1 && field.Kinds[0].Name != "IdentifierToken" && !field.Kinds[0].Name.EndsWith("LiteralToken", StringComparison.Ordinal)) || (field.Kinds.Count > 1 && field.Kinds.Count == node.Kinds.Count));
         }
 
-        private bool IsAutoCreatableNode(Node node, Field field)
+        private bool IsAutoCreatableNode(Field field)
         {
             var referencedNode = GetNode(field.Type);
             return (referencedNode != null && RequiredFactoryArgumentCount(referencedNode) == 0);
