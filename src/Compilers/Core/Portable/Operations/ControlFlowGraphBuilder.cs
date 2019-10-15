@@ -1372,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     && declarationGroup.DeclarationKind != VariableDeclarationKind.Default)
                 {
                     // visit the using decl with the following statements
-                    var followingStatements = ImmutableArray.Create(statements, Math.Min(i + 1, statements.Length - 1), statements.Length - i - 1);
+                    var followingStatements = ImmutableArray.Create(statements, i + 1, statements.Length - i - 1);
                     VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
                     break;
                 }
