@@ -59,9 +59,6 @@ dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:sil
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 
 # Expression-level preferences
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-csharp_style_throw_expression = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = true:suggestion
@@ -186,9 +183,6 @@ dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:sil
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 
 # Expression-level preferences
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-csharp_style_throw_expression = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = false:error
