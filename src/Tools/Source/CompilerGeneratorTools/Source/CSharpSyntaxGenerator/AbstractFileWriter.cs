@@ -57,12 +57,6 @@ namespace CSharpSyntaxGenerator
             _writer.Write(msg);
         }
 
-        protected void Write(string msg, params object[] args)
-        {
-            WriteIndentIfNeeded();
-            _writer.Write(msg, args);
-        }
-
         protected void WriteLine()
         {
             WriteLine("");

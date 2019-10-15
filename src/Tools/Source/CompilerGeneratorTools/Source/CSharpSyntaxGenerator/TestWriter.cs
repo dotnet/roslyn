@@ -100,14 +100,14 @@ namespace CSharpSyntaxGenerator
 
             WriteLine(string.Format("private static {0}{1} Generate{2}()", csharpNamespace, node.Name, strippedName));
 
-            Write("    => {0}.{1}(", syntaxFactory, strippedName);
+            Write(string.Format("    => {0}.{1}(", syntaxFactory, strippedName));
             //instantiate node
 
             bool first = true;
 
             if (node.Kinds.Count > 1)
             {
-                Write("SyntaxKind.{0}", node.Kinds[0].Name); //TODO: other kinds?
+                Write(string.Format("SyntaxKind.{0}", node.Kinds[0].Name)); //TODO: other kinds?
                 first = false;
             }
 
@@ -127,7 +127,7 @@ namespace CSharpSyntaxGenerator
                     }
                     else
                     {
-                        Write("default({0})", field.Type);
+                        Write(string.Format("default({0})", field.Type));
                     }
                 }
                 else if (IsAnyList(field.Type))
@@ -141,7 +141,7 @@ namespace CSharpSyntaxGenerator
                     {
                         typeName = (field.Type == "SyntaxList<SyntaxToken>") ? "SyntaxTokenList" : field.Type;
                     }
-                    Write("new {0}()", typeName);
+                    Write(string.Format("new {0}()", typeName));
                 }
                 else if (field.Type == "SyntaxToken")
                 {
@@ -150,28 +150,28 @@ namespace CSharpSyntaxGenerator
                     var trailingTrivia = isGreen ? ", null" : string.Empty;
                     if (kind == "IdentifierToken")
                     {
-                        Write("{0}.Identifier(\"{1}\")", syntaxFactory, field.Name);
+                        Write(string.Format("{0}.Identifier(\"{1}\")", syntaxFactory, field.Name));
                     }
                     else if (kind == "StringLiteralToken")
                     {
-                        Write("{0}.Literal({1}\"string\", \"string\"{2})", syntaxFactory, leadingTrivia, trailingTrivia);
+                        Write(string.Format("{0}.Literal({1}\"string\", \"string\"{2})", syntaxFactory, leadingTrivia, trailingTrivia));
                     }
                     else if (kind == "CharacterLiteralToken")
                     {
-                        Write("{0}.Literal({1}\"a\", 'a'{2})", syntaxFactory, leadingTrivia, trailingTrivia);
+                        Write(string.Format("{0}.Literal({1}\"a\", 'a'{2})", syntaxFactory, leadingTrivia, trailingTrivia));
                     }
                     else if (kind == "NumericLiteralToken")
                     {
-                        Write("{0}.Literal({1}\"1\", 1{2})", syntaxFactory, leadingTrivia, trailingTrivia);
+                        Write(string.Format("{0}.Literal({1}\"1\", 1{2})", syntaxFactory, leadingTrivia, trailingTrivia));
                     }
                     else
                     {
-                        Write("{0}.Token(SyntaxKind.{1})", syntaxFactory, ChooseValidKind(field));
+                        Write(string.Format("{0}.Token(SyntaxKind.{1})", syntaxFactory, ChooseValidKind(field)));
                     }
                 }
                 else if (field.Type == "CSharpSyntaxNode")
                 {
-                    Write("{0}.IdentifierName({0}.Identifier(\"{1}\"))", syntaxFactory, field.Name);
+                    Write(string.Format("{0}.IdentifierName({0}.Identifier(\"{1}\"))", syntaxFactory, field.Name));
                 }
                 else
                 {
@@ -186,7 +186,7 @@ namespace CSharpSyntaxGenerator
                         }
                         type = subTypes.First();
                     }
-                    Write("Generate{0}()", StripPost(type, "Syntax"));
+                    Write(string.Format("Generate{0}()", StripPost(type, "Syntax")));
                 }
             }
 
@@ -198,7 +198,7 @@ namespace CSharpSyntaxGenerator
                 }
                 first = false;
 
-                Write("new {0}()", field.Type);
+                Write(string.Format("new {0}()", field.Type));
             }
 
             WriteLine(");");
