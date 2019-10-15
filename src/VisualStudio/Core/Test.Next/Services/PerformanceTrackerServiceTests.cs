@@ -133,7 +133,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 for (var j = 0; j < data.Length; j++)
                 {
                     double result;
-                    if (!double.TryParse(data[j], NumberStyles.Float | NumberStyles.AllowThousands, EnsureEnglishUICulture.PreferredOrNull, out result))
+                    if (!double.TryParse(data[j], NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out result))
                     {
                         // no data for this analyzer for this particular run
                         result = double.NaN;
