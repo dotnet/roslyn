@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// because the location of the call can affect the default parameter value.
         /// Therefore the dictionary key must be (SyntaxNode, ParameterSymbol) instead of just ParameterSymbol.
         /// </summary>
-        private Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression> _defaultValues;
+        private PooledDictionary<(SyntaxNode, ParameterSymbol), BoundExpression>? _defaultValues;
 
         /// <summary>
         /// The result type represents the state of the last visited expression.
@@ -377,7 +377,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
             _returnTypesOpt = returnTypesOpt;
             _snapshotBuilderOpt = snapshotBuilderOpt;
-            _defaultValues = new Dictionary<(SyntaxNode, ParameterSymbol), BoundExpression>();
             _isSpeculative = isSpeculative;
 
             if (initialState != null)
@@ -3652,7 +3651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 visitedParameters.Add(parameter);
             }
 
-            if (!parametersOpt.IsDefaultOrEmpty)
+            if (!parametersOpt.IsDefaultOrEmpty && parametersOpt.Length != visitedParameters.Count)
             {
                 var argumentsBuilder = initBuilder(arguments)!;
                 var argsToParamsBuilder = initBuilder(argsToParamsOpt);
@@ -3671,6 +3670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var annotations = GetParameterAnnotations(parameter);
 
+                        _defaultValues ??= PooledDictionary<(SyntaxNode, ParameterSymbol), BoundExpression>.GetInstance();
                         if (!_defaultValues.TryGetValue((syntax, parameter), out var argument))
                         {
                             _defaultValues[(syntax, parameter)] = argument = LocalRewriter.GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.True, localRewriter: null, _binder, Diagnostics);
