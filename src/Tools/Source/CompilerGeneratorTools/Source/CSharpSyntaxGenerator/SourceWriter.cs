@@ -1571,31 +1571,31 @@ namespace CSharpSyntaxGenerator
             Write($"return ({nd.Name})Syntax.InternalSyntax.SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "kind" : "",
-                nodeFields.Select(field =>
+                nodeFields.Select(f =>
                 {
-                    if (field.Type == "SyntaxToken")
+                    if (f.Type == "SyntaxToken")
                     {
-                        if (IsOptional(field))
-                            return $"(Syntax.InternalSyntax.SyntaxToken?){CamelCase(field.Name)}.Node";
+                        if (IsOptional(f))
+                            return $"(Syntax.InternalSyntax.SyntaxToken?){CamelCase(f.Name)}.Node";
                         else
                             // We know the GreenNode is not null because it gets a type check earlier in the generated method
-                            return $"(Syntax.InternalSyntax.SyntaxToken){CamelCase(field.Name)}.Node!";
+                            return $"(Syntax.InternalSyntax.SyntaxToken){CamelCase(f.Name)}.Node!";
                     }
-                    else if (field.Type == "SyntaxList<SyntaxToken>")
-                        return $"{CamelCase(field.Name)}.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>()";
-                    else if (IsNodeList(field.Type))
-                        return $"{CamelCase(field.Name)}.Node.ToGreenList<Syntax.InternalSyntax.{GetElementType(field.Type)}>()";
-                    else if (IsSeparatedNodeList(field.Type))
-                        return $"{CamelCase(field.Name)}.Node.ToGreenSeparatedList<Syntax.InternalSyntax.{GetElementType(field.Type)}>()";
-                    else if (field.Type == "SyntaxNodeOrTokenList")
-                        return $"{CamelCase(field.Name)}.Node.ToGreenList<Syntax.InternalSyntax.CSharpSyntaxNode>()";
-                    else if (IsOptional(field))
-                        return $"{CamelCase(field.Name)} == null ? null : (Syntax.InternalSyntax.{field.Type}){CamelCase(field.Name)}.Green";
+                    else if (f.Type == "SyntaxList<SyntaxToken>")
+                        return $"{CamelCase(f.Name)}.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>()";
+                    else if (IsNodeList(f.Type))
+                        return $"{CamelCase(f.Name)}.Node.ToGreenList<Syntax.InternalSyntax.{GetElementType(f.Type)}>()";
+                    else if (IsSeparatedNodeList(f.Type))
+                        return $"{CamelCase(f.Name)}.Node.ToGreenSeparatedList<Syntax.InternalSyntax.{GetElementType(f.Type)}>()";
+                    else if (f.Type == "SyntaxNodeOrTokenList")
+                        return $"{CamelCase(f.Name)}.Node.ToGreenList<Syntax.InternalSyntax.CSharpSyntaxNode>()";
+                    else if (IsOptional(f))
+                        return $"{CamelCase(f.Name)} == null ? null : (Syntax.InternalSyntax.{f.Type}){CamelCase(f.Name)}.Green";
                     else
-                        return $"(Syntax.InternalSyntax.{field.Type}){CamelCase(field.Name)}.Green";
+                        return $"(Syntax.InternalSyntax.{f.Type}){CamelCase(f.Name)}.Green";
                 }),
                 // values are at end
-                valueFields.Select(field => CamelCase(field.Name))));
+                valueFields.Select(f => CamelCase(f.Name))));
 
             WriteLine(").CreateRed();");
             CloseBlock();
@@ -1698,15 +1698,15 @@ namespace CSharpSyntaxGenerator
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
                 nd.Fields.Where(factoryWithNoAutoCreatableTokenFields.Contains).Select(
-                    field => $"{GetRedPropertyType(field)} {CamelCase(field.Name)}")));
+                    f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")));
             WriteLine(")");
 
             Write($"    => SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "kind" : "",
-                nd.Fields.Select(field => factoryWithNoAutoCreatableTokenFields.Contains(field)
-                    ? CamelCase(field.Name)
-                    : GetDefaultValue(nd, field))));
+                nd.Fields.Select(f => factoryWithNoAutoCreatableTokenFields.Contains(f)
+                    ? CamelCase(f.Name)
+                    : GetDefaultValue(nd, f))));
 
             WriteLine(");");
         }
@@ -1773,23 +1773,23 @@ namespace CSharpSyntaxGenerator
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
-                nd.Fields.Where(minimalFactoryfields.Contains).Select(field =>
+                nd.Fields.Where(minimalFactoryfields.Contains).Select(f =>
                 {
-                    var type = GetRedPropertyType(field);
+                    var type = GetRedPropertyType(f);
 
-                    if (IsRequiredFactoryField(nd, field))
+                    if (IsRequiredFactoryField(nd, f))
                     {
-                        if (withStringNames && CanAutoConvertFromString(field))
+                        if (withStringNames && CanAutoConvertFromString(f))
                             type = "string";
 
-                        return $"{type} {CamelCase(field.Name)}";
+                        return $"{type} {CamelCase(f.Name)}";
                     }
                     else
                     {
-                        if (IsNode(field.Type) && !IsOptional(field) && field.Type != "SyntaxToken")
+                        if (IsNode(f.Type) && !IsOptional(f) && f.Type != "SyntaxToken")
                             type += "?";
 
-                        return $"{type} {CamelCase(field.Name)} = default";
+                        return $"{type} {CamelCase(f.Name)} = default";
                     }
                 })));
             WriteLine(")");
@@ -1798,27 +1798,27 @@ namespace CSharpSyntaxGenerator
 
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "kind" : "",
-                nd.Fields.Select(field =>
+                nd.Fields.Select(f =>
                 {
-                    if (minimalFactoryfields.Contains(field))
+                    if (minimalFactoryfields.Contains(f))
                     {
-                        if (IsRequiredFactoryField(nd, field))
+                        if (IsRequiredFactoryField(nd, f))
                         {
-                            if (withStringNames && CanAutoConvertFromString(field))
-                                return $"{GetStringConverterMethod(field)}({CamelCase(field.Name)})";
+                            if (withStringNames && CanAutoConvertFromString(f))
+                                return $"{GetStringConverterMethod(f)}({CamelCase(f.Name)})";
                             else
-                                return CamelCase(field.Name);
+                                return CamelCase(f.Name);
                         }
                         else
                         {
-                            if (IsOptional(field) || IsAnyList(field.Type))
-                                return CamelCase(field.Name);
+                            if (IsOptional(f) || IsAnyList(f.Type))
+                                return CamelCase(f.Name);
                             else
-                                return $"{CamelCase(field.Name)} ?? {GetDefaultValue(nd, field)}";
+                                return $"{CamelCase(f.Name)} ?? {GetDefaultValue(nd, f)}";
                         }
                     }
 
-                    return GetDefaultValue(nd, field);
+                    return GetDefaultValue(nd, f);
                 })));
 
             WriteLine(");");
