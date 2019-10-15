@@ -268,10 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithPointedAtType(transform(PointedAtTypeWithAnnotations));
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            TypeWithAnnotations pointedAtType = PointedAtTypeWithAnnotations.MergeNullability(((PointerTypeSymbol)other).PointedAtTypeWithAnnotations, VarianceKind.None);
+            TypeWithAnnotations pointedAtType = PointedAtTypeWithAnnotations.MergeEquivalentTypes(((PointerTypeSymbol)other).PointedAtTypeWithAnnotations, VarianceKind.None);
             return WithPointedAtType(pointedAtType);
         }
 
