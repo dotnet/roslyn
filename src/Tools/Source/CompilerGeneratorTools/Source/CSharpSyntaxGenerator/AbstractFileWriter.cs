@@ -82,6 +82,12 @@ namespace CSharpSyntaxGenerator
             }
         }
 
+        /// <summary>
+        /// Joins all the values together in <paramref name="values"/> into one string with each
+        /// value separated by a comma.  Values can be either <see cref="string"/>s or <see
+        /// cref="IEnumerable{T}"/>s of <see cref="string"/>.  All of these are flattened into a
+        /// single sequence that is joined. Empty strings are ignored.
+        /// </summary>
         protected string CommaJoin(params object[] values)
             => Join(", ", values);
 
