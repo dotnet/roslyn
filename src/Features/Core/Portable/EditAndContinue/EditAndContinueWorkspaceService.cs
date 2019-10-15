@@ -504,6 +504,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var primaryDocument = _workspace.CurrentSolution.GetDocument(baseActiveStatement.PrimaryDocumentId);
+                if (primaryDocument == null)
+                {
+                    // The document has been deleted.
+                    return null;
+                }
+
                 var documentAnalysis = await editSession.GetDocumentAnalysis(oldPrimaryDocument, primaryDocument).GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var currentActiveStatements = documentAnalysis.ActiveStatements;
                 if (currentActiveStatements.IsDefault)
