@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private bool IsCandidate(SuggestedAction action)
         {
-            // Candidates fill the following critera:
+            // Candidates fill the following criteria:
             //     1: Are a Dotnet user (as evidenced by the fact that this code is being run)
             //     2: Have triggered a lightbulb on 3 separate days or if this is a code quality suggested action.
 

@@ -972,7 +972,7 @@ class C1
             }, _telemetryLog);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39271")]
         public async Task BreakMode_RudeEdits_DocumentWithoutSequencePoints()
         {
             var source1 = "abstract class C { public abstract void M(); }";

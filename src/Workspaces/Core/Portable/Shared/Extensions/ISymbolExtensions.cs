@@ -748,7 +748,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     attribute.ConstructorArguments.Length == 1 &&
                     attribute.ConstructorArguments.First().Value is int)
                 {
+#nullable disable // Should use unboxed value from previous 'is int' https://github.com/dotnet/roslyn/issues/39166
                     var state = (EditorBrowsableState)attribute.ConstructorArguments.First().Value;
+#nullable enable
 
                     if (EditorBrowsableState.Never == state ||
                         (hideAdvancedMembers && EditorBrowsableState.Advanced == state))

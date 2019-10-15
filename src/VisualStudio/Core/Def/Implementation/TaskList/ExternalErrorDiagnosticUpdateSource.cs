@@ -546,7 +546,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // 
                     // but also we can't simply say it is a document level error because it has file path
                     // since project level error can have a file path pointing to a file such as dll
-                    // , pdb, embeded files and etc.
+                    // , pdb, embedded files and etc.
                     // 
                     // unfortunately, there is no 100% correct way to do this.
                     // so we will use a heuristic that will most likely work for most of common cases.
