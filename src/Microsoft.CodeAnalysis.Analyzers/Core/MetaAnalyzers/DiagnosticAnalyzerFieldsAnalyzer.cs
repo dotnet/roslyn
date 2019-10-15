@@ -48,19 +48,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             Compilation compilation = compilationContext.Compilation;
 
-            INamedTypeSymbol compilationType = compilation.GetTypeByMetadataName(s_compilationTypeFullName);
+            INamedTypeSymbol compilationType = compilation.GetOrCreateTypeByMetadataName(s_compilationTypeFullName);
             if (compilationType == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol symbolType = compilation.GetTypeByMetadataName(s_symbolTypeFullName);
+            INamedTypeSymbol symbolType = compilation.GetOrCreateTypeByMetadataName(s_symbolTypeFullName);
             if (symbolType == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol operationType = compilation.GetTypeByMetadataName(s_operationTypeFullName);
+            INamedTypeSymbol operationType = compilation.GetOrCreateTypeByMetadataName(s_operationTypeFullName);
             if (operationType == null)
             {
                 return null;
