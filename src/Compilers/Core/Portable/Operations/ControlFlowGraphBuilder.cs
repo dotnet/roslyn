@@ -6619,7 +6619,6 @@ oneMoreTime:
             else
             {
                 result = visitInvalidOperationExpression(operation);
-                children.Free();
             }
 
             return result;
@@ -6634,7 +6633,7 @@ oneMoreTime:
             IOperation visitInvalidOperationExpression(IInvalidOperation invalidOperation)
             {
                 return PopStackFrame(PushStackFrame(),
-                                     new InvalidOperation(VisitArray(invalidOperation.Children.ToImmutableArray()), semanticModel: null,
+                                     new InvalidOperation(VisitArray(children.ToImmutableAndFree()), semanticModel: null,
                                                                  invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation)));
             }
         }
