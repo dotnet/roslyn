@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
-        /* leading */ int dummy; /* inbetween */ int {|FixAllInDocument:i1|}; int i2; // trailing
+        /* leading */ int dummy; /* in-between */ int {|FixAllInDocument:i1|}; int i2; // trailing
         int.TryParse(v, out i1);
         int.TryParse(v, out i2);
         dummy = 42;
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
 {
     void M()
     {
-        /* leading */ int dummy; /* inbetween */   // trailing
+        /* leading */ int dummy; /* in-between */   // trailing
         int.TryParse(v, out int i1);
         int.TryParse(v, out int i2);
         dummy = 42;

@@ -785,6 +785,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             }
                             else
                             {
+                                // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
+                                // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
                                 diagnostics.Add((project.Id, createBaselineDiagnostics));
                                 Telemetry.LogProjectAnalysisSummary(projectSummary, createBaselineDiagnostics);
                                 isBlocked = true;
