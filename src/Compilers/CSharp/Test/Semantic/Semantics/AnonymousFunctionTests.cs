@@ -68,6 +68,70 @@ public class C
         }
 
         [Fact]
+        public void StaticLambdaCanCaptureConstField()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public const int a = 0;
+
+    public void Goo()
+    {
+        Func<int> f = static () => a;
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<int> f = static () => a;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 23));
+        }
+
+        [Fact]
+        public void StaticLambdaCanCaptureConstLocal()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void Goo()
+    {
+        const int a = 0;
+        Func<int> f = static () => a;
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<int> f = static () => a;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 23));
+        }
+
+        [Fact]
+        public void StaticLambdaCanReturnConstLocal()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void Goo()
+    {
+        Func<int> f = static () =>
+        {
+            const int a = 0;
+            return a;
+        };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<int> f = static () => a;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 23));
+        }
+
+        [Fact]
         public void StaticLambdaCannotCaptureInstanceField()
         {
             var source = @"
