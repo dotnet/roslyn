@@ -379,7 +379,7 @@ namespace CSharpSyntaxGenerator
                 case "bool":
                     return "WriteBoolean";
                 default:
-                    throw new InvalidOperationException(string.Format("Type '{0}' not supported for object reader serialization.", type));
+                    throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization.");
             }
         }
 
@@ -390,7 +390,7 @@ namespace CSharpSyntaxGenerator
                 case "bool":
                     return "ReadBoolean";
                 default:
-                    throw new InvalidOperationException(string.Format("Type '{0}' not supported for object reader serialization.", type));
+                    throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization.");
             }
         }
 
@@ -1235,7 +1235,7 @@ namespace CSharpSyntaxGenerator
                 if (nWritten > 0)
                     WriteLine();
                 nWritten++;
-                WriteComment(string.Format("<summary>Called when the visitor visits a {0} node.</summary>", node.Name));
+                WriteComment($"<summary>Called when the visitor visits a {node.Name} node.</summary>");
                 WriteLine(
                     "public virtual " + (genericResult ? "TResult" : "void") +
                     " Visit{0}({1} node)" +
@@ -1633,7 +1633,7 @@ namespace CSharpSyntaxGenerator
             var valueFields = nd.Fields.Where(n => IsValueField(n)).ToList();
             var nodeFields = nd.Fields.Where(n => !IsValueField(n)).ToList();
 
-            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name));
+            WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
 
             Write("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
             WriteRedFactoryParameters(nd);
@@ -1793,17 +1793,17 @@ namespace CSharpSyntaxGenerator
                 // auto construct token?
                 if (field.Kinds.Count == 1)
                 {
-                    return string.Format("SyntaxFactory.Token(SyntaxKind.{0})", field.Kinds[0].Name);
+                    return $"SyntaxFactory.Token(SyntaxKind.{field.Kinds[0].Name})";
                 }
                 else
                 {
-                    return string.Format("SyntaxFactory.Token(Get{0}{1}Kind(kind))", StripPost(nd.Name, "Syntax"), StripPost(field.Name, "Opt"));
+                    return $"SyntaxFactory.Token(Get{StripPost(nd.Name, "Syntax")}{StripPost(field.Name, "Opt")}Kind(kind))";
                 }
             }
             else
             {
                 var referencedNode = GetNode(field.Type);
-                return string.Format("SyntaxFactory.{0}()", StripPost(referencedNode.Name, "Syntax"));
+                return $"SyntaxFactory.{StripPost(referencedNode.Name, "Syntax")}()";
             }
         }
 
@@ -1855,7 +1855,7 @@ namespace CSharpSyntaxGenerator
 
             this.WriteLine();
 
-            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name));
+            WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
             Write("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
 
             bool hasPreviousParameter = false;
@@ -1967,7 +1967,7 @@ namespace CSharpSyntaxGenerator
 
             this.WriteLine();
 
-            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name));
+            WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
             Write("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
 
             bool hasPreviousParameter = false;
