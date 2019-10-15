@@ -130,8 +130,6 @@ public class C
 
             UsingTree(test);
 
-
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.UsingDirective);
