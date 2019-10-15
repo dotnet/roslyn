@@ -2086,16 +2086,5 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = placeholder.WasCompilerGenerated;
             return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
-
-        //private IVariableDeclarationGroupOperation CreateBoundUsingLocalDeclarationOperation(BoundUsingLocalDeclarations boundUsingLocalDeclarations)
-        //{
-        //    bool isAsync = boundUsingLocalDeclarations.AwaitOpt is object;
-        //    VariableDeclarationKind declarationKid = isAsync ? VariableDeclarationKind.AsynchronousUsing : VariableDeclarationKind.Using;
-        //    SyntaxNode declarationSyntax = ((LocalDeclarationStatementSyntax)boundUsingLocalDeclarations.Syntax).Declaration;
-        //    bool declarationIsImplicit = boundUsingLocalDeclarations.WasCompilerGenerated;
-
-        //    IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundUsingLocalDeclarations, _semanticModel, declarationSyntax, type: null, constantValue: default, declarationIsImplicit);
-        //    return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), declarationKid, _semanticModel, boundUsingLocalDeclarations.Syntax, type: null, constantValue: default, isImplicit: false);
-        //}
     }
 }
