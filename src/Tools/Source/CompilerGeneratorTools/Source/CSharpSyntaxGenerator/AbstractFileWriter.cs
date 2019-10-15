@@ -73,13 +73,6 @@ namespace CSharpSyntaxGenerator
             _needIndent = true; //need an indent after each line break
         }
 
-        //protected void WriteLine(string msg, params object[] args)
-        //{
-        //    WriteIndentIfNeeded();
-        //    _writer.WriteLine(msg, args);
-        //    _needIndent = true; //need an indent after each line break
-        //}
-
         private void WriteIndentIfNeeded()
         {
             if (_needIndent)
