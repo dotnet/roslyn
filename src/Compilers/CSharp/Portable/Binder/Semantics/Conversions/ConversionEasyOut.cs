@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 s_convkind = new byte[,] {
                     // Converting Y to X:
-                    //                    ----------------regular--------------------                      ----------------nullable-------------------
+                    //                    ----------------regular--------------------                                ----------------nullable-------------------
                     //          obj  str  bool chr  i08  i16  i32  i64  u08  u16  u32  u64 nint nuint r32  r64  dec  bool chr  i08  i16  i32  i64  u08  u16  u32  u64 nint nuint r32  r64  dec  
                     /*  obj */{ IDN, XRF, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB, UNB },
                     /*  str */{ IRF, IDN, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC, NOC },
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     /*  u16 */{ BOX, NOC, NOC, XNM, XNM, XNM, NUM, NUM, XNM, IDN, NUM, NUM, NUM, NUM, NUM, NUM, NUM, NOC, XNL, XNL, XNL, NUL, NUL, XNL, NUL, NUL, NUL, NUL, NUL, NUL, NUL, NUL },
                     /*  u32 */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, NUM, XNM, XNM, IDN, NUM, XNM, NUM, NUM, NUM, NUM, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, NUL, NUL, NUL, NUL, NUL, NUL, NUL },
                     /*  u64 */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, IDN, XNM, NUM, NUM, NUM, NUM, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, NUL, NUL, NUL, NUL, NUL },
-                    /* nint */{ BOX, NOC, NOC, XNM, XNM, XNM, IDN, NUM, XNM, XNM, XNM, XNM, NUM, XNM, NUM, NUM, NOC, NOC, XNL, XNL, XNL, NUL, NUL, XNL, XNL, XNL, XNL, NUL, NUL, NUL, NUL, NUL },
-                    /*nuint */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, NUM, XNM, XNM, IDN, NUM, XNM, NUM, NUM, NUM, NOC, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, NUL, NUL, NUL, NUL, NUL, NUL, NUL },
+                    /* nint */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, NUM, XNM, XNM, XNM, XNM, IDN, XNM, NUM, NUM, NOC, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, XNL, XNL, NUL, NUL, NUL, NUL, NOC },
+                    /*nuint */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, NUM, XNM, XNM, XNM, NUM, XNM, IDN, NUM, NUM, NOC, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, XNL, NUL, NUL, NUL, NUL, NUL, NOC },
                     /*  r32 */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, IDN, NUM, XNM, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, NUL, NUL, NUL, XNL },
                     /*  r64 */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, IDN, XNM, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, NUL, XNL, NUL, XNL },
                     /*  dec */{ BOX, NOC, NOC, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, XNM, NOC, NOC, XNM, XNM, IDN, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, NUL, XNL, XNL, NUL },
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     /* nu16 */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, NUL, NUL, XNL, IDN, NUL, NUL, XNL, XNL, NUL, NUL, NUL },
                     /* nu32 */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, IDN, NUL, XNL, XNL, NUL, NUL, NUL },
                     /* nu64 */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, IDN, XNL, XNL, NUL, NUL, NUL },
-                    /*nnint */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, NOC, XNL, XNL, XNL, IDN, NUL, XNL, XNL, XNL, XNL, XNL, XNL, NUL, NUL, NOC },
-                    /*nnuint*/{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, IDN, NUL, XNL, XNL, NUL, NUL, NOC },
+                    /*nnint */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, XNL, XNL, IDN, XNL, NUL, NUL, NOC },
+                    /*nnuint*/{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, NOC, XNL, XNL, XNL, XNL, NUL, XNL, XNL, XNL, NUL, XNL, IDN, NUL, NUL, NOC },
                     /* nr32 */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, IDN, NUL, XNL },
                     /* nr64 */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, IDN, XNL },
                     /* ndec */{ BOX, NOC, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, NOC, NOC, XNL, XNL, XNL, NOC, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, XNL, IDN }
@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case SpecialType.System_UInt16: return 24;
                                 case SpecialType.System_UInt32: return 25;
                                 case SpecialType.System_UInt64: return 26;
-                                case SpecialType.System_IntPtr when ((NamedTypeSymbol)type).IsNativeInt: return 27;
-                                case SpecialType.System_UIntPtr when ((NamedTypeSymbol)type).IsNativeInt: return 28;
+                                case SpecialType.System_IntPtr when ((NamedTypeSymbol)underlyingType).IsNativeInt: return 27;
+                                case SpecialType.System_UIntPtr when ((NamedTypeSymbol)underlyingType).IsNativeInt: return 28;
                                 case SpecialType.System_Single: return 29;
                                 case SpecialType.System_Double: return 30;
                                 case SpecialType.System_Decimal: return 31;
