@@ -4692,6 +4692,154 @@ class C : System.IDisposable
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
+        public void UsingDeclaration_Flow_11()
+        {
+            string source = @"
+#pragma  warning disable CS0815, CS0219
+class P : System.IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    void M()
+    /*<bind>*/{
+        int a = 0;
+        int b = 1;
+        using var c = new P();
+        int d = 2;
+        using var e = new P();
+    }/*</bind>*/
+
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Int32 a] [System.Int32 b] [P c] [System.Int32 d] [P e]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (3)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a = 0')
+              Left: 
+                ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a = 0')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'b = 1')
+              Left: 
+                ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b = 1')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: P, IsImplicit) (Syntax: 'c = new P()')
+              Left: 
+                ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'c = new P()')
+              Right: 
+                IObjectCreationOperation (Constructor: P..ctor()) (OperationKind.ObjectCreation, Type: P) (Syntax: 'new P()')
+                  Arguments(0)
+                  Initializer: 
+                    null
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'd = 2')
+                  Left: 
+                    ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd = 2')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: P, IsImplicit) (Syntax: 'e = new P()')
+                  Left: 
+                    ILocalReferenceOperation: e (IsDeclaration: True) (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'e = new P()')
+                  Right: 
+                    IObjectCreationOperation (Constructor: P..ctor()) (OperationKind.ObjectCreation, Type: P) (Syntax: 'new P()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+            Next (Regular) Block[B3]
+                Entering: {R4} {R5}
+        .try {R4, R5}
+        {
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (0)  
+                Next (Regular) Block[B10]
+                    Finalizing: {R6} {R7}
+                    Leaving: {R5} {R4} {R3} {R2} {R1}
+        }
+        .finally {R6}
+        {
+            Block[B4] - Block
+                Predecessors (0)
+                Statements (0)
+                Jump if True (Regular) to Block[B6]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'e = new P()')
+                      Operand: 
+                        ILocalReferenceOperation: e (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'e = new P()')
+                Next (Regular) Block[B5]
+            Block[B5] - Block
+                Predecessors: [B4]
+                Statements (1)
+                    IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'e = new P()')
+                      Instance Receiver: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'e = new P()')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitReference)
+                          Operand: 
+                            ILocalReferenceOperation: e (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'e = new P()')
+                      Arguments(0)
+                Next (Regular) Block[B6]
+            Block[B6] - Block
+                Predecessors: [B4] [B5]
+                Statements (0)
+                Next (StructuredExceptionHandling) Block[null]
+        }
+    }
+    .finally {R7}
+    {
+        Block[B7] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B9]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c = new P()')
+                  Operand: 
+                    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'c = new P()')
+            Next (Regular) Block[B8]
+        Block[B8] - Block
+            Predecessors: [B7]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'c = new P()')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'c = new P()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand: 
+                        ILocalReferenceOperation: c (OperationKind.LocalReference, Type: P, IsImplicit) (Syntax: 'c = new P()')
+                  Arguments(0)
+            Next (Regular) Block[B9]
+        Block[B9] - Block
+            Predecessors: [B7] [B8]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B10] - Exit
+    Predecessors: [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
         public void UsingDeclaration_SingleDeclaration()
