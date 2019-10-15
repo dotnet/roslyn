@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -15,23 +18,23 @@ namespace Microsoft.CodeAnalysis.Text
     internal sealed class StringText : SourceText
     {
         private readonly string _source;
-        private readonly Encoding _encodingOpt;
+        private readonly Encoding? _encodingOpt;
 
         internal StringText(
             string source,
-            Encoding encodingOpt,
+            Encoding? encodingOpt,
             ImmutableArray<byte> checksum = default(ImmutableArray<byte>),
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             ImmutableArray<byte> embeddedTextBlob = default(ImmutableArray<byte>))
             : base(checksum, checksumAlgorithm, embeddedTextBlob)
         {
-            Debug.Assert(source != null);
+            RoslynDebug.Assert(source != null);
 
             _source = source;
             _encodingOpt = encodingOpt;
         }
 
-        public override Encoding Encoding => _encodingOpt;
+        public override Encoding? Encoding => _encodingOpt;
 
         /// <summary>
         /// Underlying string which is the source of this <see cref="StringText"/>instance
