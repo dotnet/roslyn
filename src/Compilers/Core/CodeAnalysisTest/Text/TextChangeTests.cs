@@ -650,6 +650,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestMergeChanges_Overlapping_NewInsideOld_AndOldHasLeadingDeletion_SmallerThanLeadingInsertion()
+        {
+            var original = SourceText.From("012");
+            var change1 = original.WithChanges(new TextChange(new TextSpan(1, 1), "aaa"));
+            var change2 = change1.WithChanges(new TextChange(new TextSpan(3, 0), "bb"));
+
+            var changes = change2.GetTextChanges(original);
+            Assert.Equal("0aaa2", change1.ToString());
+            Assert.Equal("0aabba2", change2.ToString());
+            Assert.Equal(new[] { new TextChange(new TextSpan(1, 1), "aabba") }, changes);
+        }
+
+        [Fact]
         public void TestMergeChanges_Overlapping_NewInsideOld_AndBothHaveDeletion_NewDeletionSmallerThanOld()
         {
             var original = SourceText.From("01234");
