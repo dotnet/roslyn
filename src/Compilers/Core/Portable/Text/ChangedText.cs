@@ -315,7 +315,8 @@ tryAgain:
                         }
                         else if (newChange.Span.Length <= oldChange.NewLength)
                         {
-                            // new change is smaller than old, go ahead and tack it on with old change
+                            // new change deletes fewer characters than old change inserted
+                            // add new change insertion, then the remaining trailing characters of the old change insertion
                             AddRange(list, new TextChangeRange(oldChange.Span, oldChange.NewLength + newChange.NewLength - newChange.Span.Length));
                             oldDelta = oldDelta - oldChange.Span.Length + oldChange.NewLength - newChange.Span.Length;
                             oldIndex++;
