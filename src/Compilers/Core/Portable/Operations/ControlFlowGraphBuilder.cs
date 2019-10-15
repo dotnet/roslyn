@@ -1371,14 +1371,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 if (statements[i] is VariableDeclarationGroupOperation declarationGroup
                     && declarationGroup.DeclarationKind != VariableDeclarationKind.Default)
                 {
-                    ArrayBuilder<IOperation> followingStatements = new ArrayBuilder<IOperation>(statements.Length - i);
-                    for (int j = i + 1; j < statements.Length; j++)
-                    {
-                        followingStatements.Add(statements[j]);
-                    }
-
                     // visit the using decl with the following statements
-                    VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements.ToImmutableAndFree());
+                    var followingStatements = ImmutableArray.Create(statements, Math.Min(i + 1, statements.Length - 1), statements.Length - i - 1);
+                    VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
                     break;
                 }
                 else

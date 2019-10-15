@@ -1739,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IVariableDeclarationGroupOperation CreateBoundMultipleLocalDeclarationsBaseOperation(BoundMultipleLocalDeclarationsBase boundMultipleLocalDeclarations)
         {
-            // The syntax for the boundMultipleLocalDeclarationsBase can either be a LocalDeclarationStatement or a VariableDeclaration, depending on the context
+            // The syntax for the boundMultipleLocalDeclarations can either be a LocalDeclarationStatement or a VariableDeclaration, depending on the context
             // (using/fixed statements vs variable declaration)
             // We generate a DeclarationGroup for these scenarios (using/fixed) to maintain tree shape consistency across IOperation.
             SyntaxNode declarationGroupSyntax = boundMultipleLocalDeclarations.Syntax;
@@ -1750,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool declarationIsImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
             IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundMultipleLocalDeclarations, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
 
-            // If this is a using declaration, work out it's declaration kind
+            // If this is a using declaration, work out the declaration kind
             VariableDeclarationKind declKind = boundMultipleLocalDeclarations is BoundUsingLocalDeclarations usingDecl
                                                ? usingDecl.AwaitOpt is object
                                                     ? VariableDeclarationKind.AsynchronousUsing
