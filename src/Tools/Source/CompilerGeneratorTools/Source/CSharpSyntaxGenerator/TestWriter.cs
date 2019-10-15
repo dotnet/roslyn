@@ -98,7 +98,7 @@ namespace CSharpSyntaxGenerator
 
             var strippedName = StripPost(node.Name, "Syntax");
 
-            WriteLine("private static {0}{1} Generate{2}()", csharpNamespace, node.Name, strippedName);
+            WriteLine(string.Format("private static {0}{1} Generate{2}()", csharpNamespace, node.Name, strippedName));
 
             Write("    => {0}.{1}(", syntaxFactory, strippedName);
             //instantiate node
@@ -227,10 +227,10 @@ namespace CSharpSyntaxGenerator
             var strippedName = StripPost(node.Name, "Syntax");
 
             WriteLine("[Fact]");
-            WriteLine("public void Test{0}FactoryAndProperties()", strippedName);
+            WriteLine(string.Format("public void Test{0}FactoryAndProperties()", strippedName));
             OpenBlock();
 
-            WriteLine("var node = Generate{0}();", strippedName);
+            WriteLine(string.Format("var node = Generate{0}();", strippedName));
 
             WriteLine();
 
@@ -243,40 +243,40 @@ namespace CSharpSyntaxGenerator
                     {
                         if (!isGreen && field.Type == "SyntaxToken")
                         {
-                            WriteLine("Assert.Equal(SyntaxKind.None, node.{0}.Kind());", field.Name);
+                            WriteLine(string.Format("Assert.Equal(SyntaxKind.None, node.{0}.Kind());", field.Name));
                         }
                         else
                         {
-                            WriteLine("Assert.Null(node.{0});", field.Name);
+                            WriteLine(string.Format("Assert.Null(node.{0});", field.Name));
                         }
                     }
                     else if (field.Type == "SyntaxToken")
                     {
                         if (!isGreen)
                         {
-                            WriteLine("Assert.Equal(SyntaxKind.{0}, node.{1}.Kind());", ChooseValidKind(field), field.Name);
+                            WriteLine(string.Format("Assert.Equal(SyntaxKind.{0}, node.{1}.Kind());", ChooseValidKind(field), field.Name));
                         }
                         else
                         {
-                            WriteLine("Assert.Equal(SyntaxKind.{0}, node.{1}.Kind);", ChooseValidKind(field), field.Name);
+                            WriteLine(string.Format("Assert.Equal(SyntaxKind.{0}, node.{1}.Kind);", ChooseValidKind(field), field.Name));
                         }
                     }
                     else
                     {
                         if (field.Type == "SyntaxToken")
                         {
-                            WriteLine("Assert.NotEqual(default, node.{0});", field.Name);
+                            WriteLine(string.Format("Assert.NotEqual(default, node.{0});", field.Name));
                         }
                         else if (
                             field.Type == "SyntaxTokenList" ||
                             field.Type.StartsWith("SyntaxList<") ||
                             field.Type.StartsWith("SeparatedSyntaxList<"))
                         {
-                            WriteLine("Assert.Equal(default, node.{0});", field.Name);
+                            WriteLine(string.Format("Assert.Equal(default, node.{0});", field.Name));
                         }
                         else
                         {
-                            WriteLine("Assert.NotNull(node.{0});", field.Name);
+                            WriteLine(string.Format("Assert.NotNull(node.{0});", field.Name));
                         }
                     }
 
@@ -288,7 +288,7 @@ namespace CSharpSyntaxGenerator
 
                 foreach (var field in valueFields)
                 {
-                    WriteLine("Assert.Equal(new {0}(), node.{1});", field.Type, field.Name);
+                    WriteLine(string.Format("Assert.Equal(new {0}(), node.{1});", field.Type, field.Name));
                     if (!isGreen)
                     {
                         withStat += string.Format(".With{0}(node.{0})", field.Name);
@@ -297,7 +297,7 @@ namespace CSharpSyntaxGenerator
 
                 if (!isGreen && withStat != null)
                 {
-                    WriteLine("var newNode = node{0};", withStat);
+                    WriteLine(string.Format("var newNode = node{0};", withStat));
                     WriteLine("Assert.Equal(node, newNode);");
                 }
             }
@@ -336,10 +336,10 @@ namespace CSharpSyntaxGenerator
             var strippedName = StripPost(node.Name, "Syntax");
 
             WriteLine("[Fact]");
-            WriteLine("public void Test{0}TokenDeleteRewriter()", strippedName);
+            WriteLine(string.Format("public void Test{0}TokenDeleteRewriter()", strippedName));
             OpenBlock();
 
-            WriteLine("var oldNode = Generate{0}();", strippedName);
+            WriteLine(string.Format("var oldNode = Generate{0}();", strippedName));
             WriteLine("var rewriter = new TokenDeleteRewriter();");
             WriteLine("var newNode = rewriter.Visit(oldNode);");
 
@@ -364,10 +364,10 @@ namespace CSharpSyntaxGenerator
             var strippedName = StripPost(node.Name, "Syntax");
 
             WriteLine("[Fact]");
-            WriteLine("public void Test{0}IdentityRewriter()", strippedName);
+            WriteLine(string.Format("public void Test{0}IdentityRewriter()", strippedName));
             OpenBlock();
 
-            WriteLine("var oldNode = Generate{0}();", strippedName);
+            WriteLine(string.Format("var oldNode = Generate{0}();", strippedName));
             WriteLine("var rewriter = new IdentityRewriter();");
             WriteLine("var newNode = rewriter.Visit(oldNode);");
 
