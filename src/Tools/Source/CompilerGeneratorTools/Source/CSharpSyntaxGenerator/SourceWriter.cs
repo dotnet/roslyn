@@ -88,11 +88,11 @@ namespace CSharpSyntaxGenerator
             if (node is AbstractNode)
             {
                 var nd = (AbstractNode)node;
-                WriteLine(string.Format("internal abstract partial class {0} : {1}", node.Name, node.Base));
+                WriteLine($"internal abstract partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
                 // ctor with diagnostics and annotations
-                WriteLine(string.Format("internal {0}(SyntaxKind kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)", node.Name));
+                WriteLine($"internal {node.Name}(SyntaxKind kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)");
                 WriteLine("  : base(kind, diagnostics, annotations)");
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
@@ -102,7 +102,7 @@ namespace CSharpSyntaxGenerator
                 CloseBlock();
                 WriteLine();
                 // ctor without diagnostics and annotations
-                WriteLine(string.Format("internal {0}(SyntaxKind kind)", node.Name));
+                WriteLine($"internal {node.Name}(SyntaxKind kind)");
                 WriteLine("  : base(kind)");
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
@@ -113,7 +113,7 @@ namespace CSharpSyntaxGenerator
 
                 // object reader constructor
                 WriteLine();
-                WriteLine(string.Format("protected {0}(ObjectReader reader)", node.Name));
+                WriteLine($"protected {node.Name}(ObjectReader reader)");
                 WriteLine("  : base(reader)");
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
@@ -135,11 +135,11 @@ namespace CSharpSyntaxGenerator
                         if (IsSeparatedNodeList(field.Type) ||
                             IsNodeList(field.Type))
                         {
-                            WriteLine(string.Format("public abstract {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name));
+                            WriteLine($"public abstract {(IsNew(field) ? "new " : "")}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type} {field.Name} {{ get; }}");
                         }
                         else
                         {
-                            WriteLine(string.Format("public abstract {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), GetFieldType(field, green: true), field.Name));
+                            WriteLine($"public abstract {(IsNew(field) ? "new " : "")}{(GetFieldType(field, green: true))} {field.Name} {{ get; }}");
                         }
                     }
                 }
@@ -149,7 +149,7 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                     WriteComment(field.PropertyComment, "");
 
-                    WriteLine(string.Format("public abstract {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name));
+                    WriteLine($"public abstract {(IsNew(field) ? "new " : "")}{field.Type} {field.Name} {{ get; }}");
                 }
 
                 CloseBlock();
@@ -158,7 +158,7 @@ namespace CSharpSyntaxGenerator
             {
                 var nd = (Node)node;
 
-                WriteLine(string.Format("internal sealed partial class {0} : {1}", node.Name, node.Base));
+                WriteLine($"internal sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
                 var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
@@ -167,17 +167,17 @@ namespace CSharpSyntaxGenerator
                 foreach (var field in nodeFields)
                 {
                     var type = GetFieldType(field, green: true);
-                    WriteLine(string.Format("internal readonly {0} {1};", type, CamelCase(field.Name)));
+                    WriteLine($"internal readonly {type} {CamelCase(field.Name)};");
                 }
 
                 foreach (var field in valueFields)
                 {
-                    WriteLine(string.Format("internal readonly {0} {1};", field.Type, CamelCase(field.Name)));
+                    WriteLine($"internal readonly {field.Type} {CamelCase(field.Name)};");
                 }
 
                 // write constructor with diagnostics and annotations
                 WriteLine();
-                Write(string.Format("internal {0}(SyntaxKind kind", node.Name));
+                Write($"internal {node.Name}(SyntaxKind kind");
 
                 WriteGreenNodeConstructorArgs(nodeFields, valueFields);
 
@@ -189,7 +189,7 @@ namespace CSharpSyntaxGenerator
 
                 // write constructor with async
                 WriteLine();
-                Write(string.Format("internal {0}(SyntaxKind kind", node.Name));
+                Write($"internal {node.Name}(SyntaxKind kind");
 
                 WriteGreenNodeConstructorArgs(nodeFields, valueFields);
 
@@ -202,7 +202,7 @@ namespace CSharpSyntaxGenerator
 
                 // write constructor without diagnostics and annotations
                 WriteLine();
-                Write(string.Format("internal {0}(SyntaxKind kind", node.Name));
+                Write($"internal {node.Name}(SyntaxKind kind");
 
                 WriteGreenNodeConstructorArgs(nodeFields, valueFields);
 
@@ -219,26 +219,26 @@ namespace CSharpSyntaxGenerator
                     WriteComment(field.PropertyComment, "");
                     if (IsNodeList(field.Type))
                     {
-                        WriteLine(string.Format("public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(this.{3});", OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name)));
+                        WriteLine($"public {OverrideOrNewModifier(field)}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type} {field.Name} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type}(this.{CamelCase(field.Name)});");
                     }
                     else if (IsSeparatedNodeList(field.Type))
                     {
-                        WriteLine(string.Format("public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1}(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{3}));", OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name)));
+                        WriteLine($"public {OverrideOrNewModifier(field)}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type} {field.Name} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.{field.Type}(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)}));");
                     }
                     else if (field.Type == "SyntaxNodeOrTokenList")
                     {
-                        WriteLine(string.Format("public {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> {1} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{2});", OverrideOrNewModifier(field), field.Name, CamelCase(field.Name)));
+                        WriteLine($"public {OverrideOrNewModifier(field)}Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode> {field.Name} => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.{CamelCase(field.Name)});");
                     }
                     else
                     {
-                        WriteLine(string.Format("public {0}{1} {2} => this.{3};", OverrideOrNewModifier(field), GetFieldType(field, green: true), field.Name, CamelCase(field.Name)));
+                        WriteLine($"public {OverrideOrNewModifier(field)}{(GetFieldType(field, green: true))} {field.Name} => this.{CamelCase(field.Name)};");
                     }
                 }
 
                 foreach (var field in valueFields)
                 {
                     WriteComment(field.PropertyComment, "");
-                    WriteLine(string.Format("public {0}{1} {2} => this.{3};", OverrideOrNewModifier(field), field.Type, field.Name, CamelCase(field.Name)));
+                    WriteLine($"public {OverrideOrNewModifier(field)}{field.Type} {field.Name} => this.{CamelCase(field.Name)};");
                 }
 
                 // GetSlot
@@ -253,7 +253,7 @@ namespace CSharpSyntaxGenerator
                 {
                     WriteLine();
                     Indent();
-                    WriteLine(string.Format("=> index == 0 ? this.{0} : null;", CamelCase(nodeFields[0].Name)));
+                    WriteLine($"=> index == 0 ? this.{CamelCase(nodeFields[0].Name)} : null;");
                     Unindent();
                 }
                 else
@@ -265,7 +265,7 @@ namespace CSharpSyntaxGenerator
                     for (int i = 0, n = nodeFields.Count; i < n; i++)
                     {
                         var field = nodeFields[i];
-                        WriteLine(string.Format("{0} => this.{1},", i, CamelCase(field.Name)));
+                        WriteLine($"{i} => this.{CamelCase(field.Name)},");
                     }
                     WriteLine("_ => null,");
                     CloseBlock(";");
@@ -273,7 +273,7 @@ namespace CSharpSyntaxGenerator
                 }
 
                 WriteLine();
-                WriteLine(string.Format("internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.{0}(this, parent, position);", node.Name));
+                WriteLine($"internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.{node.Name}(this, parent, position);");
 
                 this.WriteGreenAcceptMethods(nd);
                 this.WriteGreenUpdateMethod(nd);
@@ -289,12 +289,12 @@ namespace CSharpSyntaxGenerator
         {
             foreach (var field in nodeFields)
             {
-                Write(string.Format(", {0} {1}", GetFieldType(field, green: true), CamelCase(field.Name)));
+                Write($", {(GetFieldType(field, green: true))} {CamelCase(field.Name)}");
             }
 
             foreach (var field in valueFields)
             {
-                Write(string.Format(", {0} {1}", field.Type, CamelCase(field.Name)));
+                Write($", {field.Type} {CamelCase(field.Name)}");
             }
         }
 
@@ -305,34 +305,34 @@ namespace CSharpSyntaxGenerator
 
             // object reader constructor
             WriteLine();
-            WriteLine(string.Format("internal {0}(ObjectReader reader)", node.Name));
+            WriteLine($"internal {node.Name}(ObjectReader reader)");
             WriteLine("  : base(reader)");
             OpenBlock();
-            WriteLine(string.Format("this.SlotCount = {0};", nodeFields.Count));
+            WriteLine($"this.SlotCount = {nodeFields.Count};");
 
             foreach (var field in nodeFields)
             {
                 string type = GetFieldType(field, green: true);
-                WriteLine(string.Format("var {0} = ({1})reader.ReadValue();", CamelCase(field.Name), type));
+                WriteLine($"var {CamelCase(field.Name)} = ({type})reader.ReadValue();");
 
                 if (IsAnyList(field.Type) || IsOptional(field))
                 {
-                    WriteLine(string.Format("if ({0} != null)", CamelCase(field.Name)));
+                    WriteLine($"if ({CamelCase(field.Name)} != null)");
                     OpenBlock();
-                    WriteLine(string.Format("AdjustFlagsAndWidth({0});", CamelCase(field.Name)));
-                    WriteLine(string.Format("this.{0} = {0};", CamelCase(field.Name), type));
+                    WriteLine($"AdjustFlagsAndWidth({CamelCase(field.Name)});");
+                    WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
                     CloseBlock();
                 }
                 else
                 {
-                    WriteLine(string.Format("AdjustFlagsAndWidth({0});", CamelCase(field.Name)));
-                    WriteLine(string.Format("this.{0} = {0};", CamelCase(field.Name), type));
+                    WriteLine($"AdjustFlagsAndWidth({CamelCase(field.Name)});");
+                    WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
                 }
             }
 
             foreach (var field in valueFields)
             {
-                WriteLine(string.Format("this.{0} = ({1})reader.{2}();", CamelCase(field.Name), GetFieldType(field, green: true), GetReaderMethod(GetFieldType(field, green: true))));
+                WriteLine($"this.{CamelCase(field.Name)} = ({(GetFieldType(field, green: true))})reader.{(GetReaderMethod(GetFieldType(field, green: true)))}();");
             }
 
             CloseBlock();
@@ -345,22 +345,22 @@ namespace CSharpSyntaxGenerator
 
             foreach (var field in nodeFields)
             {
-                WriteLine(string.Format("writer.WriteValue(this.{0});", CamelCase(field.Name)));
+                WriteLine($"writer.WriteValue(this.{CamelCase(field.Name)});");
             }
 
             foreach (var field in valueFields)
             {
                 var type = GetFieldType(field, green: true);
-                WriteLine(string.Format("writer.{0}(this.{1});", GetWriterMethod(type), CamelCase(field.Name)));
+                WriteLine($"writer.{GetWriterMethod(type)}(this.{CamelCase(field.Name)});");
             }
 
             CloseBlock();
 
             // IReadable
             WriteLine();
-            WriteLine(string.Format("static {0}()", node.Name));
+            WriteLine($"static {node.Name}()");
             OpenBlock();
-            WriteLine(string.Format("ObjectBinder.RegisterTypeReader(typeof({0}), r => new {0}(r));", node.Name));
+            WriteLine($"ObjectBinder.RegisterTypeReader(typeof({node.Name}), r => new {node.Name}(r));");
             CloseBlock();
         }
 
@@ -389,28 +389,28 @@ namespace CSharpSyntaxGenerator
         private void WriteCtorBody(List<Field> valueFields, List<Field> nodeFields)
         {
             // constructor body
-            WriteLine(string.Format("this.SlotCount = {0};", nodeFields.Count));
+            WriteLine($"this.SlotCount = {nodeFields.Count};");
 
             foreach (var field in nodeFields)
             {
                 if (IsAnyList(field.Type) || IsOptional(field))
                 {
-                    WriteLine(string.Format("if ({0} != null)", CamelCase(field.Name)));
+                    WriteLine($"if ({CamelCase(field.Name)} != null)");
                     OpenBlock();
-                    WriteLine(string.Format("this.AdjustFlagsAndWidth({0});", CamelCase(field.Name)));
-                    WriteLine(string.Format("this.{0} = {0};", CamelCase(field.Name)));
+                    WriteLine($"this.AdjustFlagsAndWidth({CamelCase(field.Name)});");
+                    WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
                     CloseBlock();
                 }
                 else
                 {
-                    WriteLine(string.Format("this.AdjustFlagsAndWidth({0});", CamelCase(field.Name)));
-                    WriteLine(string.Format("this.{0} = {0};", CamelCase(field.Name)));
+                    WriteLine($"this.AdjustFlagsAndWidth({CamelCase(field.Name)});");
+                    WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
                 }
             }
 
             foreach (var field in valueFields)
             {
-                WriteLine(string.Format("this.{0} = {0};", CamelCase(field.Name)));
+                WriteLine($"this.{CamelCase(field.Name)} = {CamelCase(field.Name)};");
             }
         }
 
@@ -418,12 +418,12 @@ namespace CSharpSyntaxGenerator
         {
             WriteLine();
             WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)");
-            Write(string.Format("    => new {0}(this.Kind, ", node.Name));
+            Write($"    => new {node.Name}(this.Kind, ");
             foreach (var field in node.Fields)
             {
                 if (field != node.Fields.First())
                     Write(", ");
-                Write(string.Format("this.{0}", CamelCase(field.Name)));
+                Write($"this.{CamelCase(field.Name)}");
             }
             WriteLine(", GetDiagnostics(), annotations);");
         }
@@ -432,12 +432,12 @@ namespace CSharpSyntaxGenerator
         {
             WriteLine();
             WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)");
-            Write(string.Format("    => new {0}(this.Kind, ", node.Name));
+            Write($"    => new {node.Name}(this.Kind, ");
             foreach (var field in node.Fields)
             {
                 if (field != node.Fields.First())
                     Write(", ");
-                Write(string.Format("this.{0}", CamelCase(field.Name)));
+                Write($"this.{CamelCase(field.Name)}");
             }
             WriteLine(", diagnostics, GetAnnotations());");
         }
@@ -445,8 +445,8 @@ namespace CSharpSyntaxGenerator
         private void WriteGreenAcceptMethods(Node node)
         {
             WriteLine();
-            WriteLine(string.Format("public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{0}(this);", StripPost(node.Name, "Syntax")));
-            WriteLine(string.Format("public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{0}(this);", StripPost(node.Name, "Syntax")));
+            WriteLine($"public override void Accept(CSharpSyntaxVisitor visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
+            WriteLine($"public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
         }
 
         private void WriteGreenVisitors()
@@ -464,7 +464,7 @@ namespace CSharpSyntaxGenerator
             OpenBlock();
             foreach (var node in nodes.OfType<Node>())
             {
-                WriteLine(string.Format("public virtual {0} Visit{1}({2} node) => this.DefaultVisit(node);", withResult ? "TResult" : "void", StripPost(node.Name, "Syntax"), node.Name));
+                WriteLine($"public virtual {(withResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
         }
@@ -472,7 +472,7 @@ namespace CSharpSyntaxGenerator
         private void WriteGreenUpdateMethod(Node node)
         {
             WriteLine();
-            Write(string.Format("public {0} Update(", node.Name));
+            Write($"public {node.Name} Update(");
 
             // parameters
             foreach (var field in node.Fields)
@@ -487,7 +487,7 @@ namespace CSharpSyntaxGenerator
                     IsSeparatedNodeList(field.Type) ? "Microsoft.CodeAnalysis.Syntax.InternalSyntax." + field.Type :
                     field.Type;
 
-                Write(string.Format("{0} {1}", type, CamelCase(field.Name)));
+                Write($"{type} {CamelCase(field.Name)}");
             }
             WriteLine(")");
             OpenBlock();
@@ -500,7 +500,7 @@ namespace CSharpSyntaxGenerator
                 {
                     if (nCompared > 0)
                         Write(" || ");
-                    Write(string.Format("{0} != this.{1}", CamelCase(field.Name), field.Name));
+                    Write($"{CamelCase(field.Name)} != this.{field.Name}");
                     nCompared++;
                 }
             }
@@ -508,7 +508,7 @@ namespace CSharpSyntaxGenerator
             {
                 WriteLine(")");
                 OpenBlock();
-                Write(string.Format("var newNode = SyntaxFactory.{0}(", StripPost(node.Name, "Syntax")));
+                Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
                 if (node.Kinds.Count > 1)
                 {
                     Write("this.Kind, ");
@@ -550,7 +550,7 @@ namespace CSharpSyntaxGenerator
                 if (nWritten > 0)
                     WriteLine();
                 nWritten++;
-                WriteLine(string.Format("public override CSharpSyntaxNode Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name));
+                WriteLine($"public override CSharpSyntaxNode Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
                 Indent();
 
                 if (nodeFields.Count == 0)
@@ -568,15 +568,15 @@ namespace CSharpSyntaxGenerator
 
                         if (IsAnyList(field.Type))
                         {
-                            Write(string.Format("VisitList(node.{1})", CamelCase(field.Name), field.Name));
+                            Write($"VisitList(node.{field.Name})");
                         }
                         else if (IsNode(field.Type))
                         {
-                            Write(string.Format("({1})Visit(node.{2})", CamelCase(field.Name), field.Type, field.Name));
+                            Write($"({field.Type})Visit(node.{field.Name})");
                         }
                         else
                         {
-                            Write(string.Format("node.{0}", field.Name));
+                            Write($"node.{field.Name}");
                         }
                     }
 
@@ -637,7 +637,7 @@ namespace CSharpSyntaxGenerator
             var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode)).ToList();
             foreach (var node in nodes)
             {
-                WriteLine(string.Format("typeof({0}),", node.Name));
+                WriteLine($"typeof({node.Name}),");
             }
 
             CloseBlock(";");
@@ -649,7 +649,7 @@ namespace CSharpSyntaxGenerator
             var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
             var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
 
-            Write(string.Format("public {0}{1} {2}(", withSyntaxFactoryContext ? "" : "static ", nd.Name, StripPost(nd.Name, "Syntax")));
+            Write($"public {(withSyntaxFactoryContext ? "" : "static ")}{nd.Name} {StripPost(nd.Name, "Syntax")}(");
             WriteGreenFactoryParameters(nd);
             WriteLine(")");
             OpenBlock();
@@ -661,7 +661,7 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
                 foreach (var kind in nd.Kinds)
                 {
-                    WriteLine(string.Format("case SyntaxKind.{0}:{1}", kind.Name, kind == nd.Kinds.Last() ? " break;" : ""));
+                    WriteLine($"case SyntaxKind.{kind.Name}:{(kind == nd.Kinds.Last() ? " break;" : "")}");
                 }
                 WriteLine("default: throw new ArgumentException(nameof(kind));");
                 CloseBlock();
@@ -675,23 +675,23 @@ namespace CSharpSyntaxGenerator
 
                 if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
-                    WriteLine(string.Format("if ({0} == null) throw new ArgumentNullException(nameof({0}));", CamelCase(field.Name)));
+                    WriteLine($"if ({CamelCase(field.Name)} == null) throw new ArgumentNullException(nameof({CamelCase(field.Name)}));");
                 }
                 if (field.Type == "SyntaxToken" && field.Kinds != null && field.Kinds.Count > 0)
                 {
                     if (IsOptional(field))
                     {
-                        WriteLine(string.Format("if ({0} != null)", CamelCase(field.Name)));
+                        WriteLine($"if ({CamelCase(field.Name)} != null)");
                         OpenBlock();
                     }
 
                     if (field.Kinds.Count == 1 && !IsOptional(field))
                     {
-                        WriteLine(string.Format("if ({0}.Kind != SyntaxKind.{1}) throw new ArgumentException(nameof({0}));", pname, field.Kinds[0].Name));
+                        WriteLine($"if ({pname}.Kind != SyntaxKind.{field.Kinds[0].Name}) throw new ArgumentException(nameof({pname}));");
                     }
                     else
                     {
-                        WriteLine(string.Format("switch ({0}.Kind)", pname));
+                        WriteLine($"switch ({pname}.Kind)");
                         OpenBlock();
                         var kinds = field.Kinds.ToList();
 
@@ -702,10 +702,10 @@ namespace CSharpSyntaxGenerator
                         }
                         foreach (var kind in kinds)
                         {
-                            WriteLine(string.Format("case SyntaxKind.{0}:{1}", kind.Name, kind == kinds.Last() ? " break;" : ""));
+                            WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
                         }
 
-                        WriteLine(string.Format("default: throw new ArgumentException(nameof({0}));", pname));
+                        WriteLine($"default: throw new ArgumentException(nameof({pname}));");
                         CloseBlock();
                     }
 
@@ -751,11 +751,11 @@ namespace CSharpSyntaxGenerator
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
                 WriteLine(", out hash);");
                 //    if (cached != null) return (IdentifierNameSyntax)cached;
-                WriteLine(string.Format("if (cached != null) return ({0})cached;", nd.Name));
+                WriteLine($"if (cached != null) return ({nd.Name})cached;");
                 WriteLine();
 
                 //var result = new IdentifierNameSyntax(SyntaxKind.IdentifierName, identifier);
-                Write(string.Format("var result = new {0}(", nd.Name));
+                Write($"var result = new {nd.Name}(");
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
                 WriteLine(");");
                 //if (hash >= 0)
@@ -774,7 +774,7 @@ namespace CSharpSyntaxGenerator
             else
             {
                 WriteLine();
-                Write(string.Format("return new {0}(", nd.Name));
+                Write($"return new {nd.Name}(");
                 WriteCtorArgList(nd, withSyntaxFactoryContext, valueFields, nodeFields);
                 WriteLine(");");
             }
@@ -807,7 +807,7 @@ namespace CSharpSyntaxGenerator
                     type = GetFieldType(field, green: true);
                 }
 
-                Write(string.Format("{0} {1}", type, CamelCase(field.Name)));
+                Write($"{type} {CamelCase(field.Name)}");
             }
         }
 
@@ -827,7 +827,7 @@ namespace CSharpSyntaxGenerator
                 Write(", ");
                 if (field.Type == "SyntaxList<SyntaxToken>" || IsAnyList(field.Type))
                 {
-                    Write(string.Format("{0}.Node", CamelCase(field.Name)));
+                    Write($"{CamelCase(field.Name)}.Node");
                 }
                 else
                 {
@@ -870,9 +870,9 @@ namespace CSharpSyntaxGenerator
             if (node is AbstractNode)
             {
                 var nd = (AbstractNode)node;
-                WriteLine(string.Format("public abstract partial class {0} : {1}", node.Name, node.Base));
+                WriteLine($"public abstract partial class {node.Name} : {node.Base}");
                 OpenBlock();
-                WriteLine(string.Format("internal {0}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)", node.Name));
+                WriteLine($"internal {node.Name}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)");
                 WriteLine("  : base(green, parent, position)");
                 OpenBlock();
                 CloseBlock();
@@ -888,7 +888,7 @@ namespace CSharpSyntaxGenerator
                         var fieldType = GetRedFieldType(field);
                         WriteLine();
                         WriteComment(field.PropertyComment, "");
-                        WriteLine(string.Format("{0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), fieldType, field.Name));
+                        WriteLine($"{"public"} abstract {(IsNew(field) ? "new " : "")}{fieldType} {field.Name} {{ get; }}");
                         WriteLine($"public {node.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
                         WriteLine($"internal abstract {node.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
 
@@ -896,8 +896,8 @@ namespace CSharpSyntaxGenerator
                         {
                             var argType = GetElementType(field.Type);
                             WriteLine();
-                            WriteLine(string.Format("public {0} Add{1}(params {2}[] items) => Add{1}Core(items);", node.Name, field.Name, argType));
-                            WriteLine(string.Format("internal abstract {0} Add{1}Core(params {2}[] items);", node.Name, field.Name, argType));
+                            WriteLine($"public {node.Name} Add{field.Name}(params {argType}[] items) => Add{field.Name}Core(items);");
+                            WriteLine($"internal abstract {node.Name} Add{field.Name}Core(params {argType}[] items);");
                         }
                         else
                         {
@@ -911,8 +911,8 @@ namespace CSharpSyntaxGenerator
                                         var argType = GetElementType(referencedNodeField.Type);
 
                                         WriteLine();
-                                        WriteLine(string.Format("public {0} Add{1}{2}(params {3}[] items) => Add{1}{2}Core(items);", node.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType));
-                                        WriteLine(string.Format("internal abstract {0} Add{1}{2}Core(params {3}[] items);", node.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType));
+                                        WriteLine($"public {node.Name} Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}(params {argType}[] items) => Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}Core(items);");
+                                        WriteLine($"internal abstract {node.Name} Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}Core(params {argType}[] items);");
                                     }
                                 }
                             }
@@ -924,7 +924,7 @@ namespace CSharpSyntaxGenerator
                 {
                     WriteLine();
                     WriteComment(field.PropertyComment, "");
-                    WriteLine(string.Format("{0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), field.Type, field.Name));
+                    WriteLine($"{"public"} abstract {(IsNew(field) ? "new " : "")}{field.Type} {field.Name} {{ get; }}");
                 }
 
                 var baseType = GetTreeType(node.Base);
@@ -947,7 +947,7 @@ namespace CSharpSyntaxGenerator
                         {
                             var argType = GetElementType(baseField.Type);
                             WriteLine();
-                            WriteLine(string.Format("public new {0} Add{1}(params {2}[] items) => ({0})Add{1}Core(items);", node.Name, baseField.Name, argType));
+                            WriteLine($"public new {node.Name} Add{baseField.Name}(params {argType}[] items) => ({node.Name})Add{baseField.Name}Core(items);");
                         }
                         else
                         {
@@ -962,7 +962,7 @@ namespace CSharpSyntaxGenerator
                                         var argType = GetElementType(referencedNodeField.Type);
 
                                         WriteLine();
-                                        WriteLine(string.Format("public new {0} Add{1}{2}(params {3}[] items) => Add{1}{2}Core(items);", baseType.Name, StripPost(baseField.Name, "Opt"), referencedNodeField.Name, argType));
+                                        WriteLine($"public new {baseType.Name} Add{StripPost(baseField.Name, "Opt")}{referencedNodeField.Name}(params {argType}[] items) => Add{StripPost(baseField.Name, "Opt")}{referencedNodeField.Name}Core(items);");
                                     }
                                 }
                             }
@@ -975,7 +975,7 @@ namespace CSharpSyntaxGenerator
             else if (node is Node)
             {
                 var nd = (Node)node;
-                WriteLine(string.Format("public sealed partial class {0} : {1}", node.Name, node.Base));
+                WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
                 var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
@@ -988,19 +988,19 @@ namespace CSharpSyntaxGenerator
                     {
                         if (IsSeparatedNodeList(field.Type) || field.Type == "SyntaxNodeOrTokenList")
                         {
-                            WriteLine(string.Format("private SyntaxNode? {0};", CamelCase(field.Name)));
+                            WriteLine($"private SyntaxNode? {CamelCase(field.Name)};");
                         }
                         else
                         {
                             var type = GetFieldType(field, green: false);
-                            WriteLine(string.Format("private {0} {1};", type, CamelCase(field.Name)));
+                            WriteLine($"private {type} {CamelCase(field.Name)};");
                         }
                     }
                 }
 
                 // write constructor
                 WriteLine();
-                WriteLine(string.Format("internal {0}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)", node.Name));
+                WriteLine($"internal {node.Name}(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)");
                 WriteLine("  : base(green, parent, position)");
                 OpenBlock();
                 CloseBlock();
@@ -1013,30 +1013,30 @@ namespace CSharpSyntaxGenerator
                     if (field.Type == "SyntaxToken")
                     {
                         WriteComment(field.PropertyComment, "");
-                        Write(string.Format("{0} {1}{2} {3}", "public", OverrideOrNewModifier(field), GetRedPropertyType(field), field.Name));
+                        Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
                         if (IsOptional(field))
                         {
                             WriteLine();
                             OpenBlock();
                             WriteLine("get");
                             OpenBlock();
-                            WriteLine(string.Format("var slot = ((Syntax.InternalSyntax.{0})this.Green).{1};", node.Name, CamelCase(field.Name)));
+                            WriteLine($"var slot = ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)};");
                             WriteLine($"return slot != null ? new SyntaxToken(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;"); CloseBlock();
                             CloseBlock();
                         }
                         else
                         {
-                            WriteLine(string.Format(" => new SyntaxToken(this, ((Syntax.InternalSyntax.{0})this.Green).{1}, {2}, {3});", node.Name, CamelCase(field.Name), GetChildPosition(i), GetChildIndex(i)));
+                            WriteLine($" => new SyntaxToken(this, ((Syntax.InternalSyntax.{node.Name})this.Green).{CamelCase(field.Name)}, {GetChildPosition(i)}, {GetChildIndex(i)});");
                         }
                     }
                     else if (field.Type == "SyntaxList<SyntaxToken>")
                     {
                         WriteComment(field.PropertyComment, "");
-                        WriteLine(string.Format("{0} {1}SyntaxTokenList {2}", "public", OverrideOrNewModifier(field), field.Name));
+                        WriteLine($"public {OverrideOrNewModifier(field)}SyntaxTokenList {field.Name}");
                         OpenBlock();
                         WriteLine("get");
                         OpenBlock();
-                        WriteLine(string.Format("var slot = this.Green.GetSlot({0});", i));
+                        WriteLine($"var slot = this.Green.GetSlot({i});");
                         WriteLine($"return slot != null ? new SyntaxTokenList(this, slot, {GetChildPosition(i)}, {GetChildIndex(i)}) : default;");
                         CloseBlock();
                         CloseBlock();
@@ -1044,11 +1044,11 @@ namespace CSharpSyntaxGenerator
                     else
                     {
                         WriteComment(field.PropertyComment, "");
-                        Write(string.Format("{0} {1}{2} {3}", "public", OverrideOrNewModifier(field), GetRedPropertyType(field), field.Name));
+                        Write($"public {OverrideOrNewModifier(field)}{GetRedPropertyType(field)} {field.Name}");
 
                         if (IsNodeList(field.Type))
                         {
-                            WriteLine(string.Format(" => new {0}(GetRed(ref this.{1}, {2}));", field.Type, CamelCase(field.Name), i));
+                            WriteLine($" => new {field.Type}(GetRed(ref this.{CamelCase(field.Name)}, {i}));");
                         }
                         else if (IsSeparatedNodeList(field.Type))
                         {
@@ -1057,7 +1057,7 @@ namespace CSharpSyntaxGenerator
                             WriteLine("get");
                             OpenBlock();
 
-                            WriteLine(string.Format("var red = GetRed(ref this.{0}, {1});", CamelCase(field.Name), i));
+                            WriteLine($"var red = GetRed(ref this.{CamelCase(field.Name)}, {i});");
                             WriteLine($"return red != null ? new {field.Type}(red, {GetChildIndex(i)}) : default;");
                             CloseBlock();
                             CloseBlock();
@@ -1071,11 +1071,11 @@ namespace CSharpSyntaxGenerator
                             var suffix = IsOptional(field) ? "" : "!";
                             if (i == 0)
                             {
-                                WriteLine(string.Format(" => GetRedAtZero(ref this.{0}){1};", CamelCase(field.Name), suffix));
+                                WriteLine($" => GetRedAtZero(ref this.{CamelCase(field.Name)}){suffix};");
                             }
                             else
                             {
-                                WriteLine(string.Format(" => GetRed(ref this.{0}, {1}){2};", CamelCase(field.Name), i, suffix));
+                                WriteLine($" => GetRed(ref this.{CamelCase(field.Name)}, {i}){suffix};");
                             }
                         }
                     }
@@ -1085,7 +1085,7 @@ namespace CSharpSyntaxGenerator
                 foreach (var field in valueFields)
                 {
                     WriteComment(field.PropertyComment, "");
-                    WriteLine(string.Format("{0} {1}{2} {3} => ((Syntax.InternalSyntax.{4})this.Green).{3};", "public", OverrideOrNewModifier(field), field.Type, field.Name, node.Name));
+                    WriteLine($"{"public"} {OverrideOrNewModifier(field)}{field.Type} {field.Name} => ((Syntax.InternalSyntax.{node.Name})this.Green).{field.Name};");
                     WriteLine();
                 }
 
@@ -1120,11 +1120,11 @@ namespace CSharpSyntaxGenerator
                             var suffix = IsOptional(field) ? "" : "!";
                             if (index == 0)
                             {
-                                WriteLine(string.Format("{0} => GetRedAtZero(ref this.{1}){2},", index, CamelCase(field.Name), suffix));
+                                WriteLine($"{index} => GetRedAtZero(ref this.{CamelCase(field.Name)}){suffix},");
                             }
                             else
                             {
-                                WriteLine(string.Format("{0} => GetRed(ref this.{1}, {0}){2},", index, CamelCase(field.Name), suffix));
+                                WriteLine($"{index} => GetRed(ref this.{CamelCase(field.Name)}, {index}){suffix},");
                             }
                         }
                         WriteLine("_ => null,");
@@ -1202,7 +1202,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedAcceptMethod(Node node, bool genericResult)
         {
             string genericArgs = genericResult ? "<TResult>" : "";
-            WriteLine(string.Format("public override " + (genericResult ? "TResult" : "void") + " Accept" + genericArgs + "(CSharpSyntaxVisitor" + genericArgs + " visitor) => visitor.Visit{0}(this);", StripPost(node.Name, "Syntax")));
+            WriteLine($"public override {(genericResult ? "TResult" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
         }
 
         private void WriteRedVisitors()
@@ -1234,14 +1234,14 @@ namespace CSharpSyntaxGenerator
         private void WriteRedUpdateMethod(Node node)
         {
             WriteLine();
-            Write(string.Format("{0} {1} Update(", "public", node.Name));
+            Write($"public {node.Name} Update(");
 
             // parameters
             foreach (var field in node.Fields)
             {
                 if (field != node.Fields.First())
                     Write(", ");
-                Write(string.Format("{0} {1}", GetRedPropertyType(field), CamelCase(field.Name)));
+                Write($"{GetRedPropertyType(field)} {CamelCase(field.Name)}");
             }
             WriteLine(")");
             OpenBlock();
@@ -1254,7 +1254,7 @@ namespace CSharpSyntaxGenerator
                 {
                     if (nCompared > 0)
                         Write(" || ");
-                    Write(string.Format("{0} != this.{1}", CamelCase(field.Name), field.Name));
+                    Write($"{CamelCase(field.Name)} != this.{field.Name}");
                     nCompared++;
                 }
             }
@@ -1262,7 +1262,7 @@ namespace CSharpSyntaxGenerator
             {
                 WriteLine(")");
                 OpenBlock();
-                Write(string.Format("var newNode = SyntaxFactory.{0}(", StripPost(node.Name, "Syntax")));
+                Write($"var newNode = SyntaxFactory.{StripPost(node.Name, "Syntax")}(");
                 if (node.Kinds.Count > 1)
                 {
                     Write("this.Kind(), ");
@@ -1324,11 +1324,11 @@ namespace CSharpSyntaxGenerator
 
                     if (field2 == field)
                     {
-                        this.Write(string.Format("{0}", CamelCase(field2.Name)));
+                        this.Write(CamelCase(field2.Name));
                     }
                     else
                     {
-                        this.Write(string.Format("this.{0}", field2.Name));
+                        this.Write($"this.{field2.Name}");
                     }
                 }
                 WriteLine(");");
@@ -1420,7 +1420,7 @@ namespace CSharpSyntaxGenerator
                 if (baseType != null)
                 {
                     var baseArgType = GetElementType(baseField.Type);
-                    WriteLine(string.Format("internal override {0} Add{1}Core(params {2}[] items) => Add{1}(items);", baseType.Name, field.Name, baseArgType));
+                    WriteLine($"internal override {baseType.Name} Add{field.Name}Core(params {baseArgType}[] items) => Add{field.Name}(items);");
                     isNew = true;
                 }
             }
@@ -1438,7 +1438,7 @@ namespace CSharpSyntaxGenerator
                 var (baseType, _) = GetHighestBaseTypeWithField(node, field.Name);
                 if (baseType != null)
                 {
-                    WriteLine(string.Format("internal override {0} Add{1}{2}Core(params {3}[] items) => Add{1}{2}(items);", baseType.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType));
+                    WriteLine($"internal override {baseType.Name} Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}Core(params {argType}[] items) => Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}(items);");
                     isNew = true;
                 }
             }
@@ -1452,13 +1452,13 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
                 var factoryName = StripPost(referencedNode.Name, "Syntax");
                 var varName = StripPost(CamelCase(field.Name), "Opt");
-                WriteLine(string.Format("var {0} = this.{1} ?? SyntaxFactory.{2}();", varName, field.Name, factoryName));
-                WriteLine(string.Format("return With{0}({1}.With{2}({1}.{3}.AddRange(items)));", StripPost(field.Name, "Opt"), varName, StripPost(referencedNodeField.Name, "Opt"), referencedNodeField.Name));
+                WriteLine($"var {varName} = this.{field.Name} ?? SyntaxFactory.{factoryName}();");
+                WriteLine($"return With{StripPost(field.Name, "Opt")}({varName}.With{StripPost(referencedNodeField.Name, "Opt")}({varName}.{referencedNodeField.Name}.AddRange(items)));");
                 CloseBlock();
             }
             else
             {
-                WriteLine(string.Format(" => With{0}(this.{1}.With{2}(this.{1}.{3}.AddRange(items)));", StripPost(field.Name, "Opt"), field.Name, StripPost(referencedNodeField.Name, "Opt"), referencedNodeField.Name));
+                WriteLine($" => With{StripPost(field.Name, "Opt")}(this.{field.Name}.With{StripPost(referencedNodeField.Name, "Opt")}(this.{field.Name}.{referencedNodeField.Name}.AddRange(items)));");
             }
         }
 
@@ -1476,7 +1476,7 @@ namespace CSharpSyntaxGenerator
                 if (nWritten > 0)
                     WriteLine();
                 nWritten++;
-                WriteLine(string.Format("public override SyntaxNode? Visit{0}({1} node)", StripPost(node.Name, "Syntax"), node.Name));
+                WriteLine($"public override SyntaxNode? Visit{StripPost(node.Name, "Syntax")}({node.Name} node)");
 
                 if (node.Fields.Count == 0)
                 {
@@ -1497,24 +1497,24 @@ namespace CSharpSyntaxGenerator
                         {
                             if (IsAnyList(field.Type))
                             {
-                                Write(string.Format("VisitList(node.{1})", CamelCase(field.Name), field.Name));
+                                Write($"VisitList(node.{field.Name})");
                             }
                             else if (field.Type == "SyntaxToken")
                             {
-                                Write(string.Format("VisitToken(node.{1})", CamelCase(field.Name), field.Name));
+                                Write($"VisitToken(node.{field.Name})");
                             }
                             else if (IsOptional(field))
                             {
-                                Write(string.Format("({1})Visit(node.{2})", CamelCase(field.Name), GetFieldType(field, green: false), field.Name));
+                                Write($"({(GetFieldType(field, green: false))})Visit(node.{field.Name})");
                             }
                             else
                             {
-                                Write(string.Format("({1})Visit(node.{2}) ?? throw new ArgumentNullException(\"{0}\")", CamelCase(field.Name), GetFieldType(field, green: false), field.Name));
+                                Write($"({(GetFieldType(field, green: false))})Visit(node.{field.Name}) ?? throw new ArgumentNullException(\"{CamelCase(field.Name)}\")");
                             }
                         }
                         else
                         {
-                            Write(string.Format("node.{0}", field.Name));
+                            Write($"node.{field.Name}");
                         }
                     }
 
@@ -1620,7 +1620,7 @@ namespace CSharpSyntaxGenerator
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
 
-            Write(string.Format("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax")));
+            Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             WriteRedFactoryParameters(nd);
 
             WriteLine(")");
@@ -1633,7 +1633,7 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
                 foreach (var kind in nd.Kinds)
                 {
-                    WriteLine(string.Format("case SyntaxKind.{0}:{1}", kind.Name, kind == nd.Kinds.Last() ? " break;" : ""));
+                    WriteLine($"case SyntaxKind.{kind.Name}:{(kind == nd.Kinds.Last() ? " break;" : "")}");
                 }
                 WriteLine("default: throw new ArgumentException(nameof(kind));");
                 CloseBlock();
@@ -1660,13 +1660,13 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            WriteLine(string.Format("switch ({0}.Kind())", pname));
+                            WriteLine($"switch ({pname}.Kind())");
                             OpenBlock();
                             foreach (var kind in kinds)
                             {
-                                WriteLine(string.Format("case SyntaxKind.{0}:{1}", kind.Name, kind == kinds.Last() ? " break;" : ""));
+                                WriteLine($"case SyntaxKind.{kind.Name}:{(kind == kinds.Last() ? " break;" : "")}");
                             }
-                            WriteLine(string.Format("default: throw new ArgumentException(nameof({0}));", pname));
+                            WriteLine($"default: throw new ArgumentException(nameof({pname}));");
                             CloseBlock();
                         }
                     }
@@ -1677,7 +1677,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            Write(string.Format("return ({0})Syntax.InternalSyntax.SyntaxFactory.{1}(", nd.Name, StripPost(nd.Name, "Syntax")));
+            Write($"return ({nd.Name})Syntax.InternalSyntax.SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
             if (nd.Kinds.Count > 1)
             {
                 Write("kind, ");
@@ -1690,37 +1690,37 @@ namespace CSharpSyntaxGenerator
                 {
                     if (IsOptional(field))
                     {
-                        Write(string.Format("(Syntax.InternalSyntax.SyntaxToken?){0}.Node", CamelCase(field.Name)));
+                        Write($"(Syntax.InternalSyntax.SyntaxToken?){CamelCase(field.Name)}.Node");
                     }
                     else
                     {
                         // We know the GreenNode is not null because it gets a type check earlier in the generated method
-                        Write(string.Format("(Syntax.InternalSyntax.SyntaxToken){0}.Node!", CamelCase(field.Name)));
+                        Write($"(Syntax.InternalSyntax.SyntaxToken){CamelCase(field.Name)}.Node!");
                     }
                 }
                 else if (field.Type == "SyntaxList<SyntaxToken>")
                 {
-                    Write(string.Format("{0}.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>()", CamelCase(field.Name)));
+                    Write($"{CamelCase(field.Name)}.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>()");
                 }
                 else if (IsNodeList(field.Type))
                 {
-                    Write(string.Format("{0}.Node.ToGreenList<Syntax.InternalSyntax.{1}>()", CamelCase(field.Name), GetElementType(field.Type)));
+                    Write($"{CamelCase(field.Name)}.Node.ToGreenList<Syntax.InternalSyntax.{GetElementType(field.Type)}>()");
                 }
                 else if (IsSeparatedNodeList(field.Type))
                 {
-                    Write(string.Format("{0}.Node.ToGreenSeparatedList<Syntax.InternalSyntax.{1}>()", CamelCase(field.Name), GetElementType(field.Type)));
+                    Write($"{CamelCase(field.Name)}.Node.ToGreenSeparatedList<Syntax.InternalSyntax.{GetElementType(field.Type)}>()");
                 }
                 else if (field.Type == "SyntaxNodeOrTokenList")
                 {
-                    Write(string.Format("{0}.Node.ToGreenList<Syntax.InternalSyntax.CSharpSyntaxNode>()", CamelCase(field.Name)));
+                    Write($"{CamelCase(field.Name)}.Node.ToGreenList<Syntax.InternalSyntax.CSharpSyntaxNode>()");
                 }
                 else if (IsOptional(field))
                 {
-                    Write(string.Format("{0} == null ? null : (Syntax.InternalSyntax.{1}){0}.Green", CamelCase(field.Name), field.Type));
+                    Write($"{CamelCase(field.Name)} == null ? null : (Syntax.InternalSyntax.{field.Type}){CamelCase(field.Name)}.Green");
                 }
                 else
                 {
-                    Write(string.Format("(Syntax.InternalSyntax.{1}){0}.Green", CamelCase(field.Name), field.Type));
+                    Write($"(Syntax.InternalSyntax.{field.Type}){CamelCase(field.Name)}.Green");
                 }
             }
 
@@ -1747,7 +1747,7 @@ namespace CSharpSyntaxGenerator
                 if (field != nd.Fields.First())
                     Write(", ");
 
-                Write(string.Format("{0} {1}", this.GetRedPropertyType(field), CamelCase(field.Name)));
+                Write($"{this.GetRedPropertyType(field)} {CamelCase(field.Name)}");
             }
         }
 
@@ -1796,7 +1796,7 @@ namespace CSharpSyntaxGenerator
                 if (field.Type == "SyntaxToken" && CanBeAutoCreated(nd, field) && field.Kinds.Count > 1)
                 {
                     WriteLine();
-                    WriteLine(string.Format("private static SyntaxKind Get{0}{1}Kind(SyntaxKind kind)", StripPost(nd.Name, "Syntax"), StripPost(field.Name, "Opt")));
+                    WriteLine($"private static SyntaxKind Get{StripPost(nd.Name, "Syntax")}{StripPost(field.Name, "Opt")}Kind(SyntaxKind kind)");
                     Indent();
                     WriteLine("=> kind switch");
                     OpenBlock();
@@ -1837,7 +1837,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
-            Write(string.Format("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax")));
+            Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
 
             bool hasPreviousParameter = false;
             if (nd.Kinds.Count > 1)
@@ -1853,13 +1853,13 @@ namespace CSharpSyntaxGenerator
                     if (hasPreviousParameter)
                         Write(", ");
 
-                    Write(string.Format("{0} {1}", GetRedPropertyType(field), CamelCase(field.Name)));
+                    Write($"{GetRedPropertyType(field)} {CamelCase(field.Name)}");
 
                     hasPreviousParameter = true;
                 }
             }
             WriteLine(")");
-            Write(string.Format("    => SyntaxFactory.{0}(", StripPost(nd.Name, "Syntax")));
+            Write($"    => SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
 
             bool hasPreviousArgument = false;
             if (nd.Kinds.Count > 1)
@@ -1876,12 +1876,12 @@ namespace CSharpSyntaxGenerator
                 if (factoryWithNoAutoCreatableTokenFields.Contains(field))
                 {
                     // pass supplied parameter on to general factory
-                    Write(string.Format("{0}", CamelCase(field.Name)));
+                    Write(CamelCase(field.Name));
                 }
                 else
                 {
                     // pass an auto-created token to the general factory
-                    Write(string.Format("{0}", GetDefaultValue(nd, field)));
+                    Write(GetDefaultValue(nd, field));
                 }
 
                 hasPreviousArgument = true;
@@ -1949,7 +1949,7 @@ namespace CSharpSyntaxGenerator
             this.WriteLine();
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
-            Write(string.Format("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax")));
+            Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
 
             bool hasPreviousParameter = false;
             if (nd.Kinds.Count > 1)
@@ -1974,7 +1974,7 @@ namespace CSharpSyntaxGenerator
                             type = "string";
                         }
 
-                        Write(string.Format("{0} {1}", type, CamelCase(field.Name)));
+                        Write($"{type} {CamelCase(field.Name)}");
 
                         hasPreviousParameter = true;
                     }
@@ -1988,7 +1988,7 @@ namespace CSharpSyntaxGenerator
                             type += "?";
                         }
 
-                        Write(string.Format("{0} {1} = default", type, CamelCase(field.Name)));
+                        Write($"{type} {CamelCase(field.Name)} = default");
 
                         hasPreviousParameter = true;
                     }
@@ -1996,7 +1996,7 @@ namespace CSharpSyntaxGenerator
             }
             WriteLine(")");
 
-            Write(string.Format("    => SyntaxFactory.{0}(", StripPost(nd.Name, "Syntax")));
+            Write($"    => SyntaxFactory.{StripPost(nd.Name, "Syntax")}(");
 
             bool hasPreviousArgument = false;
             if (nd.Kinds.Count > 1)
@@ -2016,22 +2016,22 @@ namespace CSharpSyntaxGenerator
                     {
                         if (withStringNames && CanAutoConvertFromString(field))
                         {
-                            Write(string.Format("{0}({1})", GetStringConverterMethod(field), CamelCase(field.Name)));
+                            Write($"{GetStringConverterMethod(field)}({CamelCase(field.Name)})");
                         }
                         else
                         {
-                            Write(string.Format("{0}", CamelCase(field.Name)));
+                            Write(CamelCase(field.Name));
                         }
                     }
                     else
                     {
                         if (IsOptional(field) || IsAnyList(field.Type))
                         {
-                            Write(string.Format("{0}", CamelCase(field.Name)));
+                            Write(CamelCase(field.Name));
                         }
                         else
                         {
-                            Write(string.Format("{0} ?? {1}", CamelCase(field.Name), GetDefaultValue(nd, field)));
+                            Write($"{CamelCase(field.Name)} ?? {GetDefaultValue(nd, field)}");
                         }
                     }
                 }
@@ -2089,7 +2089,7 @@ namespace CSharpSyntaxGenerator
                 var lines = comment.Split(new string[] { "\r", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
                 {
-                    WriteLine(string.Format("{0}/// {1}", "", line.TrimStart()));
+                    WriteLine($"/// {line.TrimStart()}");
                 }
             }
         }
@@ -2107,7 +2107,7 @@ namespace CSharpSyntaxGenerator
                     string[] lines = element.OuterXml.Split(new string[] { "\r", "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (string line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
                     {
-                        WriteLine(string.Format("{0}/// {1}", indent, line.TrimStart()));
+                        WriteLine($"{indent}/// {line.TrimStart()}");
                     }
                 }
             }
