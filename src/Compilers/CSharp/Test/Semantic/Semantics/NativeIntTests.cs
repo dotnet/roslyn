@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -78,7 +79,6 @@ interface I
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE: Test nint -> {any} and nuint -> {any}
         // PROTOTYPE: Test nint? and nuint?
         // PROTOTYPE: Test checked(...)
         public static IEnumerable<object[]> ConversionsData()
@@ -479,6 +479,387 @@ $@"{{
   IL_0006:  ret
 }" };
             yield return new object[] { "nint", "System.UIntPtr?", null, null };
+            yield return new object[] { "object", "nint", null,
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  unbox.any  ""nint""
+  IL_0006:  ret
+}" };
+            yield return new object[] { "string", "nint", null, null };
+            yield return new object[] { "void*", "nint", null,
+                // PROTOTYPE: Is this explicit conversion expected?
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.IntPtr System.IntPtr.op_Explicit(void*)""
+  IL_0006:  ret
+}" };
+            yield return new object[] { "bool", "nint", null, null };
+            yield return new object[] { "char", "nint", conv("conv.u"), conv("conv.u") };
+            yield return new object[] { "sbyte", "nint", conv("conv.i"), conv("conv.i") };
+            yield return new object[] { "byte", "nint", conv("conv.u"), conv("conv.u") };
+            yield return new object[] { "short", "nint", conv("conv.i"), conv("conv.i") };
+            yield return new object[] { "ushort", "nint", conv("conv.u"), conv("conv.u") };
+            yield return new object[] { "int", "nint", conv("conv.i"), conv("conv.i") };
+            yield return new object[] { "uint", "nint", null, conv("conv.u") };
+            yield return new object[] { "long", "nint", null, conv("conv.i") };
+            yield return new object[] { "ulong", "nint", null, conv("conv.i") };
+            yield return new object[] { "nint", "nint", conv_none, conv_none };
+            yield return new object[] { "nuint", "nint", null, conv("conv.i") };
+            yield return new object[] { "float", "nint", null, conv("conv.i") };
+            yield return new object[] { "double", "nint", null, conv("conv.i") };
+            yield return new object[] { "decimal", "nint", null,
+                // PROTOTYPE: Is this explicit conversion expected?
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""long decimal.op_Explicit(decimal)""
+  IL_0006:  call       ""System.IntPtr System.IntPtr.op_Explicit(long)""
+  IL_000b:  ret
+}" };
+            yield return new object[] { "System.IntPtr", "nint", conv_none, conv_none };
+            yield return new object[] { "System.UIntPtr", "nint", null, null };
+            yield return new object[] { "bool?", "nuint", null, null };
+            yield return new object[] { "char?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""char char?.Value.get""
+  IL_0007:  conv.u
+  IL_0008:  ret
+}" };
+            yield return new object[] { "sbyte?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""sbyte sbyte?.Value.get""
+  IL_0007:  conv.i
+  IL_0008:  ret
+}" };
+            yield return new object[] { "byte?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""byte byte?.Value.get""
+  IL_0007:  conv.u
+  IL_0008:  ret
+}" };
+            yield return new object[] { "short?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""short short?.Value.get""
+  IL_0007:  conv.i
+  IL_0008:  ret
+}" };
+            yield return new object[] { "ushort?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""ushort ushort?.Value.get""
+  IL_0007:  conv.u
+  IL_0008:  ret
+}" };
+            yield return new object[] { "int?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int int?.Value.get""
+  IL_0007:  conv.i
+  IL_0008:  ret
+}" };
+            yield return new object[] { "uint?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""uint uint?.Value.get""
+  IL_0007:  conv.u
+  IL_0008:  ret
+}" };
+            yield return new object[] { "long?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""long long?.Value.get""
+  IL_0007:  conv.u
+  IL_0008:  ret
+}" };
+            yield return new object[] { "ulong?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""ulong ulong?.Value.get""
+  IL_0007:  conv.u
+  IL_0008:  ret
+}" };
+            yield return new object[] { "nint?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  conv.u
+  IL_0008:  ret
+}" };
+            yield return new object[] { "nuint?", "nuint", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "float?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""float float?.Value.get""
+  IL_0007:  conv.u
+  IL_0008:  ret
+}" };
+            yield return new object[] { "double?", "nuint", null,
+@"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""double double?.Value.get""
+  IL_0007:  conv.u
+  IL_0008:  ret
+}" };
+            yield return new object[] { "decimal?", "nuint", null,
+                // PROTOTYPE: Is this explicit conversion expected?
+@"{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""decimal decimal?.Value.get""
+  IL_0007:  call       ""ulong decimal.op_Explicit(decimal)""
+  IL_000c:  call       ""System.UIntPtr System.UIntPtr.op_Explicit(ulong)""
+  IL_0011:  ret
+}" };
+            yield return new object[] { "System.IntPtr?", "nuint", null, null };
+            yield return new object[] { "System.UIntPtr?", "nuint", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""System.UIntPtr System.UIntPtr?.Value.get""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "object",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""nuint""
+  IL_0006:  ret
+}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""nuint""
+  IL_0006:  ret
+}" };
+            yield return new object[] { "nuint", "string", null, null };
+            yield return new object[] { "nuint", "void*", null,
+                // PROTOTYPE: Is this explicit conversion expected?
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void* System.UIntPtr.op_Explicit(System.UIntPtr)""
+  IL_0006:  ret
+}" };
+            yield return new object[] { "nuint", "bool", null, null };
+            yield return new object[] { "nuint", "char", null, conv("conv.u2") };
+            yield return new object[] { "nuint", "sbyte", null, conv("conv.i1") };
+            yield return new object[] { "nuint", "byte", null, conv("conv.u1") };
+            yield return new object[] { "nuint", "short", null, conv("conv.i2") };
+            yield return new object[] { "nuint", "ushort", null, conv("conv.u2") };
+            yield return new object[] { "nuint", "int", null, conv("conv.i4") };
+            yield return new object[] { "nuint", "uint", null, conv("conv.u4") };
+            yield return new object[] { "nuint", "long", null, conv("conv.u8") };
+            yield return new object[] { "nuint", "ulong", conv("conv.u8"), conv("conv.u8") };
+            yield return new object[] { "nuint", "float", conv("conv.r4"), conv("conv.r4") };
+            yield return new object[] { "nuint", "double", conv("conv.r8"), conv("conv.r8") };
+            yield return new object[] { "nuint", "decimal", null,
+                // PROTOTYPE: Is this explicit conversion expected?
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ulong System.UIntPtr.op_Explicit(System.UIntPtr)""
+  IL_0006:  call       ""decimal decimal.op_Implicit(ulong)""
+  IL_000b:  ret
+}" };
+            yield return new object[] { "nuint", "System.IntPtr", null, null };
+            yield return new object[] { "nuint", "System.UIntPtr", conv_none, conv_none };
+            yield return new object[] { "nuint", "bool?", null, null };
+            yield return new object[] { "nuint", "char?", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u2
+  IL_0002:  newobj     ""char?..ctor(char)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "sbyte?", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i1
+  IL_0002:  newobj     ""sbyte?..ctor(sbyte)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "byte?", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u1
+  IL_0002:  newobj     ""byte?..ctor(byte)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "short?", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i2
+  IL_0002:  newobj     ""short?..ctor(short)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "ushort?", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u2
+  IL_0002:  newobj     ""ushort?..ctor(ushort)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "int?", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.i4
+  IL_0002:  newobj     ""int?..ctor(int)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "uint?", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u4
+  IL_0002:  newobj     ""uint?..ctor(uint)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "long?", null,
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u8
+  IL_0002:  newobj     ""long?..ctor(long)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "ulong?",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u8
+  IL_0002:  newobj     ""ulong?..ctor(ulong)""
+  IL_0007:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.u8
+  IL_0002:  newobj     ""ulong?..ctor(ulong)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "float?",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.r4
+  IL_0002:  newobj     ""float?..ctor(float)""
+  IL_0007:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.r4
+  IL_0002:  newobj     ""float?..ctor(float)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "double?",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.r8
+  IL_0002:  newobj     ""double?..ctor(double)""
+  IL_0007:  ret
+}",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.r8
+  IL_0002:  newobj     ""double?..ctor(double)""
+  IL_0007:  ret
+}" };
+            yield return new object[] { "nuint", "decimal?", null,
+                // PROTOTYPE: Is this explicit conversion expected?
+@"{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ulong System.UIntPtr.op_Explicit(System.UIntPtr)""
+  IL_0006:  call       ""decimal decimal.op_Implicit(ulong)""
+  IL_000b:  newobj     ""decimal?..ctor(decimal)""
+  IL_0010:  ret
+}" };
+            yield return new object[] { "nuint", "System.IntPtr?", null, null };
+            yield return new object[] { "nuint", "System.UIntPtr?",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
+  IL_0006:  ret
+}",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""System.UIntPtr?..ctor(System.UIntPtr)""
+  IL_0006:  ret
+}" };
         }
 
         [Theory]
@@ -562,6 +943,73 @@ $@"class Program
         // UIntPtr <---> void*
 
         // PROTOTYPE: Test unary operators.
+        // PROTOTYPE: Test with `static IntPtr operator-(IntPtr)` defined on System.IntPtr. (Should be ignored for `nint`.)
+
+        public static IEnumerable<object[]> BinaryOperatorsData()
+        {
+            static object[] getArgs(string op, string leftType, string rightType, string expectedSymbol = null, DiagnosticDescription diagnostic = null)
+            {
+                if (expectedSymbol == null && diagnostic == null)
+                {
+                    diagnostic = Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType);
+                }
+                return new object[] { op, leftType, rightType, expectedSymbol, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>() };
+            }
+
+            yield return getArgs("+", "nint", "object");
+            yield return getArgs("+", "nint", "string", "string string.op_Addition(object left, string right)");
+            yield return getArgs("+", "nint", "void*", "void* void*.op_Addition(long left, void* right)", Diagnostic(ErrorCode.ERR_VoidError, "x + y"));
+            yield return getArgs("+", "nint", "bool");
+            yield return getArgs("+", "nint", "char", "nint nint.op_Addition(nint left, nint right)");
+            yield return getArgs("+", "nint", "sbyte", "nint nint.op_Addition(nint left, nint right)");
+            yield return getArgs("+", "nint", "byte", "nint nint.op_Addition(nint left, nint right)");
+            yield return getArgs("+", "nint", "short", "nint nint.op_Addition(nint left, nint right)");
+            yield return getArgs("+", "nint", "ushort", "nint nint.op_Addition(nint left, nint right)");
+            yield return getArgs("+", "nint", "int", "nint nint.op_Addition(nint left, nint right)");
+            yield return getArgs("+", "nint", "uint", "long long.op_Addition(long left, long right)");
+            yield return getArgs("+", "nint", "nint", "nint nint.op_Addition(nint left, nint right)");
+            yield return getArgs("+", "nint", "nuint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: +(float, float) seems unfortunate.
+            yield return getArgs("+", "nint", "long", "long long.op_Addition(long left, long right)");
+            yield return getArgs("+", "nint", "ulong", "float float.op_Addition(float left, float right)"); // PROTOTYPE: +(float, float) seems unfortunate.
+            yield return getArgs("+", "nint", "float", "float float.op_Addition(float left, float right)");
+            yield return getArgs("+", "nint", "double", "double double.op_Addition(double left, double right)");
+            yield return getArgs("+", "nint", "decimal");
+            yield return getArgs("+", "nint", "System.IntPtr");
+            yield return getArgs("+", "nint", "System.UIntPtr");
+            // PROTOTYPE: Test nuint + {any}
+            // PROTOTYPE: Test {any} + nint and {any} + nuint
+            // PROTOTYPE: Test nint? and nuint?
+        }
+
+        [Theory]
+        [MemberData(nameof(BinaryOperatorsData))]
+        public void BinaryOperators(string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
+        {
+            bool useUnsafeContext = useUnsafe(leftType) || useUnsafe(rightType);
+            string source =
+$@"class Program
+{{
+    static {(useUnsafeContext ? "unsafe " : "")}object Evaluate({leftType} x, {rightType} y)
+    {{
+        return x {op} y;
+    }}
+}}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            var symbolInfo = model.GetSymbolInfo(expr);
+            Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+
+            if (expectedDiagnostics.Length == 0)
+            {
+                CompileAndVerify(comp);
+            }
+
+            static bool useUnsafe(string type) => type == "void*";
+        }
 
         [Fact]
         public void BinaryOperators_NInt()

@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -40,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Int16:
                 case SpecialType.System_Int32:
                 case SpecialType.System_Int64:
+                case SpecialType.System_IntPtr when ((NamedTypeSymbol)type).IsNativeInt:
+                case SpecialType.System_UIntPtr when ((NamedTypeSymbol)type).IsNativeInt:
                 case SpecialType.System_MulticastDelegate:
                 case SpecialType.System_Object:
                 case SpecialType.System_SByte:
