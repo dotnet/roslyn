@@ -10107,9 +10107,9 @@ tryAgain:
             }
 
             // If we start with `static` or `async static` then just jump past those and do the
-            // analysis after that point.  Note, we don't just past `async` in `static async`
-            // because that `async` may not be a modifier (it may just be an identifier) and we have
-            // to figure out what it is.
+            // analysis after that point.  Note, we don't just blindly consume `async` in `static
+            // async` because that `async` may not be a modifier (it may just be an identifier) and
+            // we have to figure out what it is.
 
             var peekIndex = 0;
             var seenStatic = false;
