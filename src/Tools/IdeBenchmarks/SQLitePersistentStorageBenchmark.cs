@@ -93,12 +93,13 @@ namespace IdeBenchmarks
         [Benchmark(Baseline = true)]
         public Task Perf()
         {
-            var tasks = new List<Task>();
+            const int capacity = 1000;
+            var tasks = new List<Task>(capacity);
 
             // Create a lot of overlapping reads and writes to the DB to several different keys. The
             // percentage of reads and writes is parameterized above, allowing us to validate
             // performance with several different usage patterns.
-            for (var i = 0; i < 1000; i++)
+            for (var i = 0; i < capacity; i++)
             {
                 var name = _random.Next(0, 4).ToString();
                 if (_random.Next(0, 100) < ReadPercentage)
