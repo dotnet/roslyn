@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _reportedUnsafe;
         private readonly MethodSymbol _containingSymbol;
 
-        // Containg static local function or static local anonymous function (anonymous method,
-        // lambda, etc.)
+        // Containing static local function, static anonymous function, or static lambda.
         private SourceMethodSymbol _staticLocalOrAnonymousFunction;
 
         public static void IssueDiagnostics(CSharpCompilation compilation, BoundNode node, DiagnosticBag diagnostics, MethodSymbol containingSymbol)

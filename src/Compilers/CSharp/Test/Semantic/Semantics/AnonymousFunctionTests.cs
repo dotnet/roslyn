@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -35,7 +34,7 @@ public class C
 {
     public static int a;
 
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () => a;
     }
@@ -56,7 +55,7 @@ public class C
 {
     static int A { get; }
 
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () => A;
     }
@@ -77,7 +76,7 @@ public class C
 {
     public const int a = 0;
 
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () => a;
     }
@@ -96,7 +95,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         const int a = 0;
         Func<int> f = static () => a;
@@ -116,7 +115,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
@@ -126,9 +125,9 @@ public class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (10,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 23));
+                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<int> f = static () =>
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23));
         }
 
         [Fact]
@@ -141,7 +140,7 @@ public class C
 {
     public int a;
 
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () => a;
     }
@@ -165,7 +164,7 @@ public class C
 {
     int A { get; }
 
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () => A;
     }
@@ -187,7 +186,7 @@ using System;
 
 public class C
 {
-    public void Goo(int a)
+    public void F(int a)
     {
         Func<int> f = static () => a;
     }
@@ -209,7 +208,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         int a;
         Func<int> f = static () => a;
@@ -235,7 +234,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
@@ -258,11 +257,11 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
-            this.Goo();
+            this.F();
             return 0;
         };
     }
@@ -272,7 +271,7 @@ public class C
                 //         Func<int> f = static () =>
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23),
                 // (10,13): error CS8428: A static anonymous function cannot contain a reference to 'this' or 'base'.
-                //             this.Goo();
+                //             this.F();
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "this").WithLocation(10, 13));
         }
 
@@ -284,24 +283,24 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
-            Goo();
+            F();
             return 0;
         };
 
-        void Goo() {}
+        void F() {}
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<int> f = static () =>
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23),
-                // (10,13): error CS8427: A static anonymous function cannot contain a reference to 'Goo'.
-                //             Goo();
-                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "Goo()").WithArguments("Goo").WithLocation(10, 13));
+                // (10,13): error CS8427: A static anonymous function cannot contain a reference to 'F'.
+                //             F();
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "F()").WithArguments("F").WithLocation(10, 13));
         }
 
         [Fact]
@@ -312,15 +311,15 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
-            Goo();
+            F();
             return 0;
         };
 
-        static void Goo() {}
+        static void F() {}
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
@@ -337,7 +336,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
@@ -361,7 +360,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
@@ -391,7 +390,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = () =>
         {
@@ -418,7 +417,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
@@ -442,7 +441,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
@@ -469,7 +468,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = () =>
         {
@@ -493,7 +492,7 @@ public class C
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         static int f()
         {
@@ -517,7 +516,7 @@ public class C
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         static int f()
         {
@@ -544,7 +543,7 @@ public class C
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         int f()
         {
@@ -571,7 +570,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         static int f()
         {
@@ -595,7 +594,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         static int f()
         {
@@ -625,7 +624,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         int f()
         {
@@ -655,7 +654,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
@@ -685,7 +684,7 @@ public class C
 {
     public static string[] args;
 
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
@@ -717,7 +716,7 @@ public class C
 {
     public static string[] args;
 
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
@@ -743,13 +742,13 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Func<int> f = static () =>
         {
             Func<int> g = () =>
             {
-                this.Goo();
+                this.F();
                 return 0;
             };
 
@@ -762,7 +761,7 @@ public class C
                 //         Func<int> f = static () =>
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23),
                 // (12,17): error CS8428: A static anonymous function cannot contain a reference to 'this' or 'base'.
-                //                 this.Goo();
+                //                 this.F();
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "this").WithLocation(12, 17));
         }
 
@@ -774,7 +773,7 @@ using System;
 
 public class C
 {
-    public void Goo()
+    public void F()
     {
         Action<int> a = static delegate(int i) { };
         Action<int> b = static a => { };

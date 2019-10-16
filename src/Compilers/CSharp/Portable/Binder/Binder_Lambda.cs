@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax.Modifiers,
                 out _);
 
-            var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync, isStatic, hasErrors: false);
+            var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync: isAsync, isStatic: isStatic);
             if (!names.IsDefault)
             {
                 var binder = new LocalScopeBinder(this);
