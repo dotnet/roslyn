@@ -4789,6 +4789,162 @@ select t";
 
         [Fact]
         [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void AnonymousObjectCreation_BadRef()
+        {
+            UsingExpression("new { ref }",
+                // (1,7): error CS1525: Invalid expression term 'ref'
+                // new { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 7),
+                // (1,11): error CS1525: Invalid expression term '}'
+                // new { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 11));
+
+            N(SyntaxKind.AnonymousObjectCreationExpression);
+            {
+                N(SyntaxKind.NewKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.AnonymousObjectMemberDeclarator);
+                {
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ObjectInitializer_BadRef()
+        {
+            UsingExpression("new C { P = ref }",
+                // (1,13): error CS1525: Invalid expression term 'ref'
+                // new C { P = ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 13),
+                // (1,17): error CS1525: Invalid expression term '}'
+                // new C { P = ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 17));
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void CollectionInitializer_BadRef_01()
+        {
+            UsingExpression("new C { ref }",
+                // (1,9): error CS1525: Invalid expression term 'ref'
+                // new C { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 9),
+                // (1,13): error CS1525: Invalid expression term '}'
+                // new C { ref }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 13));
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void CollectionInitializer_BadRef_02()
+        {
+            UsingExpression("new C { { 0, ref } }",
+                // (1,14): error CS1525: Invalid expression term 'ref'
+                // new C { { 0, ref } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 14),
+                // (1,18): error CS1525: Invalid expression term '}'
+                // new C { { 0, ref } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 18));
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void AttributeArgument_BadRef()
+        {
+            UsingTree("class C { [Attr(ref)] void M() { } }").GetDiagnostics().Verify(
+                // (1,17): error CS1525: Invalid expression term 'ref'
+                // class C { [Attr(ref)] void M() { } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(1, 17),
+                // (1,20): error CS1525: Invalid expression term ')'
+                // class C { [Attr(ref)] void M() { } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 20));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Attr");
+                                }
+                                N(SyntaxKind.AttributeArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.AttributeArgument);
+                                    {
+                                        N(SyntaxKind.RefExpression);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
+        public void ForLoop_BadRefCondition()
+        {
+            UsingStatement("for (int i = 0; ref; i++) { }",
+                // (1,17): error CS1525: Invalid expression term 'ref'
+                // for (int i = 0; ref; i++) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(1, 17),
+                // (1,20): error CS1525: Invalid expression term ';'
+                // for (int i = 0; ref; i++) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 20));
+        }
+
+        [Fact]
+        [WorkItem(39072, "https://github.com/dotnet/roslyn/issues/39072")]
         public void ArrayCreation_BadInElementAccess()
         {
             UsingExpression("new[] { in[] }",
