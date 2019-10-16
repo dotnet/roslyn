@@ -342,17 +342,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                     case IConditionalOperation conditional when conditional.IsRef:
                                     case ISimpleAssignmentOperation assignment when assignment.IsRef:
                                         return false;
-
-                                    default:
-                                        // Workaround for https://github.com/dotnet/roslyn/issues/32100
-                                        // Bail out in presence of OperationKind.None - not implemented IOperation.
-                                        if (operation.Kind == OperationKind.None)
-                                        {
-                                            hasOperationNoneDescendant = true;
-                                            return false;
-                                        }
-
-                                        break;
                                 }
                             }
 
