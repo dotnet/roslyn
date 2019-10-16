@@ -2,9 +2,11 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -49,5 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
             return true;
         }
+
+        protected override bool PrefersThrowExpression(DocumentOptionSet options)
+            => options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression).Value;
     }
 }

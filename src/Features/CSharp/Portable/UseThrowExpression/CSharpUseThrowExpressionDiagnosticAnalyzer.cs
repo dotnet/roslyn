@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.UseThrowExpression;
@@ -9,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseThrowExpressionDiagnosticAnalyzer : AbstractUseThrowExpressionDiagnosticAnalyzer
     {
+        public CSharpUseThrowExpressionDiagnosticAnalyzer()
+            : base(CSharpCodeStyleOptions.PreferThrowExpression, LanguageNames.CSharp)
+        {
+        }
+
         protected override bool IsSupported(ParseOptions options)
         {
             var csOptions = (CSharpParseOptions)options;
