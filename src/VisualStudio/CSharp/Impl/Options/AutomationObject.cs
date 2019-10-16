@@ -588,8 +588,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public string Style_PreferThrowExpression
         {
-            get { return GetXmlOption(CodeStyleOptions.PreferThrowExpression); }
-            set { SetXmlOption(CodeStyleOptions.PreferThrowExpression, value); }
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferThrowExpression); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferThrowExpression, value); }
         }
 
         public string Style_PreferObjectInitializer
@@ -618,8 +618,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public string Style_PreferInlinedVariableDeclaration
         {
-            get { return GetXmlOption(CodeStyleOptions.PreferInlinedVariableDeclaration); }
-            set { SetXmlOption(CodeStyleOptions.PreferInlinedVariableDeclaration, value); }
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration, value); }
         }
 
         public string Style_PreferExplicitTupleNames
