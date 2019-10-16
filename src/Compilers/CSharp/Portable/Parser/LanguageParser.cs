@@ -9130,132 +9130,112 @@ tryAgain:
         }
 
         private ExpressionSyntax ParseTerm(Precedence precedence)
+            => this.ParsePostFixExpression(ParseTermWithoutPostfix(precedence));
+
+        private ExpressionSyntax ParseTermWithoutPostfix(Precedence precedence)
         {
             var tk = this.CurrentToken.Kind;
-
-            ExpressionSyntax expr;
             switch (tk)
             {
                 case SyntaxKind.TypeOfKeyword:
-                    expr = this.ParseTypeOfExpression();
-                    break;
+                    return this.ParseTypeOfExpression();
                 case SyntaxKind.DefaultKeyword:
-                    expr = this.ParseDefaultExpression();
-                    break;
+                    return this.ParseDefaultExpression();
                 case SyntaxKind.SizeOfKeyword:
-                    expr = this.ParseSizeOfExpression();
-                    break;
+                    return this.ParseSizeOfExpression();
                 case SyntaxKind.MakeRefKeyword:
-                    expr = this.ParseMakeRefExpression();
-                    break;
+                    return this.ParseMakeRefExpression();
                 case SyntaxKind.RefTypeKeyword:
-                    expr = this.ParseRefTypeExpression();
-                    break;
+                    return this.ParseRefTypeExpression();
                 case SyntaxKind.CheckedKeyword:
                 case SyntaxKind.UncheckedKeyword:
-                    expr = this.ParseCheckedOrUncheckedExpression();
-                    break;
+                    return this.ParseCheckedOrUncheckedExpression();
                 case SyntaxKind.RefValueKeyword:
-                    expr = this.ParseRefValueExpression();
-                    break;
+                    return this.ParseRefValueExpression();
                 case SyntaxKind.ColonColonToken:
                     // misplaced ::
                     // TODO: this should not be a compound name.. (disallow dots)
-                    expr = this.ParseQualifiedName(NameOptions.InExpression);
-                    break;
+                    return this.ParseQualifiedName(NameOptions.InExpression);
                 case SyntaxKind.EqualsGreaterThanToken:
-                    expr = this.ParseLambdaExpression();
-                    break;
+                    return this.ParseLambdaExpression();
                 case SyntaxKind.StaticKeyword:
                     if (this.IsPossibleAnonymousMethodExpression())
                     {
-                        expr = this.ParseAnonymousMethodExpression();
+                        return this.ParseAnonymousMethodExpression();
                     }
                     else if (this.IsPossibleLambdaExpression(precedence))
                     {
-                        expr = this.ParseLambdaExpression();
+                        return this.ParseLambdaExpression();
                     }
                     else
                     {
-                        expr = this.CreateMissingIdentifierName();
-                        expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
+                        return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                     }
-
-                    break;
                 case SyntaxKind.IdentifierToken:
                     if (this.IsTrueIdentifier())
                     {
                         if (this.IsPossibleAnonymousMethodExpression())
                         {
-                            expr = this.ParseAnonymousMethodExpression();
+                            return this.ParseAnonymousMethodExpression();
                         }
                         else if (this.IsPossibleLambdaExpression(precedence))
                         {
-                            expr = this.ParseLambdaExpression();
+                            return this.ParseLambdaExpression();
                         }
                         else if (this.IsPossibleDeconstructionLeft(precedence))
                         {
-                            expr = ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples);
+                            return ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples);
                         }
                         else
                         {
-                            expr = this.ParseAliasQualifiedName(NameOptions.InExpression);
+                            return this.ParseAliasQualifiedName(NameOptions.InExpression);
                         }
                     }
                     else
                     {
-                        expr = this.CreateMissingIdentifierName();
-                        expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
+                        return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                     }
-
-                    break;
                 case SyntaxKind.ThisKeyword:
-                    expr = _syntaxFactory.ThisExpression(this.EatToken());
-                    break;
+                    return _syntaxFactory.ThisExpression(this.EatToken());
                 case SyntaxKind.BaseKeyword:
-                    expr = ParseBaseExpression();
-                    break;
+                    return ParseBaseExpression();
+
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.FalseKeyword:
-
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.NullKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
-                    expr = _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
-                    break;
+                    return _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
                 case SyntaxKind.InterpolatedStringStartToken:
                     throw new NotImplementedException(); // this should not occur because these tokens are produced and parsed immediately
                 case SyntaxKind.InterpolatedStringToken:
-                    expr = this.ParseInterpolatedStringToken();
-                    break;
+                    return this.ParseInterpolatedStringToken();
                 case SyntaxKind.OpenParenToken:
-                    expr = this.ParseCastOrParenExpressionOrLambdaOrTuple(precedence);
-                    break;
+                    return this.ParseCastOrParenExpressionOrLambdaOrTuple(precedence);
                 case SyntaxKind.NewKeyword:
-                    expr = this.ParseNewExpression();
-                    break;
+                    return this.ParseNewExpression();
                 case SyntaxKind.StackAllocKeyword:
-                    expr = this.ParseStackAllocExpression();
-                    break;
+                    return this.ParseStackAllocExpression();
                 case SyntaxKind.DelegateKeyword:
-                    expr = this.ParseAnonymousMethodExpression();
-                    break;
+                    return this.ParseAnonymousMethodExpression();
                 default:
                     // check for intrinsic type followed by '.'
                     if (IsPredefinedType(tk))
                     {
-                        expr = _syntaxFactory.PredefinedType(this.EatToken());
+                        var expr = _syntaxFactory.PredefinedType(this.EatToken());
 
                         if (this.CurrentToken.Kind != SyntaxKind.DotToken || tk == SyntaxKind.VoidKeyword)
                         {
                             expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
                         }
+
+                        return expr;
                     }
                     else
                     {
-                        expr = this.CreateMissingIdentifierName();
+                        var expr = this.CreateMissingIdentifierName();
 
                         if (tk == SyntaxKind.EndOfFileToken)
                         {
@@ -9265,12 +9245,10 @@ tryAgain:
                         {
                             expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
                         }
+
+                        return expr;
                     }
-
-                    break;
             }
-
-            return this.ParsePostFixExpression(expr);
         }
 
         private ExpressionSyntax ParseBaseExpression()
