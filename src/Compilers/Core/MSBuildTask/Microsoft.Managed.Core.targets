@@ -55,12 +55,14 @@
     .editorconfig Support
     ========================
     
-    The discovery of .editorconfig files depends on MSBuild features only available in version 16.1 and later. To avoid evaluation errors when
-    running under earlier versions of MSBuild we place the relevant properties and imports in a separate .targets file.
-    
-    TODO: Inline the import when we no longer need to support earlier versions of MSBuild.
     -->
-  <Import Project="Microsoft.Managed.EditorConfig.targets" Condition="$(MSBuildVersion) >= 16.1.0" />
+  <ItemGroup>
+    <_AllDirectoriesAbove Include="@(Compile->GetPathsOfAllDirectoriesAbove())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <!-- Work around a GetPathsOfAllDirectoriesAbove() bug where it can return multiple equivalent paths when the 
+         compilation includes linked files with relative paths - https://github.com/microsoft/msbuild/issues/4392 -->
+    <PotentialEditorConfigFiles Include="@(_AllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <EditorConfigFiles Include="@(PotentialEditorConfigFiles->Exists())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+  </ItemGroup>
 
   <!--
     ========================
