@@ -10648,7 +10648,8 @@ tryAgain:
                     {
                         list.Add(this.ParseVariableInitializer());
 
-                        while (true)
+                        int lastTokenPosition = -1;
+                        while (IsMakingProgress(ref lastTokenPosition))
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                             {
