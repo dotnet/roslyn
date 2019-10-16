@@ -5222,6 +5222,60 @@ class C
         }
 
         [Fact]
+        public void LocalFunctionAttribute_Complex()
+        {
+            var source = @"
+class A1 : System.Attribute { }
+class A2 : System.Attribute { internal A2(int i, string s) { } }
+class A3 : System.Attribute { internal A3(params int[] values) { } }
+
+class C
+{
+    public void M()
+    {
+        [A1, A2(1, ""hello"")]
+        [A3(1, 2, 3, 4, 5)]
+        void local1()
+        {
+        }
+    }
+}
+";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var attr1 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A1");
+                var attr2 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A2");
+                var attr3 = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A3");
+
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs = localFn1.GetAttributes();
+                Assert.Equal(
+                    expected: new[]
+                    {
+                        module.CorLibrary().GetTypeByMetadataName("System.Runtime.CompilerServices.CompilerGeneratedAttribute"),
+                        attr1,
+                        attr2,
+                        attr3
+                    },
+                    actual: attrs.Select(a => a.AttributeClass));
+
+                Assert.Empty(attrs[0].ConstructorArguments);
+                Assert.Empty(attrs[1].ConstructorArguments);
+                Assert.Equal(new object[] { 1, "hello" }, attrs[2].ConstructorArguments.Select(a => a.Value));
+
+                var attr3Args = attrs[3].ConstructorArguments.Single().Values;
+                Assert.Equal(new object[] { 1, 2, 3, 4, 5 }, attr3Args.Select(a => a.Value));
+            }
+        }
+
+        [Fact]
         public void LocalFunctionAttributeArgument()
         {
             var source = @"
