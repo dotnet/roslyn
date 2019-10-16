@@ -167,26 +167,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (isMissing)
                 {
                     // Source file is not listed in the PDB. This may happen for a couple of reasons:
-                    // 1) The source file contains no method bodies
-                    // 2) The library wasn't built with that source file - the file has been added before debugging session started but after build captured it.
-                    //    This is the case for WPF .g.i.cs files.
-                    // 
-                    // In case [1] we can't currently determine whether the document matches or not
-                    // In case [2] there is no need to synchronize the document.
-                    // 
-                    // TODO:
-                    // Once https://github.com/dotnet/roslyn/issues/38954 is implemented we can consider all source files that are not present in the PDB design-time-only.
-
-                    if (document.FilePath.EndsWith(".g.i.cs") || document.FilePath.EndsWith(".g.i.vb"))
-                    {
-                        matchingDocument = null;
-                        newState = DocumentState.DesignTimeOnly;
-                    }
-                    else
-                    {
-                        matchingDocument = document;
-                        newState = DocumentState.MatchesDebuggee;
-                    }
+                    // The library wasn't built with that source file - the file has been added before debugging session started but after build captured it.
+                    // This is the case for WPF .g.i.cs files.
+                    matchingDocument = null;
+                    newState = DocumentState.DesignTimeOnly;
                 }
                 else if (matchingSourceText != null)
                 {
@@ -238,6 +222,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (symChecksum.IsDefault)
             {
                 return (Source: null, IsMissing: true);
+            }
+
+            if (!PathUtilities.IsAbsolute(sourceFilePath))
+            {
+                EditAndContinueWorkspaceService.Log.Write("Error calculating checksum for source file '{0}': path not absolute", sourceFilePath);
+                return (Source: null, IsMissing: false);
             }
 
             try

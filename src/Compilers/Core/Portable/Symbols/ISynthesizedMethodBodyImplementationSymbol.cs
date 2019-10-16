@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         /// The symbol whose body lowering produced this synthesized symbol, 
         /// or null if the symbol is synthesized based on declaration.
         /// </summary>
-        IMethodSymbol Method { get; }
+        IMethodSymbol? Method { get; }
 
         /// <summary>
         /// True if this symbol body needs to be updated when the <see cref="Method"/> body is updated.
