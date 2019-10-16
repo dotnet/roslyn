@@ -165,15 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool IsExpressionBodied => false;
         internal MethodSymbol TopLevelMethod => _topLevelMethod;
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
-        {
-            return _originalMethod is LocalFunctionSymbol local ? local.GetAttributes() : base.GetAttributes();
-        }
+        public override ImmutableArray<CSharpAttributeData> GetAttributes() => _originalMethod.GetAttributes();
 
-        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
-        {
-            return _originalMethod is LocalFunctionSymbol local ? local.GetReturnTypeAttributes() : base.GetReturnTypeAttributes();
-        }
+        public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes() => _originalMethod.GetReturnTypeAttributes();
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
