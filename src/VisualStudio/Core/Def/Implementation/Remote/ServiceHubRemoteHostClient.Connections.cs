@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 RemoteHostCrashInfoBar.ShowInfoBar(workspace);
 
                 // throw soft crash exception to minimize hard crash. it doesn't
-                // gurantee 100% hard crash free. but 99% it doesn't cause
+                // guarantee 100% hard crash free. but 99% it doesn't cause
                 // hard crash
                 throw new SoftCrashException("retry timed out", cancellationToken);
             }

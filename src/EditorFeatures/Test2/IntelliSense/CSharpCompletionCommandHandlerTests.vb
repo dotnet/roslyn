@@ -4971,7 +4971,7 @@ namespace NS2
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/39070"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExpanderWithImportCompletionDisabled() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[

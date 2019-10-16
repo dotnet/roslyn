@@ -2320,7 +2320,7 @@ class Program
             Assert.Equal(0, coffHeader.NumberOfSymbols);
             Assert.Equal(0, coffHeader.PointerToSymbolTable);
             Assert.Equal(0xe0, coffHeader.SizeOfOptionalHeader);
-            Assert.Equal(-609170495, coffHeader.TimeDateStamp);
+            Assert.Equal(-609278808, coffHeader.TimeDateStamp);
 
             Assert.Equal(0, corHeader.EntryPointTokenOrRelativeVirtualAddress);
             Assert.Equal(CorFlags.ILOnly, corHeader.Flags);
@@ -2458,7 +2458,7 @@ class Program
             Assert.Equal(0, coffHeader.NumberOfSymbols);
             Assert.Equal(0, coffHeader.PointerToSymbolTable);
             Assert.Equal(240, coffHeader.SizeOfOptionalHeader);
-            Assert.Equal(-862605524, coffHeader.TimeDateStamp);
+            Assert.Equal(-1823671907, coffHeader.TimeDateStamp);
 
             Assert.Equal(0x06000001, corHeader.EntryPointTokenOrRelativeVirtualAddress);
             Assert.Equal(CorFlags.ILOnly, corHeader.Flags);

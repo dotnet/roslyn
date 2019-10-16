@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly bool IsAsync;
 
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
-        public AwaitableInfo DisposeAwaitableInfo;
+        public readonly BoundAwaitableInfo DisposeAwaitableInfo;
 
         // When using pattern-based Dispose, this stores the method to invoke to Dispose
         public readonly MethodSymbol DisposeMethod;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol moveNextMethod,
             bool isAsync,
             bool needsDisposal,
-            AwaitableInfo disposeAwaitableInfo,
+            BoundAwaitableInfo disposeAwaitableInfo,
             MethodSymbol disposeMethod,
             Conversion collectionConversion,
             Conversion currentConversion,
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool IsAsync;
             public bool NeedsDisposal;
-            public AwaitableInfo DisposeAwaitableInfo;
+            public BoundAwaitableInfo DisposeAwaitableInfo;
             public MethodSymbol DisposeMethod;
 
             public Conversion CollectionConversion;

@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundArrayTemp As BoundLocal = Nothing
             Dim storeArray = CaptureInATemp(containingMember, node.Expression, arg, boundArrayTemp)
 
-            Dim n = node.Indices.Count
+            Dim n = node.Indices.Length
             Dim indicesFirst(n - 1) As BoundExpression
             Dim indicesSecond(n - 1) As BoundExpression
 

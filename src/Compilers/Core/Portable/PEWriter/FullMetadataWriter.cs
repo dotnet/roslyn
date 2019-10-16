@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -44,7 +46,7 @@ namespace Microsoft.Cci
             CancellationToken cancellationToken)
         {
             var builder = new MetadataBuilder();
-            MetadataBuilder debugBuilderOpt;
+            MetadataBuilder? debugBuilderOpt;
             switch (context.Module.DebugInformationFormat)
             {
                 case DebugInformationFormat.PortablePdb:
@@ -71,8 +73,8 @@ namespace Microsoft.Cci
         private FullMetadataWriter(
             EmitContext context,
             MetadataBuilder builder,
-            MetadataBuilder debugBuilderOpt,
-            DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
+            MetadataBuilder? debugBuilderOpt,
+            DynamicAnalysisDataWriter? dynamicAnalysisDataWriterOpt,
             CommonMessageProvider messageProvider,
             bool metadataOnly,
             bool deterministic,
@@ -337,7 +339,7 @@ namespace Microsoft.Cci
 
         protected override void PopulateEventMapTableRows()
         {
-            ITypeDefinition lastParent = null;
+            ITypeDefinition? lastParent = null;
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
                 if (eventDef.ContainingTypeDefinition == lastParent)
@@ -355,7 +357,7 @@ namespace Microsoft.Cci
 
         protected override void PopulatePropertyMapTableRows()
         {
-            ITypeDefinition lastParent = null;
+            ITypeDefinition? lastParent = null;
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
                 if (propertyDef.ContainingTypeDefinition == lastParent)

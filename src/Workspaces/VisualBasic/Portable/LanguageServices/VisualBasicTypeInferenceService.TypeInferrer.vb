@@ -1003,7 +1003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If expression IsNot Nothing Then
                     Dim expressionAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols()
                     Dim expressionAddMethodParameterTypes = expressionAddMethodSymbols _
-                        .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Count() = 1) _
+                        .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Length = 1) _
                         .Select(Function(a) New TypeInferenceInfo(DirectCast(a, IMethodSymbol).Parameters(0).Type))
 
                     If expressionAddMethodParameterTypes.Any() Then
@@ -1018,7 +1018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim initializerAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols()
                 Dim initializerAddMethodParameterTypes = initializerAddMethodSymbols _
-                    .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Count() = collectionInitializer.Initializers.Count) _
+                    .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Length = collectionInitializer.Initializers.Count) _
                     .Select(Function(a) DirectCast(a, IMethodSymbol).Parameters.ElementAtOrDefault(parameterIndex)?.Type) _
                     .WhereNotNull() _
                     .Select(Function(a) New TypeInferenceInfo(a))

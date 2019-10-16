@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -19,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Text
         public ChangedText(SourceText oldText, SourceText newText, ImmutableArray<TextChangeRange> changeRanges)
             : base(checksumAlgorithm: oldText.ChecksumAlgorithm)
         {
-            Debug.Assert(newText != null);
+            RoslynDebug.Assert(newText != null);
             Debug.Assert(newText is CompositeText || newText is SubText || newText is StringText || newText is LargeText);
-            Debug.Assert(oldText != null);
+            RoslynDebug.Assert(oldText != null);
             Debug.Assert(oldText != newText);
             Debug.Assert(!changeRanges.IsDefault);
 
@@ -37,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Text
             // used to identify the changes in GetChangeRanges.
             public WeakReference<SourceText> WeakOldText { get; }
 
-            public ChangeInfo Previous { get; private set; }
+            public ChangeInfo? Previous { get; private set; }
 
-            public ChangeInfo(ImmutableArray<TextChangeRange> changeRanges, WeakReference<SourceText> weakOldText, ChangeInfo previous)
+            public ChangeInfo(ImmutableArray<TextChangeRange> changeRanges, WeakReference<SourceText> weakOldText, ChangeInfo? previous)
             {
                 this.ChangeRanges = changeRanges;
                 this.WeakOldText = weakOldText;
@@ -51,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Text
             private void Clean()
             {
                 // look for last info in the chain that still has reference to old text
-                ChangeInfo lastInfo = this;
-                for (var info = this; info != null; info = info.Previous)
+                ChangeInfo? lastInfo = this;
+                for (ChangeInfo? info = this; info != null; info = info.Previous)
                 {
                     SourceText tmp;
                     if (info.WeakOldText.TryGetTarget(out tmp))
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 // break chain for any info's beyond that so they get GC'd
-                ChangeInfo prev;
+                ChangeInfo? prev;
                 while (lastInfo != null)
                 {
                     prev = lastInfo.Previous;
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override Encoding Encoding
+        public override Encoding? Encoding
         {
             get { return _newText.Encoding; }
         }
@@ -181,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         private bool IsChangedFrom(SourceText oldText)
         {
-            for (var info = _info; info != null; info = info.Previous)
+            for (ChangeInfo? info = _info; info != null; info = info.Previous)
             {
                 SourceText text;
                 if (info.WeakOldText.TryGetTarget(out text) && text == oldText)
@@ -197,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             var list = new List<ImmutableArray<TextChangeRange>>();
 
-            var change = newText._info;
+            ChangeInfo? change = newText._info;
             list.Add(change.ChangeRanges);
 
             while (change != null)
@@ -385,7 +388,7 @@ tryAgain:
         protected override TextLineCollection GetLinesCore()
         {
             SourceText oldText;
-            TextLineCollection oldLineInfo;
+            TextLineCollection? oldLineInfo;
 
             if (!_info.WeakOldText.TryGetTarget(out oldText) || !oldText.TryGetLines(out oldLineInfo))
             {

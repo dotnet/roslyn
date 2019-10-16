@@ -2068,8 +2068,6 @@ namespace Microsoft.CodeAnalysis
             // takes priority over the syntax tree pass, which will not embed.
             if (!embeddedTexts.IsEmpty())
             {
-                var embeddedDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
-
                 foreach (var text in embeddedTexts)
                 {
                     Debug.Assert(!string.IsNullOrEmpty(text.FilePath));
@@ -2083,11 +2081,8 @@ namespace Microsoft.CodeAnalysis
                             () => text.GetDebugSourceInfo());
 
                         documentsBuilder.AddDebugDocument(document);
-                        embeddedDocuments.Add(document);
                     }
                 }
-
-                documentsBuilder.EmbeddedDocuments = embeddedDocuments.ToImmutableAndFree();
             }
 
             // Add debug documents for all trees with distinct paths.
