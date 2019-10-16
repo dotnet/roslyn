@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <summary>
         /// Returns a mapping of "fully qualified name of containing type" => "contained extension method names"
         /// </summary>
-        Task<IEnumerable<(string, IEnumerable<string>)>> GetPossibleExtensionMethodMatchesAsync(
+        Task<(IEnumerable<(string, IEnumerable<string>)>, int)> GetPossibleExtensionMethodMatchesAsync(
             ProjectId projectId,
             string[] targetTypeNames,
             bool loadOnly,

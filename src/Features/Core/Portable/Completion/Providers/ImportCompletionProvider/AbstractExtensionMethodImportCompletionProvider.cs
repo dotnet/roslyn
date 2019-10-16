@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractExtensionMethodImportCompletionProvider : AbstractImportCompletionProvider
     {
+        protected abstract string GenericSuffix { get; }
+
         protected abstract bool TryGetReceiverTypeSymbol(SyntaxContext syntaxContext, [NotNullWhen(true)] out ITypeSymbol? receiverTypeSymbol);
 
         protected override bool ShouldProvideCompletion(Document document, SyntaxContext syntaxContext)
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var ticks = Environment.TickCount;
 
                 var project = completionContext.Document.Project;
+                var assembly = (await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
 
                 using var allTypeNamesDisposer = PooledHashSet<string>.GetInstance(out var allTypeNames);
                 allTypeNames.Add(receiverTypeSymbol.MetadataName);
@@ -49,39 +52,41 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 // We don't want to wait for creating indices from scratch unless user explicitly asked for unimported items (via expander).
-                var matchedMethods = await ExtensionMethodFilteringService.GetPossibleExtensionMethodMatchesAsync(project, allTypeNames.ToImmutableHashSet(), loadOnly: !isExpandedCompletion, cancellationToken).ConfigureAwait(false);
+                var (matchedMethods, totalComplexTypes) = await ExtensionMethodFilteringService.GetPossibleExtensionMethodMatchesAsync(
+                    project, allTypeNames.ToImmutableArray(), loadOnly: !isExpandedCompletion,
+                    cancellationToken).ConfigureAwait(false);
 
-                telemetryCounter.GetFilterTicks = Environment.TickCount - ticks;
-                ticks = Environment.TickCount;
-
+                // If the index isn't ready, we will simply iterate through all extension methods symbols.
                 if (matchedMethods == null)
                 {
                     telemetryCounter.NoFilter = true;
-                    return;
                 }
 
-                var assembly = (await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
-                using var itemsDisposer = ArrayBuilder<CompletionItem>.GetInstance(out var items);
+                telemetryCounter.TotalComplexTypes = totalComplexTypes;
+                telemetryCounter.GetFilterTicks = Environment.TickCount - ticks;
+
+                ticks = Environment.TickCount;
+                using var filterItemsDisposer = ArrayBuilder<CompletionItem>.GetInstance(out var filterItems);
 
                 VisitNamespaceSymbol(assembly.GlobalNamespace, string.Empty, receiverTypeSymbol,
-                    syntaxContext.SemanticModel, syntaxContext.Position, namespaceInScope, matchedMethods, items, telemetryCounter,
+                    syntaxContext.SemanticModel, syntaxContext.Position, namespaceInScope, methodNameFilter: matchedMethods, filterItems, telemetryCounter,
                     cancellationToken);
 
-                completionContext.AddItems(items);
-
                 telemetryCounter.GetSymbolTicks = Environment.TickCount - ticks;
-                telemetryCounter.TotalExtensionMethodsProvided = items.Count;
+                telemetryCounter.TotalExtensionMethodsProvided = filterItems.Count;
+
+                completionContext.AddItems(filterItems);
             }
         }
 
-        private static void VisitNamespaceSymbol(
+        private void VisitNamespaceSymbol(
             INamespaceSymbol namespaceSymbol,
             string containingNamespace,
             ITypeSymbol receiverTypeSymbol,
             SemanticModel senamticModel,
             int position,
             HashSet<string> namespaceFilter,
-            MultiDictionary<string, string> methodNameFilter,
+            MultiDictionary<string, string>? methodNameFilter,
             ArrayBuilder<CompletionItem> builder,
             TelemetryCounter telemetryCounter,
             CancellationToken cancellationToken)
@@ -115,26 +120,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                         if (TryGetMatchingExtensionMethod(methodSymbol, methodNames, senamticModel, position, receiverTypeSymbol, out var matchedMethodSymbol))
                         {
-                            builder.Add(ImportCompletionItem.Create(matchedMethodSymbol, containingNamespace, "<>"));
+                            builder.Add(ImportCompletionItem.Create(matchedMethodSymbol, containingNamespace, GenericSuffix));
                         }
                     }
                 }
             }
+        }
 
-            static bool TypeMightContainMatches(
-                INamedTypeSymbol containingTypeSymbol,
-                string containingNamespace,
-                int position,
-                SemanticModel senamticModel,
-                MultiDictionary<string, string> methodNameFilter,
-                out MultiDictionary<string, string>.ValueSet methodNames)
+        private static bool TypeMightContainMatches(
+            INamedTypeSymbol containingTypeSymbol,
+            string containingNamespace,
+            int position,
+            SemanticModel senamticModel,
+            MultiDictionary<string, string>? methodNameFilter,
+            out MultiDictionary<string, string>.ValueSet methodNames)
+        {
+            if (!containingTypeSymbol.MightContainExtensionMethods)
             {
-                if (!containingTypeSymbol.MightContainExtensionMethods)
-                {
-                    methodNames = default;
-                    return false;
-                }
+                methodNames = default;
+                return false;
+            }
 
+            if (methodNameFilter != null)
+            {
                 var instance = PooledStringBuilder.GetInstance();
                 instance.Builder.Append(containingNamespace);
                 instance.Builder.Append(".");
@@ -142,9 +150,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var fullyQualifiedTypeName = instance.ToStringAndFree();
 
                 methodNames = methodNameFilter[fullyQualifiedTypeName];
-
-                return methodNames.Count > 0 && senamticModel.IsAccessible(position, containingTypeSymbol);
+                if (methodNames.Count == 0)
+                {
+                    return false;
+                }
             }
+            else
+            {
+                methodNames = default;
+            }
+
+
+            return containingTypeSymbol.DeclaredAccessibility == Accessibility.Public ||
+                senamticModel.IsAccessible(position, containingTypeSymbol);
         }
 
         private static bool TryGetMatchingExtensionMethod(
@@ -156,7 +174,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             [NotNullWhen(true)] out IMethodSymbol? reducedMethodSymbol)
         {
             reducedMethodSymbol = null;
-            if (methodSymbol.IsExtensionMethod && methodNames.Contains(methodSymbol.Name) && senamticModel.IsAccessible(position, methodSymbol))
+            if (methodSymbol.IsExtensionMethod &&
+                (methodNames.Count == 0 || methodNames.Contains(methodSymbol.Name)) &&
+                (methodSymbol.DeclaredAccessibility == Accessibility.Public || senamticModel.IsAccessible(position, methodSymbol)))
             {
                 reducedMethodSymbol = methodSymbol.ReduceExtensionMethod(receiverTypeSymbol);
             }
@@ -172,12 +192,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             public int GetFilterTicks { get; set; }
             public int GetSymbolTicks { get; set; }
             public bool NoFilter { get; set; }
+            public int TotalComplexTypes { get; set; }
 
             public void IncreaseTotalTypesChecked() => TotalTypesChecked++;
             public void IncreaseTotalExtensionMethodsChecked() => TotalExtensionMethodsChecked++;
 
             public void Dispose()
             {
+                // TODO: remove this
+                Internal.Log.Logger.Log(Internal.Log.FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, Internal.Log.KeyValueLogMessage.Create(m =>
+                {
+                    m["ExtMethodData"] = this.ToString();
+                }));
+
                 CompletionProvidersLogger.LogExtensionMethodCompletionGetFilterTicksDataPoint(GetFilterTicks);
                 CompletionProvidersLogger.LogExtensionMethodCompletionGetSymbolTicksDataPoint(GetSymbolTicks);
 
@@ -189,6 +216,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     CompletionProvidersLogger.LogExtensionMethodCompletionNoFilter();
                 }
+            }
+
+            public override string ToString()
+            {
+                return
+$@"
+GetFilterTicks : {GetFilterTicks}
+GetSymbolTicks : {GetSymbolTicks}
+NoFilter : {NoFilter}
+
+TotalTypesChecked : {TotalTypesChecked}
+TotalExtensionMethodsChecked : {TotalExtensionMethodsChecked}
+TotalExtensionMethodsProvided : {TotalExtensionMethodsProvided}
+TotalComplexTypes : {TotalComplexTypes}
+";
             }
         }
     }

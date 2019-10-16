@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService : IRemoteExtensionMethodFilteringService
     {
-        public Task<IEnumerable<(string, IEnumerable<string>)>> GetPossibleExtensionMethodMatchesAsync(ProjectId projectId, string[] targetTypeNames, bool loadOnly, CancellationToken cancellationToken)
+        public Task<(IEnumerable<(string, IEnumerable<string>)>, int)> GetPossibleExtensionMethodMatchesAsync(ProjectId projectId, string[] targetTypeNames, bool loadOnly, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var project = solution.GetProject(projectId)!;
                     var result = await ExtensionMethodFilteringService.GetPossibleExtensionMethodMatchesAsync(
-                        project, targetTypeNames.ToImmutableHashSet(), loadOnly, cancellationToken).ConfigureAwait(false);
+                        project, targetTypeNames.ToImmutableArray(), loadOnly, cancellationToken).ConfigureAwait(false);
 
-                    return (IEnumerable<(string, IEnumerable<string>)>)result.SelectAsArray(kvp => (kvp.Key, (IEnumerable<string>)kvp.Value.ToImmutableArray()));
+                    return ((IEnumerable<(string, IEnumerable<string>)>)result.Item1.SelectAsArray(kvp => (kvp.Key, (IEnumerable<string>)kvp.Value.ToImmutableArray())), result.Item2);
                 }
             }, cancellationToken);
         }

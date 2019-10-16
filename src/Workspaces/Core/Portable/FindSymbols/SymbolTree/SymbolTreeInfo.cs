@@ -69,17 +69,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsExtensionMethod => _simpleTypeNameToExtensionMethodMap?.Count > 0 || _extensionMethodOfComplexType.Length > 0;
 
-        public ImmutableArray<ExtensionMethodInfo> GetMatchingExtensionMethodInfo(string parameterTypeName)
+        public ImmutableArray<ExtensionMethodInfo> GetMatchingExtensionMethodInfo(ImmutableArray<string> parameterTypeNames, out int complexCount)
         {
+            complexCount = _extensionMethodOfComplexType.Length;
+
             if (_simpleTypeNameToExtensionMethodMap == null)
             {
                 return _extensionMethodOfComplexType;
             }
 
-            var simpleMethods = _simpleTypeNameToExtensionMethodMap[parameterTypeName];
-            using var disposer = ArrayBuilder<ExtensionMethodInfo>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<ExtensionMethodInfo>.GetInstance(out var builder);
             builder.AddRange(_extensionMethodOfComplexType);
-            builder.AddRange(simpleMethods);
+
+            foreach (var parameterTypeName in parameterTypeNames)
+            {
+                var simpleMethods = _simpleTypeNameToExtensionMethodMap[parameterTypeName];
+                builder.AddRange(simpleMethods);
+            }
+
             return builder.ToImmutable();
         }
 

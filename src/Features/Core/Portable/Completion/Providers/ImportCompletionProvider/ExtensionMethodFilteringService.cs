@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return await project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<MultiDictionary<string, string>?> GetPossibleExtensionMethodMatchesAsync(Project project, ImmutableHashSet<string> targetTypeNames, bool loadOnly, CancellationToken cancellationToken)
+        public static async Task<(MultiDictionary<string, string>?, int)> GetPossibleExtensionMethodMatchesAsync(Project project, ImmutableArray<string> targetTypeNames, bool loadOnly, CancellationToken cancellationToken)
         {
             var client = await TryGetRemoteHostClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -43,23 +43,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private static async Task<MultiDictionary<string, string>?> GetPossibleExtensionMethodMatchesInRemoteProcessAsync(RemoteHostClient client, Project project, ImmutableHashSet<string> targetTypeNames, bool loadOnly, CancellationToken cancellationToken)
+        private static async Task<(MultiDictionary<string, string>?, int)> GetPossibleExtensionMethodMatchesInRemoteProcessAsync(RemoteHostClient client, Project project, ImmutableArray<string> targetTypeNames, bool loadOnly, CancellationToken cancellationToken)
         {
-            var remoteResults = await client.TryRunCodeAnalysisRemoteAsync<IEnumerable<(string, IEnumerable<string>)>>(
+            var remoteResults = await client.TryRunCodeAnalysisRemoteAsync<(IEnumerable<(string, IEnumerable<string>)>, int)>(
                 project.Solution,
                 nameof(IRemoteExtensionMethodFilteringService.GetPossibleExtensionMethodMatchesAsync),
                 new object[] { project.Id, targetTypeNames.ToArray(), loadOnly },
                 cancellationToken).ConfigureAwait(false);
 
-            if (!remoteResults.Any())
+            if (!remoteResults.Item1.Any())
             {
-                return null;
+                return (null, 0);
             }
 
             // Reconstruct the dictionary from remote results.
             var results = new MultiDictionary<string, string>();
 
-            foreach (var pair in remoteResults)
+            foreach (var pair in remoteResults.Item1)
             {
                 foreach (var value in pair.Item2)
                 {
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return results;
+            return (results, remoteResults.Item2);
         }
 
-        private static async Task<MultiDictionary<string, string>?> GetPossibleExtensionMethodMatchesInCurrentProcessAsync(Project currentProject, ImmutableHashSet<string> targetTypeNames, bool loadOnly, CancellationToken cancellationToken)
+        private static async Task<(MultiDictionary<string, string>?, int)> GetPossibleExtensionMethodMatchesInCurrentProcessAsync(Project currentProject, ImmutableArray<string> targetTypeNames, bool loadOnly, CancellationToken cancellationToken)
         {
             var solution = currentProject.Solution;
             var graph = currentProject.Solution.GetProjectDependencyGraph();
@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     // Transitively get all the PE references
                     peReferences.AddRange(project.MetadataReferences.OfType<PortableExecutableReference>());
+
                     foreach (var document in project.Documents)
                     {
                         // Don't look for extension methods in generated code.
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         // Don't provide anyting if we don't have all the required SyntaxTreeIndex created.
                         if (info == null)
                         {
-                            return null;
+                            return (null, 0);
                         }
 
                         if (info.ContainsExtensionMethod)
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // Don't provide anyting if we don't have all the required SymbolTreeInfo created.
                     if (info == null)
                     {
-                        return null;
+                        return (null, 0);
                     }
 
                     if (info.ContainsExtensionMethod)
@@ -136,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 
+                var totalComplexCount = 0;
                 var results = new MultiDictionary<string, string>();
 
                 // Find matching extension methods from source.
@@ -166,26 +168,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
                         }
                     }
+
+                    totalComplexCount += info.ComplexExtensionMethodInfo.Length;
                 }
 
                 // Find matching extension methods from metadata
                 foreach (var info in symbolTreeInfoBuilder)
                 {
-                    foreach (var targetTypeName in targetTypeNames)
+                    var methodInfos = info.GetMatchingExtensionMethodInfo(targetTypeNames, out var complexCount);
+                    foreach (var methodInfo in methodInfos)
                     {
-                        foreach (var methodInfo in info.GetMatchingExtensionMethodInfo(targetTypeName))
-                        {
-                            results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
-                        }
+                        results.Add(methodInfo.FullyQualifiedContainerName, methodInfo.Name);
                     }
+
+                    totalComplexCount += complexCount;
                 }
 
-                return results;
+                return (results, totalComplexCount);
             }
             finally
             {
                 peReferences.Free();
             }
+
         }
     }
 }

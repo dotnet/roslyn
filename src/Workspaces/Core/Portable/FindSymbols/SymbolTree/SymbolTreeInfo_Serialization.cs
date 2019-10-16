@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var nodeArray = nodes.ToImmutableAndFree();
                 var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
                 return new SymbolTreeInfo(
-                    checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap, 
+                    checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap,
                     extensionMethodOfComplexType, simpleTypeNameToExtensionMethodMap);
             }
             catch
