@@ -1774,7 +1774,6 @@ namespace CSharpSyntaxGenerator
 
             this.WriteLine();
 
-<<<<<<< HEAD
             var hasOptional = minimalFactoryfields.Any(f => !IsRequiredFactoryField(nd, f));
             var hasAttributeOrModifiersList = nd.Fields.Any(f => IsAttributeOrModifiersList(f));
 
@@ -1783,26 +1782,11 @@ namespace CSharpSyntaxGenerator
                 WriteLine("#pragma warning disable RS0027");
             }
 
-            WriteComment(string.Format("<summary>Creates a new {0} instance.</summary>", nd.Name));
-            Write("{0} static {1} {2}(", "public", nd.Name, StripPost(nd.Name, "Syntax"));
-
-            bool hasPreviousParameter = false;
-            if (nd.Kinds.Count > 1)
-            {
-                Write("SyntaxKind kind");
-                hasPreviousParameter = true;
-            }
-
-            foreach (var field in nd.Fields)
-            {
-                if (minimalFactoryfields.Contains(field))
-=======
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
             Write($"public static {nd.Name} {StripPost(nd.Name, "Syntax")}(");
             Write(CommaJoin(
                 nd.Kinds.Count > 1 ? "SyntaxKind kind" : "",
                 nd.Fields.Where(minimalFactoryfields.Contains).Select(f =>
->>>>>>> upstream/master
                 {
                     var type = GetRedPropertyType(f);
 
