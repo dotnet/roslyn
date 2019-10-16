@@ -993,22 +993,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructedFrame = translatedLambdaContainer;
             }
 
-            // for instance lambdas, receiver is the frame
-            // for static lambdas, get the singleton receiver
-            if (closureKind == ClosureKind.Singleton)
-            {
-                var field = containerAsFrame.SingletonCache.AsMember(constructedFrame);
-                receiver = new BoundFieldAccess(syntax, null, field, constantValueOpt: null);
-            }
-            else if (closureKind == ClosureKind.Static)
-            {
-                receiver = null;
-            }
-            else // ThisOnly and General
-            {
-                receiver = FrameOfType(syntax, constructedFrame);
-            }
-
             synthesizedMethod = synthesizedMethod.AsMember(constructedFrame);
             if (synthesizedMethod.IsGenericMethod)
             {
@@ -1019,7 +1003,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(realTypeArguments.Length == 0);
             }
 
-            receiver ??= new BoundTypeExpression(syntax, null, synthesizedMethod.ContainingType);
+            // for instance lambdas, receiver is the frame
+            // for static lambdas, get the singleton receiver
+            if (closureKind == ClosureKind.Singleton)
+            {
+                var field = containerAsFrame.SingletonCache.AsMember(constructedFrame);
+                receiver = new BoundFieldAccess(syntax, null, field, constantValueOpt: null);
+            }
+            else if (closureKind == ClosureKind.Static)
+            {
+                receiver = new BoundTypeExpression(syntax, null, synthesizedMethod.ContainingType);
+            }
+            else // ThisOnly and General
+            {
+                receiver = FrameOfType(syntax, constructedFrame);
+            }
         }
 
         public override BoundNode VisitCall(BoundCall node)
