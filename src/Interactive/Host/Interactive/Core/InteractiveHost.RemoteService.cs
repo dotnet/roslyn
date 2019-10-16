@@ -124,8 +124,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            // Dispose may called anytime.
-            internal void Dispose(bool joinThreads)
+            // Dispose may called anytime, on any thread.
+            internal void Dispose()
             {
                 // There can be a call from host initiated from OnProcessExit. 
                 // We should not proceed with disposing if _disposeSemaphore is locked.
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 InitiateTermination(Process, _processId);
 
-                if (joinThreads)
+                if (_host._joinOutputWritingThreadsOnDisposal)
                 {
                     try
                     {
