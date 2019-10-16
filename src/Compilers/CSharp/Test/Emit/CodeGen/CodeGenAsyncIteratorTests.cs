@@ -127,7 +127,7 @@ class C
 
         [Fact]
         [WorkItem(38961, "https://github.com/dotnet/roslyn/issues/38961")]
-        public void AsyncIteratorBug38961_LockInsideFinally()
+        public void LockInsideFinally()
         {
             var comp = CreateCompilationWithAsyncIterator(@"
 using System;
@@ -263,7 +263,7 @@ public class C
 
         [Fact]
         [WorkItem(38961, "https://github.com/dotnet/roslyn/issues/38961")]
-        public void AsyncIteratorBug38961_FinallyInsideFinally()
+        public void FinallyInsideFinally()
         {
             var comp = CreateCompilationWithAsyncIterator(@"
 using System;
@@ -274,7 +274,6 @@ using System.Threading.Tasks;
 
 public class C
 {
-    object _splitsLock = new object();
     public async IAsyncEnumerable<string> GetSplits()
     {
         try
