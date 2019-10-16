@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var contentTypeLanguageService = languageServices.GetService<IContentTypeLanguageService>();
 
                 var contentType = contentTypeLanguageService.GetDefaultContentType();
-                var textBuffer = EditorFactory.CreateBuffer(contentType.TypeName, exportProvider, code);
+                var textBuffer = EditorFactory.CreateBuffer(exportProvider, contentType, code);
 
                 // The project
 
@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // For linked files, use the same ITextBuffer for all linked documents
             if (!filePathToTextBufferMap.TryGetValue(filePath, out var textBuffer))
             {
-                textBuffer = EditorFactory.CreateBuffer(contentType.TypeName, exportProvider, code);
+                textBuffer = EditorFactory.CreateBuffer(exportProvider, contentType, code);
                 filePathToTextBufferMap.Add(filePath, textBuffer);
             }
 
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var documentServiceProvider = GetDocumentServiceProvider(documentElement);
             var contentTypeLanguageService = languageServiceProvider.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeLanguageService.GetDefaultContentType();
-            var textBuffer = EditorFactory.CreateBuffer(contentType.TypeName, exportProvider, code);
+            var textBuffer = EditorFactory.CreateBuffer(exportProvider, contentType, code);
 
             return new TestHostDocument(
                 exportProvider, languageServiceProvider, textBuffer, filePath: string.Empty, cursorPosition, spans, codeKind, folders, isLinkFile: false, documentServiceProvider, roles: roles);
