@@ -9164,7 +9164,8 @@ tryAgain:
                     expr = this.ParseQualifiedName(NameOptions.InExpression);
                     break;
                 case SyntaxKind.EqualsGreaterThanToken:
-                    return this.ParseLambdaExpression();
+                    expr = this.ParseLambdaExpression();
+                    break;
                 case SyntaxKind.StaticKeyword:
                     if (this.IsPossibleAnonymousMethodExpression())
                     {
