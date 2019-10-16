@@ -9131,10 +9131,8 @@ tryAgain:
 
         private ExpressionSyntax ParseTerm(Precedence precedence)
         {
-            var tk = this.CurrentToken.Kind;
-
             ExpressionSyntax expr;
-            switch (tk)
+            switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.TypeOfKeyword:
                     expr = this.ParseTypeOfExpression();
