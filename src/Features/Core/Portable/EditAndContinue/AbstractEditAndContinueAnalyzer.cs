@@ -2698,7 +2698,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private static bool HasBackingField(IEventSymbol @event)
         {
+#nullable disable // https://github.com/dotnet/roslyn/issues/39288
             return @event.AddMethod.IsImplicitlyDeclared
+#nullable enable
                 && !@event.IsAbstract;
         }
 
