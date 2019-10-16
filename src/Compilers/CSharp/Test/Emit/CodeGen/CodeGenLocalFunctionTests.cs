@@ -5221,6 +5221,49 @@ class C
             }
         }
 
+        [Fact]
+        public void LocalFunctionAttributeArgument()
+        {
+            var source = @"
+class A : System.Attribute { internal A(int i) { } }
+
+class C
+{
+    public void M()
+    {
+        [A(42)]
+        void local1()
+        {
+        }
+    }
+}
+";
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.RegularPreview,
+                symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var aAttribute = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+
+                var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
+                var attrs1 = localFn1.GetAttributes();
+                Assert.Equal(
+                    expected: new[]
+                    {
+                        module.CorLibrary().GetTypeByMetadataName("System.Runtime.CompilerServices.CompilerGeneratedAttribute"),
+                        aAttribute
+                    },
+                    actual: attrs1.Select(a => a.AttributeClass));
+
+                var arg = attrs1[1].ConstructorArguments.Single();
+                Assert.Equal(42, arg.Value);
+            }
+        }
+
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
