@@ -200,6 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name);
             }
 
+            if (attributes.IsDefault)
+            {
+                attributes = ImmutableArray<CSharpAttributeData>.Empty;
+            }
+
             return new SynthesizedParameterSymbolWithCustomModifiers(container, type, ordinal, refKind, name, refCustomModifiers, attributes);
         }
 
