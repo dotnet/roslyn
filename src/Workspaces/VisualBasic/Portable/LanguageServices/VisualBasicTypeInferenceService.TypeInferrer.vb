@@ -451,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return CreateResult(task)
                 End If
 
-                Return types.Select(Function(t) New TypeInferenceInfo(If(t.InferredType.SpecialType = SpecialType.System_Void, task, taskOfT.Construct(t.InferredType))))
+                Return types.Select(Function(t) New TypeInferenceInfo(If(t.InferredType.SpecialType = SpecialType.System_Void, task, taskOfT.ConstructWithNullability(t.InferredType))))
             End Function
 
             Private Function InferTypeInConditionalAccessExpression(conditional As ConditionalAccessExpressionSyntax) As IEnumerable(Of TypeInferenceInfo)
