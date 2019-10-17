@@ -1364,28 +1364,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return result ?? MakeInvalidOperation(originalOperation.Syntax, originalOperation.Type, ImmutableArray<IOperation>.Empty);
         }
 
-        private void VisitStatements(ArrayBuilder<IOperation> statements)
-        {
-            foreach (var statement in statements)
-            {
-                VisitStatement(statement);
-            }
-        }
-
         private void VisitStatements(ImmutableArray<IOperation> statements)
         {
-            foreach (var statement in statements)
+            for (int i = 0; i < statements.Length; i++)
             {
-                VisitStatement(statement);
+                if (statements[i] is VariableDeclarationGroupOperation declarationGroup
+                    && declarationGroup.DeclarationKind != VariableDeclarationKind.Default)
+                {
+                    // visit the using decl with the following statements
+                    var followingStatements = ImmutableArray.Create(statements, i + 1, statements.Length - i - 1);
+                    VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
+                    break;
+                }
+                else
+                {
+                    VisitStatement(statements[i]);
+                }
             }
-        }
 
-        private void VisitStatements(IEnumerable<IOperation> statements)
-        {
-            foreach (var statement in statements)
-            {
-                VisitStatement(statement);
-            }
         }
 
         internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
@@ -3640,17 +3636,21 @@ oneMoreTime:
         public override IOperation VisitUsing(IUsingOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
+            HandleUsingOperationParts(operation.Resources, operation.Body, operation.Locals, operation.IsAsynchronous);
+            return FinishVisitingStatement(operation);
+        }
 
-            ITypeSymbol iDisposable = operation.IsAsynchronous
+        private void HandleUsingOperationParts(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
+        {
+            var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
+            EnterRegion(usingRegion);
+
+            ITypeSymbol iDisposable = isAsynchronous
                 ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable)
                 : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
-            var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals);
-            EnterRegion(usingRegion);
-
-            if (operation.Resources.Kind == OperationKind.VariableDeclarationGroup)
+            if (resources is IVariableDeclarationGroupOperation declarationGroup)
             {
-                var declarationGroup = (IVariableDeclarationGroupOperation)operation.Resources;
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
 
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
@@ -3667,11 +3667,11 @@ oneMoreTime:
             }
             else
             {
-                Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclaration);
-                Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclarator);
+                Debug.Assert(resources.Kind != OperationKind.VariableDeclaration);
+                Debug.Assert(resources.Kind != OperationKind.VariableDeclarator);
 
                 EvalStackFrame frame = PushStackFrame();
-                IOperation resource = Visit(operation.Resources);
+                IOperation resource = Visit(resources);
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
@@ -3689,13 +3689,12 @@ oneMoreTime:
 
             Debug.Assert(_currentRegion == usingRegion);
             LeaveRegion();
-            return FinishVisitingStatement(operation);
 
             void processQueue(ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)> resourceQueueOpt)
             {
                 if (resourceQueueOpt == null || resourceQueueOpt.Count == 0)
                 {
-                    VisitStatement(operation.Body);
+                    VisitStatement(body);
                 }
                 else
                 {
@@ -3764,7 +3763,7 @@ oneMoreTime:
 
                 LeaveRegion();
 
-                AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable, operation.IsAsynchronous);
+                AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable, isAsynchronous);
 
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
@@ -6146,7 +6145,7 @@ oneMoreTime:
         private IOperation VisitNoneOperationStatement(IOperation operation)
         {
             Debug.Assert(_currentStatement == operation);
-            VisitStatements(operation.Children);
+            VisitStatements(operation.Children.ToImmutableArray());
             return new NoneOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.ConstantValue, IsImplicit(operation));
         }
 
@@ -6617,20 +6616,19 @@ oneMoreTime:
                 result = visitInvalidOperationExpression(operation);
             }
 
-            children.Free();
             return result;
 
             IOperation visitInvalidOperationStatement(IInvalidOperation invalidOperation)
             {
                 Debug.Assert(_currentStatement == invalidOperation);
-                VisitStatements(children);
+                VisitStatements(children.ToImmutableAndFree());
                 return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(invalidOperation));
             }
 
             IOperation visitInvalidOperationExpression(IInvalidOperation invalidOperation)
             {
                 return PopStackFrame(PushStackFrame(),
-                                     new InvalidOperation(VisitArray(invalidOperation.Children.ToImmutableArray()), semanticModel: null,
+                                     new InvalidOperation(VisitArray(children.ToImmutableAndFree()), semanticModel: null,
                                                                  invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation)));
             }
         }
@@ -6833,6 +6831,35 @@ oneMoreTime:
 
             // result = captureOutput
             return GetCaptureReference(captureOutput, operation);
+        }
+
+        private void VisitUsingVariableDeclarationOperation(VariableDeclarationGroupOperation operation, ImmutableArray<IOperation> statements)
+        {
+            IOperation saveCurrentStatement = _currentStatement;
+            _currentStatement = operation;
+            StartVisitingStatement(operation);
+
+            var declarationKind = operation.DeclarationKind;
+            Debug.Assert(declarationKind == VariableDeclarationKind.Using || declarationKind == VariableDeclarationKind.AsynchronousUsing);
+
+            // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
+            BlockOperation logicalBlock = new BlockOperation(
+                operations: statements,
+                locals: ImmutableArray<ILocalSymbol>.Empty,
+                operation.OwningSemanticModel,
+                operation.Syntax,
+                operation.Type,
+                operation.ConstantValue,
+                isImplicit: true);
+
+            HandleUsingOperationParts(
+                resources: operation,
+                body: logicalBlock,
+                locals: ImmutableArray<ILocalSymbol>.Empty,
+                isAsynchronous: declarationKind == VariableDeclarationKind.AsynchronousUsing);
+
+            FinishVisitingStatement(operation);
+            _currentStatement = saveCurrentStatement;
         }
 
         public IOperation Visit(IOperation operation)

@@ -1116,7 +1116,7 @@ _operationFactory.CreateFromArray(Of BoundExpression, IOperation)(_boundForToLoo
         Private ReadOnly _localDeclarations As IBoundLocalDeclarations
 
         Friend Sub New(operationFactory As VisualBasicOperationFactory, localDeclarations As IBoundLocalDeclarations, semanticModel As SemanticModel, syntax As SyntaxNode, type As ITypeSymbol, constantValue As [Optional](Of Object), isImplicit As Boolean)
-            MyBase.New(semanticModel, syntax, type, constantValue, isImplicit)
+            MyBase.New(VariableDeclarationKind.Default, semanticModel, syntax, type, constantValue, isImplicit)
             _operationFactory = operationFactory
             _localDeclarations = localDeclarations
         End Sub
