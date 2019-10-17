@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis
                 ReportDiagnostic.Warn => DiagnosticSeverity.Warning,
                 ReportDiagnostic.Info => DiagnosticSeverity.Info,
                 ReportDiagnostic.Hidden => DiagnosticSeverity.Hidden,
-                ReportDiagnostic.Suppress => null,
-                ReportDiagnostic.Default => null,
+                ReportDiagnostic.Suppress => (DiagnosticSeverity?)null,
+                ReportDiagnostic.Default => (DiagnosticSeverity?)null,
                 _ => throw new NotImplementedException(),
             };
         }
