@@ -1562,9 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword))
             {
                 var parent = token.Parent;
-                if (parent.IsKind(SyntaxKind.RefType) ||
-                    parent.IsKind(SyntaxKind.RefExpression) ||
-                    parent.IsKind(SyntaxKind.LocalDeclarationStatement))
+                if (parent.IsKind(SyntaxKind.RefType, SyntaxKind.RefExpression, SyntaxKind.LocalDeclarationStatement))
                 {
                     if (parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
                         parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.ForEachVariableStatement))
