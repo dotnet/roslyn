@@ -9,20 +9,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class AnonymousFunctionTestBase : CSharpTestBase
-    {
-        internal static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular;
-
-        internal static void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
-        {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(expected);
-        }
-    }
-
     [WorkItem(275, "https://github.com/dotnet/csharplang/issues/275")]
     [CompilerTrait(CompilerFeature.AnonymousFunctions)]
-    public class AnonymousFunctionTests : AnonymousFunctionTestBase
+    public class AnonymousFunctionTests : CSharpTestBase
     {
         [Fact]
         public void StaticLambdaCanCaptureStaticField()
