@@ -13,8 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.AnonymousFunctions)]
     public class AnonymousFunctionTests : CSharpTestBase
     {
+        public static CSharpCompilation VerifyInPreview(string source, params DiagnosticDescription[] expected)
+            => CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expected);
+
         [Fact]
-        public void StaticLambdaCanReferenceStaticField()
+        public void DisallowInNonPreview()
         {
             var source = @"
 using System;
@@ -35,6 +38,24 @@ public class C
         }
 
         [Fact]
+        public void StaticLambdaCanReferenceStaticField()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public static int a;
+
+    public void F()
+    {
+        Func<int> f = static () => a;
+    }
+}";
+            VerifyInPreview(source);
+        }
+
+        [Fact]
         public void StaticLambdaCanReferenceStaticProperty()
         {
             var source = @"
@@ -49,10 +70,7 @@ public class C
         Func<int> f = static () => A;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () => A;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 23));
+            VerifyInPreview(source);
         }
 
         [Fact]
@@ -70,10 +88,7 @@ public class C
         Func<int> f = static () => a;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 23));
+            VerifyInPreview(source);
         }
 
         [Fact]
@@ -90,10 +105,7 @@ public class C
         Func<int> f = static () => a;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (9,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 23));
+            VerifyInPreview(source);
         }
 
         [Fact]
@@ -113,10 +125,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23));
+            VerifyInPreview(source);
         }
 
         [Fact]
@@ -134,10 +143,7 @@ public class C
         Func<int> f = static () => a;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 23),
+            VerifyInPreview(source,
                 // (10,36): error CS8428: A static anonymous function cannot contain a reference to 'this' or 'base'.
                 //         Func<int> f = static () => a;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "a").WithLocation(10, 36));
@@ -158,10 +164,7 @@ public class C
         Func<int> f = static () => A;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () => A;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(10, 23),
+            VerifyInPreview(source,
                 // (10,36): error CS8428: A static anonymous function cannot contain a reference to 'this' or 'base'.
                 //         Func<int> f = static () => A;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "A").WithLocation(10, 36));
@@ -180,10 +183,7 @@ public class C
         Func<int> f = static () => a;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23),
+            VerifyInPreview(source,
                 // (8,36): error CS8427: A static anonymous function cannot contain a reference to 'a'.
                 //         Func<int> f = static () => a;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "a").WithArguments("a").WithLocation(8, 36));
@@ -203,10 +203,7 @@ public class C
         Func<int> f = static () => a;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (9,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () => a;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(9, 23),
+            VerifyInPreview(source,
                 // (9,36): error CS8427: A static anonymous function cannot contain a reference to 'a'.
                 //         Func<int> f = static () => a;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "a").WithArguments("a").WithLocation(9, 36),
@@ -232,10 +229,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23));
+            VerifyInPreview(source);
         }
 
         [Fact]
@@ -255,10 +249,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23),
+            VerifyInPreview(source,
                 // (10,13): error CS8428: A static anonymous function cannot contain a reference to 'this' or 'base'.
                 //             this.F();
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "this").WithLocation(10, 13));
@@ -283,10 +274,7 @@ public class C
         void F() {}
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23),
+            VerifyInPreview(source,
                 // (10,13): error CS8427: A static anonymous function cannot contain a reference to 'F'.
                 //             F();
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "F()").WithArguments("F").WithLocation(10, 13));
@@ -311,10 +299,7 @@ public class C
         static void F() {}
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23));
+            VerifyInPreview(source);
         }
 
         [Fact]
@@ -335,10 +320,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23));
+            VerifyInPreview(source);
         }
 
         [Fact]
@@ -359,13 +341,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23),
-                // (11,27): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             Func<int> g = static () => i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(11, 27),
+            VerifyInPreview(source,
                 // (11,40): error CS8427: A static anonymous function cannot contain a reference to 'i'.
                 //             Func<int> g = static () => i;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "i").WithArguments("i").WithLocation(11, 40));
@@ -389,10 +365,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,27): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             Func<int> g = static () => i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(11, 27),
+            VerifyInPreview(source,
                 // (11,40): error CS8427: A static anonymous function cannot contain a reference to 'i'.
                 //             Func<int> g = static () => i;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "i").WithArguments("i").WithLocation(11, 40));
@@ -416,10 +389,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23));
+            VerifyInPreview(source);
         }
 
         [Fact]
@@ -440,10 +410,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23),
+            VerifyInPreview(source,
                 // (11,31): error CS8421: A static local function cannot contain a reference to 'i'.
                 //             static int g() => i;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "i").WithArguments("i").WithLocation(11, 31));
@@ -467,7 +434,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            VerifyInPreview(source,
                 // (11,31): error CS8421: A static local function cannot contain a reference to 'i'.
                 //             static int g() => i;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "i").WithArguments("i").WithLocation(11, 31));
@@ -491,7 +458,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            VerifyInPreview(source,
                 // (8,20): warning CS8321: The local function 'f' is declared but never used
                 //         static int f()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(8, 20));
@@ -515,7 +482,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            VerifyInPreview(source,
                 // (8,20): warning CS8321: The local function 'f' is declared but never used
                 //         static int f()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(8, 20),
@@ -542,7 +509,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            VerifyInPreview(source,
                 // (8,13): warning CS8321: The local function 'f' is declared but never used
                 //         int f()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(8, 13),
@@ -569,7 +536,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            VerifyInPreview(source,
                 // (8,20): warning CS8321: The local function 'f' is declared but never used
                 //         static int f()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(8, 20));
@@ -593,13 +560,10 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            VerifyInPreview(source,
                 // (8,20): warning CS8321: The local function 'f' is declared but never used
                 //         static int f()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(8, 20),
-                // (11,27): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             Func<int> g = static () => i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(11, 27),
                 // (11,40): error CS8427: A static anonymous function cannot contain a reference to 'i'.
                 //             Func<int> g = static () => i;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "i").WithArguments("i").WithLocation(11, 40));
@@ -623,13 +587,10 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            VerifyInPreview(source,
                 // (8,13): warning CS8321: The local function 'f' is declared but never used
                 //         int f()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(8, 13),
-                // (11,27): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             Func<int> g = static () => i;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(11, 27),
                 // (11,40): error CS8427: A static anonymous function cannot contain a reference to 'i'.
                 //             Func<int> g = static () => i;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureVariable, "i").WithArguments("i").WithLocation(11, 40));
@@ -656,10 +617,7 @@ public class C
     {
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23));
+            VerifyInPreview(source);
         }
 
         [Fact]
@@ -685,10 +643,7 @@ public class C
 
     int M(string a) => 0;
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(11, 23),
+            VerifyInPreview(source,
                 // (14,28): error CS8428: A static anonymous function cannot contain a reference to 'this' or 'base'.
                 //                     select M(a);
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "M").WithLocation(14, 28));
@@ -717,10 +672,7 @@ public class C
 
     static int M(string a) => 0;
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(11, 23));
+            VerifyInPreview(source);
         }
 
         [Fact]
@@ -745,10 +697,7 @@ public class C
         };
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,23): error CS8652: The feature 'static anonymous function' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Func<int> f = static () =>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "static").WithArguments("static anonymous function").WithLocation(8, 23),
+            VerifyInPreview(source,
                 // (12,17): error CS8428: A static anonymous function cannot contain a reference to 'this' or 'base'.
                 //                 this.F();
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "this").WithLocation(12, 17));
