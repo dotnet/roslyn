@@ -228,13 +228,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ModifierUtils.CheckModifiers(
-                ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics),
-                allowedModifiers: DeclarationModifiers.Static | DeclarationModifiers.Async,
-                GetLocationForDiagnostics(syntax),
-                diagnostics,
-                syntax.Modifiers,
-                out _);
+            // Parser will only have accepted static/async as allowed modifiers on this construct.
+            // However, it may have accepted duplicates of those modifiers.  Ensure that any dupes
+            // are reported now.
+            ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics);
 
             var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync: isAsync, isStatic: isStatic);
             if (!names.IsDefault)
