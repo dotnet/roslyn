@@ -256,6 +256,34 @@ public class C
         }
 
         [Fact]
+        public void StaticLambdaCannotReferenceBase()
+        {
+            var source = @"
+using System;
+
+public class B
+{
+    public virtual void F() { }
+}
+
+public class C : B
+{
+    public override void F()
+    {
+        Func<int> f = static () =>
+        {
+            base.F();
+            return 0;
+        };
+    }
+}";
+            VerifyInPreview(source,
+                // (15,13): error CS8428: A static anonymous function cannot contain a reference to 'this' or 'base'.
+                //             base.F();
+                Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "base").WithLocation(15, 13));
+        }
+
+        [Fact]
         public void StaticLambdaCannotReferenceInstanceLocalFunction()
         {
             var source = @"
