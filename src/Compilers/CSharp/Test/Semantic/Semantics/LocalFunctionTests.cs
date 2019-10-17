@@ -5057,5 +5057,45 @@ class C
                 //             _ = new Func<int>(l.GetHashCode);
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "l").WithArguments("l").WithLocation(15, 31));
         }
+
+        [Fact]
+        [WorkItem(38143, "https://github.com/dotnet/roslyn/issues/38143")]
+        public void EmittedAsStatic_01()
+        {
+            var source =
+@"class Program
+{
+    static void M()
+    {
+        static void local() { }
+        System.Action action = local;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
+            {
+                var method = (MethodSymbol)m.GlobalNamespace.GetMember("Program.<M>g__local|0_0");
+                Assert.True(method.IsStatic);
+            });
+        }
+
+        [Fact]
+        [WorkItem(38143, "https://github.com/dotnet/roslyn/issues/38143")]
+        public void EmittedAsStatic_02()
+        {
+            var source =
+@"class Program
+{
+    static void M<T>()
+    {
+        static void local(T t) { }
+        System.Action<T> action = local;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
+            {
+                var method = (MethodSymbol)m.GlobalNamespace.GetMember("Program.<M>g__local|0_0");
+                Assert.True(method.IsStatic);
+            });
+        }
     }
 }
