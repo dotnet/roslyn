@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var outOfSyncDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
 
             var changes = project.GetChanges(baseProject);
-            foreach (var documentId in changes.GetChangedDocuments())
+            foreach (var documentId in changes.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
             {
                 var document = project.GetDocument(documentId)!;
                 if (EditAndContinueWorkspaceService.IsDesignTimeOnlyDocument(document))
@@ -324,10 +324,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 // Check if the currently observed document content has changed compared to the base document content.
                 // This is an important optimization that aims to avoid IO while stepping in sources that have not changed.
+                //
                 // We may be comparing out-of-date committed document content but we only make a decision based on that content
-                // if it matches the current content. That means the change on disk has not been observed in the workspace yet
-                // and the buffer is showing the out-of-date content, if the document is opened. The unobserved change is not
-                // gonna be applied at this moment. It might be applied later after it's observed.
+                // if it matches the current content. If the current content is equal to baseline content that does not match
+                // the debuggee then the workspace has not observed the change made to the file on disk since baseline was captured
+                // (there had to be one as the content doesn't match). When we are about to apply changes it is ok to ignore this
+                // document because the user does not see the change yet in the buffer (if the doc is open) and won't be confused
+                // if it is not applied yet. The change will be applied later after it's observed by the workspace.
                 var baseSource = await baseProject.GetDocument(documentId)!.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var source = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (baseSource.ContentEquals(source))
