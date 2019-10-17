@@ -17,57 +17,51 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class MonoGlobalAssemblyCache : GlobalAssemblyCache
     {
-        public static readonly ImmutableArray<string> RootLocations;
+        private static readonly string s_corlibDirectory;
+        private static readonly string s_gacDirectory;
 
         static MonoGlobalAssemblyCache()
         {
-            RootLocations = ImmutableArray.Create(GetMonoCachePath());
-        }
+            var corlibAssemblyFile = typeof(object).Assembly.Location;
+            s_corlibDirectory = Path.GetDirectoryName(corlibAssemblyFile);
 
-        private static string GetMonoCachePath()
-        {
-            string file = typeof(Uri).GetTypeInfo().Assembly.Location;
-            return Directory.GetParent(Path.GetDirectoryName(file)).Parent.FullName;
-        }
-
-        private static IEnumerable<string> GetCorlibPaths(Version version)
-        {
-            string corlibPath = typeof(object).GetTypeInfo().Assembly.Location;
-            var corlibParentDir = Directory.GetParent(corlibPath).Parent;
-
-            var corlibPaths = new List<string>();
-
-            foreach (var corlibDir in corlibParentDir.GetDirectories())
-            {
-                var path = Path.Combine(corlibDir.FullName, "mscorlib.dll");
-                if (!File.Exists(path))
-                {
-                    continue;
-                }
-
-                var name = CreateAssemblyNameFromFile(path);
-                if (version != null && name.Version != version)
-                {
-                    continue;
-                }
-
-                corlibPaths.Add(path);
-            }
-
-            return corlibPaths;
+            var systemAssemblyFile = typeof(Uri).Assembly.Location;
+            s_gacDirectory = Directory.GetParent(Path.GetDirectoryName(systemAssemblyFile)).Parent.FullName;
         }
 
         private static AssemblyName CreateAssemblyNameFromFile(string path)
             => AssemblyName.GetAssemblyName(path);
 
-        private static IEnumerable<string> GetGacAssemblyPaths(string gacPath, string name, Version version, string publicKeyToken)
+        private static IEnumerable<string> GetGacAssemblyPaths(string gacPath, string name, Version version, byte[] publicKeyTokenBytes)
         {
-            if (version != null && publicKeyToken != null)
+            var fileName = name + ".dll";
+
+            // First check to see if the assembly lives alongside mscorlib.dll.
+            var corlibFriendPath = Path.Combine(s_corlibDirectory, fileName);
+            if (!File.Exists(corlibFriendPath))
             {
-                yield return Path.Combine(gacPath, name, version + "__" + publicKeyToken, name + ".dll");
+                // If not, check the Facades directory (e.g. this is where netstandard.dll will live)
+                corlibFriendPath = Path.Combine(s_corlibDirectory, "Facades", fileName);
+            }
+
+            // Yield and bail early if we find anything - it'll either be a Facade assembly or a
+            // symlink into the GAC so we can avoid the more exhaustive work below.
+            if (File.Exists(corlibFriendPath))
+            {
+                yield return corlibFriendPath;
                 yield break;
             }
 
+            var publicKeyToken = ToHexString(publicKeyTokenBytes);
+
+            // Another bail fast attempt to peek directly into the GAC if we have version and public key
+            if (version != null && publicKeyToken != null)
+            {
+                yield return Path.Combine(gacPath, name, version + "__" + publicKeyToken, fileName);
+                yield break;
+            }
+
+            // Otherwise we need to iterate the GAC in the file system to find a match
             var gacAssemblyRootDir = new DirectoryInfo(Path.Combine(gacPath, name));
             if (!gacAssemblyRootDir.Exists)
             {
@@ -86,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var assemblyPath = Path.Combine(assemblyDir.ToString(), name + ".dll");
+                var assemblyPath = Path.Combine(assemblyDir.ToString(), fileName);
                 if (File.Exists(assemblyPath))
                 {
                     yield return assemblyPath;
@@ -94,61 +88,44 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static IEnumerable<Tuple<AssemblyIdentity, string>> GetAssemblyIdentitiesAndPaths(AssemblyName name, ImmutableArray<ProcessorArchitecture> architectureFilter)
+        private static IEnumerable<(AssemblyIdentity Identity, string Path)> GetAssemblyIdentitiesAndPaths(AssemblyName name, ImmutableArray<ProcessorArchitecture> architectureFilter)
         {
             if (name == null)
             {
                 return GetAssemblyIdentitiesAndPaths(null, null, null, architectureFilter);
             }
 
-            string publicKeyToken = null;
-            if (name.GetPublicKeyToken() != null)
-            {
-                var sb = new StringBuilder();
-                foreach (var b in name.GetPublicKeyToken())
-                {
-                    sb.AppendFormat("{0:x2}", b);
-                }
-
-                publicKeyToken = sb.ToString();
-            }
-
-            return GetAssemblyIdentitiesAndPaths(name.Name, name.Version, publicKeyToken, architectureFilter);
+            return GetAssemblyIdentitiesAndPaths(name.Name, name.Version, name.GetPublicKeyToken(), architectureFilter);
         }
 
-        private static IEnumerable<Tuple<AssemblyIdentity, string>> GetAssemblyIdentitiesAndPaths(string name, Version version, string publicKeyToken, ImmutableArray<ProcessorArchitecture> architectureFilter)
+        private static IEnumerable<(AssemblyIdentity Identity, string Path)> GetAssemblyIdentitiesAndPaths(string name, Version version, byte[] publicKeyToken, ImmutableArray<ProcessorArchitecture> architectureFilter)
         {
-            foreach (string gacPath in RootLocations)
+            var assemblyPaths = GetGacAssemblyPaths(s_gacDirectory, name, version, publicKeyToken);
+
+            foreach (var assemblyPath in assemblyPaths)
             {
-                var assemblyPaths = (name == "mscorlib") ?
-                    GetCorlibPaths(version) :
-                    GetGacAssemblyPaths(gacPath, name, version, publicKeyToken);
-
-                foreach (var assemblyPath in assemblyPaths)
+                if (!File.Exists(assemblyPath))
                 {
-                    if (!File.Exists(assemblyPath))
-                    {
-                        continue;
-                    }
-
-                    var gacAssemblyName = CreateAssemblyNameFromFile(assemblyPath);
-
-                    if (gacAssemblyName.ProcessorArchitecture != ProcessorArchitecture.None &&
-                        architectureFilter != default(ImmutableArray<ProcessorArchitecture>) &&
-                        architectureFilter.Length > 0 &&
-                        !architectureFilter.Contains(gacAssemblyName.ProcessorArchitecture))
-                    {
-                        continue;
-                    }
-
-                    var assemblyIdentity = new AssemblyIdentity(
-                        gacAssemblyName.Name,
-                        gacAssemblyName.Version,
-                        gacAssemblyName.CultureName,
-                        ImmutableArray.Create(gacAssemblyName.GetPublicKeyToken()));
-
-                    yield return new Tuple<AssemblyIdentity, string>(assemblyIdentity, assemblyPath);
+                    continue;
                 }
+
+                var gacAssemblyName = CreateAssemblyNameFromFile(assemblyPath);
+
+                if (gacAssemblyName.ProcessorArchitecture != ProcessorArchitecture.None &&
+                    architectureFilter != default(ImmutableArray<ProcessorArchitecture>) &&
+                    architectureFilter.Length > 0 &&
+                    !architectureFilter.Contains(gacAssemblyName.ProcessorArchitecture))
+                {
+                    continue;
+                }
+
+                var assemblyIdentity = new AssemblyIdentity(
+                    gacAssemblyName.Name,
+                    gacAssemblyName.Version,
+                    gacAssemblyName.CultureName,
+                    ImmutableArray.Create(gacAssemblyName.GetPublicKeyToken()));
+
+                yield return (assemblyIdentity, assemblyPath);
             }
         }
 
@@ -175,7 +152,7 @@ namespace Microsoft.CodeAnalysis
         public override IEnumerable<string> GetAssemblySimpleNames(ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
         {
             return GetAssemblyIdentitiesAndPaths(name: null, version: null, publicKeyToken: null, architectureFilter: architectureFilter).
-                Select(identityAndPath => identityAndPath.Item1.Name).Distinct();
+                Select(identityAndPath => identityAndPath.Identity.Name).Distinct();
         }
 
         public override AssemblyIdentity ResolvePartialName(
@@ -199,7 +176,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var identityAndPath in GetAssemblyIdentitiesAndPaths(assemblyName, architectureFilter))
             {
-                var assemblyPath = identityAndPath.Item2;
+                var assemblyPath = identityAndPath.Path;
 
                 if (!File.Exists(assemblyPath))
                 {
@@ -214,7 +191,7 @@ namespace Microsoft.CodeAnalysis
                 if (isBetterMatch)
                 {
                     location = assemblyPath;
-                    assemblyIdentity = identityAndPath.Item1;
+                    assemblyIdentity = identityAndPath.Identity;
                 }
 
                 if (isBestMatch)
@@ -224,6 +201,22 @@ namespace Microsoft.CodeAnalysis
             }
 
             return assemblyIdentity;
+        }
+
+        private static string ToHexString(byte[] bytes)
+        {
+            if (bytes == null)
+            {
+                return null;
+            }
+
+            var sb = PooledObjects.PooledStringBuilder.GetInstance();
+            foreach (var b in bytes)
+            {
+                sb.Builder.Append(b.ToString("x2"));
+            }
+
+            return sb.ToStringAndFree();
         }
     }
 }
