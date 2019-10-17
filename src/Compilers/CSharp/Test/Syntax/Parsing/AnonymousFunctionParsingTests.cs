@@ -227,8 +227,6 @@ public class C
 
             UsingTree(test);
 
-
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.UsingDirective);
@@ -430,8 +428,6 @@ public class C
 }";
 
             UsingTree(test);
-
-
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1043,7 +1039,6 @@ public class C
 }";
 
             UsingTree(test);
-
 
             N(SyntaxKind.CompilationUnit);
             {
