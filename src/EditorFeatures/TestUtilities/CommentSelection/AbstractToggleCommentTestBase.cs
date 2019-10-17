@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
         {
             using (var workspace = GetWorkspace(subjectBufferMarkup, GetExportProvider()))
             {
-                var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents, LanguageNames.CSharp);
+                var document = workspace.CreateProjectionBufferDocument(surfaceBufferMarkup, workspace.Documents);
                 SetupSelection(document.GetTextView(), document.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
                 var commandHandler = GetToggleCommentCommandHandler(workspace);

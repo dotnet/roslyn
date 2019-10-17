@@ -636,13 +636,14 @@ End Class
                 ' Type a bit in the file
                 Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
                 Dim textBuffer = workspace.Documents.Single().TextBuffer
+                Dim initialTextSnapshot = textBuffer.CurrentSnapshot
 
                 textBuffer.Insert(caretPosition, "Bar")
 
                 session.Cancel()
 
                 ' Assert the file is what it started as
-                Assert.Equal(workspace.Documents.Single().InitialTextSnapshot.GetText(), textBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(initialTextSnapshot.GetText(), textBuffer.CurrentSnapshot.GetText())
 
                 ' Assert the file name didn't change
                 VerifyFileName(workspace, "Test1.cs")

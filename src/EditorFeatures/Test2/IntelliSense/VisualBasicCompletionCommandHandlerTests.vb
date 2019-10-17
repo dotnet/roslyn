@@ -1204,13 +1204,13 @@ End Module|}          </Document>)
 {|S1:|}
 {|S2: some text that's mapped to the surface buffer |}
 
-                           </Document>.NormalizedValue, {subjectDocument}, LanguageNames.VisualBasic, options:=ProjectionBufferOptions.WritableLiteralSpans)
+                           </Document>.NormalizedValue, {subjectDocument}, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 Dim topProjectionBuffer = state.Workspace.CreateProjectionBufferDocument(
                 <Document>
 {|S1:|}
 {|S2:|}
-                              </Document>.NormalizedValue, {firstProjection}, LanguageNames.VisualBasic, options:=ProjectionBufferOptions.WritableLiteralSpans)
+                              </Document>.NormalizedValue, {firstProjection}, options:=ProjectionBufferOptions.WritableLiteralSpans)
 
                 ' Test a view that has a subject buffer with multiple projection buffers in between
                 Dim view = topProjectionBuffer.GetTextView()

@@ -351,17 +351,17 @@ End Class</code>.Value
                 Dim document = workspace.Documents.Single()
 
                 Dim buffer = document.TextBuffer
-                Dim snapshot = buffer.CurrentSnapshot
+                Dim initialTextSnapshot = buffer.CurrentSnapshot
 
-                Dim caretPosition = snapshot.CreateTrackingPoint(document.CursorPosition.Value,
-                                                                 PointTrackingMode.Positive,
-                                                                 TrackingFidelityMode.Backward)
+                Dim caretPosition = initialTextSnapshot.CreateTrackingPoint(document.CursorPosition.Value,
+                                                                            PointTrackingMode.Positive,
+                                                                            TrackingFidelityMode.Backward)
                 Dim corrector = New AutomaticEndConstructCorrector(buffer, New TestWaitIndicator())
 
                 corrector.Connect()
 
                 If removeOriginalContent Then
-                    Dim spanToRemove = document.SelectedSpans.Single(Function(s) s.Contains(caretPosition.GetPosition(snapshot)))
+                    Dim spanToRemove = document.SelectedSpans.Single(Function(s) s.Contains(caretPosition.GetPosition(initialTextSnapshot)))
                     buffer.Replace(spanToRemove.ToSpan(), "")
                 End If
 
@@ -371,14 +371,14 @@ End Class</code>.Value
 
                     Dim insertedString = type.Substring(0, i + 1)
                     For Each span In document.SelectedSpans.Skip(1)
-                        Dim trackingSpan = New LetterOnlyTrackingSpan(span.ToSnapshotSpan(document.InitialTextSnapshot))
+                        Dim trackingSpan = New LetterOnlyTrackingSpan(span.ToSnapshotSpan(initialTextSnapshot))
                         Assert.Equal(expectedStringGetter(insertedString), trackingSpan.GetText(document.TextBuffer.CurrentSnapshot))
                     Next
                 Next
 
                 If split IsNot Nothing Then
                     Dim beginSpan = document.SelectedSpans.First()
-                    Dim trackingSpan = New LetterOnlyTrackingSpan(beginSpan.ToSnapshotSpan(document.InitialTextSnapshot))
+                    Dim trackingSpan = New LetterOnlyTrackingSpan(beginSpan.ToSnapshotSpan(initialTextSnapshot))
 
                     buffer.Insert(trackingSpan.GetEndPoint(buffer.CurrentSnapshot).Position - type.Trim().Length, " ")
 

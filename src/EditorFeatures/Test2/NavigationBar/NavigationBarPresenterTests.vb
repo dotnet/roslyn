@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("LEADING TEXT {|Document:|} TRAILING TEXT", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("LEADING TEXT {|Document:|} TRAILING TEXT", {subjectDocument})
                 Dim view = projectedDocument.GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextSnapshot, projectedDocument.CursorPosition.Value))
 

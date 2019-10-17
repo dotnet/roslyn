@@ -2,6 +2,7 @@
 
 #nullable enable
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -48,6 +49,17 @@ namespace Roslyn.Test.EditorUtilities
 
             var buffer = CreateBuffer(exportProvider, contentType, lines);
             return exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(buffer);
+        }
+
+        public static DisposableTextView CreateView(
+            ExportProvider exportProvider,
+            IContentType contentType,
+            ImmutableArray<string> roles)
+        {
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(EditorFactory)}.{nameof(CreateView)}");
+
+            var buffer = CreateBuffer(exportProvider, contentType);
+            return exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(buffer, roles);
         }
 
         public static string LinesToFullText(params string[] lines)

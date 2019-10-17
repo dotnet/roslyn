@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
                 Dim spanMapper = service.GetService(Of ISpanMappingService)
@@ -53,7 +53,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
                 Dim spanMapper = service.GetService(Of ISpanMappingService)
@@ -85,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
                 Dim documentOperations = service.GetService(Of IDocumentOperationService)
@@ -111,7 +111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
@@ -149,7 +149,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
@@ -197,7 +197,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                         }|}|}</Code>
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument})
 
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
@@ -250,7 +250,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 }</Code>
 
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument}, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument})
 
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)

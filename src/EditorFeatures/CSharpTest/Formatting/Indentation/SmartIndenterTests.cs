@@ -2848,7 +2848,7 @@ return;
                 var subjectDocument = workspace.Documents.Single();
 
                 var projectedDocument =
-                    workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents, LanguageNames.CSharp);
+                    workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents);
 
                 if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory provider)
                 {

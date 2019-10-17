@@ -178,7 +178,7 @@ class D { }
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
             workspace.AddTestProject(project1);
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
 
             await VerifyRootTypeNameAsync(workspace, "D");
 
@@ -338,7 +338,7 @@ class D { }
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
             workspace.AddTestProject(project1);
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
 
             workspace.OnProjectRemoved(project1.Id);
             Assert.False(workspace.IsDocumentOpen(document.Id));
@@ -355,7 +355,7 @@ class D { }
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
             workspace.AddTestProject(project1);
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
             workspace.CloseDocument(document.Id);
             workspace.OnProjectRemoved(project1.Id);
         }
@@ -370,7 +370,7 @@ class D { }
             var project1 = new TestHostProject(workspace, document, name: "project1");
 
             workspace.AddTestProject(project1);
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
 
             workspace.OnDocumentRemoved(document.Id);
 
@@ -472,7 +472,7 @@ class D { }
             Assert.NotEqual(TypeKind.Error, classC.TypeKind);
 
             // change the class name in document1
-            workspace.OnDocumentOpened(document1.Id, document1.GetOpenTextContainer());
+            workspace.OpenDocument(document1.Id);
             var buffer1 = document1.GetTextBuffer();
 
             // change C to X
@@ -516,8 +516,8 @@ class D { }
             Assert.NotEqual(TypeKind.Error, classCy.TypeKind);
 
             // open both documents so background compiler works on their compilations
-            workspace.OnDocumentOpened(document1.Id, document1.GetOpenTextContainer());
-            workspace.OnDocumentOpened(document2.Id, document2.GetOpenTextContainer());
+            workspace.OpenDocument(document1.Id);
+            workspace.OpenDocument(document2.Id);
 
             // change C to X
             var buffer1 = document1.GetTextBuffer();
@@ -570,8 +570,8 @@ class D { }
             Assert.NotEqual(TypeKind.Error, classCy.TypeKind);
 
             // open both documents so background compiler works on their compilations
-            workspace.OnDocumentOpened(document1.Id, document1.GetOpenTextContainer());
-            workspace.OnDocumentOpened(document2.Id, document2.GetOpenTextContainer());
+            workspace.OpenDocument(document1.Id);
+            workspace.OpenDocument(document2.Id);
 
             // change C to X
             var buffer1 = document1.GetTextBuffer();
@@ -618,7 +618,7 @@ class D { }
 
             workspace.AddTestProject(project1);
             var buffer = document.GetTextBuffer();
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
 
             buffer.Insert(0, "class C {}");
 
@@ -644,7 +644,7 @@ class D { }
 
             workspace.AddTestProject(project1);
             var buffer = document.GetTextBuffer();
-            workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
+            workspace.OpenDocument(document.Id);
 
             // prove the document has the correct text
             Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync()).ToString());
@@ -1132,7 +1132,7 @@ class D { }
     </Project>
 </Workspace>";
 
-            using var workspace = TestWorkspace.Create(input, exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic);
+            using var workspace = TestWorkspace.Create(input, exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic, openDocuments: true);
             var eventArgs = new List<WorkspaceChangeEventArgs>();
 
             workspace.WorkspaceChanged += (s, e) =>

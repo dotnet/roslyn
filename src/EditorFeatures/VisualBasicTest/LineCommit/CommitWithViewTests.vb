@@ -95,11 +95,13 @@ End Module
                     </Project>
                 </Workspace>)
 
+                Dim initialTextSnapshot = testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot
+
                 testData.EditorOperations.InsertText("    ")
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
 
                 ' The text should snap back to what it originally was
-                Dim originalText = testData.Workspace.Documents.Single().InitialTextSnapshot.GetLineFromLineNumber(5).GetText()
+                Dim originalText = initialTextSnapshot.GetLineFromLineNumber(5).GetText()
                 Assert.Equal(originalText, testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(5).GetText())
             End Using
         End Sub
@@ -326,6 +328,8 @@ End Module
                     </Project>
                 </Workspace>)
 
+                Dim initialTextSnapshot = testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot
+
                 testData.EditorOperations.Backspace()
                 testData.EditorOperations.Backspace()
                 testData.EditorOperations.Backspace()
@@ -336,7 +340,7 @@ End Module
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
                 testData.AssertHadCommit(True)
 
-                Assert.Equal(testData.Workspace.Documents.Single().InitialTextSnapshot.GetText(), testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(initialTextSnapshot.GetText(), testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
             End Using
         End Sub
 
