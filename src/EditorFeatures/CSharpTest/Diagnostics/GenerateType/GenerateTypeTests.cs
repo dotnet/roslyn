@@ -5382,5 +5382,23 @@ internal class Goo
 }",
 index: 1);
         }
+
+        [WorkItem(38947, "https://github.com/dotnet/roslyn/issues/38947")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task TestWarningGeneratedInAnonymousFunction()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    Func<int> test = () =>
+    {
+        [|var|] (x, y) = (1, 2);
+#warning This is a test.
+
+        return 0;
+    };
+}",
+new TestParameters());
+        }
     }
 }

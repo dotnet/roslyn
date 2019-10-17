@@ -75,5 +75,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
         Protected Overrides Function IsNameOf(node As SyntaxNode) As Boolean
             Return node.Kind() = SyntaxKind.NameOfKeyword
         End Function
+
+        Protected Overrides Function IsVarParenthesisDeclaration(node As SyntaxNode) As Boolean
+            'TODO: Fix this.
+            Return False
+        End Function
     End Class
 End Namespace

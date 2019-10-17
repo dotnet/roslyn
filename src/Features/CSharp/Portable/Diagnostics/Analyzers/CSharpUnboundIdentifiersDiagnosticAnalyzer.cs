@@ -66,5 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
         }
 
         protected override bool IsNameOf(SyntaxNode node) => node.Parent is InvocationExpressionSyntax invocation && invocation.IsNameOfInvocation();
+
+        protected override bool IsVarParenthesisDeclaration(SyntaxNode node) => node.Parent is DeclarationExpressionSyntax invocation && invocation.IsVarParenthesizedDeclarativeType();
     }
 }

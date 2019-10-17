@@ -1328,6 +1328,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                    identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword);
         }
 
+        public static bool IsVarParenthesizedDeclarativeType(this DeclarationExpressionSyntax invocation)
+        {
+            return invocation.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation;
+        }
+
         public static IAliasSymbol GetAliasForSymbol(INamespaceOrTypeSymbol symbol, SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var originalSemanticModel = semanticModel.GetOriginalSemanticModel();
