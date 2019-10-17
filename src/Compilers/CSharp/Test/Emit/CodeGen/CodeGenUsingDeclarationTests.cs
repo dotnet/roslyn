@@ -8,15 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenUsingDeclarationTests : EmitMetadataTestBase
     {
-        private const string _asyncDisposable = @"
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}";
-
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void UsingVariableVarEmitTest()
         {
@@ -683,7 +674,7 @@ Dispose Async Catch
 Created Finally
 Dispose Async Finally
 ";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(source + CSharpTestBase.IAsyncDisposableDefinition, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -1164,7 +1155,7 @@ class C2
         await using C1 c = new C1();
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(source + CSharpTestBase.IAsyncDisposableDefinition, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "Dispose async");
         }
@@ -1191,7 +1182,7 @@ class C2
         await using C1 c = new C1();
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(source + CSharpTestBase.IAsyncDisposableDefinition, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "Dispose async");
         }
@@ -1236,7 +1227,7 @@ Dispose async third
 Dispose async second
 Dispose async first
 ";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(source + CSharpTestBase.IAsyncDisposableDefinition, options: TestOptions.DebugExe).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -1283,7 +1274,7 @@ Dispose async second
 Dispose async first
 ";
 
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(source + CSharpTestBase.IAsyncDisposableDefinition, options: TestOptions.DebugExe).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -1319,7 +1310,7 @@ class C3
         Console.Write(""After declarations; "");
     }
 }";
-            var compilation = CreateCompilationWithTasksExtensions(source + _asyncDisposable, options: TestOptions.DebugExe).VerifyDiagnostics();
+            var compilation = CreateCompilationWithTasksExtensions(source + CSharpTestBase.IAsyncDisposableDefinition, options: TestOptions.DebugExe).VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "After declarations; ");
         }
@@ -1346,7 +1337,7 @@ class C2
     }
 }";
 
-            var comp = CreateCompilationWithTasksExtensions(source + _asyncDisposable);
+            var comp = CreateCompilationWithTasksExtensions(source + CSharpTestBase.IAsyncDisposableDefinition);
             comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
             comp.VerifyDiagnostics(
                 // (16,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
