@@ -1067,7 +1067,7 @@ unsafe class C
             }
 
             [WorkItem(545180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545180")]
-            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/37210"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
             public async Task NodeHasSyntacticErrors()
             {
                 var code = @"using System;
