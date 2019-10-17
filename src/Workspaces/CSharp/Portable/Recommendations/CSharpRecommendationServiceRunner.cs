@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var expression = originalExpression.WalkDownParentheses();
             if (expression is AwaitExpressionSyntax awaitExpression)
             {
-                expression = awaitExpression.Expression;
+                expression = awaitExpression.Expression.WalkDownParentheses();
             }
 
             var leftHandBinding = _context.SemanticModel.GetSymbolInfo(expression, _cancellationToken);
