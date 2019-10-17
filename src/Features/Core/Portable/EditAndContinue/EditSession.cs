@@ -322,6 +322,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
+                // Check if the currently observed document content has changed compared to the base document content.
+                // This is an important optimization that aims to avoid IO while stepping in sources that have not changed.
+                // We may be comparing out-of-date committed document content but we only make a decision based on that content
+                // if it matches the current content. That means the change on disk has not been observed in the workspace yet
+                // and the buffer is showing the out-of-date content, if the document is opened. The unobserved change is not
+                // gonna be applied at this moment. It might be applied later after it's observed.
+                var baseSource = await baseProject.GetDocument(documentId)!.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var source = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                if (baseSource.ContentEquals(source))
+                {
+                    continue;
+                }
+
                 var (oldDocument, oldDocumentState) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
                 switch (oldDocumentState)
                 {
