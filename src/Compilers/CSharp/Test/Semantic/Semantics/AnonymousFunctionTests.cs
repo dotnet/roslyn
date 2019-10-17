@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AnonymousFunctionTests : CSharpTestBase
     {
         [Fact]
-        public void StaticLambdaCanCaptureStaticField()
+        public void StaticLambdaCanReferenceStaticField()
         {
             var source = @"
 using System;
@@ -35,7 +35,7 @@ public class C
         }
 
         [Fact]
-        public void StaticLambdaCanCaptureStaticProperty()
+        public void StaticLambdaCanReferenceStaticProperty()
         {
             var source = @"
 using System;
@@ -56,7 +56,7 @@ public class C
         }
 
         [Fact]
-        public void StaticLambdaCanCaptureConstField()
+        public void StaticLambdaCanReferenceConstField()
         {
             var source = @"
 using System;
@@ -77,7 +77,7 @@ public class C
         }
 
         [Fact]
-        public void StaticLambdaCanCaptureConstLocal()
+        public void StaticLambdaCanReferenceConstLocal()
         {
             var source = @"
 using System;
