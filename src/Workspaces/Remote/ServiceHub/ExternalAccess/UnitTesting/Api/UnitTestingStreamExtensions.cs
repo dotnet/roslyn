@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             this Stream stream,
             object target,
             TraceSource logger,
-            IEnumerable<AggregateJsonConverter> JsonConverters = null)
-            => stream.CreateStreamJsonRpc(target, logger, JsonConverters);
+            IEnumerable<AggregateJsonConverter> jsonConverters = null)
+            => stream.CreateStreamJsonRpc(target, logger, jsonConverters);
     }
 }

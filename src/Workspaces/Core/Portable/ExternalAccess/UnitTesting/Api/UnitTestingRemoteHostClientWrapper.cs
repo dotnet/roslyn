@@ -14,10 +14,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         internal RemoteHostClient UnderlyingObject { get; }
 
-        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateKeepAliveSessionAsync(string serviceName, CancellationToken cancellationToken)
+        public async Task<UnitTestingKeepAliveSessionWrapper> TryCreateUnitTestingKeepAliveSessionWrapperAsync(string serviceName, CancellationToken cancellationToken)
         {
             var keepAliveSession = await UnderlyingObject.TryCreateKeepAliveSessionAsync(serviceName, cancellationToken).ConfigureAwait(false);
             return new UnitTestingKeepAliveSessionWrapper(keepAliveSession);
+        }
+
+        public async Task<UnitTestingSessionWithSolutionWrapper> TryCreateUnitingSessionWithSolutionWrapperAsync(string serviceName, Solution solution, CancellationToken cancellationToken)
+        {
+            var session = await UnderlyingObject.TryCreateSessionAsync(serviceName, solution, cancellationToken).ConfigureAwait(false);
+            return new UnitTestingSessionWithSolutionWrapper(session);
+        }
+
+        public event EventHandler<bool> StatusChanged
+        {
+            add => UnderlyingObject.StatusChanged += value;
+            remove => UnderlyingObject.StatusChanged -= value;
         }
     }
 }

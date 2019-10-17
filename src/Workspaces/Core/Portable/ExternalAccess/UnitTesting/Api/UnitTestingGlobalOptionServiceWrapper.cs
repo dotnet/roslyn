@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal readonly struct UnitTestingGlobalOptionService
+    internal readonly struct UnitTestingGlobalOptionServiceWrapper
     {
-        public UnitTestingGlobalOptionService(
+        public UnitTestingGlobalOptionServiceWrapper(
             IEnumerable<Lazy<IOptionProvider>> optionProviders,
             IEnumerable<Lazy<IOptionPersister>> optionSerializers)
             => UnderlyingObject = new GlobalOptionService(optionProviders, optionSerializers);
