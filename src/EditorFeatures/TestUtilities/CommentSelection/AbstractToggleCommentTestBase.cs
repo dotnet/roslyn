@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CommentSelection
                 for (var i = 0; i < expectedText.Length; i++)
                 {
                     commandHandler.ExecuteCommand(textView, textBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
-                    AssertCommentResult(doc.TextBuffer, textView, expectedText[i]);
+                    AssertCommentResult(doc.GetTextBuffer(), textView, expectedText[i]);
                 }
             }
         }

@@ -31,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim spanMapper = service.GetService(Of ISpanMappingService)
 
                 Dim position = subjectDocument.CursorPosition.Value
@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim spanMapper = service.GetService(Of ISpanMappingService)
 
                 Dim position = subjectDocument.CursorPosition.Value
@@ -87,7 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim documentOperations = service.GetService(Of IDocumentOperationService)
 
                 ' contained document supports both document modification and diagnostics
@@ -113,14 +113,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
                 Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
-                Assert.Equal(projectedDocument.TextBuffer.CurrentSnapshot.GetText(), content)
+                Assert.Equal(projectedDocument.GetTextBuffer().CurrentSnapshot.GetText(), content)
 
                 Dim expcetedFormatted = {FormattedClassifications.Text("class projected { "),
                                          Keyword("class"),
@@ -151,7 +151,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument("class projected { {|Document:|} }", {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
                 ' make sure single line buffer doesn't throw on ExcerptMode.Tooltip
@@ -159,7 +159,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
-                Assert.Equal(projectedDocument.TextBuffer.CurrentSnapshot.GetText(), content)
+                Assert.Equal(projectedDocument.GetTextBuffer().CurrentSnapshot.GetText(), content)
 
                 Dim expcetedFormatted = {FormattedClassifications.Text("class projected { "),
                                          Keyword("class"),
@@ -199,7 +199,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
                 Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, CancellationToken.None)
@@ -209,12 +209,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
                 ' calculate expected span
                 Dim contentSpan = GetNamedSpan(projectedDocument, "Content")
-                Dim expectedContent = projectedDocument.TextBuffer.CurrentSnapshot.GetText(contentSpan.ToSpan())
+                Dim expectedContent = projectedDocument.GetTextBuffer().CurrentSnapshot.GetText(contentSpan.ToSpan())
                 Assert.Equal(expectedContent, content)
 
-                Dim firstText = projectedDocument.TextBuffer.CurrentSnapshot.GetText(GetNamedSpan(projectedDocument, "WithoutLeadingWhitespace").ToSpan())
+                Dim firstText = projectedDocument.GetTextBuffer().CurrentSnapshot.GetText(GetNamedSpan(projectedDocument, "WithoutLeadingWhitespace").ToSpan())
                 Dim documentSpan = GetNamedSpan(projectedDocument, "Document").ToSpan()
-                Dim lastText = projectedDocument.TextBuffer.CurrentSnapshot.GetText(Span.FromBounds(documentSpan.End, projectedDocument.TextBuffer.CurrentSnapshot.Length))
+                Dim lastText = projectedDocument.GetTextBuffer().CurrentSnapshot.GetText(Span.FromBounds(documentSpan.End, projectedDocument.GetTextBuffer().CurrentSnapshot.Length))
 
                 Dim expcetedFormatted = {FormattedClassifications.Text(firstText),
                                          Keyword("class"),
@@ -252,7 +252,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(projectedContent.NormalizedValue(), {subjectDocument})
 
-                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.TextBuffer)
+                Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
                 Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, CancellationToken.None)

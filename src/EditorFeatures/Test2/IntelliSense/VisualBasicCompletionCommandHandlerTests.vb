@@ -221,7 +221,7 @@ End Class
                 Await state.AssertSelectedCompletionItem("Equals", isSoftSelected:=True)
                 Dim caretPos = state.GetCaretPoint().BufferPosition.Position
                 state.SendReturn()
-                state.Workspace.Documents.First().GetTextView().Caret.MoveTo(New SnapshotPoint(state.Workspace.Documents.First().TextBuffer.CurrentSnapshot, caretPos))
+                state.Workspace.Documents.First().GetTextView().Caret.MoveTo(New SnapshotPoint(state.Workspace.Documents.First().GetTextBuffer().CurrentSnapshot, caretPos))
                 Assert.Contains("Program." + vbCrLf, state.GetLineFromCurrentCaretPosition().GetTextIncludingLineBreak(), StringComparison.Ordinal)
             End Using
         End Function
@@ -1222,7 +1222,7 @@ End Module|}          </Document>)
                 Await state.AssertSelectedCompletionItem(displayText:="arg", projectionsView:=view)
 
                 Dim text = view.TextSnapshot.GetText()
-                Dim projection = DirectCast(topProjectionBuffer.TextBuffer, IProjectionBuffer)
+                Dim projection = DirectCast(topProjectionBuffer.GetTextBuffer(), IProjectionBuffer)
                 Dim sourceSpans = projection.CurrentSnapshot.GetSourceSpans()
 
                 ' unmap our source spans without changing the top buffer
@@ -1234,8 +1234,8 @@ End Module|}          </Document>)
                 Await state.AssertSelectedCompletionItem(displayText:="bbb")
 
                 ' prepare to remap our subject buffer
-                Dim subjectBufferText = subjectDocument.TextBuffer.CurrentSnapshot.GetText()
-                Using edit = subjectDocument.TextBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber:=Nothing, editTag:=Nothing)
+                Dim subjectBufferText = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText()
+                Using edit = subjectDocument.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber:=Nothing, editTag:=Nothing)
                     edit.Replace(New Span(0, subjectBufferText.Length), subjectBufferText.Replace("Console.WriteLine(a", "Console.WriteLine(b"))
                     edit.Apply()
                 End Using

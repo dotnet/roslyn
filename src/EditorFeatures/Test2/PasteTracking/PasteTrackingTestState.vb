@@ -60,16 +60,16 @@ Namespace Microsoft.CodeAnalysis.PasteTracking
             ' When all documents sharing the same TextBuffer are closed
             ' the TextBuffer Properties should be cleared.
             Dim textBufferClosed = Workspace.GetOpenDocumentIds().
-                All(Function(id) Workspace.GetTestDocument(id)?.TextBuffer Is hostDocument.TextBuffer)
+                All(Function(id) Workspace.GetTestDocument(id)?.GetTextBuffer() Is hostDocument.GetTextBuffer())
             If textBufferClosed Then
                 ClearTextBufferProperties(hostDocument)
             End If
         End Sub
 
         Private Sub ClearTextBufferProperties(testDocument As TestHostDocument)
-            Dim propertyKeys = testDocument.TextBuffer.Properties.PropertyList.Select(Function(kvp) kvp.Key)
+            Dim propertyKeys = testDocument.GetTextBuffer().Properties.PropertyList.Select(Function(kvp) kvp.Key)
             For Each key In propertyKeys
-                testDocument.TextBuffer.Properties.RemoveProperty(key)
+                testDocument.GetTextBuffer().Properties.RemoveProperty(key)
             Next
         End Sub
 

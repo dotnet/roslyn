@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             ' speculative semantic model
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
             If Await CanUseSpeculativeSemanticModelAsync(document, position) Then
-                Dim buffer = workspace.Documents.Single().TextBuffer
+                Dim buffer = workspace.Documents.Single().GetTextBuffer()
                 Using edit = buffer.CreateEdit()
                     edit.Replace(0, buffer.CurrentSnapshot.Length, buffer.CurrentSnapshot.GetText())
                     edit.Apply()

@@ -4027,7 +4027,7 @@ class C
 }]]></Document>, {provider})
 
                 Dim testDocument = state.Workspace.Documents(0)
-                Dim textBuffer = testDocument.TextBuffer
+                Dim textBuffer = testDocument.GetTextBuffer()
 
                 Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
                 provider.SetInfo(snapshotBeforeCommit.GetText(), testDocument.CursorPosition.Value)
@@ -4092,7 +4092,7 @@ class C
 }]]></Document>, {provider})
 
                 Dim testDocument = state.Workspace.Documents(0)
-                Dim textBuffer = testDocument.TextBuffer
+                Dim textBuffer = testDocument.GetTextBuffer()
 
                 Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
                 provider.SetInfo(snapshotBeforeCommit.GetText(), testDocument.CursorPosition.Value)

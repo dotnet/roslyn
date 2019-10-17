@@ -310,7 +310,7 @@ using G=   H.I;
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     document.GetTextView(),
-                    document.TextBuffer,
+                    document.GetTextBuffer(),
                     Nothing)
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
@@ -330,7 +330,7 @@ using G=   H.I;
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     Guids.CSharpLanguageServiceId,
                     surfaceBufferDocument.GetTextView(),
-                    subjectBufferDocument.TextBuffer,
+                    subjectBufferDocument.GetTextBuffer(),
                     Nothing)
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)

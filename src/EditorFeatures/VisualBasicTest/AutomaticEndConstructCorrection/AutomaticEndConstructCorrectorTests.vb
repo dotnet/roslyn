@@ -350,7 +350,7 @@ End Class</code>.Value
             Using workspace = TestWorkspace.CreateVisualBasic(codeWithMarker)
                 Dim document = workspace.Documents.Single()
 
-                Dim buffer = document.TextBuffer
+                Dim buffer = document.GetTextBuffer()
                 Dim initialTextSnapshot = buffer.CurrentSnapshot
 
                 Dim caretPosition = initialTextSnapshot.CreateTrackingPoint(document.CursorPosition.Value,
@@ -372,7 +372,7 @@ End Class</code>.Value
                     Dim insertedString = type.Substring(0, i + 1)
                     For Each span In document.SelectedSpans.Skip(1)
                         Dim trackingSpan = New LetterOnlyTrackingSpan(span.ToSnapshotSpan(initialTextSnapshot))
-                        Assert.Equal(expectedStringGetter(insertedString), trackingSpan.GetText(document.TextBuffer.CurrentSnapshot))
+                        Assert.Equal(expectedStringGetter(insertedString), trackingSpan.GetText(document.GetTextBuffer().CurrentSnapshot))
                     Next
                 Next
 
@@ -424,7 +424,7 @@ End Class</code>.Value
         End Sub
 
         Private Sub Verify(workspace As TestWorkspace, document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan)
-            Dim buffer = document.TextBuffer
+            Dim buffer = document.GetTextBuffer()
             Dim corrector = New AutomaticEndConstructCorrector(buffer, New TestWaitIndicator())
 
             corrector.Connect()

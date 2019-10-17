@@ -192,7 +192,7 @@ namespace Roslyn.Test.Utilities
 
             foreach (var document in workspace.Documents)
             {
-                var text = document.TextBuffer.AsTextContainer().CurrentText;
+                var text = document.GetOpenTextContainer().CurrentText;
                 foreach (var kvp in document.AnnotatedSpans)
                 {
                     locations.GetOrAdd(kvp.Key, CreateLocation)

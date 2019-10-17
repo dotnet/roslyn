@@ -2,19 +2,16 @@
 
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -252,9 +249,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             return _textBuffer;
         }
-
-        // TODO: delete this and move all callers to it
-        public ITextBuffer TextBuffer => GetTextBuffer();
 
         public SourceTextContainer GetOpenTextContainer()
         {

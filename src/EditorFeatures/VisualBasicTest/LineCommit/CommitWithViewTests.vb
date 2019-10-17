@@ -340,7 +340,7 @@ End Module
                 testData.EditorOperations.MoveLineUp(extendSelection:=False)
                 testData.AssertHadCommit(True)
 
-                Assert.Equal(initialTextSnapshot.GetText(), testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(initialTextSnapshot.GetText(), testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -651,7 +651,7 @@ Module Module1
     End Sub
 End Module
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -709,7 +709,7 @@ Module Program
     End Sub
 End Module
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -740,7 +740,7 @@ End Class</Code>
                 testData.EditorOperations.MoveLineDown(extendSelection:=False)
 
                 ' The text should snap back to what it originally was
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -767,7 +767,7 @@ End Class</Code>
 
                 testData.EditorOperations.InsertNewLine()
 
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -803,7 +803,7 @@ End Module</Code>
 
                 testData.EditorOperations.InsertNewLine()
 
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -862,7 +862,7 @@ Class C
     End Sub
 End Class
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -893,7 +893,7 @@ Class C
     End Sub
 End Class
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -924,7 +924,7 @@ Class C
     End Sub
 End Class
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -948,7 +948,7 @@ End Class
 
 
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -972,7 +972,7 @@ End Class
 
 
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -1002,7 +1002,7 @@ Module Program
     End Sub
 End Module
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -1028,7 +1028,7 @@ Module M1
     'Comment
 End Module
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -1054,7 +1054,7 @@ Module M1
 
 End Module
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -1089,7 +1089,7 @@ Class C
     End Sub
 End Class
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -1128,7 +1128,7 @@ Class C
     End Sub
 End Class
 </Code>
-                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
     End Class
