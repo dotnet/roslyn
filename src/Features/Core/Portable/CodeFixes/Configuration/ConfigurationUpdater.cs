@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                 return solution;
             }
 
-            // Add the new added analyzer config document as a solution item.
+            // Add the newly added analyzer config document as a solution item.
             // The analyzer config document is not yet created, so we just mark the file
             // path for tracking and add it as a solution item whenever the file gets created by the code fix application.
             var service = _project.Solution.Workspace.Services.GetService<IAddSolutionItemService>();

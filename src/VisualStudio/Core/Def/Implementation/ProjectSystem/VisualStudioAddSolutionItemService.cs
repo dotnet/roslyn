@@ -35,8 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioAddSolutionItemService(
-            IThreadingContext threadingContext,
-            SVsServiceProvider serviceProvider)
+            IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
             _fileChangeTrackers = new ConcurrentDictionary<string, FileChangeTracker>(StringComparer.OrdinalIgnoreCase);

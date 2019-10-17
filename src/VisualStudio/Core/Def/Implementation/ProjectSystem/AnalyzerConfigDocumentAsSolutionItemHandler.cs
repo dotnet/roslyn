@@ -36,7 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerConfigDocumentAsSolutionItemHandler(
-            SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace,
             IThreadingContext threadingContext)
         {
