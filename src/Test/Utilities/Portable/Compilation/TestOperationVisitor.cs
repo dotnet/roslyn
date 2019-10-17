@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation)
         {
             Assert.Equal(OperationKind.VariableDeclarationGroup, operation.Kind);
+            Assert.IsType(typeof(VariableDeclarationKind), operation.DeclarationKind);
             AssertEx.Equal(operation.Declarations, operation.Children);
         }
 

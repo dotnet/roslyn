@@ -224,7 +224,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.LocalDeclaration:
                     return CreateBoundLocalDeclarationOperation((BoundLocalDeclaration)boundNode);
                 case BoundKind.MultipleLocalDeclarations:
-                    return CreateBoundMultipleLocalDeclarationsOperation((BoundMultipleLocalDeclarations)boundNode);
+                case BoundKind.UsingLocalDeclarations:
+                    return CreateBoundMultipleLocalDeclarationsBaseOperation((BoundMultipleLocalDeclarationsBase)boundNode);
                 case BoundKind.LabelStatement:
                     return CreateBoundLabelStatementOperation((BoundLabelStatement)boundNode);
                 case BoundKind.LabeledStatement:
@@ -286,8 +287,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchExpressionOperation((BoundSwitchExpression)boundNode);
                 case BoundKind.SwitchExpressionArm:
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
-                case BoundKind.UsingLocalDeclarations:
-                    return CreateUsingLocalDeclarationsOperation((BoundUsingLocalDeclarations)boundNode);
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return CreateCollectionValuePlaceholderOperation((BoundObjectOrCollectionValuePlaceholder)boundNode);
 
@@ -344,14 +343,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
         {
-            //TODO: We can get rid of this once we implement UsingLocalDeclaration operations correctly, instead of just using an operationNone.
-            //For now we return a single child consisting of the using declaration parsed as if it were a standard variable declaration.
-            //See: https://github.com/dotnet/roslyn/issues/32100
-            if (boundNode is BoundUsingLocalDeclarations boundUsingLocalDeclarations)
-            {
-                return ImmutableArray.Create<IOperation>(CreateBoundMultipleLocalDeclarationsOperation(boundUsingLocalDeclarations));
-            }
-
             var boundNodeWithChildren = (IBoundNodeWithIOperationChildren)boundNode;
             var children = boundNodeWithChildren.Children;
             if (children.IsDefaultOrEmpty)
@@ -385,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.MultipleLocalDeclarations:
                 case BoundKind.UsingLocalDeclarations:
                     {
-                        var multipleDeclaration = (BoundMultipleLocalDeclarations)declaration;
+                        var multipleDeclaration = (BoundMultipleLocalDeclarationsBase)declaration;
                         var builder = ArrayBuilder<IVariableDeclaratorOperation>.GetInstance(multipleDeclaration.LocalDeclarations.Length);
                         foreach (var decl in multipleDeclaration.LocalDeclarations)
                         {
@@ -444,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.MultipleLocalDeclarations:
                 case BoundKind.UsingLocalDeclarations:
                     {
-                        var declarations = ((BoundMultipleLocalDeclarations)declaration).LocalDeclarations;
+                        var declarations = ((BoundMultipleLocalDeclarationsBase)declaration).LocalDeclarations;
                         var dimensions = declarations.Length > 0
                             ? declarations[0].DeclaredTypeOpt.BoundDimensionsOpt
                             : ImmutableArray<BoundExpression>.Empty;
@@ -1743,10 +1734,10 @@ namespace Microsoft.CodeAnalysis.Operations
             // In the case of a for loop, varStatement and varDeclaration will be the same syntax node.
             // We can only have one explicit operation, so make sure this node is implicit in that scenario.
             bool isImplicit = (varStatement == varDeclaration) || boundLocalDeclaration.WasCompilerGenerated;
-            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), _semanticModel, varStatement, type, constantValue, isImplicit);
+            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), VariableDeclarationKind.Default, _semanticModel, varStatement, type, constantValue, isImplicit);
         }
 
-        private IVariableDeclarationGroupOperation CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
+        private IVariableDeclarationGroupOperation CreateBoundMultipleLocalDeclarationsBaseOperation(BoundMultipleLocalDeclarationsBase boundMultipleLocalDeclarations)
         {
             // The syntax for the boundMultipleLocalDeclarations can either be a LocalDeclarationStatement or a VariableDeclaration, depending on the context
             // (using/fixed statements vs variable declaration)
@@ -1755,17 +1746,23 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode declarationSyntax = declarationGroupSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) ?
                     ((LocalDeclarationStatementSyntax)declarationGroupSyntax).Declaration :
                     declarationGroupSyntax;
+
             bool declarationIsImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
             IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundMultipleLocalDeclarations, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
+
+            // If this is a using declaration, work out the declaration kind
+            VariableDeclarationKind declKind = boundMultipleLocalDeclarations is BoundUsingLocalDeclarations usingDecl
+                                               ? usingDecl.AwaitOpt is object
+                                                    ? VariableDeclarationKind.AsynchronousUsing
+                                                    : VariableDeclarationKind.Using
+                                               : VariableDeclarationKind.Default;
 
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             // If the syntax was the same, we're in a fixed statement or using statement. We make the Group operation implicit in this scenario, as the
             // syntax itself is a VariableDeclaration
-            // We do the same if the declarationSyntax was a using declaration, as it's bound as if it were a using statement
-            bool isUsing = declarationGroupSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) && ((LocalDeclarationStatementSyntax)declarationGroupSyntax).UsingKeyword != default;
-            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated || isUsing;
-            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
+            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated;
+            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), declKind, _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
         }
 
         private ILabeledOperation CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
@@ -2043,22 +2040,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel,
                 boundNode.Syntax,
                 isImplicit: boundNode.WasCompilerGenerated);
-        }
-
-        private IOperation CreateUsingLocalDeclarationsOperation(BoundUsingLocalDeclarations boundNode)
-        {
-            //TODO: Implement UsingLocalDeclaration operations correctly.
-            //      For now we return an implicit operationNone,
-            //      and GetIOperationChildren will return a single child
-            //      consisting of the using declaration parsed as if it were a standard variable declaration.
-            //      See: https://github.com/dotnet/roslyn/issues/32100
-            return new CSharpLazyNoneOperation(
-                this,
-                boundNode,
-                _semanticModel,
-                boundNode.Syntax,
-                constantValue: default,
-                isImplicit: false);
         }
 
         internal IPropertySubpatternOperation CreatePropertySubpattern(BoundSubpattern subpattern, ITypeSymbol matchedType)

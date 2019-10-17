@@ -842,16 +842,25 @@
   </Node>
 
   <!--
+  Base node shared by BoundMultipleLocalDeclarations and BoundUsingLocalDeclarations
+  -->
+  <AbstractNode Name="BoundMultipleLocalDeclarationsBase" Base="BoundStatement">
+    <Field Name="LocalDeclarations" Type="ImmutableArray&lt;BoundLocalDeclaration&gt;"/>
+  </AbstractNode>
+
+  <!--
   Bound node that represents multiple local declarations:
     int x =1, y =2;
     
   Works like multiple BoundLocalDeclaration nodes.  
   -->
-  <Node Name="BoundMultipleLocalDeclarations" Base="BoundStatement">
-    <Field Name="LocalDeclarations" Type="ImmutableArray&lt;BoundLocalDeclaration&gt;"/>
-  </Node>
+  <Node Name="BoundMultipleLocalDeclarations" Base="BoundMultipleLocalDeclarationsBase" />
 
-  <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarations">
+  <!--
+  Bound node that represents a using local declaration
+    [async] using var x = ..., y = ...;
+  -->
+  <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarationsBase">
     <Field Name="DisposeMethodOpt" Type="MethodSymbol" Null="Allow"/>
     <Field Name="IDisposableConversion" Type="Conversion"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
