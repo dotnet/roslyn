@@ -14,12 +14,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDisposable
     {
-        private const _VSFILECHANGEFLAGS FileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size;
+        private const _VSFILECHANGEFLAGS DefaultFileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size;
 
         private static readonly AsyncLazy<uint?> s_none = new AsyncLazy<uint?>(ct => null, cacheResult: true);
 
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly string _filePath;
+        private readonly _VSFILECHANGEFLAGS _fileChangeFlags;
         private bool _disposed;
 
         /// <summary>
@@ -48,10 +49,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private static readonly object s_lastBackgroundTaskGate = new object();
 
-        public FileChangeTracker(IVsFileChangeEx fileChangeService, string filePath)
+        public FileChangeTracker(IVsFileChangeEx fileChangeService, string filePath, _VSFILECHANGEFLAGS fileChangeFlags = DefaultFileChangeFlags)
         {
             _fileChangeService = fileChangeService;
             _filePath = filePath;
+            _fileChangeFlags = fileChangeFlags;
             _fileChangeCookie = s_none;
         }
 
@@ -105,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 try
                 {
-                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, FileChangeFlags, this).ConfigureAwait(false);
+                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, _fileChangeFlags, this).ConfigureAwait(false);
                 }
                 catch (Exception e) when (ReportException(e))
                 {
@@ -116,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 try
                 {
                     Marshal.ThrowExceptionForHR(
-                        _fileChangeService.AdviseFileChange(_filePath, (uint)FileChangeFlags, this, out var newCookie));
+                        _fileChangeService.AdviseFileChange(_filePath, (uint)_fileChangeFlags, this, out var newCookie));
                     return newCookie;
                 }
                 catch (Exception e) when (ReportException(e))
@@ -144,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        public void StopFileChangeListening()
+        private void StopFileChangeListening()
         {
             if (_disposed)
             {
