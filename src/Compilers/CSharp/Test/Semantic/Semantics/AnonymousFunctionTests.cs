@@ -732,7 +732,7 @@ public class C
         }
 
         [Fact]
-        public void TestSymbols()
+        public void TestStaticAnonymousFunctions()
         {
             var source = @"
 using System;
@@ -763,6 +763,40 @@ public class C
             Assert.True(anonymousMethod.IsStatic);
             Assert.True(simpleLambda.IsStatic);
             Assert.True(parenthesizedLambda.IsStatic);
+        }
+
+        [Fact]
+        public void TestNonStaticAnonymousFunctions()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public void F()
+    {
+        Action<int> a = delegate(int i) { };
+        Action<int> b = a => { };
+        Action<int> c = (a) => { };
+    }
+}";
+            var compilation = CreateCompilation(source);
+            var syntaxTree = compilation.SyntaxTrees.Single();
+
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+            var root = syntaxTree.GetRoot();
+
+            var anonymousMethodSyntax = root.DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+            var simpleLambdaSyntax = root.DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single();
+            var parenthesizedLambdaSyntax = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var anonymousMethod = (IMethodSymbol)semanticModel.GetSymbolInfo(anonymousMethodSyntax).Symbol;
+            var simpleLambda = (IMethodSymbol)semanticModel.GetSymbolInfo(simpleLambdaSyntax).Symbol;
+            var parenthesizedLambda = (IMethodSymbol)semanticModel.GetSymbolInfo(parenthesizedLambdaSyntax).Symbol;
+
+            Assert.False(anonymousMethod.IsStatic);
+            Assert.False(simpleLambda.IsStatic);
+            Assert.False(parenthesizedLambda.IsStatic);
         }
     }
 }
