@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -42,7 +43,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
           ""locations"": [
             {
               ""resultFile"": {
-                ""uri"": ""file:///Z:/Main%20Location.cs"",
+                ""uri"": """ + (PathUtilities.IsUnixLikePlatform
+                                    ? "Z:/Main%20Location.cs"
+                                    : "file:///Z:/Main%20Location.cs") + @""",
                 ""region"": {
                   ""startLine"": 1,
                   ""startColumn"": 1,

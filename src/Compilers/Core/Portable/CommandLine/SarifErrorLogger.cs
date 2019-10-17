@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 // Attempt to normalize the directory separators
-                if (PathUtilities.DirectorySeparatorChar == '\\')
+                if (!PathUtilities.IsUnixLikePlatform)
                 {
                     path = path.Replace(@"\\", @"\");
                     path = PathUtilities.NormalizeWithForwardSlash(path);

@@ -88,9 +88,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             var isUnix = PathUtilities.IsUnixLikePlatform;
             var paths = new[] {
-                (@"A:\B\C\\..\D.cs", isUnix ? @"A:\B\C\\..\D.cs" : "file:///A:/B/D.cs"),
-                (@"A\B\C\\..\D.cs", isUnix ? @"A\B\C\\..\D.cs" : @"A/B/D.cs")
+                (@"A:\B\C\\..\D.cs", isUnix ? @"A:/B/C/D.cs" : "file:///A:/B/D.cs"),
+                (@"A\B\C\\..\D.cs", isUnix ? @"A%5CB%5CC%5C%5C..%5CD.cs" : @"A/B/D.cs")
             };
+
             foreach (var (inputPath, outputPath) in paths)
             {
                 var stream = new MemoryStream();
