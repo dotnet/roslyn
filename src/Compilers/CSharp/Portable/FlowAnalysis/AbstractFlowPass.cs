@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isCall)
             {
-                Meet(ref this.State, ref localFuncState.StateFromBottom);
+                Meet(ref this.State, ref localFuncState.State);
             }
             localFuncState.Visited = true;
         }

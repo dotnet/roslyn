@@ -12,16 +12,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal abstract class AbstractLocalFunctionState
         {
             /// <summary>
-            /// This is the part of the local function transfer function which moves the lattice
-            /// upward. It starts unreachable, as the local function is not assumed to be called
-            /// until proven otherwise. When a local function is called, this state is <see
-            /// cref="Meet(ref TLocalState, ref TLocalState)"/> with the current state.
+            /// This is the part of the local function transfer function which
+            /// transfers knowledge additively. For example, in definite
+            /// assignment this would be captured state which is assigned by
+            /// the local function.  When a local function is called, this
+            /// state is <see cref="Meet(ref TLocalState, ref TLocalState)"/>
+            /// with the current state.
             /// </summary>
-            public TLocalState StateFromBottom;
+            public TLocalState State;
 
             public AbstractLocalFunctionState(TLocalState unreachableState)
             {
-                StateFromBottom = unreachableState;
+                State = unreachableState;
             }
 
             public bool Visited = false;
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TLocalFunctionState currentState,
             ref TLocalState stateAtReturn)
         {
-            bool anyChanged = Join(ref currentState.StateFromBottom, ref stateAtReturn);
+            bool anyChanged = Join(ref currentState.State, ref stateAtReturn);
             // N.B. Do NOT shortcut this operation. LocalFunctionEnd may have important
             // side effects to the local function state
             anyChanged |= LocalFunctionEnd(savedState, currentState, ref stateAtReturn);

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal sealed class LocalFunctionState : AbstractLocalFunctionState
         {
             public BitVector ReadVars = BitVector.Empty;
-            public ref LocalState WrittenVars => ref StateFromBottom;
+            public ref LocalState WrittenVars => ref State;
 
             public LocalFunctionState(LocalState unreachableState)
                 : base(unreachableState)
