@@ -694,9 +694,9 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(8, 15)
             };
 
-            CreateCompilationWithTasksExtensions(source + CSharpTestBase.IAsyncDisposableDefinition, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
+            CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
 
-            CreateCompilationWithTasksExtensions(source + CSharpTestBase.IAsyncDisposableDefinition, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]

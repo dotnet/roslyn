@@ -862,7 +862,7 @@ namespace System.Collections.Generic
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, CSharpTestBase.IAsyncDisposableDefinition });
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
                 // (8,42): error CS0234: The type or namespace name 'IAsyncEnumerable<>' does not exist in the namespace 'System.Collections.Generic' (are you missing an assembly reference?)
                 //         async System.Collections.Generic.IAsyncEnumerable<int> local()

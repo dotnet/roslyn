@@ -6526,7 +6526,7 @@ done:;
             {
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
                 SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-                return (feature.HasValue) ? CheckFeatureAvailability(awaitToken, feature.Value) : awaitToken;
+                return feature.HasValue ? CheckFeatureAvailability(awaitToken, feature.GetValueOrDefault()) : awaitToken;
             }
         }
 
