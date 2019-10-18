@@ -6,7 +6,6 @@ using System.Composition;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -500,19 +499,24 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         {
             if (node is MethodDeclarationSyntax methodDeclaration && IsExtensionMethod(methodDeclaration))
             {
-                targetTypeName = GetTypeName(methodDeclaration.ParameterList.Parameters[0].Type);
+                var typeParameterNames = methodDeclaration.TypeParameterList?.Parameters.SelectAsArray(p => p.Identifier.Text);
+                targetTypeName = GetTypeName(methodDeclaration.ParameterList.Parameters[0].Type, typeParameterNames);
                 return true;
             }
 
             targetTypeName = null;
             return false;
 
-            static string GetTypeName(TypeSyntax typeNode)
+            static string GetTypeName(TypeSyntax typeNode, ImmutableArray<string>? typeParameterNames)
             {
                 switch (typeNode)
                 {
                     case IdentifierNameSyntax identifierNameNode:
-                        return identifierNameNode.Identifier.Text;
+                        // We consider it a complext method if the receiver type is a type parameter.
+                        var text = identifierNameNode.Identifier.Text;
+                        return typeParameterNames?.Contains(text) == true
+                            ? null
+                            : text;
 
                     case GenericNameSyntax genericNameNode:
                         var name = genericNameNode.Identifier.Text;
@@ -525,13 +529,15 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         return GetSpecialTypeName(predefinedTypeNode);
 
                     case AliasQualifiedNameSyntax aliasQualifiedNameNode:
-                        return GetTypeName(aliasQualifiedNameNode.Name);
+                        return GetTypeName(aliasQualifiedNameNode.Name, typeParameterNames);
 
                     case QualifiedNameSyntax qualifiedNameNode:
-                        return GetTypeName(qualifiedNameNode.Right);
+                        // For an identifier to the right of a '.', it can't be a type parameter,
+                        // so we don't need to check for it further.
+                        return GetTypeName(qualifiedNameNode.Right, null);
 
                     case NullableTypeSyntax nullableNode:
-                        return GetTypeName(nullableNode.ElementType);
+                        return GetTypeName(nullableNode.ElementType, typeParameterNames);
                 }
 
                 // This is a complex type, we will not try to filter them with type name.

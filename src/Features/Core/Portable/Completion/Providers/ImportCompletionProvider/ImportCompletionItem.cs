@@ -18,30 +18,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private const string TypeAritySuffixName = nameof(TypeAritySuffixName);
         private const string AttributeFullName = nameof(AttributeFullName);
-        private const string SymbolName = nameof(SymbolName);
+        private const string SymbolKeyData = nameof(SymbolKeyData);
 
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, string genericTypeSuffix)
         {
-            return Create(typeSymbol, typeSymbol.Arity, containingNamespace, genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, encodeSymbol: false);
+            return Create(typeSymbol.Name, typeSymbol.Arity, containingNamespace, typeSymbol.GetGlyph(), genericTypeSuffix, CompletionItemFlags.CachedAndExpanded, symbolKeyData: null);
         }
 
-        public static CompletionItem Create(IMethodSymbol methodSymbol, string containingNamespace, string genericTypeSuffix)
-        {
-            Debug.Assert(methodSymbol.IsExtensionMethod);
-            return Create(methodSymbol, methodSymbol.Arity, containingNamespace, genericTypeSuffix, CompletionItemFlags.Expanded, encodeSymbol: true);
-        }
-
-        private static CompletionItem Create(ISymbol symbol, int arity, string containingNamespace, string genericTypeSuffix, CompletionItemFlags flags, bool encodeSymbol)
+        public static CompletionItem Create(string name, int arity, string containingNamespace, Glyph glyph, string genericTypeSuffix, CompletionItemFlags flags, string? symbolKeyData)
         {
             ImmutableDictionary<string, string>? properties = null;
 
-            if (encodeSymbol || arity > 0)
+            if (symbolKeyData != null || arity > 0)
             {
                 var builder = PooledDictionary<string, string>.GetInstance();
 
-                if (encodeSymbol)
+                if (symbolKeyData != null)
                 {
-                    builder.Add(SymbolName, SymbolCompletionItem.EncodeSymbol(symbol));
+                    builder.Add(SymbolKeyData, symbolKeyData);
                 }
                 else
                 {
@@ -56,13 +50,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // 2. ' ' before namespace makes types with identical type name but from different namespace all show up in the list,
             //    it also makes sure type with shorter name shows first, e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
             var sortTextBuilder = PooledStringBuilder.GetInstance();
-            sortTextBuilder.Builder.AppendFormat(SortTextFormat, symbol.Name, containingNamespace);
+            sortTextBuilder.Builder.AppendFormat(SortTextFormat, name, containingNamespace);
 
             var item = CompletionItem.Create(
-                 displayText: symbol.Name,
+                 displayText: name,
                  sortText: sortTextBuilder.ToStringAndFree(),
                  properties: properties,
-                 tags: GlyphTags.GetTags(symbol.GetGlyph()),
+                 tags: GlyphTags.GetTags(glyph),
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
                  displayTextSuffix: arity == 0 ? string.Empty : genericTypeSuffix,
@@ -131,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static ISymbol? GetSymbol(CompletionItem item, Compilation compilation)
         {
-            if (item.Properties.TryGetValue(SymbolName, out var symbolId))
+            if (item.Properties.TryGetValue(SymbolKeyData, out var symbolId))
             {
                 return SymbolCompletionItem.DecodeSymbol(symbolId, compilation);
             }

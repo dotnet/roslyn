@@ -126,7 +126,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     ? ComplexInfo
                     : new ParameterTypeInfo(genericType.Name, isComplex: false);
 
-            public ParameterTypeInfo GetByReferenceType(ParameterTypeInfo elementType) => ComplexInfo;
+            public ParameterTypeInfo GetByReferenceType(ParameterTypeInfo elementType)
+                => elementType;
 
             public ParameterTypeInfo GetFunctionPointerType(MethodSignature<ParameterTypeInfo> signature) => ComplexInfo;
 

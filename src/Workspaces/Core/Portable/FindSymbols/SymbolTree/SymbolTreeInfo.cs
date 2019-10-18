@@ -69,16 +69,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public bool ContainsExtensionMethod => _simpleTypeNameToExtensionMethodMap?.Count > 0 || _extensionMethodOfComplexType.Length > 0;
 
-        public ImmutableArray<ExtensionMethodInfo> GetMatchingExtensionMethodInfo(ImmutableArray<string> parameterTypeNames, out int complexCount)
+        public ImmutableArray<ExtensionMethodInfo> GetMatchingExtensionMethodInfo(ImmutableArray<string> parameterTypeNames)
         {
-            complexCount = _extensionMethodOfComplexType.Length;
-
             if (_simpleTypeNameToExtensionMethodMap == null)
             {
                 return _extensionMethodOfComplexType;
             }
 
-            using var _ = ArrayBuilder<ExtensionMethodInfo>.GetInstance(out var builder);
+            var builder = ArrayBuilder<ExtensionMethodInfo>.GetInstance();
             builder.AddRange(_extensionMethodOfComplexType);
 
             foreach (var parameterTypeName in parameterTypeNames)
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 builder.AddRange(simpleMethods);
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>

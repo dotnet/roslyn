@@ -7,25 +7,37 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class CodeAnalysisService : IRemoteExtensionMethodFilteringService
+    internal partial class CodeAnalysisService : IRemoteExtensionMethodImportCompletionService
     {
-        public Task<(IEnumerable<(string, IEnumerable<string>)>, int)> GetPossibleExtensionMethodMatchesAsync(ProjectId projectId, string[] targetTypeNames, bool loadOnly, CancellationToken cancellationToken)
+
+        public Task<(IList<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsAsync(
+            DocumentId documentId,
+            int position,
+            string receiverTypeSymbolKeyData,
+            string[] namespaceInScope,
+            bool isExpandedCompletion,
+            CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
                 using (UserOperationBooster.Boost())
                 {
                     var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var document = solution.GetDocument(documentId)!;
+                    var compilation = (await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+                    var symbol = SymbolKey.ResolveString(receiverTypeSymbolKeyData, compilation, cancellationToken: cancellationToken).GetAnySymbol();
 
-                    var project = solution.GetProject(projectId)!;
-                    var result = await ExtensionMethodFilteringService.GetPossibleExtensionMethodMatchesAsync(
-                        project, targetTypeNames.ToImmutableArray(), loadOnly, cancellationToken).ConfigureAwait(false);
+                    if (symbol is ITypeSymbol receiverTypeSymbol)
+                    {
+                        var (items, counter) = await ExtensionMethodImportCompletionService.GetUnimportExtensionMethodsInCurrentProcessAsync(
+                            document, position, receiverTypeSymbol, namespaceInScope.ToImmutableHashSet(), isExpandedCompletion, cancellationToken).ConfigureAwait(false);
+                        return ((IList<SerializableImportCompletionItem>)items, counter);
+                    }
 
-                    return ((IEnumerable<(string, IEnumerable<string>)>)result.Item1.SelectAsArray(kvp => (kvp.Key, (IEnumerable<string>)kvp.Value.ToImmutableArray())), result.Item2);
+                    return (new SerializableImportCompletionItem[0], new StatisticCounter());
                 }
             }, cancellationToken);
         }

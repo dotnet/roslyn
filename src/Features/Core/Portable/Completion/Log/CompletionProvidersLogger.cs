@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
             TargetTypeCompletionTicks,
 
+            ExtensionMethodCompletionTicks,
             ExtensionMethodCompletionGetFilterTicks,
             ExtensionMethodCompletionNoFilter,
             ExtensionMethodCompletionGetSymbolTicks,
@@ -48,6 +49,8 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.TargetTypeCompletionTicks, count);
 
 
+        internal static void LogExtensionMethodCompletionTicksDataPoint(int count) =>
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionTicks, count);
         internal static void LogExtensionMethodCompletionGetFilterTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ExtensionMethodCompletionGetFilterTicks, count);
 

@@ -460,7 +460,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Dim funcDecl = TryCast(node, MethodBlockSyntax)
             'TODO: don't call `IsExtensionMethod` again
             If funcDecl IsNot Nothing And IsExtensionMethod(funcDecl) Then
-                targetTypeName = GetTargetTypeName(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type)
+
+                Dim typeParameterNames = funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
+                targetTypeName = GetTargetTypeName(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames)
                 Return True
             End If
 
@@ -468,11 +470,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return False
         End Function
 
-        Private Function GetTargetTypeName(typeSyntax As TypeSyntax) As String
+        Private Function GetTargetTypeName(typeSyntax As TypeSyntax, typeParameterNames As ImmutableArray(Of String)?) As String
 
             If TypeOf typeSyntax Is IdentifierNameSyntax Then
                 Dim identifierName = DirectCast(typeSyntax, IdentifierNameSyntax)
-                Return identifierName.Identifier.Text
+                Dim text = identifierName.Identifier.Text
+                Return If(typeParameterNames?.Contains(text), Nothing, text)
 
             ElseIf TypeOf typeSyntax Is GenericNameSyntax Then
                 Dim genericName = DirectCast(typeSyntax, GenericNameSyntax)
@@ -481,8 +484,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 Return If(arity = 0, name, name + GetMetadataAritySuffix(arity))
 
             ElseIf TypeOf typeSyntax Is QualifiedNameSyntax Then
+                ' For an identifier to the right of a '.', it can't be a type parameter,
+                ' so we don't need to check for it further.
                 Dim qualifiedName = DirectCast(typeSyntax, QualifiedNameSyntax)
-                Return GetTargetTypeName(qualifiedName.Right)
+                Return GetTargetTypeName(qualifiedName.Right, Nothing)
 
             ElseIf TypeOf typeSyntax Is NullableTypeSyntax Then
                 Return GetTypeName(DirectCast(typeSyntax, NullableTypeSyntax).ElementType)

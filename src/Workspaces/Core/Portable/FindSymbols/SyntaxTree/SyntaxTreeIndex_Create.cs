@@ -267,7 +267,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 
                 // If there's using alias, we don't even try to figure out if the alias is related
                 // to the target type, simply treated it as complex type.
-                if (containsUsingAliasDirective || declaredSymbolInfo.TypeParameterCount > 0)
+                if (containsUsingAliasDirective)
                 {
                     complexInfoBuilder.Add(declaredSymbolInfoIndex);
                     return;
