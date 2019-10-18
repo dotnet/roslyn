@@ -15,9 +15,8 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
-#if !NewSymbolApi
+    // For testing, enable Roslyn's implementation of Go To Base
     [Export(typeof(VSCommanding.ICommandHandler))]
-#endif
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToBase)]
     internal class GoToBaseCommandHandler : AbstractGoToCommandHandler<IGoToBaseService, GoToBaseCommandArgs>

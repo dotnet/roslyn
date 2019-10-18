@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.SymbolSearch
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     [Export(typeof(ISymbolSourceProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
