@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, IResultWithDecoratedDefinition, IResultWithClassifiedContext, IResultInNamedProject, IResultWithVSGuids
+    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, /*IResultWithDecoratedDefinition,*/ IResultWithClassifiedContext, IResultInNamedProject, IResultWithVSGuids
     {
         private DefinitionItem definition;
         private SourceReferenceItem reference;
@@ -57,6 +57,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, token).ConfigureAwait(false);
 
+            var classifiedText = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
+                new ClassifiedTextRun(cspan.ClassificationType, sourceText.ToString(cspan.TextSpan))));
+            result.ClassifiedContext = classifiedText;
+            /*result.ClassifiedContext = new ClassifiedTextElement(
+                excerptResult.ClassifiedSpans.Select(n => new ClassifiedTextRun(n.ClassificationType, n.
+                );
+            excerptResult.ClassifiedSpans*/
             // decorate the parent definition:
             //result.ClassifiedDefinition = await ProtocolConversions.DocumentSpanToLocationWithTextAsync(definition.SourceSpans.First(), sourceText, token).ConfigureAwait(false);
             result.DefinitionIcon = definition.Tags.GetFirstGlyph().GetImageId();
