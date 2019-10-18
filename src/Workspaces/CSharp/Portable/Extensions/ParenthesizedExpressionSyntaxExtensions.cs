@@ -244,6 +244,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // Switch expression arm
+            // x => (y)
+            if (node.Parent is SwitchExpressionArmSyntax)
+            {
+                return true;
+            }
+
             // If we have: (X)(++x) or (X)(--x), we don't want to remove the parens. doing so can
             // make the ++/-- now associate with the previous part of the cast expression.
             if (parentExpression.IsKind(SyntaxKind.CastExpression))
