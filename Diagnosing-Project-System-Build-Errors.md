@@ -27,9 +27,10 @@ There are a few ways to tell:
 6. In the Build Logging window, click the start button.
 7. Open your solution, and open the file you're having troubles with. You should see various entries appearing in the Build Logging window.
 8. Take a screenshot of Visual Studio after you've opened the file you're having troubles with. Save this screenshot and attach it to your feedback item.
-8. Click the stop button in the Build Logging window.
-9. Select all the logs by clicking on one and then pressing Ctrl+A to Select All.
-10. Right click, choose Save Logs. Save them, and attach them to your feedback item.
+9. Click the stop button in the Build Logging window.
+10. Select all the logs by clicking on one and then pressing Ctrl+A to Select All.
+11. Right click, choose Save Logs. Save them, and attach them to your feedback item.
+12. Go under the Tools menu, and choose Log Roslyn Workspace Structure. This will prompt to save an XML file, and the process may take some time. Attach this item to your feedback item. If the file is large, you may wish to zip it into a .zip file.
 
 ## How do I get log files to diagnose what is happening in Visual Studio 2015?
 
