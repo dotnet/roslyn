@@ -6,12 +6,18 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.VisualStudio
 {
     internal static class FSharpProjectExternalErrorReporterFactory
     {
         public static IVsLanguageServiceBuildErrorReporter2 Create(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
-            => new ProjectExternalErrorReporter(projectId, errorCodePrefix, (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>());
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            var workspace = (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>();
+            workspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
+            return new ProjectExternalErrorReporter(projectId, errorCodePrefix, workspace);
+        }
     }
 }
