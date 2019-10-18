@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
         protected abstract bool ConstructorDoesNotExist(SyntaxNode node, SymbolInfo info, SemanticModel semanticModel);
         protected abstract bool IsNameOf(SyntaxNode node);
-        protected abstract bool IsVarParenthesisDeclaration(SyntaxNode node);
+        protected abstract bool IsPartOfParenthesisDeclaration(SyntaxNode node);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor, DiagnosticDescriptor2);
         public bool OpenFileOnly(Workspace workspace) => false;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
                 if (info.Symbol == null && info.CandidateSymbols.Length == 0)
                 {
                     // GetSymbolInfo returns no symbols for "nameof" expression, so handle it specially.
-                    if (IsNameOf(typeName))
+                    if (IsNameOf(typeName) || IsPartOfParenthesisDeclaration(typeName))
                     {
                         continue;
                     }

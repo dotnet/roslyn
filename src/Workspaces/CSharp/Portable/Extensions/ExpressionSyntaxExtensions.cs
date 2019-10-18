@@ -1328,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                    identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword);
         }
 
-        public static bool IsVarParenthesizedDeclarativeType(this DeclarationExpressionSyntax invocation)
+        public static bool IsParenthesizedDeclarativeType(this DeclarationExpressionSyntax invocation)
         {
             return invocation.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation;
         }

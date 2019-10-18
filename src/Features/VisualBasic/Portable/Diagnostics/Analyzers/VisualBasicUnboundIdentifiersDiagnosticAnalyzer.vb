@@ -76,8 +76,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
             Return node.Kind() = SyntaxKind.NameOfKeyword
         End Function
 
-        Protected Overrides Function IsVarParenthesisDeclaration(node As SyntaxNode) As Boolean
-            'TODO: Fix this.
+        Protected Overrides Function IsPartOfParenthesisDeclaration(node As SyntaxNode) As Boolean
+            ' Visual Basic does not have this language feature
             Return False
         End Function
     End Class
