@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             };
         }
 
-        public static string GetHelpLink(Workspace workspace, DiagnosticData data)
+        public static string GetHelpLink(DiagnosticData data)
         {
             if (BrowserHelper.TryGetUri(data.HelpLink, out var link))
             {
@@ -58,18 +58,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             if (!string.IsNullOrWhiteSpace(data.Id))
             {
-                return BrowserHelper.CreateBingQueryUri(workspace, data).AbsoluteUri;
+                return BrowserHelper.CreateBingQueryUri(data).AbsoluteUri;
             }
 
             return null;
         }
 
-        public static string GetHelpLinkToolTipText(Workspace workspace, DiagnosticData item)
+        public static string GetHelpLinkToolTipText(DiagnosticData data)
         {
             var isBing = false;
-            if (!BrowserHelper.TryGetUri(item.HelpLink, out var helpUri) && !string.IsNullOrWhiteSpace(item.Id))
+            if (!BrowserHelper.TryGetUri(data.HelpLink, out var helpUri) && !string.IsNullOrWhiteSpace(data.Id))
             {
-                helpUri = BrowserHelper.CreateBingQueryUri(workspace, item);
+                helpUri = BrowserHelper.CreateBingQueryUri(data);
                 isBing = true;
             }
 
@@ -77,8 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (helpUri != null)
             {
                 var prefix = isBing
-                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, item.Id)
-                    : string.Format(ServicesVSResources.Get_help_for_0, item.Id);
+                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, data.Id)
+                    : string.Format(ServicesVSResources.Get_help_for_0, data.Id);
 
                 return $"{prefix}\r\n{helpUri}";
             }

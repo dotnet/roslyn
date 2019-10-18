@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     _ => null
                 };
 
-                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioWorkspace) : null;
+                return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioProject.Language, visualStudioWorkspace) : null;
             });
 
             visualStudioWorkspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();

@@ -151,8 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // GetPreviewPane() needs to run on the UI thread.
             AssertIsForeground();
 
-            var language = Workspace.CurrentSolution.GetProject(preferredProjectId)?.Language;
-            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, previewContents);
+            return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContents);
         }
 
         protected virtual DiagnosticData GetDiagnostic() => null;

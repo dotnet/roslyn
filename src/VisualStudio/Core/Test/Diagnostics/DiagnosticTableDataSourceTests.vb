@@ -709,6 +709,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic1.DataLocation.MappedEndLine,
                             diagnostic1.DataLocation.MappedEndColumn),
                         diagnostic1.AdditionalLocations,
+                        diagnostic1.Language,
                         diagnostic1.Title,
                         diagnostic1.Description,
                         diagnostic1.HelpLink,
@@ -742,6 +743,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic2.DataLocation.MappedEndLine,
                             diagnostic2.DataLocation.MappedEndColumn),
                         diagnostic2.AdditionalLocations,
+                        diagnostic2.Language,
                         diagnostic2.Title,
                         diagnostic2.Description,
                         diagnostic2.HelpLink,
@@ -798,6 +800,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId,
                 location:=If(documentId Is Nothing, Nothing, New DiagnosticDataLocation(documentId, TextSpan.FromBounds(0, 10), "test", 20, 20, 20, 20)),
+                language:=LanguageNames.VisualBasic,
                 title:="Title",
                 description:="Description",
                 helpLink:=link)

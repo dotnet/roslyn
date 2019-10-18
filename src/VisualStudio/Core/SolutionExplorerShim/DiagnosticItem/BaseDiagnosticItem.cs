@@ -8,56 +8,33 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
     internal abstract partial class BaseDiagnosticItem : BaseItem
     {
-        protected readonly DiagnosticDescriptor _descriptor;
-        protected ReportDiagnostic _effectiveSeverity;
+        public string Language { get; }
+        public DiagnosticDescriptor Descriptor { get; }
+        public ReportDiagnostic EffectiveSeverity { get; private set; }
 
         public override event PropertyChangedEventHandler PropertyChanged;
 
-
-        public BaseDiagnosticItem(DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity)
-            : base(string.Format("{0}: {1}", descriptor.Id, descriptor.Title))
+        public BaseDiagnosticItem(DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, string language)
+            : base(descriptor.Id + ": " + descriptor.Title)
         {
-            _descriptor = descriptor;
-            _effectiveSeverity = effectiveSeverity;
+            Descriptor = descriptor;
+            EffectiveSeverity = effectiveSeverity;
+            Language = language;
         }
 
         public override ImageMoniker IconMoniker
-        {
-            get
-            {
-                return MapEffectiveSeverityToIconMoniker(_effectiveSeverity);
-            }
-        }
+            => MapEffectiveSeverityToIconMoniker(EffectiveSeverity);
 
-        protected abstract Microsoft.CodeAnalysis.Workspace Workspace { get; }
         public abstract ProjectId ProjectId { get; }
         protected abstract AnalyzerReference AnalyzerReference { get; }
-
-        public DiagnosticDescriptor Descriptor
-        {
-            get
-            {
-                return _descriptor;
-            }
-        }
-
-        public ReportDiagnostic EffectiveSeverity
-        {
-            get
-            {
-                return _effectiveSeverity;
-            }
-        }
 
         public override object GetBrowseObject()
         {
@@ -73,11 +50,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             if (!string.IsNullOrWhiteSpace(Descriptor.Id))
             {
-                var language = Workspace.CurrentSolution.GetProject(ProjectId)?.Language;
-
                 // we use message format here since we don't have actual instance of diagnostic here. 
                 // (which means we do not have a message)
-                return BrowserHelper.CreateBingQueryUri(Descriptor.Id, Descriptor.GetBingHelpMessage(), language);
+                return BrowserHelper.CreateBingQueryUri(Descriptor, Language);
             }
 
             return null;
@@ -85,9 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         internal void UpdateEffectiveSeverity(ReportDiagnostic newEffectiveSeverity)
         {
-            if (_effectiveSeverity != newEffectiveSeverity)
+            if (EffectiveSeverity != newEffectiveSeverity)
             {
-                _effectiveSeverity = newEffectiveSeverity;
+                EffectiveSeverity = newEffectiveSeverity;
 
                 NotifyPropertyChanged(nameof(EffectiveSeverity));
                 NotifyPropertyChanged(nameof(IconMoniker));
@@ -114,15 +89,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             var ruleSetDocument = XDocument.Load(pathToRuleSet);
 
-            ruleSetDocument.SetSeverity(AnalyzerReference.Display, _descriptor.Id, value);
+            ruleSetDocument.SetSeverity(AnalyzerReference.Display, Descriptor.Id, value);
 
             ruleSetDocument.Save(pathToRuleSet);
         }
 
         internal Task<Solution> GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(ReportDiagnostic value, Project project, CancellationToken cancellationToken)
         {
-            var effectiveSeverity = value.ToDiagnosticSeverity() ?? _descriptor.DefaultSeverity;
-            var diagnostic = Diagnostic.Create(_descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null);
+            var effectiveSeverity = value.ToDiagnosticSeverity() ?? Descriptor.DefaultSeverity;
+            var diagnostic = Diagnostic.Create(Descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null);
             return ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken);
         }
     }

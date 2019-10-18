@@ -71,14 +71,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return null;
         }
 
-        private static Uri GetHelpLink(DiagnosticData diagnostic, string language, out string helpLinkToolTipText)
+        private static Uri GetHelpLink(DiagnosticData data, out string helpLinkToolTipText)
         {
             var isBing = false;
             helpLinkToolTipText = string.Empty;
-            if (!BrowserHelper.TryGetUri(diagnostic.HelpLink, out var helpLink))
+            if (!BrowserHelper.TryGetUri(data.HelpLink, out var helpLink))
             {
                 // We use the ENU version of the message for bing search.
-                helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.ENUMessageForBingSearch, language);
+                helpLink = BrowserHelper.CreateBingQueryUri(data);
                 isBing = true;
             }
 
@@ -86,8 +86,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             if (helpLink != null)
             {
                 var prefix = isBing
-                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, diagnostic.Id)
-                    : string.Format(ServicesVSResources.Get_help_for_0, diagnostic.Id);
+                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, data.Id)
+                    : string.Format(ServicesVSResources.Get_help_for_0, data.Id);
 
                 helpLinkToolTipText = $"{prefix}\r\n{helpLink}";
             }
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return helpLink;
         }
 
-        object IPreviewPaneService.GetPreviewPane(DiagnosticData diagnostic, string language, IReadOnlyList<object> previewContent)
+        object IPreviewPaneService.GetPreviewPane(DiagnosticData diagnostic, IReadOnlyList<object> previewContent)
         {
             var title = diagnostic?.Message;
 
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                     previewContent: previewContent, logIdVerbatimInTelemetry: false, uiShell: _uiShell);
             }
 
-            var helpLink = GetHelpLink(diagnostic, language, out var helpLinkToolTipText);
+            var helpLink = GetHelpLink(diagnostic, out var helpLinkToolTipText);
 
             Guid optionPageGuid = default;
             if (diagnostic.Properties.TryGetValue("OptionName", out var optionName))

@@ -33,16 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return true;
         }
 
-        public static Uri CreateBingQueryUri(Workspace workspace, DiagnosticData diagnostic)
-        {
-            var errorCode = diagnostic.Id;
-            var title = diagnostic.ENUMessageForBingSearch;
-            var language = workspace.CurrentSolution.GetProject(diagnostic.ProjectId)?.Language;
+        public static Uri CreateBingQueryUri(DiagnosticData diagnostic)
+            => CreateBingQueryUri(diagnostic.Id, diagnostic.ENUMessageForBingSearch, diagnostic.Language);
 
-            return CreateBingQueryUri(errorCode, title, language);
-        }
+        public static Uri CreateBingQueryUri(DiagnosticDescriptor descriptor, string language)
+            => CreateBingQueryUri(descriptor.Id, descriptor.GetBingHelpMessage(), language);
 
-        public static Uri CreateBingQueryUri(string errorCode, string title, string language)
+        private static Uri CreateBingQueryUri(string errorCode, string title, string language)
             => new Uri("https://bingdev.cloudapp.net/BingUrl.svc/Get" +
                 "?selectedText=" + Uri.EscapeDataString(title ?? string.Empty) +
                 "&mainLanguage=" + Uri.EscapeDataString(language ?? string.Empty) +

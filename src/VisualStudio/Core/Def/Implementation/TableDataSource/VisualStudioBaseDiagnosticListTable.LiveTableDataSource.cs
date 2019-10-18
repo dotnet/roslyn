@@ -288,13 +288,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.ErrorCodeToolTip:
-                            content = GetHelpLinkToolTipText(item.Workspace, data);
+                            content = GetHelpLinkToolTipText(data);
                             return content != null;
                         case StandardTableKeyNames.HelpKeyword:
                             content = data.Id;
                             return content != null;
                         case StandardTableKeyNames.HelpLink:
-                            content = GetHelpLink(item.Workspace, data);
+                            content = GetHelpLink(data);
                             return content != null;
                         case StandardTableKeyNames.ErrorCategory:
                             content = data.Category;

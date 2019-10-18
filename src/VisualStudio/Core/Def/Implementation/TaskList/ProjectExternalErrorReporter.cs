@@ -26,18 +26,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
+        private readonly string _language;
 
         private readonly VisualStudioWorkspaceImpl _workspace;
 
         [Obsolete("This is a compatibility shim for F#; please do not use it.")]
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
-            : this(projectId, errorCodePrefix, (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>())
+            : this(projectId, errorCodePrefix, "F#", (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>())
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             _workspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
         }
 
-        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspaceImpl workspace)
+        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)
         {
             Debug.Assert(projectId != null);
             Debug.Assert(errorCodePrefix != null);
@@ -45,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
+            _language = language;
             _workspace = workspace;
         }
 
@@ -96,6 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     GetErrorId(error),
                     error.bstrText,
                     GetDiagnosticSeverity(error),
+                    _language,
                     mappedFilePath: null,
                     mappedStartLine: 0,
                     mappedStartColumn: 0,
@@ -178,6 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 GetErrorId(error),
                 message: error.bstrText,
                 GetDiagnosticSeverity(error),
+                _language,
                 mappedFilePath: null,
                 mappedStartLine: error.iLine,
                 mappedStartColumn: error.iCol,
@@ -238,6 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 bstrErrorId,
                 bstrErrorMessage,
                 severity,
+                language: _language,
                 mappedFilePath: null,
                 iStartLine, iStartColumn, iEndLine, iEndColumn,
                 bstrFileName,
@@ -265,6 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             string errorId,
             string message,
             DiagnosticSeverity severity,
+            string language,
             string mappedFilePath,
             int mappedStartLine,
             int mappedStartColumn,
@@ -301,7 +307,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     mappedStartLine: mappedStartLine,
                     mappedStartColumn: mappedStartColumn,
                     mappedEndLine: mappedEndLine,
-                    mappedEndColumn: mappedEndColumn));
+                    mappedEndColumn: mappedEndColumn),
+                language: language);
         }
 
         private static bool IsCompilerDiagnostic(string errorId)
