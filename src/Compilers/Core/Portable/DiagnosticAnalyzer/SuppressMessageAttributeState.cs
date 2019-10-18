@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>>();
         }
 
-        public Diagnostic ApplySourceSuppressions(Diagnostic diagnostic, Func<SyntaxTree, SemanticModel> getSemanticModel, ISymbol symbolOpt = null)
+        public Diagnostic ApplySourceSuppressions(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, ISymbol symbolOpt = null)
         {
             if (diagnostic.IsSuppressed)
             {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return diagnostic;
         }
 
-        public bool IsDiagnosticSuppressed(Diagnostic diagnostic, Func<SyntaxTree, SemanticModel> getSemanticModel, out AttributeData suppressingAttribute)
+        public bool IsDiagnosticSuppressed(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out AttributeData suppressingAttribute)
         {
             SuppressMessageInfo info;
             if (IsDiagnosticSuppressed(diagnostic, getSemanticModel, out info))
@@ -130,10 +130,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        private bool IsDiagnosticSuppressed(Diagnostic diagnostic, Func<SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
+        private bool IsDiagnosticSuppressed(Diagnostic diagnostic, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
             => IsDiagnosticSuppressed(diagnostic.Id, diagnostic.Location, getSemanticModel, out info);
 
-        private bool IsDiagnosticSuppressed(string id, Location location, Func<SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
+        private bool IsDiagnosticSuppressed(string id, Location location, Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel, out SuppressMessageInfo info)
         {
             Debug.Assert(id != null);
             Debug.Assert(location != null);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Walk up the syntax tree checking for suppression by any declared symbols encountered
             if (location.IsInSource)
             {
-                var model = getSemanticModel(location.SourceTree);
+                var model = getSemanticModel(_compilation, location.SourceTree);
                 bool inImmediatelyContainingSymbol = true;
 
                 for (var node = location.SourceTree.GetRoot().FindNode(location.SourceSpan, getInnermostNodeForTie: true);

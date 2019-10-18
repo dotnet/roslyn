@@ -660,7 +660,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree)
-            => CurrentCompilationData.GetOrCreateCachedSemanticModel(tree, AnalyzerExecutor.Compilation, AnalyzerExecutor.CancellationToken);
+            => GetOrCreateSemanticModel(AnalyzerExecutor.Compilation, tree);
+
+        private SemanticModel GetOrCreateSemanticModel(Compilation compilation, SyntaxTree tree)
+            => CurrentCompilationData.GetOrCreateCachedSemanticModel(tree, compilation, AnalyzerExecutor.CancellationToken);
 
         public void ApplyProgrammaticSuppressions(DiagnosticBag reportedDiagnostics, Compilation compilation)
         {
@@ -828,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<Diagnostic> diagnostics,
             Compilation compilation,
             SuppressMessageAttributeState suppressMessageState,
-            Func<SyntaxTree, SemanticModel> getSemanticModel)
+            Func<Compilation, SyntaxTree, SemanticModel> getSemanticModel)
         {
             if (diagnostics.IsEmpty)
             {
