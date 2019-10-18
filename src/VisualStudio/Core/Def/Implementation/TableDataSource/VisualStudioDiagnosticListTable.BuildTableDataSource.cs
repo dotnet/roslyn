@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -155,13 +156,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = data.Id;
                                 return content != null;
                             case StandardTableKeyNames.ErrorCodeToolTip:
-                                content = GetHelpLinkToolTipText(data);
+                                content = BrowserHelper.GetHelpLinkToolTip(data);
                                 return content != null;
                             case StandardTableKeyNames.HelpKeyword:
                                 content = data.Id;
                                 return content != null;
                             case StandardTableKeyNames.HelpLink:
-                                content = GetHelpLink(data);
+                                content = BrowserHelper.GetHelpLink(data)?.AbsoluteUri;
                                 return content != null;
                             case StandardTableKeyNames.ErrorCategory:
                                 content = data.Category;

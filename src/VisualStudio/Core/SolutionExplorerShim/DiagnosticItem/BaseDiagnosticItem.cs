@@ -42,21 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         }
 
         public Uri GetHelpLink()
-        {
-            if (BrowserHelper.TryGetUri(Descriptor.HelpLinkUri, out var link))
-            {
-                return link;
-            }
-
-            if (!string.IsNullOrWhiteSpace(Descriptor.Id))
-            {
-                // we use message format here since we don't have actual instance of diagnostic here. 
-                // (which means we do not have a message)
-                return BrowserHelper.CreateBingQueryUri(Descriptor, Language);
-            }
-
-            return null;
-        }
+            => BrowserHelper.GetHelpLink(Descriptor, Language);
 
         internal void UpdateEffectiveSeverity(ReportDiagnostic newEffectiveSeverity)
         {
