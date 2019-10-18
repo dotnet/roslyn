@@ -18,6 +18,7 @@ Param(
   [switch] $sign,
   [switch] $pack,
   [switch] $publish,
+  [switch] $clean,
   [switch][Alias('bl')]$binaryLog,
   [switch] $ci,
   [switch] $prepareMachine,
@@ -48,6 +49,7 @@ function Print-Usage() {
     Write-Host "  -pack                   Package build outputs into NuGet packages and Willow components"
     Write-Host "  -sign                   Sign build outputs"
     Write-Host "  -publish                Publish artifacts (e.g. symbols)"
+    Write-Host "  -clean                  Clean the solution"
     Write-Host ""
 
     Write-Host "Advanced settings:"
@@ -110,6 +112,14 @@ function Build {
     /p:Sign=$sign `
     /p:Publish=$publish `
     @properties
+}
+
+if ($clean) {
+  if(Test-Path $ArtifactsDir) {
+    Remove-Item -Recurse -Force $ArtifactsDir
+    Write-Host "Artifacts directory deleted."
+  }
+  exit 0
 }
 
 try {
