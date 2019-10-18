@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
+using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch.Capabilities;
 using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -17,50 +18,49 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, IResultHasDefinitionWithIcon, IResultHasClassifiedContext, IResultInNamedContainer, IResultWithVSGuids
+    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, IResultWithDecoratedDefinition, IResultWithClassifiedContext, IResultInNamedProject, IResultWithVSGuids
     {
         private DefinitionItem definition;
         private SourceReferenceItem reference;
         private RoslynSymbolSource source;
         private static ISymbolOriginDefinition LocalSymbolOrigin = null;
 
-        private RoslynSymbolResult() { }
+        public override string Name { get; }
+        public override string Origin { get; }
+        public override ISymbolSource Owner { get; }
+
+        private RoslynSymbolResult(string name, RoslynSymbolSource owner)
+        {
+            this.Owner = owner;
+            this.Name = name;
+            this.Origin = PredefinedSymbolOrigins.LocalCode;
+        }
 
         internal static async Task<RoslynSymbolResult> MakeAsync(RoslynSymbolSource symbolSource, DefinitionItem definition, DocumentSpan documentSpan, CancellationToken token)
         {
-            // TODO: Understand how Roslyn calls GetReferenceGroupsAsync
-            // it seems that at this time, we have full knowledge of definitions
-            // and their references
-
-            var result = new RoslynSymbolResult();
-
+            var result = new RoslynSymbolResult(definition.NameDisplayParts.FirstOrDefault().Text, symbolSource);
             result.source = symbolSource;
             result.definition = definition;
-            result.Owner = symbolSource;
-            result.Name = definition.ToString();
-            result.Origin = GetLocalOrigin(symbolSource);
 
             result.ClassifiedDefinition = new ClassifiedTextElement(
                 definition.NameDisplayParts.Select(n =>
                     new ClassifiedTextRun(n.Tag.ToClassificationTypeName(), n.ToVisibleDisplayString(includeLeftToRightMarker: true))));
-            /*
             result.ClassifiedContext = new ClassifiedTextElement(
                 definition.DisplayParts.Select(n =>
                     new ClassifiedTextRun(n.Tag.ToClassificationTypeName(), n.ToVisibleDisplayString(includeLeftToRightMarker: true))));
-            */
 
             var (projectId, projectName, sourceText, documentId) = await GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document)
                 .ConfigureAwait(false);
             result.ProjectId = projectId.ToString();
-            result.ContainerName = projectName;
+            result.ProjectName = projectName;
             result.DocumentId = documentId.ToString();
 
             var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, token).ConfigureAwait(false);
 
             // decorate the parent definition:
-            result.ClassifiedDefinition = await ProtocolConversions.DocumentSpanToLocationWithTextAsync(definition.SourceSpans.First(), text, cancellationToken).ConfigureAwait(false);
+            //result.ClassifiedDefinition = await ProtocolConversions.DocumentSpanToLocationWithTextAsync(definition.SourceSpans.First(), sourceText, token).ConfigureAwait(false);
             result.DefinitionIcon = definition.Tags.GetFirstGlyph().GetImageId();
-
+            /*
             // do this for each reference:
             var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(reference.SourceSpan, context.CancellationToken).ConfigureAwait(false);
             var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
@@ -70,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var locationWithText = new LSP.LocationWithText { Range = referenceLocation.Range, Uri = referenceLocation.Uri, Text = classifiedText };
 
             result.ClassifiedContext = 
+            */
             var mappedDocumentSpan = await TryMapAndGetFirstAsync(documentSpan, sourceText, token).ConfigureAwait(false);
             if (mappedDocumentSpan.HasValue)
             {
@@ -82,22 +83,23 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     location.LinePositionSpan.End.Character,
                     SpanTrackingMode.EdgeInclusive);
             }
+
             return result;
         }
 
         internal static async Task<RoslynSymbolResult> MakeAsync(RoslynSymbolSource symbolSource, SourceReferenceItem reference, DocumentSpan documentSpan, CancellationToken token)
         {
+            // TODO: Understand how Roslyn calls GetReferenceGroupsAsync
+            // it seems that at this time, we have full knowledge of definitions
+            // and their references
+
             var result = await MakeAsync(symbolSource, reference.Definition, documentSpan, token)
                 .ConfigureAwait(false);
-            result.Name = reference.ToString();
+            //result.Name = reference.ToString();
             return result;
         }
 
         public IPersistentSpan PersistentSpan { get; private set; }
-
-        public override ISymbolOriginDefinition Origin { get; protected set; } // TODO: API setter should not be protected
-        public override ISymbolSource Owner { get; protected set; }
-        public override string Name { get; protected set; }
 
         public ClassifiedTextElement ClassifiedDefinition { get; private set; }
 
@@ -107,11 +109,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         public string ProjectId { get; private set; }
 
-        public string ContainerName { get; private set; }
-
         public ClassifiedTextElement ClassifiedContext { get; private set; }
 
         public ImageId DefinitionIcon { get; private set; }
+
+        public string ProjectName { get; set; }
 
         public Task NavigateToAsync(CancellationToken token)
         {
@@ -123,15 +125,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private static Span AsSpan(TextSpan sourceSpan)
         {
             return new Span(sourceSpan.Start, sourceSpan.Length);
-        }
-
-        private static ISymbolOriginDefinition GetLocalOrigin(RoslynSymbolSource source)
-        {
-            if (LocalSymbolOrigin == null)
-            {
-                source.ServiceProvider.SymbolSearchBroker.SymbolOriginDefinitions.TryGetValue(PredefinedSymbolOrigins.LocalCode, out LocalSymbolOrigin);
-            }
-            return LocalSymbolOrigin;
         }
 
         // Taken from AbstractTableDataSourceFindUsagesContext
