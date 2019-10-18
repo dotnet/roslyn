@@ -66,14 +66,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
             return false;
         }
 
-        private static bool isQualifiedOrSimpleName(SyntaxNode n)
-        {
-            return n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
-        }
-
         private void ReportUnboundIdentifierNames(SyntaxNodeAnalysisContext context, SyntaxNode member)
         {
-            //static bool isQualifiedOrSimpleName(SyntaxNode n) => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
+            static bool isQualifiedOrSimpleName(SyntaxNode n) => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
             var typeNames = member.DescendantNodes().Where(n => isQualifiedOrSimpleName(n) && !n.Span.IsEmpty);
             foreach (var typeName in typeNames)
             {
@@ -81,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
                 if (info.Symbol == null && info.CandidateSymbols.Length == 0)
                 {
                     // GetSymbolInfo returns no symbols for "nameof" expression, so handle it specially.
-                    if (IsNameOf(typeName) || IsVarParenthesisDeclaration(typeName))
+                    if (IsNameOf(typeName))
                     {
                         continue;
                     }
