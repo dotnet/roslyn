@@ -970,7 +970,7 @@ class Program
         {
             ""a"" => true,
             ""b"" => false,
-            _ => null,
+            _ => (bool?)null,
         };
     }
 }");
