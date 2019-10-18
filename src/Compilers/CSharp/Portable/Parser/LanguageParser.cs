@@ -6470,17 +6470,17 @@ done:;
                 case SyntaxKind.IdentifierToken:
                     if (isPossibleAwaitForEach())
                     {
-                        return this.ParseForEachStatement(parseAwaitKeywordForAsyncStreams());
+                        return this.ParseForEachStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
                     }
                     else if (isPossibleAwaitUsing())
                     {
                         if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
                         {
-                            return this.ParseUsingStatement(parseAwaitKeywordForAsyncStreams());
+                            return this.ParseUsingStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
                         }
                         else
                         {
-                            return this.ParseLocalDeclarationStatement(parseAwaitKeywordForAsyncStreams());
+                            return this.ParseLocalDeclarationStatement(parseAwaitKeyword());
                         }
                     }
                     else if (this.IsPossibleLabeledStatement())
@@ -6523,11 +6523,11 @@ done:;
                     this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
             }
 
-            SyntaxToken parseAwaitKeywordForAsyncStreams()
+            SyntaxToken parseAwaitKeyword(MessageID? feature = null)
             {
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
                 SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-                return CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
+                return feature.HasValue ? CheckFeatureAvailability(awaitToken, feature.GetValueOrDefault()) : awaitToken;
             }
         }
 
