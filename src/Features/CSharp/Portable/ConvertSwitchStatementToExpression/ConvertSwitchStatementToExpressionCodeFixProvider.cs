@@ -59,13 +59,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
 
                 var declaratorToRemoveLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(2);
-                var declaratorToRemoveNode = declaratorToRemoveLocationOpt.FindNode(cancellationToken);
-
+                var variableSymbolLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(1);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var declaratorToRemoveType = semanticModel.GetDeclaredSymbol(declaratorToRemoveNode).GetSymbolType();
+
+                SyntaxNode variableSymbolLocationNodeOpt = null;
+                ITypeSymbol variableSymbolTypeOpt = null;
+
+                if (variableSymbolLocationOpt != default)
+                {
+                    variableSymbolLocationNodeOpt = variableSymbolLocationOpt.FindNode(cancellationToken);
+                    variableSymbolTypeOpt = semanticModel.GetDeclaredSymbol(variableSymbolLocationNodeOpt).GetSymbolType();
+                }
 
                 var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(cancellationToken);
-                var switchExpression = Rewriter.Rewrite(switchStatement, declaratorToRemoveType, semanticModel, nodeToGenerate,
+                var switchExpression = Rewriter.Rewrite(switchStatement, variableSymbolTypeOpt, semanticModel, nodeToGenerate,
                     shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
                     generateDeclaration: declaratorToRemoveLocationOpt is object);
 

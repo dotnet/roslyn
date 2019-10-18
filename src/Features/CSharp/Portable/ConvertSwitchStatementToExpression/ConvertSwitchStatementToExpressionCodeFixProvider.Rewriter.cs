@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public static StatementSyntax Rewrite(
                 SwitchStatementSyntax switchStatement,
-                ITypeSymbol declaratorToRemoveType,
+                ITypeSymbol variableSymbolTypeOpt,
                 SemanticModel semanticModel,
                 SyntaxKind nodeToGenerate, bool shouldMoveNextStatementToSwitchExpression, bool generateDeclaration)
             {
                 var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
 
                 // Rewrite the switch statement as a switch expression.
-                var switchExpression = rewriter.RewriteSwitchStatement(switchStatement, declaratorToRemoveType, semanticModel,
+                var switchExpression = rewriter.RewriteSwitchStatement(switchStatement, variableSymbolTypeOpt, semanticModel,
                     allowMoveNextStatementToSwitchExpression: shouldMoveNextStatementToSwitchExpression);
 
                 // Generate the final statement to wrap the switch expression, e.g. a "return" or an assignment.
@@ -97,12 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                                             initializer: EqualsValueClause(switchExpression)))));
             }
 
-            private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node, ITypeSymbol declaratorToRemoveType, SemanticModel semanticModel)
+            private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node, ITypeSymbol variableSymbolTypeOpt, SemanticModel semanticModel)
             {
                 return SwitchExpressionArm(
                     pattern: GetPattern(SingleOrDefaultSwitchLabel(node.Labels), out var whenClauseOpt),
                     whenClause: whenClauseOpt,
-                    expression: RewriteStatements(node.Statements, declaratorToRemoveType, semanticModel));
+                    expression: RewriteStatements(node.Statements, variableSymbolTypeOpt, semanticModel));
             }
 
             private static PatternSyntax GetPattern(SwitchLabelSyntax switchLabel, out WhenClauseSyntax whenClauseOpt)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return node.Right;
             }
 
-            private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements, ITypeSymbol declaratorToRemoveType, SemanticModel semanticModel)
+            private ExpressionSyntax RewriteStatements(SyntaxList<StatementSyntax> statements, ITypeSymbol variableSymbolTypeOpt, SemanticModel semanticModel)
             {
                 Debug.Assert(statements.Count == 1 || statements.Count == 2);
                 Debug.Assert(!statements[0].IsKind(SyntaxKind.BreakStatement));
@@ -153,12 +153,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                         else
                         {
                             type = expressionStatement.Expression.ChildNodes().Where(s => s.Kind() == SyntaxKind.IdentifierName).FirstOrDefault();
+
                         }
                     }
 
-                    if (declaratorToRemoveType != null && type != null)
+                    if (type != null && variableSymbolTypeOpt != null)
                     {
-                        rewrittenExpression = ExpressionSyntaxExtensions.CastIfPossible(rewrittenExpression, declaratorToRemoveType, type.GetLocation().SourceSpan.Start, semanticModel);
+                        rewrittenExpression = ExpressionSyntaxExtensions.CastIfPossible(rewrittenExpression, variableSymbolTypeOpt, type.GetLocation().SourceSpan.Start, semanticModel);
                     }
                 }
 
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     : labels.First(x => x.IsKind(SyntaxKind.DefaultSwitchLabel));
             }
 
-            private ExpressionSyntax RewriteSwitchStatement(SwitchStatementSyntax node, ITypeSymbol declaratorToRemoveType = null, SemanticModel semanticModel = null, bool allowMoveNextStatementToSwitchExpression = true)
+            private ExpressionSyntax RewriteSwitchStatement(SwitchStatementSyntax node, ITypeSymbol variableSymbolTypeOpt = null, SemanticModel semanticModel = null, bool allowMoveNextStatementToSwitchExpression = true)
             {
                 var switchArms = node.Sections
                     // The default label must come last in the switch expression.
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     .Select(s =>
                         (tokensForLeadingTrivia: new[] { s.Labels[0].GetFirstToken(), s.Labels[0].GetLastToken() },
                          tokensForTrailingTrivia: new[] { s.Statements[0].GetFirstToken(), s.Statements[0].GetLastToken() },
-                         armExpression: GetSwitchExpressionArm(s, declaratorToRemoveType, semanticModel)))
+                         armExpression: GetSwitchExpressionArm(s, variableSymbolTypeOpt, semanticModel)))
                     .ToList();
 
                 if (allowMoveNextStatementToSwitchExpression)
