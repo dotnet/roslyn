@@ -1559,20 +1559,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // ref readonly |
             // for ( ref |
             // foreach ( ref | x
-            if (token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) &&
-                token.Parent.IsKind(SyntaxKind.RefType))
+            if (token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword))
             {
-                var refType = token.Parent;
-
-                if (refType.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                    refType.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement))
+                var parent = token.Parent;
+                if (parent.IsKind(SyntaxKind.RefType, SyntaxKind.RefExpression, SyntaxKind.LocalDeclarationStatement))
                 {
-                    return true;
-                }
+                    if (parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
+                        parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.ForEachVariableStatement))
+                    {
+                        return true;
+                    }
 
-                if (refType.IsParentKind(SyntaxKind.ForEachStatement))
-                {
-                    return true;
+                    if (parent.IsParentKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement))
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -2251,8 +2252,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.IsKind(SyntaxKind.InKeyword) ||
                 token.IsKind(SyntaxKind.OutKeyword))
             {
-                if (token.Parent.IsKind(SyntaxKind.Argument, SyntaxKind.RefExpression))
+                if (token.Parent.IsKind(SyntaxKind.Argument))
                 {
+                    return true;
+                }
+                else if (token.Parent.IsKind(SyntaxKind.RefExpression))
+                {
+                    // ( ref |
+                    // parenthesized expressions can't directly contain RefExpression, unless the user is typing an incomplete lambda expression.
+                    if (token.Parent.IsParentKind(SyntaxKind.ParenthesizedExpression))
+                    {
+                        return false;
+                    }
+
                     return true;
                 }
             }
