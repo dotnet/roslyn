@@ -947,38 +947,104 @@ $@"class Program
 
         public static IEnumerable<object[]> BinaryOperatorsData()
         {
-            static object[] getArgs(string op, string leftType, string rightType, string expectedSymbol = null, DiagnosticDescription diagnostic = null)
+            static void getArgs(ArrayBuilder<object[]> builder, string op, string leftType, string rightType, string expectedSymbol1 = null, string expectedSymbol2 = null, DiagnosticDescription diagnostic = null)
+            {
+                getArgs1(builder, op, leftType, rightType, expectedSymbol1, diagnostic);
+                getArgs1(builder, op, rightType, leftType, expectedSymbol2 ?? expectedSymbol1, diagnostic);
+            }
+
+            static void getArgs1(ArrayBuilder<object[]> builder, string op, string leftType, string rightType, string expectedSymbol, DiagnosticDescription diagnostic)
             {
                 if (expectedSymbol == null && diagnostic == null)
                 {
                     diagnostic = Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, leftType, rightType);
                 }
-                return new object[] { op, leftType, rightType, expectedSymbol, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>() };
+                builder.Add(new object[] { op, leftType, rightType, expectedSymbol, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>() });
             }
 
-            yield return getArgs("+", "nint", "object");
-            yield return getArgs("+", "nint", "string", "string string.op_Addition(object left, string right)");
-            yield return getArgs("+", "nint", "void*", "void* void*.op_Addition(long left, void* right)", Diagnostic(ErrorCode.ERR_VoidError, "x + y"));
-            yield return getArgs("+", "nint", "bool");
-            yield return getArgs("+", "nint", "char", "nint nint.op_Addition(nint left, nint right)");
-            yield return getArgs("+", "nint", "sbyte", "nint nint.op_Addition(nint left, nint right)");
-            yield return getArgs("+", "nint", "byte", "nint nint.op_Addition(nint left, nint right)");
-            yield return getArgs("+", "nint", "short", "nint nint.op_Addition(nint left, nint right)");
-            yield return getArgs("+", "nint", "ushort", "nint nint.op_Addition(nint left, nint right)");
-            yield return getArgs("+", "nint", "int", "nint nint.op_Addition(nint left, nint right)");
-            yield return getArgs("+", "nint", "uint", "long long.op_Addition(long left, long right)");
-            yield return getArgs("+", "nint", "nint", "nint nint.op_Addition(nint left, nint right)");
-            yield return getArgs("+", "nint", "nuint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: +(float, float) seems unfortunate.
-            yield return getArgs("+", "nint", "long", "long long.op_Addition(long left, long right)");
-            yield return getArgs("+", "nint", "ulong", "float float.op_Addition(float left, float right)"); // PROTOTYPE: +(float, float) seems unfortunate.
-            yield return getArgs("+", "nint", "float", "float float.op_Addition(float left, float right)");
-            yield return getArgs("+", "nint", "double", "double double.op_Addition(double left, double right)");
-            yield return getArgs("+", "nint", "decimal");
-            yield return getArgs("+", "nint", "System.IntPtr");
-            yield return getArgs("+", "nint", "System.UIntPtr");
-            // PROTOTYPE: Test nuint + {any}
-            // PROTOTYPE: Test {any} + nint and {any} + nuint
+            var builder = new ArrayBuilder<object[]>();
+
+            getArgs(builder, "+", "nint", "object");
+            getArgs(builder, "+", "nint", "string", "string string.op_Addition(object left, string right)", "string string.op_Addition(string left, object right)");
+            getArgs(builder, "+", "nint", "void*", "void* void*.op_Addition(long left, void* right)", "void* void*.op_Addition(void* left, long right)", Diagnostic(ErrorCode.ERR_VoidError, "x + y"));
+            getArgs(builder, "+", "nint", "bool");
+            getArgs(builder, "+", "nint", "char", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "sbyte", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "byte", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "short", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "ushort", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "int", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "uint", "long long.op_Addition(long left, long right)");
+            getArgs(builder, "+", "nint", "nint", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "nuint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint", "long", "long long.op_Addition(long left, long right)");
+            getArgs(builder, "+", "nint", "ulong", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint", "float", "float float.op_Addition(float left, float right)");
+            getArgs(builder, "+", "nint", "double", "double double.op_Addition(double left, double right)");
+            getArgs(builder, "+", "nint", "decimal");
+            getArgs(builder, "+", "nint", "System.IntPtr");
+            getArgs(builder, "+", "nint", "System.UIntPtr");
+
+            getArgs(builder, "+", "nint", "bool?");
+            getArgs(builder, "+", "nint", "char?", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "sbyte?", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "byte?", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "short?", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "ushort?", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "int?", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "uint?", "long long.op_Addition(long left, long right)");
+            getArgs(builder, "+", "nint", "nint?", "nint nint.op_Addition(nint left, nint right)");
+            getArgs(builder, "+", "nint", "nuint?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint", "long?", "long long.op_Addition(long left, long right)");
+            getArgs(builder, "+", "nint", "ulong?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? long+ulong uses +(long, long).
+            getArgs(builder, "+", "nint", "float?", "float float.op_Addition(float left, float right)");
+            getArgs(builder, "+", "nint", "double?", "double double.op_Addition(double left, double right)");
+            getArgs(builder, "+", "nint", "decimal?");
+            getArgs(builder, "+", "nint", "System.IntPtr?");
+            getArgs(builder, "+", "nint", "System.UIntPtr?");
+
+            getArgs(builder, "+", "nuint", "object");
+            getArgs(builder, "+", "nuint", "string", "string string.op_Addition(object left, string right)", "string string.op_Addition(string left, object right)");
+            getArgs(builder, "+", "nuint", "void*", "void* void*.op_Addition(ulong left, void* right)", "void* void*.op_Addition(void* left, ulong right)", Diagnostic(ErrorCode.ERR_VoidError, "x + y"));
+            getArgs(builder, "+", "nuint", "bool");
+            getArgs(builder, "+", "nuint", "char", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "sbyte", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "byte", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "short", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "ushort", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "int", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "uint", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "nint", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "nuint", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "long", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "ulong", "ulong ulong.op_Addition(ulong left, ulong right)");
+            getArgs(builder, "+", "nuint", "float", "float float.op_Addition(float left, float right)");
+            getArgs(builder, "+", "nuint", "double", "double double.op_Addition(double left, double right)");
+            getArgs(builder, "+", "nuint", "decimal");
+            getArgs(builder, "+", "nuint", "System.IntPtr");
+            getArgs(builder, "+", "nuint", "System.UIntPtr");
+
+            getArgs(builder, "+", "nuint", "bool?");
+            getArgs(builder, "+", "nuint", "char?", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "sbyte?", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "byte?", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "short?", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "ushort?", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "int?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "uint?", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "nint?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "nuint?", "nuint nuint.op_Addition(nuint left, nuint right)");
+            getArgs(builder, "+", "nuint", "long?", "float float.op_Addition(float left, float right)"); // PROTOTYPE: Is +(float, float) correct? ulong+long uses +(long, long).
+            getArgs(builder, "+", "nuint", "ulong?", "ulong ulong.op_Addition(ulong left, ulong right)");
+            getArgs(builder, "+", "nuint", "float?", "float float.op_Addition(float left, float right)");
+            getArgs(builder, "+", "nuint", "double?", "double double.op_Addition(double left, double right)");
+            getArgs(builder, "+", "nuint", "decimal?");
+            getArgs(builder, "+", "nuint", "System.IntPtr?");
+            getArgs(builder, "+", "nuint", "System.UIntPtr?");
+
             // PROTOTYPE: Test nint? and nuint?
+
+            return builder;
         }
 
         [Theory]
