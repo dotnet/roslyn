@@ -73,11 +73,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             if (!string.IsNullOrWhiteSpace(Descriptor.Id))
             {
-                Workspace.GetLanguageAndProjectType(ProjectId, out var language, out var projectType);
+                var language = Workspace.CurrentSolution.GetProject(ProjectId)?.Language;
 
                 // we use message format here since we don't have actual instance of diagnostic here. 
                 // (which means we do not have a message)
-                return BrowserHelper.CreateBingQueryUri(Descriptor.Id, Descriptor.GetBingHelpMessage(), language, projectType);
+                return BrowserHelper.CreateBingQueryUri(Descriptor.Id, Descriptor.GetBingHelpMessage(), language);
             }
 
             return null;

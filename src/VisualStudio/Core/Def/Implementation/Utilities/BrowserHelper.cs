@@ -13,9 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         /// <summary>
         /// unique VS session id
         /// </summary>
-        private static readonly string s_requestId = Guid.NewGuid().ToString();
-
-        private const string BingSearchString = "https://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText={0}&mainLanguage={1}&projectType={2}&requestId={3}&clientId={4}&errorCode={5}";
+        private static readonly string s_escapedRequestId = Uri.EscapeDataString(Guid.NewGuid().ToString());
 
         public static bool TryGetUri(string link, out Uri uri)
         {
@@ -39,21 +37,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             var errorCode = diagnostic.Id;
             var title = diagnostic.ENUMessageForBingSearch;
-            workspace.GetLanguageAndProjectType(diagnostic.ProjectId, out var language, out var projectType);
+            var language = workspace.CurrentSolution.GetProject(diagnostic.ProjectId)?.Language;
 
-            return CreateBingQueryUri(errorCode, title, language, projectType);
+            return CreateBingQueryUri(errorCode, title, language);
         }
 
-        public static Uri CreateBingQueryUri(string errorCode, string title, string language, string projectType)
-        {
-            errorCode ??= string.Empty;
-            title ??= string.Empty;
-            language ??= string.Empty;
-            projectType ??= string.Empty;
-
-            var url = string.Format(BingSearchString, Uri.EscapeDataString(title), Uri.EscapeDataString(language), Uri.EscapeDataString(projectType), Uri.EscapeDataString(s_requestId), Uri.EscapeDataString(string.Empty), Uri.EscapeDataString(errorCode));
-            return new Uri(url);
-        }
+        public static Uri CreateBingQueryUri(string errorCode, string title, string language)
+            => new Uri("https://bingdev.cloudapp.net/BingUrl.svc/Get" +
+                "?selectedText=" + Uri.EscapeDataString(title ?? string.Empty) +
+                "&mainLanguage=" + Uri.EscapeDataString(language ?? string.Empty) +
+                "&requestId=" + s_escapedRequestId +
+                "&errorCode=" + Uri.EscapeDataString(errorCode ?? string.Empty));
 
         public static void StartBrowser(Uri uri)
         {
