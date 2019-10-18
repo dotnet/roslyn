@@ -2259,8 +2259,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                                 if (!operationsToAnalyze.IsEmpty)
                                 {
-                                    executeOperationsActions(operationsToAnalyze);
-                                    executeOperationsBlockActions(operationBlocksToAnalyze, operationsToAnalyze, codeBlockActions);
+                                    try
+                                    {
+                                        executeOperationsActions(operationsToAnalyze);
+                                        executeOperationsBlockActions(operationBlocksToAnalyze, operationsToAnalyze, codeBlockActions);
+                                    }
+                                    finally
+                                    {
+                                        AnalyzerExecutor.OnOperationBlockActionsExecuted(operationBlocksToAnalyze);
+                                    }
                                 }
                             }
 
