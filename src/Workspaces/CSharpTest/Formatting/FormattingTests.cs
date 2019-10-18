@@ -9551,7 +9551,7 @@ class A
     void br()
     {
         var msg = 1 switch
-{
+        {
             _ => null
         };
     }

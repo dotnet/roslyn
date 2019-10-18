@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the switch expression context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentToken.Parent != null && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
             {
                 if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks))
                 {
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the switch expression context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentToken.Parent != null && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks))
                 {
