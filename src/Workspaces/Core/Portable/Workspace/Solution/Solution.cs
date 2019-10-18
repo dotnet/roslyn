@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the additional document in this solution with the specified document ID.
+        /// Gets the analyzer config document in this solution with the specified document ID.
         /// </summary>
         public AnalyzerConfigDocument? GetAnalyzerConfigDocument(DocumentId? documentId)
         {
