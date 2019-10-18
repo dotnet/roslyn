@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1149,7 +1150,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static IEnumerable<Diagnostic> GetEffectiveDiagnosticsImpl(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
         {
+            if (diagnostics.IsEmpty)
+            {
+                yield break;
+            }
+
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
+            var semanticModelsByTree = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic != null)
@@ -1157,9 +1164,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
                     if (effectiveDiagnostic != null)
                     {
-                        yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);
+                        yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic, getSemanticModel);
                     }
                 }
+            }
+
+            SemanticModel getSemanticModel(SyntaxTree tree)
+            {
+                if (!semanticModelsByTree.TryGetValue(tree, out var model))
+                {
+                    model = semanticModelsByTree.GetOrAdd(tree, compilation.GetSemanticModel(tree));
+                }
+
+                return model;
             }
         }
 
