@@ -140,13 +140,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 {
                     var expressionStatement = (ExpressionStatementSyntax)statements[0];
                     SyntaxNode type = null;
+
+                    // In cases of simple assignment (e.g. x = y), we see if the right-hand side can be cast to the type of the left-hand side.
                     if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
                     {
+                        // Case: x = new Y();
                         var objCreationNode = expressionStatement.Expression.ChildNodes().Where(s => s.Kind() == SyntaxKind.ObjectCreationExpression).FirstOrDefault();
                         if (objCreationNode != default(SyntaxNode))
                         {
                             type = objCreationNode.ChildNodes().Where(s => s.Kind() == SyntaxKind.IdentifierName).FirstOrDefault();
                         }
+                        // Case: x = y;
                         else
                         {
                             type = expressionStatement.Expression.ChildNodes().Where(s => s.Kind() == SyntaxKind.IdentifierName).FirstOrDefault();
