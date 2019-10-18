@@ -150,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                         else
                         {
                             type = expressionStatement.Expression.ChildNodes().Where(s => s.Kind() == SyntaxKind.IdentifierName).FirstOrDefault();
-
                         }
                     }
 

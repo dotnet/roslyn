@@ -975,5 +975,62 @@ class Program
     }
 }");
         }
+
+        [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestShouldProperlyHandleInterfaces()
+        {
+            await TestInCSharp8(
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Apple : IFruit, IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit;
+        [||]switch (name)
+        {
+            case ""apple"":
+                fruit = new Apple();
+            break;
+            case ""banana"":
+                fruit = new Banana();
+            break;
+            default:
+                throw new InvalidOperationException(""Unknown fruit."");
+        }
+    }
+}",
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Apple : IFruit, IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    public static void Test(string name)
+    {
+        var fruit = name switch
+        {
+            ""apple"" => new Apple(),
+            ""banana"" => (IFruit2)new Banana(),
+            _ => throw new InvalidOperationException(""Unknown fruit.""),
+        };
+    }
+}");
+        }
     }
 }
