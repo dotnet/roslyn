@@ -893,7 +893,8 @@ tryAgain:
                             argNodes.Add(this.ParseAttributeArgument());
 
                             // comma + argument or end?
-                            while (true)
+                            int lastTokenPosition = -1;
+                            while (IsMakingProgress(ref lastTokenPosition))
                             {
                                 if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                                 {
@@ -7545,7 +7546,8 @@ tryAgain:
                     list.Add(this.ParseExpressionCore());
 
                     // additional arguments
-                    while (true)
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken || this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         {
@@ -9223,6 +9225,10 @@ tryAgain:
                 case SyntaxKind.DelegateKeyword:
                     expr = this.ParseAnonymousMethodExpression();
                     break;
+                case SyntaxKind.RefKeyword:
+                    // ref is not expected to appear in this position.
+                    expr = this.AddError(ParsePossibleRefExpression(), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+                    break;
                 default:
                     // check for intrinsic type followed by '.'
                     if (IsPredefinedType(tk))
@@ -10258,7 +10264,8 @@ tryAgain:
                     list.Add(this.ParseAnonymousTypeMemberInitializer());
 
                     // additional arguments
-                    while (true)
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                         {
@@ -10417,7 +10424,8 @@ tryAgain:
                     list.Add(this.ParseObjectOrCollectionInitializerMember(ref isObjectInitializer));
 
                     // additional arguments
-                    while (true)
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                         {
@@ -10548,7 +10556,8 @@ tryAgain:
                     list.Add(this.ParseExpressionCore());
 
                     // additional arguments
-                    while (true)
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                         {
@@ -10644,7 +10653,8 @@ tryAgain:
                     {
                         list.Add(this.ParseVariableInitializer());
 
-                        while (true)
+                        int lastTokenPosition = -1;
+                        while (IsMakingProgress(ref lastTokenPosition))
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
                             {
