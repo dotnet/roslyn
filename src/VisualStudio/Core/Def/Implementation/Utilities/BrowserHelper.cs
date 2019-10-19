@@ -10,9 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
     internal static class BrowserHelper
     {
         /// <summary>
-        /// unique VS session id
+        /// Unique VS session id. 
+        /// Internal for testing.
+        /// TODO: Revisit - static non-deterministic data https://github.com/dotnet/roslyn/issues/39415
         /// </summary>
-        private static readonly string s_escapedRequestId = Guid.NewGuid().ToString();
+        internal static readonly string EscapedRequestId = Guid.NewGuid().ToString();
 
         private const string BingGetApiUrl = "https://bingdev.cloudapp.net/BingUrl.svc/Get";
         private const int BingQueryArgumentMaxLength = 10240;
@@ -56,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return new Uri(BingGetApiUrl +
                 "?selectedText=" + EscapeDataString(title) +
                 "&mainLanguage=" + EscapeDataString(language) +
-                "&requestId=" + s_escapedRequestId +
+                "&requestId=" + EscapedRequestId +
                 "&errorCode=" + EscapeDataString(diagnosticId));
         }
 
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             }
             catch (UriFormatException)
             {
-                return null;
+                return string.Empty;
             }
         }
 
