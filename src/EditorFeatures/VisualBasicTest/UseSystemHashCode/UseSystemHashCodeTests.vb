@@ -623,5 +623,28 @@ class C
     end function
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)>
+        Public Async Function TestAssignmentToImplicitMethodVariable() As Task
+            Await TestMissingAsync(
+"imports System.Collections.Generic
+namespace System
+    public structure HashCode
+    end structure
+end namespace
+
+class C 
+    dim i as integer
+
+    readonly property S as string
+
+    public overrides function $$GetHashCode() as integer
+        dim hashCode = -538000506
+        GetHashCode = hashCode * -1521134295 + i.GetHashCode()
+        GetHashCode = hashCode * -1521134295 + EqualityComparer(of string).Default.GetHashCode(S)
+        Return hashCode
+    end function
+end class")
+        End Function
     End Class
 End Namespace
