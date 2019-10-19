@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return statements.ToImmutableAndFree();
         }
 
-
         /// <summary>
         /// Generates an override of <see cref="object.GetHashCode()"/> similar to the one
         /// generated for anonymous types.
