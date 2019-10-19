@@ -87,24 +87,28 @@ namespace Microsoft.CodeAnalysis.Completion
             var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans);
             var match = patternMatcher.GetFirstMatch(completionItemText);
 
-            if (match != null)
+            if (culture.Equals(EnUSCultureInfo))
             {
                 return match;
             }
 
-            // Start with the culture-specific comparison, and fall back to en-US.
-            if (!culture.Equals(EnUSCultureInfo))
-            {
-                patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
-                match = patternMatcher.GetFirstMatch(completionItemText);
+            // Keywords in .NET are always in En-US.
+            // Identifiers can be in user language.
+            // Try to get matches for both and return the best of them.
+            patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
+            var enUSCultureMatch = patternMatcher.GetFirstMatch(completionItemText);
 
-                if (match != null)
-                {
-                    return match;
-                }
+            if (match == null)
+            {
+                return enUSCultureMatch;
             }
 
-            return null;
+            if (enUSCultureMatch == null)
+            {
+                return match;
+            }
+
+            return match.Value.CompareTo(enUSCultureMatch.Value) < 0 ? match.Value : enUSCultureMatch.Value;
         }
 
         private PatternMatcher GetPatternMatcher(
