@@ -12,9 +12,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         /// <summary>
         /// unique VS session id
         /// </summary>
-        private static readonly string s_escapedRequestId = Uri.EscapeDataString(Guid.NewGuid().ToString());
+        private static readonly string s_escapedRequestId = Guid.NewGuid().ToString();
 
         private const string BingGetApiUrl = "https://bingdev.cloudapp.net/BingUrl.svc/Get";
+        private const int BingQueryArgumentMaxLength = 10240;
 
         private static bool TryGetWellFormedHttpUri(string link, out Uri uri)
         {
@@ -53,10 +54,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             }
 
             return new Uri(BingGetApiUrl +
-                "?selectedText=" + Uri.EscapeDataString(title ?? string.Empty) +
-                "&mainLanguage=" + Uri.EscapeDataString(language ?? string.Empty) +
+                "?selectedText=" + EscapeDataString(title) +
+                "&mainLanguage=" + EscapeDataString(language) +
                 "&requestId=" + s_escapedRequestId +
-                "&errorCode=" + Uri.EscapeDataString(diagnosticId ?? string.Empty));
+                "&errorCode=" + EscapeDataString(diagnosticId));
+        }
+
+        private static string EscapeDataString(string str)
+        {
+            if (str == null)
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                // Uri has limit on string size (32766 characters).
+                return Uri.EscapeDataString(str.Substring(0, Math.Min(str.Length, BingQueryArgumentMaxLength)));
+            }
+            catch (UriFormatException)
+            {
+                return null;
+            }
         }
 
         public static string GetHelpLinkToolTip(DiagnosticData data)
