@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -16,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<SyntaxNode> GetGetHashCodeComponents(
             this SyntaxGenerator factory,
             Compilation compilation,
-            INamedTypeSymbol containingTypeOpt,
+            INamedTypeSymbol? containingType,
             ImmutableArray<ISymbol> members,
             bool justMemberReference)
         {
             var result = ArrayBuilder<SyntaxNode>.GetInstance();
 
-            if (containingTypeOpt != null && GetBaseGetHashCodeMethod(containingTypeOpt) != null)
+            if (containingType != null && GetBaseGetHashCodeMethod(containingType) != null)
             {
                 result.Add(factory.InvocationExpression(
                     factory.MemberAccessExpression(factory.BaseExpression(), GetHashCodeName)));
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 ? factory.NegateExpression(factory.LiteralExpression(-value))
                 : factory.LiteralExpression(value);
 
-        public static IMethodSymbol GetBaseGetHashCodeMethod(INamedTypeSymbol containingType)
+        public static IMethodSymbol? GetBaseGetHashCodeMethod(INamedTypeSymbol containingType)
         {
             if (containingType.IsValueType)
             {
