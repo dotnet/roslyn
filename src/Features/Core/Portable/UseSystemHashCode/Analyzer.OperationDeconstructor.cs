@@ -43,8 +43,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             public (bool accessesBase, ImmutableArray<ISymbol> hashedSymbol) GetResult()
                 => (_accessesBase, _hashedSymbols.ToImmutable());
 
-            // Recursive function that decomposes <paramref name="value"/>, looking for particular
-            // forms that VS or ReSharper generate to hash fields in the containing type.
+            /// <summary>
+            /// Recursive function that decomposes <paramref name="value"/>, looking for particular
+            /// forms that VS or ReSharper generate to hash fields in the containing type.
+            /// </summary>
             public bool TryAddHashedSymbol(IOperation value, bool seenHash)
             {
                 value = Unwrap(value);
