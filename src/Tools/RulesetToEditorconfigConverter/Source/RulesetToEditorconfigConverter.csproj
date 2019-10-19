@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp2.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
+    <GenerateDocumentationFile Condition="'$(TargetFramework)' != 'netstandard2.0'">false</GenerateDocumentationFile>
     <IsShipping>true</IsShipping>
-  </PropertyGroup>  
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Utilities\Compiler\Extensions\ReportDiagnosticExtensions.cs" Link="ReportDiagnosticExtensions.cs" />
   </ItemGroup>
