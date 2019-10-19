@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             context.RegisterCompilationStartAction(c =>
             {
                 // var hashCodeType = c.Compilation.GetTypeByMetadataName("System.HashCode");
-                var analyzer = new Analyzer(c.Compilation);
-                if (analyzer.CanAnalyze())
+                if (Analyzer.TryGetAnalyzer(c.Compilation, out var analyzer))
                 {
                     c.RegisterOperationBlockAction(ctx => AnalyzeOperationBlock(analyzer, ctx));
                 }

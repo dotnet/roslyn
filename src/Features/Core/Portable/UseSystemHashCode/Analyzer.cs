@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,20 +24,34 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
         public readonly INamedTypeSymbol SystemHashCodeType;
 
-        public Analyzer(Compilation compilation)
+        private Analyzer(
+            Compilation compilation, IMethodSymbol objectGetHashCodeMethod,
+            INamedTypeSymbol? equalityComparerType, INamedTypeSymbol systemHashCodeType)
         {
             _compilation = compilation;
+            _objectGetHashCodeMethod = objectGetHashCodeMethod;
+            _equalityComparerType = equalityComparerType;
+            SystemHashCodeType = systemHashCodeType;
+        }
 
+        public static bool TryGetAnalyzer(Compilation compilation, [NotNullWhen(true)]out Analyzer analyzer)
+        {
             var objectType = compilation.GetSpecialType(SpecialType.System_Object);
             // This may not find anything.  However, CanAnalyze checks for this. So
             // we represent the value as non-nullable for all future code.
-            _objectGetHashCodeMethod = (objectType?.GetMembers(nameof(GetHashCode)).FirstOrDefault() as IMethodSymbol)!;
-            _equalityComparerType = compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName);
-            SystemHashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
-        }
+            var objectGetHashCodeMethod = objectType?.GetMembers(nameof(GetHashCode)).FirstOrDefault() as IMethodSymbol;
+            var equalityComparerType = compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName);
+            var systemHashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
 
-        public bool CanAnalyze()
-            => SystemHashCodeType != null && _objectGetHashCodeMethod != null;
+            if (systemHashCodeType == null || objectGetHashCodeMethod == null)
+            {
+                analyzer = default;
+                return false;
+            }
+
+            analyzer = new Analyzer(compilation, objectGetHashCodeMethod, equalityComparerType, systemHashCodeType);
+            return true;
+        }
 
         /// <summary>
         /// Analyzes the containing <c>GetHashCode</c> method to determine which fields and
@@ -44,8 +59,6 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         /// </summary>
         public (bool accessesBase, ImmutableArray<ISymbol> members) GetHashedMembers(ISymbol owningSymbol, IOperation operation)
         {
-            Debug.Assert(CanAnalyze());
-
             if (!(operation is IBlockOperation blockOperation))
             {
                 return default;

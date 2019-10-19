@@ -46,8 +46,11 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
 
             var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var analyzer = new Analyzer(semanticModel.Compilation);
-            Debug.Assert(analyzer.CanAnalyze());
+            if (!Analyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
+            {
+                Debug.Fail("Could not get analyzer");
+                return;
+            }
 
             foreach (var diagnostic in diagnostics)
             {
