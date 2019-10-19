@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
     {
         private readonly Compilation _compilation;
         private readonly IMethodSymbol _objectGetHashCodeMethod;
-        private readonly INamedTypeSymbol _equalityComparerTypeOpt;
+        private readonly INamedTypeSymbol? _equalityComparerType;
 
         public readonly INamedTypeSymbol SystemHashCodeType;
 
@@ -26,8 +28,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             _compilation = compilation;
 
             var objectType = compilation.GetSpecialType(SpecialType.System_Object);
-            _objectGetHashCodeMethod = objectType?.GetMembers(nameof(GetHashCode)).FirstOrDefault() as IMethodSymbol;
-            _equalityComparerTypeOpt = compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName);
+            // This may not find anything.  However, CanAnalyze checks for this. So
+            // we represent the value as non-nullable for all future code.
+            _objectGetHashCodeMethod = (objectType?.GetMembers(nameof(GetHashCode)).FirstOrDefault() as IMethodSymbol)!;
+            _equalityComparerType = compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName);
             SystemHashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
         }
 
@@ -96,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return default;
             }
 
-            using var analyzer = new OperationDeconstructor(this, method, hashCodeVariableOpt: null);
+            using var analyzer = new OperationDeconstructor(this, method, hashCodeVariable: null);
             if (!analyzer.TryAddHashedSymbol(returnOperation.ReturnedValue, seenHash: false))
             {
                 return default;
@@ -204,7 +208,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             return valueAnalyzer.GetResult();
         }
 
-        private bool OverridesSystemObject(IMethodSymbol method)
+        private bool OverridesSystemObject(IMethodSymbol? method)
         {
             for (var current = method; current != null; current = current.OverriddenMethod)
             {
