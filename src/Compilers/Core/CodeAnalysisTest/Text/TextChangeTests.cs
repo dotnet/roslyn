@@ -637,6 +637,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(22289, "https://github.com/dotnet/roslyn/issues/22289")]
         public void TestMergeChanges_Overlapping_NewInsideOld_AndOldHasDeletion()
         {
             var original = SourceText.From("01234");
@@ -650,6 +651,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(22289, "https://github.com/dotnet/roslyn/issues/22289")]
         public void TestMergeChanges_Overlapping_NewInsideOld_AndOldHasLeadingDeletion_SmallerThanLeadingInsertion()
         {
             var original = SourceText.From("012");
@@ -663,6 +665,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(22289, "https://github.com/dotnet/roslyn/issues/22289")]
         public void TestMergeChanges_Overlapping_NewInsideOld_AndBothHaveDeletion_NewDeletionSmallerThanOld()
         {
             var original = SourceText.From("01234");
@@ -783,6 +786,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(22289, "https://github.com/dotnet/roslyn/issues/22289")]
         public void TestMergeChanges_SameStart_AndBothHaveDeletion_NewDeletionSmallerThanOld()
         {
             var original = SourceText.From("01234");
