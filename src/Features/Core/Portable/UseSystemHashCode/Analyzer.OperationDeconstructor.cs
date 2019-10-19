@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
     {
         /// <summary>
         /// Breaks down complex <see cref="IOperation"/> trees, looking for particular
-        /// <see cref="object.GetHashCode"/> patterns and extractin out the field and
-        /// property symbols use to compute the hash.
+        /// <see cref="object.GetHashCode"/> patterns and extracting out the field and property
+        /// symbols use to compute the hash.
         /// </summary>
         private struct OperationDeconstructor : IDisposable
         {
