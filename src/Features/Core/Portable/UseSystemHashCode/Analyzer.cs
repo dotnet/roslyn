@@ -105,18 +105,18 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             // look for code of the form `return (a, b, c).GetHashCode()`.
             if (statements.Length != 1)
             {
-                return default;
+                return null;
             }
 
             if (!(statements[0] is IReturnOperation returnOperation))
             {
-                return default;
+                return null;
             }
 
             using var analyzer = new OperationDeconstructor(this, method, hashCodeVariable: null);
             if (!analyzer.TryAddHashedSymbol(returnOperation.ReturnedValue, seenHash: false))
             {
-                return default;
+                return null;
             }
 
             return analyzer.GetResult();
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             //      return hashCode;
             if (statements.Length < 3)
             {
-                return default;
+                return null;
             }
 
             // First statement has to be the declaration of the accumulator.
@@ -145,33 +145,33 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             if (!(statements.First() is IVariableDeclarationGroupOperation varDeclStatement) ||
                 !(statements.Last() is IReturnOperation returnStatement))
             {
-                return default;
+                return null;
             }
 
             var variables = varDeclStatement.GetDeclaredVariables();
             if (variables.Length != 1 ||
                 varDeclStatement.Declarations.Length != 1)
             {
-                return default;
+                return null;
             }
 
             var declaration = varDeclStatement.Declarations[0];
             if (declaration.Declarators.Length != 1)
             {
-                return default;
+                return null;
             }
 
             var declarator = declaration.Declarators[0];
             var initializerValue = declaration.Initializer?.Value ?? declarator.Initializer?.Value;
             if (initializerValue == null)
             {
-                return default;
+                return null;
             }
 
             var hashCodeVariable = declarator.Symbol;
             if (!(IsLocalReference(returnStatement.ReturnedValue, hashCodeVariable)))
             {
-                return default;
+                return null;
             }
 
             using var valueAnalyzer = new OperationDeconstructor(this, method, hashCodeVariable);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             if (!IsLiteralNumber(initializerValue) &&
                 !valueAnalyzer.TryAddHashedSymbol(initializerValue, seenHash: true))
             {
-                return default;
+                return null;
             }
 
             // Now check all the intermediary statements.  They all have to be of the form:
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                     !IsLocalReference(simpleAssignment.Target, hashCodeVariable) ||
                     !valueAnalyzer.TryAddHashedSymbol(simpleAssignment.Value, seenHash: false))
                 {
-                    return default;
+                    return null;
                 }
             }
 
