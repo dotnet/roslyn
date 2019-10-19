@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.UseSystemHashCode
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseSimpleimportsStatement
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseSystemHashCode
     Partial Public Class UseSystemHashCodeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
