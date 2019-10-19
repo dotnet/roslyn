@@ -1113,5 +1113,48 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        public async Task TestNotOnExistingUsageOfSystemHashCode()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode1()
+    {
+        return HashCode.Combine(i, S);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        public async Task TestNotOnExistingUsageOfSystemHashCode2()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int i;
+
+    string S { get; }
+
+    public override int $$GetHashCode1()
+    {
+        var hash = new HashCode();
+        hash.Add(i);
+        hash.Add(S);
+        return hash.ToHashCode();
+    }
+}");
+        }
     }
 }
