@@ -482,7 +482,7 @@ public class Class1
             End Using
         End Function
 
-        <WpfFact>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(812789, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812789")>
         Public Async Function RenamingEscapedIdentifiers() As Task
@@ -699,7 +699,7 @@ class C
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38555")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VisualBasic_FixupSpanDuringResolvableConflict_NonReferenceConflict() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1355,7 +1355,7 @@ namespace N
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/38555")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/29483")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(8334, "https://github.com/dotnet/roslyn/issues/8334")>
         Public Async Function CSharp_FixupSpanDuringResolvableConflict_ComplexificationReordersReferenceSpans() As Task

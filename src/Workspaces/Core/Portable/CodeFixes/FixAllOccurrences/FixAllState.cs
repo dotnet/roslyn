@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var diagnosticIds = this.DiagnosticIds;
             string diagnosticId;
-            if (diagnosticIds.Count() == 1)
+            if (diagnosticIds.Count == 1)
             {
                 diagnosticId = diagnosticIds.Single();
             }

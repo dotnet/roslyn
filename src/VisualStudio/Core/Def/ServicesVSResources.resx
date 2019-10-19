@@ -1329,4 +1329,7 @@ I agree to all of the foregoing:</value>
   <data name="Requires_System_HashCode_be_present_in_project" xml:space="preserve">
     <value>Requires 'System.HashCode' be present in project</value>
   </data>
+  <data name="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item" xml:space="preserve">
+    <value>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</value>
+  </data>
 </root>

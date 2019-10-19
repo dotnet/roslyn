@@ -58,11 +58,12 @@ namespace Roslyn.Test.Utilities
 
             // A stack of span starts along with their associated annotation name.  [||] spans simply
             // have empty string for their annotation name.
-            var spanStartStack = new Stack<Tuple<int, string>>();
+            var spanStartStack = new Stack<(int matchIndex, string name)>();
+            var namedSpanStartStack = new Stack<(int matchIndex, string name)>();
 
             while (true)
             {
-                var matches = new List<Tuple<int, string>>();
+                var matches = new List<(int matchIndex, string name)>();
                 AddMatch(input, PositionString, currentIndexInInput, matches);
                 AddMatch(input, SpanStartString, currentIndexInInput, matches);
                 AddMatch(input, SpanEndString, currentIndexInInput, matches);
@@ -71,7 +72,7 @@ namespace Roslyn.Test.Utilities
                 var namedSpanStartMatch = s_namedSpanStartRegex.Match(input, currentIndexInInput);
                 if (namedSpanStartMatch.Success)
                 {
-                    matches.Add(Tuple.Create(namedSpanStartMatch.Index, namedSpanStartMatch.Value));
+                    matches.Add((namedSpanStartMatch.Index, namedSpanStartMatch.Value));
                 }
 
                 if (matches.Count == 0)
@@ -80,10 +81,10 @@ namespace Roslyn.Test.Utilities
                     break;
                 }
 
-                var orderedMatches = matches.OrderBy((t1, t2) => t1.Item1 - t2.Item1).ToList();
+                var orderedMatches = matches.OrderBy((t1, t2) => t1.matchIndex - t2.matchIndex).ToList();
                 if (orderedMatches.Count >= 2 &&
-                    spanStartStack.Count > 0 &&
-                    matches[0].Item1 == matches[1].Item1 - 1)
+                    (spanStartStack.Count > 0 || namedSpanStartStack.Count > 0) &&
+                    matches[0].matchIndex == matches[1].matchIndex - 1)
                 {
                     // We have a slight ambiguity with cases like these:
                     //
@@ -92,8 +93,8 @@ namespace Roslyn.Test.Utilities
                     // Is it starting a new match, or ending an existing match.  As a workaround, we
                     // special case these and consider it ending a match if we have something on the
                     // stack already.
-                    if ((matches[0].Item2 == SpanStartString && matches[1].Item2 == SpanEndString && spanStartStack.Peek().Item2 == string.Empty) ||
-                        (matches[0].Item2 == SpanStartString && matches[1].Item2 == NamedSpanEndString && spanStartStack.Peek().Item2 != string.Empty))
+                    if ((matches[0].name == SpanStartString && matches[1].name == SpanEndString && !spanStartStack.IsEmpty()) ||
+                        (matches[0].name == SpanStartString && matches[1].name == NamedSpanEndString && !namedSpanStartStack.IsEmpty()))
                     {
                         orderedMatches.RemoveAt(0);
                     }
@@ -102,8 +103,8 @@ namespace Roslyn.Test.Utilities
                 // Order the matches by their index
                 var firstMatch = orderedMatches.First();
 
-                var matchIndexInInput = firstMatch.Item1;
-                var matchString = firstMatch.Item2;
+                var matchIndexInInput = firstMatch.matchIndex;
+                var matchString = firstMatch.name;
 
                 var matchIndexInOutput = matchIndexInInput - inputOutputOffset;
                 outputBuilder.Append(input.Substring(currentIndexInInput, matchIndexInInput - currentIndexInInput));
@@ -123,7 +124,7 @@ namespace Roslyn.Test.Utilities
                         break;
 
                     case SpanStartString:
-                        spanStartStack.Push(Tuple.Create(matchIndexInOutput, string.Empty));
+                        spanStartStack.Push((matchIndexInOutput, string.Empty));
                         break;
 
                     case SpanEndString:
@@ -132,31 +133,22 @@ namespace Roslyn.Test.Utilities
                             throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanEndString, SpanStartString));
                         }
 
-                        if (spanStartStack.Peek().Item2.Length > 0)
-                        {
-                            throw new ArgumentException(string.Format("Saw {0} without matching {1}", NamedSpanStartString, NamedSpanEndString));
-                        }
-
                         PopSpan(spanStartStack, tempSpans, matchIndexInOutput);
                         break;
 
                     case NamedSpanStartString:
                         var name = namedSpanStartMatch.Groups[1].Value;
-                        spanStartStack.Push(Tuple.Create(matchIndexInOutput, name));
+                        namedSpanStartStack.Push((matchIndexInOutput, name));
                         break;
 
                     case NamedSpanEndString:
-                        if (spanStartStack.Count == 0)
+                        if (namedSpanStartStack.Count == 0)
                         {
                             throw new ArgumentException(string.Format("Saw {0} without matching {1}", NamedSpanEndString, NamedSpanStartString));
                         }
 
-                        if (spanStartStack.Peek().Item2.Length == 0)
-                        {
-                            throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanStartString, SpanEndString));
-                        }
 
-                        PopSpan(spanStartStack, tempSpans, matchIndexInOutput);
+                        PopSpan(namedSpanStartStack, tempSpans, matchIndexInOutput);
                         break;
 
                     default:
@@ -167,6 +159,11 @@ namespace Roslyn.Test.Utilities
             if (spanStartStack.Count > 0)
             {
                 throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanStartString, SpanEndString));
+            }
+
+            if (namedSpanStartStack.Count > 0)
+            {
+                throw new ArgumentException(string.Format("Saw {0} without matching {1}", NamedSpanEndString, NamedSpanEndString));
             }
 
             // Append the remainder of the string.
@@ -187,22 +184,22 @@ namespace Roslyn.Test.Utilities
         }
 
         private static void PopSpan(
-            Stack<Tuple<int, string>> spanStartStack,
+            Stack<(int matchIndex, string name)> spanStartStack,
             IDictionary<string, ArrayBuilder<TextSpan>> spans,
             int finalIndex)
         {
-            var spanStartTuple = spanStartStack.Pop();
+            var (matchIndex, name) = spanStartStack.Pop();
 
-            var span = TextSpan.FromBounds(spanStartTuple.Item1, finalIndex);
-            GetOrAdd(spans, spanStartTuple.Item2, _ => ArrayBuilder<TextSpan>.GetInstance()).Add(span);
+            var span = TextSpan.FromBounds(matchIndex, finalIndex);
+            GetOrAdd(spans, name, _ => ArrayBuilder<TextSpan>.GetInstance()).Add(span);
         }
 
-        private static void AddMatch(string input, string value, int currentIndex, List<Tuple<int, string>> matches)
+        private static void AddMatch(string input, string value, int currentIndex, List<(int, string)> matches)
         {
             var index = input.IndexOf(value, currentIndex, StringComparison.Ordinal);
             if (index >= 0)
             {
-                matches.Add(Tuple.Create(index, value));
+                matches.Add((index, value));
             }
         }
 

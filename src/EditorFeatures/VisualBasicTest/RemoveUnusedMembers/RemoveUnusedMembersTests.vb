@@ -1357,7 +1357,7 @@ End Class")
 "Class C
     Private {|FixAllInDocument:_goo|}, _goo2 As Integer, _goo3 As Integer = 0, _goo4, _goo5 As Char
     Private _goo6, _goo7 As Integer, _goo8 As Integer = 0
-    Private _goo9, _goo10 As New String("""") ' Non constant intializer
+    Private _goo9, _goo10 As New String("""") ' Non constant initializer
     Private _goo11 = 0  ' Implicit conversion to Object type in the initializer, hence it is a non constant initializer.
 
     Public Sub M()
@@ -1366,7 +1366,7 @@ End Class")
 End Class",
 "Class C
     Private _goo4 As Char
-    Private _goo9, _goo10 As New String("""") ' Non constant intializer
+    Private _goo9, _goo10 As New String("""") ' Non constant initializer
     Private _goo11 = 0  ' Implicit conversion to Object type in the initializer, hence it is a non constant initializer.
 
     Public Sub M()

@@ -9,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Module SignatureHelpUtilities
         Private ReadOnly s_getArgumentListOpenToken As Func(Of ArgumentListSyntax, SyntaxToken) = Function(list) list.OpenParenToken
         Private ReadOnly s_getTypeArgumentListOpenToken As Func(Of TypeArgumentListSyntax, SyntaxToken) = Function(list) list.OpenParenToken
+        Private ReadOnly s_getCollectionInitializerOpenToken As Func(Of CollectionInitializerSyntax, SyntaxToken) = Function(i) i.OpenBraceToken
 
         Private ReadOnly s_getArgumentListCloseToken As Func(Of ArgumentListSyntax, SyntaxToken) =
             Function(list)
@@ -27,9 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End Function
 
         Private ReadOnly s_getTypeArgumentListCloseToken As Func(Of TypeArgumentListSyntax, SyntaxToken) = Function(list) list.CloseParenToken
+        Private ReadOnly s_getCollectionInitializerCloseToken As Func(Of CollectionInitializerSyntax, SyntaxToken) = Function(i) i.CloseBraceToken
 
-        Private ReadOnly s_getArgumentListArgumentsWithSeparators As Func(Of ArgumentListSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(list) list.Arguments.GetWithSeparators().AsEnumerable().[Select](Function(t) CType(t, SyntaxNodeOrToken))
-        Private ReadOnly s_getTypeArgumentListArgumentsWithSeparators As Func(Of TypeArgumentListSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(list) list.Arguments.GetWithSeparators().AsEnumerable().[Select](Function(t) CType(t, SyntaxNodeOrToken))
+        Private ReadOnly s_getArgumentListArgumentsWithSeparators As Func(Of ArgumentListSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(list) list.Arguments.GetWithSeparators()
+        Private ReadOnly s_getTypeArgumentListArgumentsWithSeparators As Func(Of TypeArgumentListSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(list) list.Arguments.GetWithSeparators()
+        Private ReadOnly s_getCollectionInitializerArgumentsWithSeparators As Func(Of CollectionInitializerSyntax, IEnumerable(Of SyntaxNodeOrToken)) = Function(i) i.Initializers.GetWithSeparators()
 
         Private ReadOnly s_getArgumentListNames As Func(Of ArgumentListSyntax, IEnumerable(Of String)) =
             Function(list) list.Arguments.Select(Function(a)
@@ -41,6 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                                  End Function)
 
         Private ReadOnly s_getTypeArgumentListNames As Func(Of TypeArgumentListSyntax, IEnumerable(Of String)) = Function(list) list.Arguments.Select(Function(a) DirectCast(Nothing, String))
+        Private ReadOnly s_getCollectionInitializerNames As Func(Of CollectionInitializerSyntax, IEnumerable(Of String)) = Function(i) i.Initializers.Select(Function(a) DirectCast(Nothing, String))
 
         Friend Function GetSignatureHelpSpan(argumentList As ArgumentListSyntax) As TextSpan
             Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getArgumentListCloseToken)
@@ -54,8 +58,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(argumentList, s_getTypeArgumentListCloseToken)
         End Function
 
-        Friend Function GetSignatureHelpState(argumentList As ArgumentListSyntax, position As Integer) As SignatureHelpState
+        Friend Function GetSignatureHelpSpan(initializer As CollectionInitializerSyntax) As TextSpan
+            Return CommonSignatureHelpUtilities.GetSignatureHelpSpan(initializer, initializer.SpanStart, s_getCollectionInitializerCloseToken)
+        End Function
 
+        Friend Function GetSignatureHelpState(argumentList As ArgumentListSyntax, position As Integer) As SignatureHelpState
             Return CommonSignatureHelpUtilities.GetSignatureHelpState(
                 argumentList,
                 position,
@@ -75,6 +82,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 s_getTypeArgumentListNames)
         End Function
 
+        Friend Function GetSignatureHelpState(initializer As CollectionInitializerSyntax, position As Integer) As SignatureHelpState
+            Return CommonSignatureHelpUtilities.GetSignatureHelpState(
+                initializer,
+                position,
+                s_getCollectionInitializerOpenToken,
+                s_getCollectionInitializerCloseToken,
+                s_getCollectionInitializerArgumentsWithSeparators,
+                s_getCollectionInitializerNames)
+        End Function
     End Module
 End Namespace
 

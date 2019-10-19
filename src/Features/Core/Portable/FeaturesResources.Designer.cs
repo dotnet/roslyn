@@ -1329,6 +1329,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The file is likely being updated by a background build. The debug session can&apos;t continue until the update is completed..
+        /// </summary>
+        internal static string DocumentIsOutOfSyncWithDebuggee {
+            get {
+                return ResourceManager.GetString("DocumentIsOutOfSyncWithDebuggee", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit and Continue.
         /// </summary>
         internal static string EditAndContinue {

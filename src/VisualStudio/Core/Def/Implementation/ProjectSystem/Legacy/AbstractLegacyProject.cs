@@ -58,10 +58,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             ICommandLineParserService commandLineParserServiceOpt)
             : base(threadingContext)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             Contract.ThrowIfNull(hierarchy);
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             Workspace = componentModel.GetService<VisualStudioWorkspace>();
+            var workspaceImpl = (VisualStudioWorkspaceImpl)Workspace;
 
             var projectFilePath = hierarchy.TryGetProjectFilePath();
 
@@ -89,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     ProjectGuid = GetProjectIDGuid(hierarchy),
                 });
 
-            ((VisualStudioWorkspaceImpl)Workspace).AddProjectRuleSetFileToInternalMaps(
+            workspaceImpl.AddProjectRuleSetFileToInternalMaps(
                 VisualStudioProject,
                 () => VisualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
 
@@ -104,18 +106,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             ConnectHierarchyEvents();
             RefreshBinOutputPath();
 
-            // TODO: https://github.com/dotnet/roslyn/issues/36065
-            // The ctor of ExternalErrorDiagnosticUpdateSource throws when running in tests since UIContextImpl calls:
-            //   (IVsMonitorSelection)ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection))),
-            // which returns null.
-            try
-            {
-                _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, (VisualStudioWorkspaceImpl)Workspace);
-            }
-            catch (Exception)
-            {
-            }
+            workspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
 
+            _externalErrorReporter = new ProjectExternalErrorReporter(VisualStudioProject.Id, externalErrorReportingPrefix, workspaceImpl);
             _batchScopeCreator = componentModel.GetService<SolutionEventsBatchScopeCreator>();
             _batchScopeCreator.StartTrackingProject(VisualStudioProject, Hierarchy);
         }
@@ -388,7 +381,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             // declared in the compilation.
             // 
             // Unfortunately, although being different concepts, default namespace and root namespace are almost
-            // used interchangebly in VS. For example, (1) the value is define in "rootnamespace" property in project 
+            // used interchangeably in VS. For example, (1) the value is define in "rootnamespace" property in project 
             // files and, (2) the property name we use to call into hierarchy below to retrieve the value is 
             // called "DefaultNamespace".
 

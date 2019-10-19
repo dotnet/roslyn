@@ -126,6 +126,16 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?.
+        /// </summary>
+        internal static string A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item {
+            get {
+                return ResourceManager.GetString("A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_" +
+                        "to_make_it_a_solution_item", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A new namespace will be created.
         /// </summary>
         internal static string A_new_namespace_will_be_created {

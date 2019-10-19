@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         {
         }
 
-        protected abstract SyntaxNode GetAlias(TUsingOrAliasSyntax usingOrAlias);
+        protected abstract SyntaxNode? GetAlias(TUsingOrAliasSyntax usingOrAlias);
         protected abstract ImmutableArray<SyntaxNode> GetGlobalImports(Compilation compilation);
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         }
 
         protected abstract bool IsEquivalentImport(SyntaxNode a, SyntaxNode b);
-        
+
         public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import)
         {
             contextLocation ??= root;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxNode Rewrite(
             TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] staticUsingDirectives,
             TUsingOrAliasSyntax[] aliasDirectives, SyntaxNode externContainer, SyntaxNode usingContainer,
-            SyntaxNode staticUsingContainer, SyntaxNode aliasContainer, bool placeSystemNamespaceFirst, SyntaxNode root, 
+            SyntaxNode staticUsingContainer, SyntaxNode aliasContainer, bool placeSystemNamespaceFirst, SyntaxNode root,
             CancellationToken cancellationToken);
 
         private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)

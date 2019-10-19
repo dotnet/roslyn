@@ -327,5 +327,13 @@ $$");
 @"class C {
     int Goo { get; internal $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterPrivateProtected()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    private protected $$");
+        }
     }
 }

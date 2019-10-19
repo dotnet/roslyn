@@ -39,6 +39,7 @@ using VSLangProj;
 using VSLangProj140;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -105,8 +106,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly object _projectCompilationOutputsGuard = new object();
 
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
+        private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
-        public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider, IEnumerable<CodeAnalysis.Options.IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
+        public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider, IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
@@ -129,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
             exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
 
-            System.Threading.Tasks.Task.Run(() => ConnectToOpenFileTrackerOnUIThreadAsync(asyncServiceProvider));
+            _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
             FileWatchedReferenceFactory = exportProvider.GetExportedValue<FileWatchedPortableExecutableReferenceFactory>();
@@ -146,7 +148,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
 
-        public async System.Threading.Tasks.Task ConnectToOpenFileTrackerOnUIThreadAsync(IAsyncServiceProvider asyncServiceProvider)
+        internal void SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (_isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents)
+            {
+                return;
+            }
+
+            // TODO: https://github.com/dotnet/roslyn/issues/36065
+            // UIContextImpl requires IVsMonitorSelection service:
+            if (ServiceProvider.GlobalProvider.GetService(typeof(IVsMonitorSelection)) == null)
+            {
+                return;
+            }
+
+            // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
+            KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
+            {
+                KnownUIContexts.SolutionBuildingContext.UIContextChanged += (object _, UIContextChangedEventArgs e) =>
+                {
+                    if (e.Activated)
+                    {
+                        ExternalErrorDiagnosticUpdateSource.OnSolutionBuildStarted();
+                    }
+                    else
+                    {
+                        ExternalErrorDiagnosticUpdateSource.OnSolutionBuildCompleted();
+                    }
+                };
+
+                ExternalErrorDiagnosticUpdateSource.OnSolutionBuildStarted();
+            });
+
+            _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents = true;
+        }
+
+        public async Task InitializeUIAffinitizedServicesAsync(IAsyncServiceProvider asyncServiceProvider)
         {
             // Create services that are bound to the UI thread
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -1835,7 +1874,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
                     // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
-                    // we might not find the path at all: when we recieve the file changed event, we aren't checking if the file is still
+                    // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
                     // in the workspace at that time; it's possible it might have already been removed.
                     foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
                     {

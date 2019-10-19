@@ -1888,7 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
+        private BoundNode VisitMultipleLocalDeclarationsBase(BoundMultipleLocalDeclarationsBase node)
         {
             foreach (var v in node.LocalDeclarations)
             {
@@ -1898,13 +1898,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
+        {
+            return VisitMultipleLocalDeclarationsBase(node);
+        }
+
         public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
         {
             if (AwaitUsingAndForeachAddsPendingBranch && node.AwaitOpt != null)
             {
                 PendingBranches.Add(new PendingBranch(node, this.State, null));
             }
-            return VisitMultipleLocalDeclarations(node);
+            return VisitMultipleLocalDeclarationsBase(node);
         }
 
         public override BoundNode VisitWhileStatement(BoundWhileStatement node)
@@ -2859,6 +2864,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
         {
             return null;
         }

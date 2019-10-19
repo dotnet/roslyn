@@ -7,7 +7,13 @@ namespace System.Diagnostics
     internal static class Debug
     {
         [Conditional("DEBUG")]
-        public static void Assert(bool condition, string message = null)
+        public static void Assert(bool condition)
+        {
+            Assert(condition, null);
+        }
+
+        [Conditional("DEBUG")]
+        public static void Assert(bool condition, string message)
         {
             if (!condition)
             {

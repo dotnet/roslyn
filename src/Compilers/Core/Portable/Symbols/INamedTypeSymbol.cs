@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -100,13 +102,13 @@ namespace Microsoft.CodeAnalysis
         /// Such a type will be classified as a delegate but its DelegateInvokeMethod
         /// would be null.
         /// </summary>
-        IMethodSymbol DelegateInvokeMethod { get; }
+        IMethodSymbol? DelegateInvokeMethod { get; }
 
         /// <summary>
         /// For enum types, gets the underlying type. Returns null on all other
         /// kinds of types.
         /// </summary>
-        INamedTypeSymbol EnumUnderlyingType { get; }
+        INamedTypeSymbol? EnumUnderlyingType { get; }
 
         /// <summary>
         /// Returns the type symbol that this type was constructed from. This type symbol
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// Note, the set of possible associated symbols might be expanded in the future to 
         /// reflect changes in the languages.
         /// </summary>
-        ISymbol AssociatedSymbol { get; }
+        ISymbol? AssociatedSymbol { get; }
 
         /// <summary>
         /// Determines if the symbol might contain extension methods. 
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis
         /// which is at the 8th (one based) position is always a symbol for another tuple, 
         /// rather than its underlying type.
         /// </summary>
-        INamedTypeSymbol TupleUnderlyingType { get; }
+        INamedTypeSymbol? TupleUnderlyingType { get; }
 
         /// <summary>
         /// Returns fields that represent tuple elements for types that are tuples.

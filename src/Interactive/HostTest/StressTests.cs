@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         private InteractiveHost CreateProcess()
         {
-            var p = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1);
+            var p = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: 1, joinOutputWritingThreadsOnDisposal: true);
             _processes.Add(p);
             return p;
         }
