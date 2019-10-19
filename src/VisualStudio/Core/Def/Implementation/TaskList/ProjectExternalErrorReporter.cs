@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    internal class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
+    internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
     {
         internal static readonly IReadOnlyList<string> CustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
         internal static readonly IReadOnlyList<string> CompilerDiagnosticCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry);
@@ -33,6 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
             : this(projectId, errorCodePrefix, (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>())
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            _workspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
         }
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspaceImpl workspace)
@@ -44,27 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
             _workspace = workspace;
-
-            KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
-            {
-                KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
-                DiagnosticProvider.OnSolutionBuildStarted();
-            });
         }
 
         private ExternalErrorDiagnosticUpdateSource DiagnosticProvider => _workspace.ExternalErrorDiagnosticUpdateSource;
-
-        private void OnSolutionBuild(object sender, UIContextChangedEventArgs e)
-        {
-            if (e.Activated)
-            {
-                DiagnosticProvider.OnSolutionBuildStarted();
-            }
-            else
-            {
-                DiagnosticProvider.OnSolutionBuildCompleted();
-            }
-        }
 
         private bool CanHandle(string errorId)
         {
