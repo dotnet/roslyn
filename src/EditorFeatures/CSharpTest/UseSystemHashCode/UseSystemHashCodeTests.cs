@@ -1156,5 +1156,55 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
+        public async Task TestManyFields()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int a, b, c, d, e, f, g, h, i;
+
+    public override int $$GetHashCode()
+    {
+        var hashCode = -538000506;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        hashCode = hashCode * -1521134295 + c.GetHashCode();
+        hashCode = hashCode * -1521134295 + d.GetHashCode();
+        hashCode = hashCode * -1521134295 + e.GetHashCode();
+        hashCode = hashCode * -1521134295 + f.GetHashCode();
+        hashCode = hashCode * -1521134295 + g.GetHashCode();
+        hashCode = hashCode * -1521134295 + h.GetHashCode();
+        hashCode = hashCode * -1521134295 + i.GetHashCode();
+        return hashCode;
+    }
+}",
+@"using System.Collections.Generic;
+namespace System { public struct HashCode { } }
+
+class C 
+{
+    int a, b, c, d, e, f, g, h, i;
+
+    public override int GetHashCode()
+    {
+        var hash = new System.HashCode();
+        hash.Add(a);
+        hash.Add(b);
+        hash.Add(c);
+        hash.Add(d);
+        hash.Add(e);
+        hash.Add(f);
+        hash.Add(g);
+        hash.Add(h);
+        hash.Add(i);
+        return hash.ToHashCode();
+    }
+}");
+        }
     }
 }
