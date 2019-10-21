@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ITypeSymbol ConvertToType(
-            this ISymbol symbol,
+            this ISymbol? symbol,
             Compilation compilation,
             bool extensionUsedAsInstance = false)
         {
