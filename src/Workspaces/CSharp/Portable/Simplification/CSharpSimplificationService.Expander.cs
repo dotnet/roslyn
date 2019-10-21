@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         // if the user already used the Attribute suffix in the attribute, we'll maintain it.
                         if (identifier.ValueText == name && name.EndsWith("Attribute", StringComparison.Ordinal))
                         {
-                            identifier = identifier.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
+                            //identifier = identifier.WithAdditionalAnnotations(SimplificationHelpers.DontSimplifyAnnotation);
                         }
 
                         identifier = identifier.CopyAnnotationsTo(SyntaxFactory.VerbatimIdentifier(identifier.LeadingTrivia, name, name, identifier.TrailingTrivia));

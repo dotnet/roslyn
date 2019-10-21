@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -56,18 +58,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             var spans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
 
             // Don't split strings if there is any actual selection.
-            if (spans.Count == 1 && spans[0].IsEmpty)
+            // We need to check that all spans are empty to account for multi-carets.
+            if (!spans.IsEmpty() && spans.All(s => s.IsEmpty))
             {
                 var caret = textView.GetCaretPoint(subjectBuffer);
                 if (caret != null)
                 {
-                    // Quick check.  If the line doesn't contain a quote in it before the caret,
-                    // then no point in doing any more expensive synchronous work.
-                    var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(caret.Value);
-                    if (LineContainsQuote(line, caret.Value))
+                    // TO-DO: Fix null checking with carets.
+                    var success = true;
+                    for (var spanIndex = 0; spanIndex < spans.Count; spanIndex++)
                     {
-                        return SplitString(textView, subjectBuffer, caret.Value);
+                        var spanStart = spans[spanIndex].Start;
+                        if (spanIndex > 0)
+                        {
+                            caret = textView.GetCaretPoint(subjectBuffer);
+                            spanStart += caret.Value.Subtract(spans[spanIndex - 1].Start);
+                        }
+
+                        // Quick check.  If the line doesn't contain a quote in it before the caret,
+                        // then no point in doing any more expensive synchronous work.
+                        var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(spanStart);
+                        if (LineContainsQuote(line, spanStart))
+                        {
+                            if (!SplitString(textView, subjectBuffer, spanStart))
+                            {
+                                success = false;
+                            }
+                        }
                     }
+                    return success;
                 }
             }
 
