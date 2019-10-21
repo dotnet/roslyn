@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             // this.promiseOfValueOrEnd.SetResult(false);
+            // this.builder.Complete();
             // return;
             // _exprReturnLabelTrue:
             // this.promiseOfValueOrEnd.SetResult(true);
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.AddRange(
                 // this.promiseOfValueOrEnd.SetResult(false);
                 generateSetResultOnPromise(false),
+                GenerateCompleteOnBuilder(),
                 F.Return(),
                 F.Label(_exprReturnLabelTrue),
                 // this.promiseOfValueOrEnd.SetResult(true);
@@ -100,6 +102,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundFieldAccess promiseField = F.InstanceField(_asyncIteratorInfo.PromiseOfValueOrEndField);
                 return F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo.SetResultMethod, F.Literal(result)));
             }
+        }
+
+        BoundExpressionStatement GenerateCompleteOnBuilder()
+        {
+            // Produce:
+            // this.builder.Complete();
+            return F.ExpressionStatement(
+                F.Call(
+                    F.Field(F.This(), _asyncMethodBuilderField),
+                        _asyncMethodBuilderMemberCollection.SetResult, // AsyncIteratorMethodBuilder.Complete is the corresponding method to AsyncTaskMethodBuilder.SetResult
+                        _method.IsGenericTaskReturningAsync(F.Compilation)
+                            ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
+                            : ImmutableArray<BoundExpression>.Empty));
         }
 
         private void AddDisposeCombinedTokensIfNeeded(ArrayBuilder<BoundStatement> builder)
@@ -130,6 +145,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.InstanceField(_asyncIteratorInfo.PromiseOfValueOrEndField),
                 _asyncIteratorInfo.SetExceptionMethod,
                 F.Local(exceptionLocal))));
+
+            // this.builder.Complete();
+            builder.Add(GenerateCompleteOnBuilder());
 
             return F.Block(builder.ToImmutableAndFree());
         }

@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="AsyncVoidMethodBuilder"/>, <see cref="AsyncTaskMethodBuilder"/>, or <see cref="AsyncTaskMethodBuilder{TResult}"/> depending on the
         /// return type of the async method.
         /// </summary>
-        private readonly FieldSymbol _asyncMethodBuilderField;
+        protected readonly FieldSymbol _asyncMethodBuilderField;
 
         /// <summary>
         /// A collection of well-known members for the current async method builder.
         /// </summary>
-        private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
+        protected readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
 
         /// <summary>
         /// The exprReturnLabel is used to label the return handling code at the end of the async state-machine
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// of rewritten return expressions. The return-handling code then uses <c>SetResult</c> on the async method builder
         /// to make the result available to the caller.
         /// </summary>
-        private readonly LocalSymbol _exprRetValue;
+        protected readonly LocalSymbol _exprRetValue;
 
         private readonly LoweredDynamicOperationFactory _dynamicFactory;
 

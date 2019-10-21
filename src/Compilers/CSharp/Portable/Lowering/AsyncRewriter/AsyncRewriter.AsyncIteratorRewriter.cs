@@ -632,10 +632,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: StateMachineStates.InitialAsyncIteratorStateMachine);
             }
 
-            protected override BoundStatement GetExtraResetForIteratorGetEnumerator()
+            protected override void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, int initialState)
             {
-                // disposeMode = false;
-                return F.Assignment(F.InstanceField(_disposeModeField), F.Literal(false));
+                // this.state = {initialState};
+                // this.builder = System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create();
+                // this.disposeMode = false;
+
+                builder.Add(
+                    // this.state = {initialState};
+                    F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)));
+
+                // this.builder = System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create();
+                AsyncMethodBuilderMemberCollection methodScopeAsyncMethodBuilderMemberCollection;
+                bool found = AsyncMethodBuilderMemberCollection.TryCreate(F, method, typeMap: null, out methodScopeAsyncMethodBuilderMemberCollection);
+                Debug.Assert(found);
+
+                builder.Add(
+                    F.Assignment(
+                        F.InstanceField(_builderField),
+                        F.StaticCall(
+                            null,
+                            methodScopeAsyncMethodBuilderMemberCollection.CreateBuilder)));
+
+                builder.Add(
+                    // disposeMode = false;
+                    F.Assignment(F.InstanceField(_disposeModeField), F.Literal(false)));
             }
 
             protected override void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
