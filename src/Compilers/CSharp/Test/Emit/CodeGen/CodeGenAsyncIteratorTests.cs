@@ -297,14 +297,14 @@ public class C
 }");
 
             var v = CompileAndVerify(comp);
-            v.VerifyIL("C.<GetSplits>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+            v.VerifyIL("C.<GetSplits>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      147 (0x93)
   .maxstack  3
   .locals init (int V_0,
                 System.Exception V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<GetSplits>d__1.<>1__state""
+  IL_0001:  ldfld      ""int C.<GetSplits>d__0.<>1__state""
   IL_0006:  stloc.0
   .try
   {
@@ -313,14 +313,14 @@ public class C
     IL_000a:  pop
     IL_000b:  pop
     IL_000c:  ldarg.0
-    IL_000d:  ldfld      ""bool C.<GetSplits>d__1.<>w__disposeMode""
+    IL_000d:  ldfld      ""bool C.<GetSplits>d__0.<>w__disposeMode""
     IL_0012:  brfalse.s  IL_0016
     IL_0014:  leave.s    IL_007d
     IL_0016:  ldarg.0
     IL_0017:  ldc.i4.m1
     IL_0018:  dup
     IL_0019:  stloc.0
-    IL_001a:  stfld      ""int C.<GetSplits>d__1.<>1__state""
+    IL_001a:  stfld      ""int C.<GetSplits>d__0.<>1__state""
     .try
     {
       IL_001f:  leave.s    IL_0053
@@ -346,19 +346,19 @@ public class C
         IL_003f:  endfinally
       }
       IL_0040:  ldarg.0
-      IL_0041:  ldfld      ""bool C.<GetSplits>d__1.<>w__disposeMode""
+      IL_0041:  ldfld      ""bool C.<GetSplits>d__0.<>w__disposeMode""
       IL_0046:  brtrue.s   IL_0052
       IL_0048:  ldstr      ""!""
       IL_004d:  call       ""void System.Console.WriteLine(string)""
       IL_0052:  endfinally
     }
     IL_0053:  ldarg.0
-    IL_0054:  ldfld      ""bool C.<GetSplits>d__1.<>w__disposeMode""
+    IL_0054:  ldfld      ""bool C.<GetSplits>d__0.<>w__disposeMode""
     IL_0059:  brfalse.s  IL_005d
     IL_005b:  leave.s    IL_007d
     IL_005d:  ldarg.0
     IL_005e:  ldc.i4.1
-    IL_005f:  stfld      ""bool C.<GetSplits>d__1.<>w__disposeMode""
+    IL_005f:  stfld      ""bool C.<GetSplits>d__0.<>w__disposeMode""
     IL_0064:  leave.s    IL_007d
   }
   catch System.Exception
@@ -366,18 +366,18 @@ public class C
     IL_0066:  stloc.1
     IL_0067:  ldarg.0
     IL_0068:  ldc.i4.s   -2
-    IL_006a:  stfld      ""int C.<GetSplits>d__1.<>1__state""
+    IL_006a:  stfld      ""int C.<GetSplits>d__0.<>1__state""
     IL_006f:  ldarg.0
-    IL_0070:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__1.<>v__promiseOfValueOrEnd""
+    IL_0070:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__0.<>v__promiseOfValueOrEnd""
     IL_0075:  ldloc.1
     IL_0076:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)""
     IL_007b:  leave.s    IL_0092
   }
   IL_007d:  ldarg.0
   IL_007e:  ldc.i4.s   -2
-  IL_0080:  stfld      ""int C.<GetSplits>d__1.<>1__state""
+  IL_0080:  stfld      ""int C.<GetSplits>d__0.<>1__state""
   IL_0085:  ldarg.0
-  IL_0086:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__1.<>v__promiseOfValueOrEnd""
+  IL_0086:  ldflda     ""System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<GetSplits>d__0.<>v__promiseOfValueOrEnd""
   IL_008b:  ldc.i4.0
   IL_008c:  call       ""void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)""
   IL_0091:  ret

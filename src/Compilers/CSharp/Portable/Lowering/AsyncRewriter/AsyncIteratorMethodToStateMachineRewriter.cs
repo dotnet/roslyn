@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Initially, this is the method's return value label (<see cref="AsyncMethodToStateMachineRewriter._exprReturnLabel"/>).
         /// Inside a `try` or `catch` with a `finally`, we'll use the label directly preceding the `finally`.
         /// Inside a `try` or `catch` with an extracted `finally`, we will use the label preceding the extracted `finally`.
-        /// Inside a `finally`, we will use the label terminating the `finally` (to avoid restrictions with leave.s opcode).
+        /// Inside a `finally`, we will use the label terminating the `finally` (to avoid restrictions with leave opcode).
         /// </summary>
         private LabelSymbol _enclosingFinallyEntryOrFinallyExitOrExitLabel;
         private ArrayBuilder<LabelSymbol> _previousDisposalLabels;
@@ -318,6 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // While inside the try and catch blocks, we'll use the current finallyEntry label for disposal
             // As soon as we close the try and catch blocks (ie. possibly enter the finally block), we'll use the finallyExit label for disposal (restored/popped from the stack by CloseTryCatchBlocks)
+            Debug.Assert(_enclosingFinallyEntryOrFinallyExitOrExitLabel == finallyExit);
+
             // When exiting the try statement, we restore the previous disposal label.
             _enclosingFinallyEntryOrFinallyExitOrExitLabel = _previousDisposalLabels.Pop();
 
