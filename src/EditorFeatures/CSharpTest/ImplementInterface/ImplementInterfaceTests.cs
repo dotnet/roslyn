@@ -8220,14 +8220,16 @@ interface IFoo<T>
 
 class A : [|IFoo<int>|]
 {{
-    public int Bar(int bar)
+    [return: NotNull]
+    public int Bar([DisallowNull] int bar)
     {{
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }}
 
-    public int Baz(int bar)
+    [return: MaybeNull]
+    public int Baz([AllowNull] int bar)
     {{
-        throw new NotImplementedException();
+        throw new System.NotImplementedException();
     }}
 }}");
         }
