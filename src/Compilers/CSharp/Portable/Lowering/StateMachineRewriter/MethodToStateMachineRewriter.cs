@@ -30,6 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected abstract BoundStatement GenerateReturn(bool finished);
 
+        /// <summary>
+        /// Signal the transition from `try`/`catch` blocks to the `finally` block.
+        /// </summary>
+        protected virtual void CloseTryCatchBlocks()
+        {
+        }
+
         protected readonly SyntheticBoundNodeFactory F;
 
         /// <summary>
@@ -841,6 +848,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dispatches = oldDispatches;
 
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);
+
+            CloseTryCatchBlocks();
             BoundBlock finallyBlockOpt = node.FinallyBlockOpt == null ? null : F.Block(
                 F.HiddenSequencePoint(),
                 F.If(
