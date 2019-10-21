@@ -183,7 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_OverrideWithConstraints = MessageBase + 12761,
         IDS_FeatureNestedStackalloc = MessageBase + 12762,
         IDS_FeatureSwitchExpression = MessageBase + 12763,
+<<<<<<< HEAD
         IDS_FeatureLocalFunctionAttributes = MessageBase + 12764
+=======
+        IDS_FeatureAsyncUsing = MessageBase + 12764,
+>>>>>>> upstream/master
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -315,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNestedStackalloc: // semantic check
                 case MessageID.IDS_FeatureNotNullGenericTypeConstraint:// semantic check
                 case MessageID.IDS_FeatureSwitchExpression:
+                case MessageID.IDS_FeatureAsyncUsing:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.
