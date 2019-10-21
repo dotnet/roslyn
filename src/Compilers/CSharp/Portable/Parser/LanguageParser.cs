@@ -6476,29 +6476,17 @@ done:;
                 case SyntaxKind.IdentifierToken:
                     if (isPossibleAwaitForEach())
                     {
-<<<<<<< HEAD
-                        return this.ParseForEachStatement(attributes, parseAwaitKeywordForAsyncStreams());
-=======
-                        return this.ParseForEachStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
->>>>>>> upstream/master
+                        return this.ParseForEachStatement(attributes, parseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
                     }
                     else if (isPossibleAwaitUsing())
                     {
                         if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
                         {
-<<<<<<< HEAD
-                            return this.ParseUsingStatement(attributes, parseAwaitKeywordForAsyncStreams());
+                            return this.ParseUsingStatement(attributes, parseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
                         }
                         else
                         {
-                            return this.TryParseLocalDeclarationStatement(attributes, parseAwaitKeywordForAsyncStreams());
-=======
-                            return this.ParseUsingStatement(parseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
-                        }
-                        else
-                        {
-                            return this.ParseLocalDeclarationStatement(parseAwaitKeyword());
->>>>>>> upstream/master
+                            return this.TryParseLocalDeclarationStatement(attributes, parseAwaitKeyword());
                         }
                     }
                     else if (this.IsPossibleLabeledStatement())
