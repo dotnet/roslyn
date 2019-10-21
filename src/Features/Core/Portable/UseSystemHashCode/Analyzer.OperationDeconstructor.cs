@@ -47,6 +47,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             /// Recursive function that decomposes <paramref name="value"/>, looking for particular
             /// forms that VS or ReSharper generate to hash fields in the containing type.
             /// </summary>
+            /// <param name="seenHash">'seenHash' is used to determine if we actually saw something
+            /// that indicates that we really hashed a field/property and weren't just simply
+            /// referencing it.  This is used as we recurse down to make sure we've seen a
+            /// pattern we explicitly recognize by the time we hit a field/prop.</param>
             public bool TryAddHashedSymbol(IOperation value, bool seenHash)
             {
                 value = Unwrap(value);
