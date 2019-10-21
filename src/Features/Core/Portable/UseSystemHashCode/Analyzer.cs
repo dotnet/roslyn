@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             SystemHashCodeType = systemHashCodeType;
         }
 
-        public static bool TryGetAnalyzer(Compilation compilation, [NotNullWhen(true)]out Analyzer analyzer)
+        public static bool TryGetAnalyzer(Compilation compilation, [NotNullWhen(true)] out Analyzer analyzer)
         {
             var objectType = compilation.GetSpecialType(SpecialType.System_Object);
             // This may not find anything.  However, CanAnalyze checks for this. So
