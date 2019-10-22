@@ -54,5 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             this.SymbolSink.Add(result);
             return;
         }
+
+        private void ThisMethodHasNoReferences()
+        {
+
+        }
     }
 }
