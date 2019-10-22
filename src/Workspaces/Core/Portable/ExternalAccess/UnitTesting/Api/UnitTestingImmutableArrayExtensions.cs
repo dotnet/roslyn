@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal static class UnitTestingImmutableArrayExtensions
     {
-        public static ImmutableArray<byte> UnitTesting_ToImmutable(this MemoryStream stream)
-            => stream.ToImmutable();
+        public static ImmutableArray<byte> ToImmutable(this MemoryStream stream)
+            => ImmutableArrayExtensions.ToImmutable(stream);
 
-        public static bool UnitTesting_SetEquals<T>(this ImmutableArray<T> array1, ImmutableArray<T> array2, IEqualityComparer<T> comparer)
-            => array1.SetEquals(array2, comparer);
+        public static bool SetEquals<T>(this ImmutableArray<T> array1, ImmutableArray<T> array2, IEqualityComparer<T> comparer)
+            => ImmutableArrayExtensions.SetEquals(array1, array2, comparer);
 
-        public static ImmutableArray<T> UnitTesting_AsImmutable<T>(this IEnumerable<T> items)
-            => items.AsImmutable<T>();
+        public static ImmutableArray<T> AsImmutable<T>(this IEnumerable<T> items)
+            => ImmutableArrayExtensions.AsImmutable(items);
     }
 }

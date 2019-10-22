@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal readonly struct UnitTestingPredefinedInvocationReasonsWrapper
+    internal static class UnitTestingPredefinedInvocationReasonsAccessor
     {
         public const string Reanalyze = PredefinedInvocationReasons.Reanalyze;
         public const string SemanticChanged = PredefinedInvocationReasons.SemanticChanged;

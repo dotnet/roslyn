@@ -8,11 +8,11 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
-    internal class UnitTestingIncrementalAnalyzerWrapper : IIncrementalAnalyzer
+    internal class UnitTestingIncrementalAnalyzer : IIncrementalAnalyzer
     {
-        private readonly IUnitTestingIncrementalAnalyzer _implementation;
+        private readonly IUnitTestingIncrementalAnalyzerImplementation _implementation;
 
-        public UnitTestingIncrementalAnalyzerWrapper(IUnitTestingIncrementalAnalyzer implementation)
+        public UnitTestingIncrementalAnalyzer(IUnitTestingIncrementalAnalyzerImplementation implementation)
             => _implementation = implementation;
 
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)

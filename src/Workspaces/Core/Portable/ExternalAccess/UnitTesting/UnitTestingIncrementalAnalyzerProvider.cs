@@ -5,14 +5,14 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
-    internal class UnitTestingIncrementalAnalyzerProviderWrapper : IIncrementalAnalyzerProvider
+    internal class UnitTestingIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly IUnitTestingIncrementalAnalyzerProvider _incrementalAnalyzerProvider;
+        private readonly IUnitTestingIncrementalAnalyzerProviderImplementation _incrementalAnalyzerProvider;
 
-        public UnitTestingIncrementalAnalyzerProviderWrapper(IUnitTestingIncrementalAnalyzerProvider incrementalAnalyzerProvider)
+        public UnitTestingIncrementalAnalyzerProvider(IUnitTestingIncrementalAnalyzerProviderImplementation incrementalAnalyzerProvider)
             => _incrementalAnalyzerProvider = incrementalAnalyzerProvider;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new UnitTestingIncrementalAnalyzerWrapper(_incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace));
+            => new UnitTestingIncrementalAnalyzer(_incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace));
     }
 }

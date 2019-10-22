@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         public UnitTestingSolutionCrawlerServiceAccessor(ISolutionCrawlerService implementation)
             => _implementation = implementation;
 
-        public void Reanalyze(Workspace workspace, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
-            => _implementation.Reanalyze(workspace, new UnitTestingIncrementalAnalyzerWrapper(analyzer), projectIds, documentIds, highPriority);
+        public void Reanalyze(Workspace workspace, IUnitTestingIncrementalAnalyzerImplementation analyzer, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
+            => _implementation.Reanalyze(workspace, new UnitTestingIncrementalAnalyzer(analyzer), projectIds, documentIds, highPriority);
     }
 }

@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal readonly struct UnitTestingAssetStorageWrappper
     {
-        public readonly static UnitTestingAssetStorageWrappper Instance = new UnitTestingAssetStorageWrappper(AssetStorage.Default);
+        public static UnitTestingAssetStorageWrappper Instance { get; } = new UnitTestingAssetStorageWrappper(AssetStorage.Default);
 
         internal AssetStorage UnderlyingObject { get; }
 

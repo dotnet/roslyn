@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal interface IUnitTestingIncrementalAnalyzer
+    internal interface IUnitTestingIncrementalAnalyzerImplementation
     {
         Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken);
         Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);

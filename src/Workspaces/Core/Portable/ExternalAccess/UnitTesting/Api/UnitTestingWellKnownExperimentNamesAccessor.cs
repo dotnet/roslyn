@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.Remote;
+using Microsoft.CodeAnalysis.Experiments;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal static class UnitTestingRemoteHostOptionsWrapper
+    internal static class UnitTestingWellKnownExperimentNamesAccessor
     {
-        public static Option<bool> OOP64Bit = RemoteHostOptions.OOP64Bit;
+        public const string RoslynOOP64bit = WellKnownExperimentNames.RoslynOOP64bit;
     }
 }

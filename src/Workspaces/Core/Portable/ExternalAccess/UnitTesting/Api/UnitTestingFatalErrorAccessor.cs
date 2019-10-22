@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal static class UnitTestingFatalErrorHelpers
+    internal static class UnitTestingFatalErrorAccessor
     {
         public static bool ReportWithoutCrash(Exception e)
             => FatalError.ReportWithoutCrash(e);

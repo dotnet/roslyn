@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal static class UnitTestingSymbolExtensions
     {
-        public static SymbolKey UnitTesting_GetSymbolKey(this ISymbol symbol, CancellationToken cancellationToken = default)
-            => symbol.GetSymbolKey(cancellationToken);
+        public static UnitTestingSymbolKeyWrapper GetSymbolKey(this ISymbol symbol, CancellationToken cancellationToken)
+            => new UnitTestingSymbolKeyWrapper(SymbolKeyExtensions.GetSymbolKey(symbol, cancellationToken));
     }
 }

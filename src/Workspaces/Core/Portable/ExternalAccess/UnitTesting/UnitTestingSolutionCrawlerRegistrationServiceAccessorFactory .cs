@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
     [ExportWorkspaceServiceFactory(typeof(IUnitTestingSolutionCrawlerRegistrationServiceAccessor))]
     [Shared]
-    internal sealed class UnitTestingSolutionCrawlerRegistrationAccessorFactory : IWorkspaceServiceFactory
+    internal sealed class UnitTestingSolutionCrawlerRegistrationServiceAccessorFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UnitTestingSolutionCrawlerRegistrationAccessorFactory() { }
+        public UnitTestingSolutionCrawlerRegistrationServiceAccessorFactory() { }
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

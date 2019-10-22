@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         public UnitTestingSolutionCrawlerRegistrationServiceAccessor(ISolutionCrawlerRegistrationService implementation)
             => _implementation = implementation;
 
-        public void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, UnitTestingIncrementalAnalyzerProviderMetadataWrapper metadata)
-            => _implementation.AddAnalyzerProvider(new UnitTestingIncrementalAnalyzerProviderWrapper(provider), metadata.UnderlyingObject);
+        public void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProviderImplementation provider, UnitTestingIncrementalAnalyzerProviderMetadataWrapper metadata)
+            => _implementation.AddAnalyzerProvider(new UnitTestingIncrementalAnalyzerProvider(provider), metadata.UnderlyingObject);
 
         public void Register(Workspace workspace)
             => _implementation.Register(workspace);

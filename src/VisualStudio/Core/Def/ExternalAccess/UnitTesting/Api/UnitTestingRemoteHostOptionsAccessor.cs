@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Remote;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal interface IUnitTestingIncrementalAnalyzerProvider
+    internal static class UnitTestingRemoteHostOptionsAccessor
     {
-        IUnitTestingIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace);
+        public static Option<bool> OOP64Bit => RemoteHostOptions.OOP64Bit;
     }
 }

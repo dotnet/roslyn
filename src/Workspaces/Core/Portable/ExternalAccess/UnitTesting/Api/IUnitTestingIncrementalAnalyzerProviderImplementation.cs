@@ -2,9 +2,8 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal static class UnitTestingSymbolKeyExtensions
+    internal interface IUnitTestingIncrementalAnalyzerProviderImplementation
     {
-        public static string UnitTesting_ToString(this SymbolKey symbolKey)
-            => symbolKey.ToString();
+        IUnitTestingIncrementalAnalyzerImplementation CreateIncrementalAnalyzer(Workspace workspace);
     }
 }
