@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        BoundExpressionStatement GenerateCompleteOnBuilder()
+        private BoundExpressionStatement GenerateCompleteOnBuilder()
         {
             // Produce:
             // this.builder.Complete();
@@ -112,9 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Call(
                     F.Field(F.This(), _asyncMethodBuilderField),
                         _asyncMethodBuilderMemberCollection.SetResult, // AsyncIteratorMethodBuilder.Complete is the corresponding method to AsyncTaskMethodBuilder.SetResult
-                        _method.IsGenericTaskReturningAsync(F.Compilation)
-                            ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
-                            : ImmutableArray<BoundExpression>.Empty));
+                        ImmutableArray<BoundExpression>.Empty));
         }
 
         private void AddDisposeCombinedTokensIfNeeded(ArrayBuilder<BoundStatement> builder)
