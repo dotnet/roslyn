@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     var types = semanticModel.LookupTypeRegardlessOfArity(identifier, cancellationToken);
                     if (types.Any(s_shouldInclude))
                     {
+#nullable disable // Can 'GetClassificationForType(types.First()' be null here?
                         result.Add(new ClassifiedSpan(identifier.Span, GetClassificationForType(types.First())));
+#nullable enable
                     }
                 }
             }

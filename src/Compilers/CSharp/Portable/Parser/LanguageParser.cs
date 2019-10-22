@@ -6476,17 +6476,17 @@ done:;
                 case SyntaxKind.IdentifierToken:
                     if (isPossibleAwaitForEach())
                     {
-                        return this.ParseForEachStatement(attributes, parseAwaitKeywordForAsyncStreams());
+                        return this.ParseForEachStatement(attributes, parseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
                     }
                     else if (isPossibleAwaitUsing())
                     {
                         if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
                         {
-                            return this.ParseUsingStatement(attributes, parseAwaitKeywordForAsyncStreams());
+                            return this.ParseUsingStatement(attributes, parseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
                         }
                         else
                         {
-                            return this.TryParseLocalDeclarationStatement(attributes, parseAwaitKeywordForAsyncStreams());
+                            return this.TryParseLocalDeclarationStatement(attributes, parseAwaitKeyword());
                         }
                     }
                     else if (this.IsPossibleLabeledStatement())
@@ -6529,11 +6529,11 @@ done:;
                     this.PeekToken(1).Kind == SyntaxKind.UsingKeyword;
             }
 
-            SyntaxToken parseAwaitKeywordForAsyncStreams()
+            SyntaxToken parseAwaitKeyword(MessageID? feature = null)
             {
                 Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
                 SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-                return CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsyncStreams);
+                return feature.HasValue ? CheckFeatureAvailability(awaitToken, feature.GetValueOrDefault()) : awaitToken;
             }
         }
 
