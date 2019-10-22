@@ -157,6 +157,11 @@
         <target state="translated">指定された式を fixed ステートメントで使用することはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainLambdaDiscardParameters">
+        <source>Expression tree cannot contain lambda discard parameters.</source>
+        <target state="new">Expression tree cannot contain lambda discard parameters.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
         <source>An expression tree may not contain a null coalescing assignment</source>
         <target state="translated">式ツリーに null 合体割り当てを含めることはできません</target>

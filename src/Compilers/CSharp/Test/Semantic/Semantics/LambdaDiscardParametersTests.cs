@@ -182,6 +182,50 @@ public class C
         }
 
         [Fact]
+        public void DiscardParameters_EscapedUnderscore()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public static void Main()
+    {
+        System.Func<short, short, long> f1 = (@_, @_) => 3L;
+        @_ = 1;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,51): error CS0100: The parameter name '_' is a duplicate
+                //         System.Func<short, short, long> f1 = (@_, @_) => 3L;
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "@_").WithArguments("_").WithLocation(6, 51),
+                // (7,9): error CS0103: The name '_' does not exist in the current context
+                //         @_ = 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@_").WithArguments("_").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void DiscardParameters_ExpressionTreeNotAllowed()
+        {
+            var c = CreateCompilation(@"
+using System;
+using System.Linq.Expressions;
+class C
+{
+    void M()
+    {
+        Expression<Func<int, int, string>> e = (_, _) => null;
+    }
+}");
+            c.VerifyDiagnostics(
+                // (8,49): error CS8752: Expression tree cannot contain lambda discard parameters.
+                //         Expression<Func<int, int, string>> e = (_, _) => null;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainLambdaDiscardParameters, "_").WithLocation(8, 49),
+                // (8,52): error CS8752: Expression tree cannot contain lambda discard parameters.
+                //         Expression<Func<int, int, string>> e = (_, _) => null;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainLambdaDiscardParameters, "_").WithLocation(8, 52));
+        }
+
+        [Fact]
         public void DiscardParameters_WithTypes()
         {
             var comp = CreateCompilation(@"

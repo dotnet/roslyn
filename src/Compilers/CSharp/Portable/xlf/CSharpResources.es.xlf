@@ -157,6 +157,11 @@
         <target state="translated">La expresión proporcionada no se puede utilizar en una declaración fija</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeCantContainLambdaDiscardParameters">
+        <source>Expression tree cannot contain lambda discard parameters.</source>
+        <target state="new">Expression tree cannot contain lambda discard parameters.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
         <source>An expression tree may not contain a null coalescing assignment</source>
         <target state="translated">Un árbol de expresión no puede contener una asignación de fusión nula.</target>

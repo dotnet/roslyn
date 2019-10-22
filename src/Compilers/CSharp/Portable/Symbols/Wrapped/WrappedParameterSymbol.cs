@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public ParameterSymbol UnderlyingParameter => _underlyingParameter;
 
-        public sealed override bool IsDiscard => false;
+        public sealed override bool IsDiscard => _underlyingParameter.IsDiscard;
 
         #region Forwarded
 

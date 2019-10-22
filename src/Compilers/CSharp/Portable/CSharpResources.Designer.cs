@@ -4552,6 +4552,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression tree cannot contain lambda discard parameters..
+        /// </summary>
+        internal static string ERR_ExpressionTreeCantContainLambdaDiscardParameters {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeCantContainLambdaDiscardParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain a null coalescing assignment.
         /// </summary>
         internal static string ERR_ExpressionTreeCantContainNullCoalescingAssignment {
