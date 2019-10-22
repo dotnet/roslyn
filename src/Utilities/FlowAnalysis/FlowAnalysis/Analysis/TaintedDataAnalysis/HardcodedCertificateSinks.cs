@@ -25,6 +25,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkMethodParameters: new[] {
                     ( ".ctor", new[] { "rawData", "data" }),
                 });
+            builder.AddSinkInfo(
+                WellKnownTypeNames.SystemSecurityCryptographyX509CertificatesX509Certificate2,
+                SinkKind.HardcodedCertificate,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: true,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( ".ctor", new[] { "rawData", "data" }),
+                });
 
             SinkInfos = builder.ToImmutableAndFree();
         }
