@@ -21,6 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly IVsTaskStatusCenterService _taskCenterService;
         private readonly TaskHandlerOptions _options;
 
+        // Lock to prevent concurrent modifications to resettable delay.
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/994068
+        private readonly object _progressUpdatedLock = new object();
+
         // these fields are never accessed concurrently
         private TaskCompletionSource<VoidResult> _currentTask;
         private DateTimeOffset _lastTimeReported;
@@ -89,16 +93,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     StartedOrStopped(started: true);
                     break;
                 case ProgressStatus.PendingItemCountUpdated:
-                    _lastPendingItemCount = progressData.PendingItemCount.Value;
-                    ProgressUpdated();
+                    lock (_progressUpdatedLock)
+                    {
+                        _lastPendingItemCount = progressData.PendingItemCount.Value;
+                        ProgressUpdated();
+                    }
+
                     break;
                 case ProgressStatus.Stopped:
                     StartedOrStopped(started: false);
                     break;
                 case ProgressStatus.Evaluating:
                 case ProgressStatus.Paused:
-                    _lastProgressStatus = progressData.Status;
-                    ProgressUpdated();
+                    lock (_progressUpdatedLock)
+                    {
+                        _lastProgressStatus = progressData.Status;
+                        ProgressUpdated();
+                    }
+
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(progressData.Status);
@@ -146,8 +158,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 _resettableDelay = new ResettableDelay((int)s_minimumInterval.TotalMilliseconds, AsynchronousOperationListenerProvider.NullListener);
                 _resettableDelay.Task.SafeContinueWith(_ =>
                 {
-                    _resettableDelay = null;
-                    ProgressUpdated();
+                    // Re-acquire lock as we're modifying the delay and updating progress.
+                    lock (_progressUpdatedLock)
+                    {
+                        _resettableDelay = null;
+                        ProgressUpdated();
+                    }
                 }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
         }
