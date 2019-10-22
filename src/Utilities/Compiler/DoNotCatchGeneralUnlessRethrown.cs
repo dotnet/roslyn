@@ -82,7 +82,7 @@ namespace Analyzer.Utilities
 
         private INamedTypeSymbol GetRequiredAttributeType(Compilation compilation)
         {
-            return compilation.GetTypeByMetadataName(_enablingMethodAttributeFullyQualifiedName);
+            return compilation.GetOrCreateTypeByMetadataName(_enablingMethodAttributeFullyQualifiedName);
         }
 
         private bool MethodHasAttribute(IMethodSymbol method, INamedTypeSymbol attributeType)

@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(compilationStartContext =>
             {
-                if (compilationStartContext.Compilation.GetTypeByMetadataName(CodeActionMetadataName) == null)
+                if (compilationStartContext.Compilation.GetOrCreateTypeByMetadataName(CodeActionMetadataName) == null)
                 {
                     // No reference to core Workspaces assembly.
                     return;
                 }
 
-                INamedTypeSymbol diagnosticAnalyzer = compilationStartContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerTypeFullName);
+                INamedTypeSymbol diagnosticAnalyzer = compilationStartContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerTypeFullName);
                 if (diagnosticAnalyzer == null)
                 {
                     // Does not contain any diagnostic analyzers.

@@ -641,8 +641,8 @@ namespace Analyzer.Utilities.Extensions
         /// The attribute in question.
         /// </param>
         /// <returns>
-        /// <c>true</c> if <paramref name="symbol"/> has an attribute of type
-        /// <paramref name="attribute"/>; otherwise <c>false</c>.
+        /// <see langword="true"/> if <paramref name="symbol"/> has an attribute of type
+        /// <paramref name="attribute"/>; otherwise <see langword="false"/>.
         /// </returns>
         /// <remarks>
         /// If <paramref name="symbol"/> is a type, this method does not find attributes

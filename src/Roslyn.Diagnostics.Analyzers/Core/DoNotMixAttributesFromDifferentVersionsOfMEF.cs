@@ -41,15 +41,15 @@ namespace Roslyn.Diagnostics.Analyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                var mefV1ExportAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemComponentModelCompositionExportAttribute);
-                var mefV2ExportAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemCompositionExportAttribute);
+                var mefV1ExportAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemComponentModelCompositionExportAttribute);
+                var mefV2ExportAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCompositionExportAttribute);
                 if (mefV1ExportAttribute == null || mefV2ExportAttribute == null)
                 {
                     // We don't need to check assemblies unless they're referencing both versions of MEF, so we're done
                     return;
                 };
 
-                var attributeUsageAttribute = compilationContext.Compilation.GetTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
+                var attributeUsageAttribute = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemAttributeUsageAttribute);
 
                 var exportAttributes = new List<INamedTypeSymbol>() { mefV1ExportAttribute, mefV2ExportAttribute };
                 compilationContext.RegisterSymbolAction(c => AnalyzeSymbol(c, exportAttributes, attributeUsageAttribute), SymbolKind.NamedType);

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            INamedTypeSymbol codeFixProviderSymbol = context.Compilation.GetTypeByMetadataName(CodeFixProviderMetadataName);
+            INamedTypeSymbol codeFixProviderSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeFixProviderMetadataName);
             if (codeFixProviderSymbol == null)
             {
                 return;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
-            INamedTypeSymbol codeActionSymbol = context.Compilation.GetTypeByMetadataName(CodeActionMetadataName);
+            INamedTypeSymbol codeActionSymbol = context.Compilation.GetOrCreateTypeByMetadataName(CodeActionMetadataName);
             if (codeActionSymbol == null)
             {
                 return;

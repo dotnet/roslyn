@@ -60,7 +60,7 @@ namespace Analyzer.Utilities
             var builder = PooledHashSet<INamedTypeSymbol>.GetInstance();
             foreach (var typeName in s_disposeOwnershipTransferLikelyTypes)
             {
-                INamedTypeSymbol typeSymbol = compilation.GetTypeByMetadataName(typeName);
+                INamedTypeSymbol typeSymbol = compilation.GetOrCreateTypeByMetadataName(typeName);
                 if (typeSymbol != null)
                 {
                     builder.Add(typeSymbol);

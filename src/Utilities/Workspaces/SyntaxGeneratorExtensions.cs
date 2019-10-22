@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -430,7 +431,24 @@ namespace Analyzer.Utilities
         {
             return generator.ThrowStatement(generator.ObjectCreationExpression(
                 generator.TypeExpression(
-                    compilation.GetTypeByMetadataName(SystemNotImplementedExceptionTypeName))));
+                    compilation.GetOrCreateTypeByMetadataName(SystemNotImplementedExceptionTypeName))));
+        }
+
+        public static SyntaxNode TryGetContainingDeclaration(this SyntaxGenerator generator, SyntaxNode node, DeclarationKind kind)
+        {
+            var declarationKind = generator.GetDeclarationKind(node);
+            while (declarationKind != kind)
+            {
+                node = generator.GetDeclaration(node.Parent);
+                if (node is null)
+                {
+                    return null;
+                }
+
+                declarationKind = generator.GetDeclarationKind(node);
+            }
+
+            return node;
         }
     }
 }

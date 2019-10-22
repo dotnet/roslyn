@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol diagnosticDescriptorType = compilationContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticDescriptorFullName);
+                INamedTypeSymbol diagnosticDescriptorType = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticDescriptorFullName);
                 if (diagnosticDescriptorType == null)
                 {
                     return;

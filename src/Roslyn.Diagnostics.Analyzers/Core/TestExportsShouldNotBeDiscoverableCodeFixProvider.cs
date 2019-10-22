@@ -5,6 +5,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -47,17 +48,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var declaration = exportingAttribute;
-            var declarationKind = generator.GetDeclarationKind(declaration);
-            while (declarationKind != DeclarationKind.Class)
+            var declaration = generator.TryGetContainingDeclaration(exportingAttribute, DeclarationKind.Class);
+            if (declaration is null)
             {
-                declaration = generator.GetDeclaration(declaration.Parent);
-                if (declaration is null)
-                {
-                    return document;
-                }
-
-                declarationKind = generator.GetDeclarationKind(declaration);
+                return document;
             }
 
             var exportedType = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
