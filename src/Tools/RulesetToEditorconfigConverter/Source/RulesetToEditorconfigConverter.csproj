@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">  
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
+    <GenerateDocumentationFile Condition="'$(TargetFramework)' != 'netstandard2.0'">false</GenerateDocumentationFile>
+    <IsShipping>true</IsShipping>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Utilities\Compiler\Extensions\ReportDiagnosticExtensions.cs" Link="ReportDiagnosticExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
+</Project>
