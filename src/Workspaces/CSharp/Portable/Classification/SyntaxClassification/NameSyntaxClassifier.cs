@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -128,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private bool TryClassifySymbol(
             NameSyntax name,
-            ISymbol symbol,
+            [NotNullWhen(returnValue: true)] ISymbol? symbol,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
             out ClassifiedSpan classifiedSpan)
@@ -315,7 +318,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             var identifierName = name as IdentifierNameSyntax;
             if (symbolInfo.Symbol.IsImplicitValueParameter())
             {
+#nullable disable // Can 'identifierName' be null here?
                 result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+#nullable enable
                 return true;
             }
 
@@ -337,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool IsSymbolWithName(ISymbol symbol, string name)
+        private bool IsSymbolWithName([NotNullWhen(returnValue: true)] ISymbol? symbol, string name)
         {
             if (symbol is null || symbol.Name != name)
             {

@@ -65,7 +65,7 @@ class C
             };
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(expected);
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     string? s1 = null;

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseExpression(text, options: (options ?? TestOptions.Regular).WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact]
+        [Fact, WorkItem(32318, "https://github.com/dotnet/roslyn/issues/32318")]
         public void AwaitUsingDeclaration_WithCSharp73()
         {
             string source = @"
@@ -39,9 +39,9 @@ class C
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             tree.GetDiagnostics().Verify(
-                // (6,9): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,9): error CS8652: The feature 'asynchronous using' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await using (var x = this)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9)
                 );
 
             UsingTree(source);
