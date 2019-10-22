@@ -1368,20 +1368,50 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             for (int i = 0; i < statements.Length; i++)
             {
-                if (statements[i] is VariableDeclarationGroupOperation declarationGroup
-                    && declarationGroup.DeclarationKind != VariableDeclarationKind.Default)
+                VisitPossibleUsingDeclaration(statements[i], statements, i, out var visitedUsingDeclaration);
+                if (visitedUsingDeclaration)
                 {
-                    // visit the using decl with the following statements
-                    var followingStatements = ImmutableArray.Create(statements, i + 1, statements.Length - i - 1);
-                    VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
                     break;
                 }
-                else
-                {
-                    VisitStatement(statements[i]);
-                }
             }
+        }
 
+        /// <summary>
+        /// Visits a node that is possibly a using <see cref="VariableDeclarationGroupOperation"/>
+        /// </summary>
+        /// <param name="operation">The statement to visit</param>
+        /// <param name="statements">All statements in the block containing this node</param>
+        /// <param name="startIndex">The current statement being visited in <paramref name="statements"/></param>
+        /// <param name="visitedUsingDeclaration">Set to true if this visited a using <see cref="VariableDeclarationGroupOperation"/> operation</param>
+        /// <remarks>
+        /// The operation being visited is not necessarily equal to statements[startIndex]. 
+        /// When traversing down a set of labels, we set operation to the label.Operation and recurse, but statements[startIndex] still refers to the original parent label 
+        /// as we haven't actually moved down the original statement list
+        /// </remarks>
+        private void VisitPossibleUsingDeclaration(IOperation operation, ImmutableArray<IOperation> statements, int startIndex, out bool visitedUsingDeclaration)
+        {
+            switch (operation.Kind)
+            {
+                case OperationKind.VariableDeclarationGroup:
+                    var declarationGroup = (VariableDeclarationGroupOperation)operation;
+                    if (declarationGroup.DeclarationKind != VariableDeclarationKind.Using && declarationGroup.DeclarationKind != VariableDeclarationKind.AsynchronousUsing)
+                    {
+                        goto default;
+                    }
+                    var followingStatements = ImmutableArray.Create(statements, startIndex + 1, statements.Length - startIndex - 1);
+                    VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
+                    visitedUsingDeclaration = true;
+                    break;
+                case OperationKind.Labeled:
+                    var labelOperation = (ILabeledOperation)operation;
+                    VisitLabel(labelOperation.Label);
+                    VisitPossibleUsingDeclaration(labelOperation.Operation, statements, startIndex, out visitedUsingDeclaration);
+                    break;
+                default:
+                    VisitStatement(operation);
+                    visitedUsingDeclaration = false;
+                    break;
+            }
         }
 
         internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
@@ -3548,8 +3578,14 @@ oneMoreTime:
         public override IOperation VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
+            VisitLabel(operation.Label);
+            VisitStatement(operation.Operation);
+            return FinishVisitingStatement(operation);
+        }
 
-            BasicBlockBuilder labeled = GetLabeledOrNewBlock(operation.Label);
+        public void VisitLabel(ILabelSymbol operation)
+        {
+            BasicBlockBuilder labeled = GetLabeledOrNewBlock(operation);
 
             if (labeled.Ordinal != -1)
             {
@@ -3558,8 +3594,6 @@ oneMoreTime:
             }
 
             AppendNewBlock(labeled);
-            VisitStatement(operation.Operation);
-            return FinishVisitingStatement(operation);
         }
 
         private BasicBlockBuilder GetLabeledOrNewBlock(ILabelSymbol labelOpt)
