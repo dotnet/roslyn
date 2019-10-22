@@ -6,6 +6,5 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Test.Utilities\Test.Utilities.csproj" />
-    <ProjectReference Include="..\Source\RulesetToEditorconfigConverter.csproj" />
   </ItemGroup>
 </Project>
