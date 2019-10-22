@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // {
                 //     this.state = state;
                 //     this.initialThreadId = {managedThreadId};
-                //     this.builder = System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create();
+                //     this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
                 // }
                 Debug.Assert(stateMachineType.Constructor is IteratorConstructor);
 
@@ -164,21 +164,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
                 }
 
-                // this.builder = System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create();
-                AsyncMethodBuilderMemberCollection methodScopeAsyncMethodBuilderMemberCollection;
-                bool found = AsyncMethodBuilderMemberCollection.TryCreate(F, method, typeMap: null, out methodScopeAsyncMethodBuilderMemberCollection);
-                Debug.Assert(found);
-
-                bodyBuilder.Add(
-                    F.Assignment(
-                        F.InstanceField(_builderField),
-                        F.StaticCall(
-                            null,
-                            methodScopeAsyncMethodBuilderMemberCollection.CreateBuilder)));
+                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
+                bodyBuilder.Add(GenerateCreateAndAssignBuilder());
 
                 bodyBuilder.Add(F.Return());
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
                 bodyBuilder = null;
+            }
+
+            private BoundExpressionStatement GenerateCreateAndAssignBuilder()
+            {
+                // Produce:
+                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
+                return F.Assignment(
+                    F.InstanceField(_builderField),
+                    F.StaticCall(
+                        null,
+                        _asyncMethodBuilderMemberCollection.CreateBuilder));
             }
 
             protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
@@ -635,24 +637,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, int initialState)
             {
                 // this.state = {initialState};
-                // this.builder = System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create();
+                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
                 // this.disposeMode = false;
 
                 builder.Add(
                     // this.state = {initialState};
                     F.Assignment(F.Field(F.This(), stateField), F.Literal(initialState)));
 
-                // this.builder = System.Runtime.CompilerServices.AsyncVoidMethodBuilder.Create();
-                AsyncMethodBuilderMemberCollection methodScopeAsyncMethodBuilderMemberCollection;
-                bool found = AsyncMethodBuilderMemberCollection.TryCreate(F, method, typeMap: null, out methodScopeAsyncMethodBuilderMemberCollection);
-                Debug.Assert(found);
-
                 builder.Add(
-                    F.Assignment(
-                        F.InstanceField(_builderField),
-                        F.StaticCall(
-                            null,
-                            methodScopeAsyncMethodBuilderMemberCollection.CreateBuilder)));
+                    // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
+                    GenerateCreateAndAssignBuilder());
 
                 builder.Add(
                     // disposeMode = false;
