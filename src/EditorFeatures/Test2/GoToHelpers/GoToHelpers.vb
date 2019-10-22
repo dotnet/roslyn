@@ -45,13 +45,13 @@ Friend Class GoToHelpers
                                 $"Expected: ({expected}) but got: ({actual})")
                 Next
 
-                Dim actualDefintionsWithoutSpans = context.GetDefinitions().
-                Where(Function(d) d.SourceSpans.IsDefaultOrEmpty).
-                Select(Function(di)
-                           Return String.Format("{0}:{1}",
-                                                String.Join("", di.OriginationParts.Select(Function(t) t.Text)),
-                                                String.Join("", di.NameDisplayParts.Select(Function(t) t.Text)))
-                       End Function).ToList()
+                Dim actualDefintionsWithoutSpans = context.GetDefinitions() _
+                    .Where(Function(d) d.SourceSpans.IsDefaultOrEmpty) _
+                    .Select(Function(di)
+                                Return String.Format("{0}:{1}",
+                                                     String.Join("", di.OriginationParts.Select(Function(t) t.Text)),
+                                                     String.Join("", di.NameDisplayParts.Select(Function(t) t.Text)))
+                            End Function).ToList()
 
                 actualDefintionsWithoutSpans.Sort()
 
@@ -59,15 +59,7 @@ Friend Class GoToHelpers
                     metadataDefinitions = {}
                 End If
 
-                Assert.Equal(actualDefintionsWithoutSpans.Count, metadataDefinitions.Count)
-
-                For i = 0 To actualDefintionsWithoutSpans.Count - 1
-                    Dim actual = actualDefintionsWithoutSpans(i)
-                    Dim expected = metadataDefinitions(i)
-
-                    Assert.True(actual.CompareTo(expected) = 0,
-                                $"Expected: ({expected}) but got: ({actual})")
-                Next
+                Assert.Equal(actualDefintionsWithoutSpans, metadataDefinitions)
             End If
         End Using
     End Function
