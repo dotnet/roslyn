@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             /// </summary>
             private readonly SyntaxTrivia _singleIndentationTrivia;
 
+            private readonly SyntaxTrivia _elasticTrivia;
+
             public SeparatedSyntaxListCodeActionComputer(
                 AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> service,
                 Document document, SourceText sourceText, DocumentOptionSet options,
@@ -60,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
+                _elasticTrivia = generator.ElasticCarriageReturnLineFeed;
             }
 
             private void AddTextChangeBetweenOpenAndFirstItem(
@@ -321,7 +324,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
+                if (_listSyntax.RawKind == 8645 || _listSyntax.RawKind == 8646)
+                {
+                    Edit.UpdateBetween(_listSyntax.GetFirstToken(), NewLineTrivia, _elasticTrivia, _listItems[0]);
+                }
+                else
+                {
+                    AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
+                }
 
                 var itemsAndSeparators = _listItems.GetWithSeparators();
 
@@ -340,8 +350,15 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     }
                 }
 
-                // last item.  Delete whatever is between it and the close token of the list.
-                result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                if (_listSyntax.RawKind == 8645 || _listSyntax.RawKind == 8646)
+                {
+                    result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _elasticTrivia, _listSyntax.GetLastToken()));
+                }
+                else
+                {
+                    // last item.  Delete whatever is between it and the close token of the list.
+                    result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                }
 
                 return result.ToImmutableAndFree();
             }
