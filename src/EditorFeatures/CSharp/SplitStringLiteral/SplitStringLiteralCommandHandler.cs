@@ -64,15 +64,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 var caret = textView.GetCaretPoint(subjectBuffer);
                 if (caret != null)
                 {
-                    // TO-DO: Fix null checking with carets.
-                    var success = true;
+                    // We go through all the spans to check whether they are strings that can be split.
                     for (var spanIndex = 0; spanIndex < spans.Count; spanIndex++)
                     {
                         var spanStart = spans[spanIndex].Start;
                         if (spanIndex > 0)
                         {
                             caret = textView.GetCaretPoint(subjectBuffer);
-                            spanStart += caret.Value.Subtract(spans[spanIndex - 1].Start);
+                            if (caret == null)
+                            {
+                                return false;
+                            }
+                            var addedSpace = caret.Value.Subtract(spans[spanIndex - 1].Start);
+                            if (addedSpace > 0 && addedSpace.Position + spanStart.Position < subjectBuffer.CurrentSnapshot.Length)
+                            {
+                                spanStart += addedSpace;
+                            }
+                            else
+                            {
+                                return true;
+                            }
                         }
 
                         // Quick check.  If the line doesn't contain a quote in it before the caret,
@@ -82,11 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                         {
                             if (!SplitString(textView, subjectBuffer, spanStart))
                             {
-                                success = false;
+                                return false;
                             }
                         }
                     }
-                    return success;
+                    return true;
                 }
             }
 
