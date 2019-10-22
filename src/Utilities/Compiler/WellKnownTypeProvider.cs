@@ -51,8 +51,14 @@ namespace Analyzer.Utilities
                 fullyQualifiedMetadataName =>
                 {
                     // Caching null results in our cache is intended.
-                    var type = Compilation.GetTypeByMetadataName(fullyQualifiedMetadataName)
-                        ?? Compilation.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
+
+#pragma warning disable RS0030 // Do not used banned APIs
+                    // Use of Compilation.GetTypeByMetadataName is allowed here (this is our wrapper for it which
+                    // includes fallback handling for cases where GetTypeByMetadataName returns null).
+                    var type = Compilation.GetTypeByMetadataName(fullyQualifiedMetadataName);
+#pragma warning restore RS0030 // Do not used banned APIs
+
+                    type ??= Compilation.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
                     if (type is null)
                     {
                         foreach (var module in Compilation.Assembly.Modules)
