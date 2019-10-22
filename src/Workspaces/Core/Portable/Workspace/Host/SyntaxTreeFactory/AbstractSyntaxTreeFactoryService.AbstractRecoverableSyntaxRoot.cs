@@ -160,31 +160,10 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                var tickCount = Environment.TickCount;
-                try
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken))
                 {
-                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
-                    {
-                        RoslynEventSource.Instance.BlockStart(_containingTree.FilePath, FunctionId.Workspace_Recoverable_RecoverRootAsync, blockId: 0);
-                    }
-
                     using var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
                     return RecoverRoot(stream, cancellationToken);
-                }
-                finally
-                {
-                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
-                    {
-                        var tick = Environment.TickCount - tickCount;
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            RoslynEventSource.Instance.BlockCanceled(FunctionId.Workspace_Recoverable_RecoverRootAsync, tick, blockId: 0);
-                        }
-                        else
-                        {
-                            RoslynEventSource.Instance.BlockStop(FunctionId.Workspace_Recoverable_RecoverRootAsync, tick, blockId: 0);
-                        }
-                    }
                 }
             }
 
@@ -193,30 +172,10 @@ namespace Microsoft.CodeAnalysis.Host
                 Contract.ThrowIfNull(_storage);
 
                 var tickCount = Environment.TickCount;
-                try
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken))
                 {
-                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
-                    {
-                        RoslynEventSource.Instance.BlockStart(_containingTree.FilePath, FunctionId.Workspace_Recoverable_RecoverRoot, blockId: 0);
-                    }
-
                     using var stream = _storage.ReadStream(cancellationToken);
                     return RecoverRoot(stream, cancellationToken);
-                }
-                finally
-                {
-                    if (RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None))
-                    {
-                        var tick = Environment.TickCount - tickCount;
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            RoslynEventSource.Instance.BlockCanceled(FunctionId.Workspace_Recoverable_RecoverRoot, tick, blockId: 0);
-                        }
-                        else
-                        {
-                            RoslynEventSource.Instance.BlockStop(FunctionId.Workspace_Recoverable_RecoverRoot, tick, blockId: 0);
-                        }
-                    }
                 }
             }
 

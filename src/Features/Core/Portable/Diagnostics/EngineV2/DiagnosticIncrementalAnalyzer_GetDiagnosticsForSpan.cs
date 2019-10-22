@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -106,37 +108,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<bool> TryGetAsync(List<DiagnosticData> list, CancellationToken cancellationToken)
             {
+                var containsFullResult = true;
+                var loggingEnabled = RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None);
+
                 try
                 {
-                    var containsFullResult = true;
                     foreach (var stateSet in _stateSets)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        containsFullResult &= await TryGetSyntaxAndSemanticDiagnosticsAsync(stateSet, list, cancellationToken).ConfigureAwait(false);
-
-                        // check whether compilation end code fix is enabled
-                        if (!_document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CompilationEndCodeFix))
+                        if (loggingEnabled)
                         {
-                            continue;
-                        }
-
-                        // check whether heuristic is enabled
-                        if (_blockForData && _document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic))
-                        {
-                            var avoidLoadingData = true;
-                            var state = stateSet.GetProjectState(_project.Id);
-                            var result = await state.GetAnalysisDataAsync(_document, avoidLoadingData, cancellationToken).ConfigureAwait(false);
-
-                            // no previous compilation end diagnostics in this file.
-                            var version = await GetDiagnosticVersionAsync(_project, cancellationToken).ConfigureAwait(false);
-                            if (state.IsEmpty(_document.Id) || result.Version != version)
+                            using (RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, stateSet.Analyzer.GetAnalyzerId(), cancellationToken))
                             {
-                                continue;
+                                await ProcessStateSetAsync(stateSet).ConfigureAwait(false);
                             }
                         }
-
-                        containsFullResult &= await TryGetProjectDiagnosticsAsync(stateSet, GetProjectDiagnosticsAsync, list, cancellationToken).ConfigureAwait(false);
+                        else
+                        {
+                            await ProcessStateSetAsync(stateSet).ConfigureAwait(false);
+                        }
                     }
 
                     // if we are blocked for data, then we should always have full result.
@@ -146,6 +135,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
+                }
+
+                async Task ProcessStateSetAsync(StateSet stateSet)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    containsFullResult &= await TryGetSyntaxAndSemanticDiagnosticsAsync(stateSet, list, cancellationToken).ConfigureAwait(false);
+
+                    // check whether compilation end code fix is enabled
+                    if (!_document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CompilationEndCodeFix))
+                    {
+                        return;
+                    }
+
+                    // check whether heuristic is enabled
+                    if (_blockForData && _document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic))
+                    {
+                        var avoidLoadingData = true;
+                        var state = stateSet.GetProjectState(_project.Id);
+                        var result = await state.GetAnalysisDataAsync(_document, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+
+                        // no previous compilation end diagnostics in this file.
+                        var version = await GetDiagnosticVersionAsync(_project, cancellationToken).ConfigureAwait(false);
+                        if (state.IsEmpty(_document.Id) || result.Version != version)
+                        {
+                            return;
+                        }
+                    }
+
+                    containsFullResult &= await TryGetProjectDiagnosticsAsync(stateSet, GetProjectDiagnosticsAsync, list, cancellationToken).ConfigureAwait(false);
                 }
             }
 

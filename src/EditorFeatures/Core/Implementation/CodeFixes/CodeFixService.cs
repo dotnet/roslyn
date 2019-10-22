@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -292,12 +294,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+            var isPerProviderLoggingEnabled = RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None);
 
             // run each CodeFixProvider to gather individual CodeFixes for reported diagnostics
             foreach (var fixer in allFixers.Distinct())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                if (isPerProviderLoggingEnabled)
+                {
+                    using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixer.ToString(), cancellationToken))
+                    {
+                        await ProcessFixerAsync(fixer).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    await ProcessFixerAsync(fixer).ConfigureAwait(false);
+                }
+
+                // Just need the first result if we are doing fix all in span
+                if (fixAllForInSpan && result.Any()) return;
+            }
+
+            async Task ProcessFixerAsync(CodeFixProvider fixer)
+            {
                 await AppendFixesOrConfigurationsAsync(
                     document, span, diagnostics, fixAllForInSpan, result, fixer,
                     hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
@@ -307,7 +328,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         {
                             var primaryDiagnostic = dxs.First();
                             return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking, ImmutableArray.Create(primaryDiagnostic), cancellationToken);
-
                         }
                         else
                         {
@@ -315,9 +335,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         }
                     },
                     cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // Just need the first result if we are doing fix all in span
-                if (fixAllForInSpan && result.Any()) return;
             }
         }
 
@@ -354,8 +371,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return;
             }
 
+            var isPerProviderLoggingEnabled = RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None);
+
             // append CodeFixCollection for each CodeFixProvider
             foreach (var provider in lazyConfigurationProviders.Value)
+            {
+                if (isPerProviderLoggingEnabled)
+                {
+                    using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, provider.ToString(), cancellationToken))
+                    {
+                        await AppendConfigurationsAsync(provider).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    await AppendConfigurationsAsync(provider).ConfigureAwait(false);
+                }
+            }
+
+            async Task AppendConfigurationsAsync(IConfigurationFixProvider provider)
             {
                 await AppendFixesOrConfigurationsAsync(
                     document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,

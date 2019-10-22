@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,19 +104,36 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             bool isBlocking,
             CancellationToken cancellationToken)
         {
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+            var isPerProviderLoggingEnabled = RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None);
+
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
-                var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
                 var tasks = new List<Task<CodeRefactoring>>();
 
                 foreach (var provider in GetProviders(document))
                 {
                     tasks.Add(Task.Run(
-                        () => GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken), cancellationToken));
+                        () => GetRefactoringsAsync(provider), cancellationToken));
                 }
 
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
                 return results.WhereNotNull().ToImmutableArray();
+            }
+
+            Task<CodeRefactoring> GetRefactoringsAsync(CodeRefactoringProvider provider)
+            {
+                if (isPerProviderLoggingEnabled)
+                {
+                    using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, provider.ToString(), cancellationToken))
+                    {
+                        return GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken);
+                    }
+                }
+                else
+                {
+                    return GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken);
+                }
             }
         }
 
