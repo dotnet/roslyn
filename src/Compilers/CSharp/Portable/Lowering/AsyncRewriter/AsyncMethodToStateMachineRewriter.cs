@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// of rewritten return expressions. The return-handling code then uses <c>SetResult</c> on the async method builder
         /// to make the result available to the caller.
         /// </summary>
-        protected readonly LocalSymbol _exprRetValue;
+        private readonly LocalSymbol _exprRetValue;
 
         private readonly LoweredDynamicOperationFactory _dynamicFactory;
 
