@@ -294,47 +294,34 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
-            var isPerProviderLoggingEnabled = RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None);
 
             // run each CodeFixProvider to gather individual CodeFixes for reported diagnostics
             foreach (var fixer in allFixers.Distinct())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (isPerProviderLoggingEnabled)
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixer, cancellationToken))
                 {
-                    using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixer.ToString(), cancellationToken))
-                    {
-                        await ProcessFixerAsync(fixer).ConfigureAwait(false);
-                    }
-                }
-                else
-                {
-                    await ProcessFixerAsync(fixer).ConfigureAwait(false);
+                    await AppendFixesOrConfigurationsAsync(
+                        document, span, diagnostics, fixAllForInSpan, result, fixer,
+                        hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
+                        getFixes: dxs =>
+                        {
+                            if (fixAllForInSpan)
+                            {
+                                var primaryDiagnostic = dxs.First();
+                                return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking, ImmutableArray.Create(primaryDiagnostic), cancellationToken);
+                            }
+                            else
+                            {
+                                return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs, cancellationToken);
+                            }
+                        },
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
 
                 // Just need the first result if we are doing fix all in span
                 if (fixAllForInSpan && result.Any()) return;
-            }
-
-            async Task ProcessFixerAsync(CodeFixProvider fixer)
-            {
-                await AppendFixesOrConfigurationsAsync(
-                    document, span, diagnostics, fixAllForInSpan, result, fixer,
-                    hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
-                    getFixes: dxs =>
-                    {
-                        if (fixAllForInSpan)
-                        {
-                            var primaryDiagnostic = dxs.First();
-                            return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking, ImmutableArray.Create(primaryDiagnostic), cancellationToken);
-                        }
-                        else
-                        {
-                            return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs, cancellationToken);
-                        }
-                    },
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -371,32 +358,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return;
             }
 
-            var isPerProviderLoggingEnabled = RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None);
-
             // append CodeFixCollection for each CodeFixProvider
             foreach (var provider in lazyConfigurationProviders.Value)
             {
-                if (isPerProviderLoggingEnabled)
+                using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, provider, cancellationToken))
                 {
-                    using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, provider.ToString(), cancellationToken))
-                    {
-                        await AppendConfigurationsAsync(provider).ConfigureAwait(false);
-                    }
+                    await AppendFixesOrConfigurationsAsync(
+                        document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,
+                        hasFix: d => provider.IsFixableDiagnostic(d),
+                        getFixes: dxs => provider.GetFixesAsync(
+                            document, diagnosticsSpan, dxs, cancellationToken),
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
-                else
-                {
-                    await AppendConfigurationsAsync(provider).ConfigureAwait(false);
-                }
-            }
-
-            async Task AppendConfigurationsAsync(IConfigurationFixProvider provider)
-            {
-                await AppendFixesOrConfigurationsAsync(
-                    document, diagnosticsSpan, diagnostics, fixAllForInSpan: false, result, provider,
-                    hasFix: d => provider.IsFixableDiagnostic(d),
-                    getFixes: dxs => provider.GetFixesAsync(
-                        document, diagnosticsSpan, dxs, cancellationToken),
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
 
