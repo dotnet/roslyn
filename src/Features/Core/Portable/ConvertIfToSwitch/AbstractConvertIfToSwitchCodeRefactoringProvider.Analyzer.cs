@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 switch (operation)
                 {
-                    case IBlockOperation op:
+                    case IBlockOperation { Parent: IConditionalOperation _ } op: // Only if this is an if-else block
                         return ParseIfStatementSequence(op.Operations.AsSpan(), sections, out defaultBodyOpt);
 
                     case IConditionalOperation op when CanConvert(op):
