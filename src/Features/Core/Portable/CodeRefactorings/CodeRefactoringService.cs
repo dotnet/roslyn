@@ -104,11 +104,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             bool isBlocking,
             CancellationToken cancellationToken)
         {
-            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
-            var isPerProviderLoggingEnabled = RoslynEventSource.Instance.IsEnabled(EventLevel.Informational, EventKeywords.None);
-
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
+                var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
                 var tasks = new List<Task<CodeRefactoring>>();
 
                 foreach (var provider in GetProviders(document))
