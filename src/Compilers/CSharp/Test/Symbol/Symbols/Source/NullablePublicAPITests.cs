@@ -3594,7 +3594,6 @@ class D<T>
             var root = syntaxTree.GetRoot();
             var model = comp.GetSemanticModel(syntaxTree);
 
-
             var lambda = root.DescendantNodes().OfType<LambdaExpressionSyntax>().First();
             var lambdaSymbol = model.GetSymbolInfo(lambda).Symbol;
             var localFunction = lambda.DescendantNodes().OfType<LocalFunctionStatementSyntax>().First();
@@ -3603,6 +3602,40 @@ class D<T>
 
             var typeParameters = localFunctionSymbol.TypeParameters[0];
             Assert.Same(localFunctionSymbol, typeParameters.ContainingSymbol);
+        }
+
+        [Fact]
+        public void SpeculativeModel_InAttribute()
+        {
+            var source = @"
+using System;
+[AttributeUsage(AttributeTargets.ReturnValue)]
+class Attr : Attribute
+{
+    public Attr(string Test) {}
+}
+class Test
+{
+    const string Constant = ""Test"";
+    [return: Attr(""Test"")]
+    void M() {}
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var attributeUsage = root.DescendantNodes().OfType<AttributeSyntax>().ElementAt(1);
+            var newAttributeUsage = SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr"), SyntaxFactory.ParseAttributeArgumentList("(Constant)"));
+
+            Assert.True(model.TryGetSpeculativeSemanticModel(attributeUsage.SpanStart, newAttributeUsage, out var specModel));
+            Assert.NotNull(specModel);
+
+            var symbolInfo = specModel.GetSymbolInfo(newAttributeUsage.ArgumentList.Arguments[0].Expression);
+            Assert.Equal(SpecialType.System_String, ((IFieldSymbol)symbolInfo.Symbol).Type.SpecialType);
         }
     }
 }
