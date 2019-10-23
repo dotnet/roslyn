@@ -3008,6 +3008,235 @@ End Class
             End Using
         End Function
 
+        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround1() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class C
+    Sub goo(x As Integer)
+        String.$$
+]]></Document>)
+                    state.SendTypeChars("is")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("IsInterned")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround2() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class C
+    Sub goo(x As Integer)
+        String.$$]]></Document>)
+                    state.SendTypeChars("ı")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem()
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround3() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class TARIFE
+
+End Class
+Class C
+    Sub goo(x As Integer)
+        Dim t As $$
+]]></Document>)
+                    state.SendTypeChars("tarif")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("TARIFE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround4() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class IFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim ifade As IFADE
+        $$]]></Document>)
+                    state.SendTypeChars("if")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("If")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround5() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class İFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim ifade As İFADE
+        $$
+]]></Document>)
+                    state.SendTypeChars("if")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("If")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround6() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class TARİFE
+
+End Class
+Class C
+    Sub goo(x As Integer)
+        Dim obj As $$
+]]></Document>)
+                    state.SendTypeChars("tarif")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("TARİFE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround7() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class İFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim obj As $$
+]]></Document>)
+                    state.SendTypeChars("ifad")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("İFADE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround8() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class IFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim obj As $$
+]]></Document>)
+                    state.SendTypeChars("ifad")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("IFADE")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround9() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class IFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim ifade_ As İFADE
+        $$]]></Document>)
+                    state.SendTypeChars("IF")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("If")
+                End Using
+            End Using
+
+        End Function
+
+        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround10() As Task
+            Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
+                Using state = TestStateFactory.CreateVisualBasicTestState(
+                               <Document><![CDATA[
+Class İFADE
+
+End Class
+Class ifTest
+
+End Class
+
+Class C
+    Sub goo(x As Integer)
+        Dim ifade As İFADE
+        $$
+]]></Document>)
+                    state.SendTypeChars("IF")
+                    Await state.WaitForAsynchronousOperationsAsync()
+                    Await state.AssertSelectedCompletionItem("If")
+                End Using
+            End Using
+
+        End Function
+
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
         Friend Class MockSnippetInfoService
             Implements ISnippetInfoService
