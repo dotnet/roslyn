@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
@@ -18,16 +17,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     [Order(After = PredefinedDocumentOptionsProviderNames.EditorConfig)]
     internal sealed class InferredIndentationDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
-        private readonly IIndentationManagerService _indentationManagerService;
+        private readonly IIndentationManagerService? _indentationManagerService;
 
         [ImportingConstructor]
-        public InferredIndentationDocumentOptionsProviderFactory(IIndentationManagerService indentationManagerService)
+        public InferredIndentationDocumentOptionsProviderFactory([Import(IIndentationManagerService.MefContractName, AllowDefault = true)] object indentationManagerService)
         {
-            _indentationManagerService = indentationManagerService;
+            _indentationManagerService = IIndentationManagerService.FromDefaultImport(indentationManagerService);
         }
 
         public IDocumentOptionsProvider? TryCreate(Workspace workspace)
         {
+            if (_indentationManagerService == null)
+            {
+                return null;
+            }
+
             return new DocumentOptionsProvider(_indentationManagerService);
         }
 

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     Friend Class CommitFormatter
         Implements ICommitFormatter
 
-        Private ReadOnly _indentationManagerService As IIndentationManagerService
+        Private ReadOnly _indentationManagerServiceOpt As IIndentationManagerService
 
         Private Shared ReadOnly s_codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
             Function(p)
@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Function
 
         <ImportingConstructor>
-        Public Sub New(indentationManagerService As IIndentationManagerService)
-            _indentationManagerService = indentationManagerService
+        Public Sub New(<Import(IIndentationManagerService.MefContractName, AllowDefault:=True)> indentationManagerService As Object)
+            _indentationManagerServiceOpt = IIndentationManagerService.FromDefaultImport(indentationManagerService)
         End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                Dim documentOptions = document.GetDocumentOptionsWithInferredIndentationAsync(isExplicitFormat, _indentationManagerService, cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim documentOptions = document.GetDocumentOptionsWithInferredIndentationAsync(isExplicitFormat, _indentationManagerServiceOpt, cancellationToken).WaitAndGetResult(cancellationToken)
                 If Not (isExplicitFormat OrElse documentOptions.GetOption(FeatureOnOffOptions.PrettyListing)) Then
                     Return
                 End If
