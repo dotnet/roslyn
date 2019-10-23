@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.IO;
 using System.Text;
 using System.Threading;
