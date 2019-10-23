@@ -1377,12 +1377,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         /// <summary>
-        /// Visits a node that is possibly a using <see cref="VariableDeclarationGroupOperation"/>
+        /// Visits a node that is possibly a using <see cref="IVariableDeclarationGroupOperation"/>
         /// </summary>
         /// <param name="operation">The statement to visit</param>
         /// <param name="statements">All statements in the block containing this node</param>
         /// <param name="startIndex">The current statement being visited in <paramref name="statements"/></param>
-        /// <param name="visitedUsingDeclaration">Set to true if this visited a using <see cref="VariableDeclarationGroupOperation"/> operation</param>
+        /// <param name="visitedUsingDeclaration">Set to true if this visited a using <see cref="IVariableDeclarationGroupOperation"/> operation</param>
         /// <remarks>
         /// The operation being visited is not necessarily equal to statements[startIndex]. 
         /// When traversing down a set of labels, we set operation to the label.Operation and recurse, but statements[startIndex] still refers to the original parent label 
@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             switch (operation.Kind)
             {
                 case OperationKind.VariableDeclarationGroup:
-                    var declarationGroup = (VariableDeclarationGroupOperation)operation;
+                    var declarationGroup = (IVariableDeclarationGroupOperation)operation;
                     if (declarationGroup.DeclarationKind != VariableDeclarationKind.Using && declarationGroup.DeclarationKind != VariableDeclarationKind.AsynchronousUsing)
                     {
                         goto default;
@@ -1404,6 +1404,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     break;
                 case OperationKind.Labeled:
                     var labelOperation = (ILabeledOperation)operation;
+                    if (labelOperation.Operation is null)
+                    {
+                        goto default;
+                    }
                     VisitLabel(labelOperation.Label);
                     VisitPossibleUsingDeclaration(labelOperation.Operation, statements, startIndex, out visitedUsingDeclaration);
                     break;
@@ -6867,7 +6871,7 @@ oneMoreTime:
             return GetCaptureReference(captureOutput, operation);
         }
 
-        private void VisitUsingVariableDeclarationOperation(VariableDeclarationGroupOperation operation, ImmutableArray<IOperation> statements)
+        private void VisitUsingVariableDeclarationOperation(IVariableDeclarationGroupOperation operation, ImmutableArray<IOperation> statements)
         {
             IOperation saveCurrentStatement = _currentStatement;
             _currentStatement = operation;
@@ -6880,7 +6884,7 @@ oneMoreTime:
             BlockOperation logicalBlock = new BlockOperation(
                 operations: statements,
                 locals: ImmutableArray<ILocalSymbol>.Empty,
-                operation.OwningSemanticModel,
+                ((Operation)operation).OwningSemanticModel,
                 operation.Syntax,
                 operation.Type,
                 operation.ConstantValue,
