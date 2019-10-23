@@ -300,12 +300,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixer, cancellationToken))
-                {
-                    await AppendFixesOrConfigurationsAsync(
-                        document, span, diagnostics, fixAllForInSpan, result, fixer,
-                        hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
-                        getFixes: dxs =>
+                await AppendFixesOrConfigurationsAsync(
+                    document, span, diagnostics, fixAllForInSpan, result, fixer,
+                    hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
+                    getFixes: dxs =>
+                    {
+                        using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixer, cancellationToken))
                         {
                             if (fixAllForInSpan)
                             {
@@ -316,9 +316,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             {
                                 return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs, cancellationToken);
                             }
-                        },
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
-                }
+                        }
+                    },
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // Just need the first result if we are doing fix all in span
                 if (fixAllForInSpan && result.Any()) return;
