@@ -323,6 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         private ImmutableArray<ISymbol> GetSymbolsOffOfExpression(ExpressionSyntax originalExpression)
         {
+            // In case of 'await x$$', we want to move to 'x' to get it's members.
+            // To run GetSymbolInfo, we also need to get rid of parenthesis.
             var expression = originalExpression is AwaitExpressionSyntax awaitExpression
                 ? awaitExpression.Expression.WalkDownParentheses()
                 : originalExpression.WalkDownParentheses();
