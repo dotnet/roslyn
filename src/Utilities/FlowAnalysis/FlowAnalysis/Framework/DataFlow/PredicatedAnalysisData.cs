@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             foreach (var kvp in predicatedData2)
             {
-                if (!predicatedData1.TryGetValue(kvp.Key, out var value2))
+                if (!predicatedData1.TryGetValue(kvp.Key, out _))
                 {
                     // Data predicated by the analysis entity present in only one branch.
                     // We should merge with the core non-predicate data in other branch.

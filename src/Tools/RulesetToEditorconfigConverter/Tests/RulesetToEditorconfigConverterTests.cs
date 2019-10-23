@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace RulesetToEditorconfigConverter.UnitTests
+namespace Microsoft.CodeAnalysis.RulesetToEditorconfig.UnitTests
 {
     public class RulesetToEditorconfigConverterTests
     {
