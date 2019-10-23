@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
                 {
-                    return new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.Add(optionAndLanguage, value));
+                    return new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
                 }
 
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
