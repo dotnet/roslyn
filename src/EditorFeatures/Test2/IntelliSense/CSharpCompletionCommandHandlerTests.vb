@@ -3044,7 +3044,7 @@ class C
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestStateFactory.CreateCSharpTestState(
                                <Document><![CDATA[
-        class İFADE {}
+        class IFADE {}
         class ifTest {}
         class C
         {
