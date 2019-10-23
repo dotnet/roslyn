@@ -4,23 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -287,23 +280,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract Task OnDefinitionFoundWorkerAsync(DefinitionItem definition);
 
-            protected async Task<(Guid, string projectName, SourceText)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
-            {
-                // The FAR system needs to know the guid for the project that a def/reference is 
-                // from (to support features like filtering).  Normally that would mean we could
-                // only support this from a VisualStudioWorkspace.  However, we want till work 
-                // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
-                // when we have another type of workspace.  This means we will show results, but
-                // certain features (like filtering) may not work in that context.
-                var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
-
-                var projectName = document.Project.Name;
-                var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
-
-                var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
-                return (guid, projectName, sourceText);
-            }
-
             protected async Task<Entry> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
@@ -312,10 +288,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 ImmutableDictionary<string, string> additionalProperties)
             {
                 var document = documentSpan.Document;
-                var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
-                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan).ConfigureAwait(false);
+                var (projectGuid, documentGuid, projectName, sourceText) = await FindUsagesUtilities.GetGuidAndProjectNameAndSourceTextAsync(document, CancellationToken).ConfigureAwait(false);
+                var (excerptResult, lineText) = await FindUsagesUtilities.ExcerptAsync(sourceText, documentSpan, CancellationToken).ConfigureAwait(false);
 
-                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
+                var mappedDocumentSpan = await FindUsagesUtilities.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
                 {
                     // this will be removed from the result
@@ -324,32 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return new DocumentSpanEntry(
                     this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, symbolUsageInfo, additionalProperties);
-            }
-
-            private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
-            {
-                var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
-                if (excerptService != null)
-                {
-                    var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, CancellationToken).ConfigureAwait(false);
-                    if (result != null)
-                    {
-                        return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
-                    }
-                }
-
-                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
-
-                // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
-                var excerptResult = new ExcerptResult(
-                    sourceText,
-                    classificationResult.HighlightSpan,
-                    classificationResult.ClassifiedSpans,
-                    documentSpan.Document,
-                    documentSpan.SourceSpan);
-
-                return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
+                    projectGuid, mappedDocumentSpan.Value, excerptResult, lineText, symbolUsageInfo, additionalProperties);
             }
 
             public sealed override Task OnReferenceFoundAsync(SourceReferenceItem reference)

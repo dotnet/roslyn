@@ -90,34 +90,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             protected abstract IList<Inline> CreateLineTextInlines();
-
-            public static async Task<MappedSpanResult?> TryMapAndGetFirstAsync(DocumentSpan documentSpan, SourceText sourceText, CancellationToken cancellationToken)
-            {
-                var service = documentSpan.Document.Services.GetService<ISpanMappingService>();
-                if (service == null)
-                {
-                    return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
-                }
-
-                var results = await service.MapSpansAsync(
-                    documentSpan.Document, SpecializedCollections.SingletonEnumerable(documentSpan.SourceSpan), cancellationToken).ConfigureAwait(false);
-
-                if (results.IsDefaultOrEmpty)
-                {
-                    return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
-                }
-
-                // if span mapping service filtered out the span, make sure
-                // to return null so that we remove the span from the result
-                return results.FirstOrNullable(r => !r.IsDefault);
-            }
-
-            public static SourceText GetLineContainingPosition(SourceText text, int position)
-            {
-                var line = text.Lines.GetLineFromPosition(position);
-
-                return text.GetSubText(line.Span);
-            }
         }
     }
 }

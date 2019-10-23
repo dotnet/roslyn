@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     {
         private readonly RoslynSymbolSource SymbolSource;
         private readonly IStreamingSymbolSearchSink SymbolSink;
-        private readonly CancellationToken CancellationToken;
+        public new readonly CancellationToken CancellationToken;
 
         public SymbolSearchContext(RoslynSymbolSource symbolSource, IStreamingSymbolSearchSink sink)
         {

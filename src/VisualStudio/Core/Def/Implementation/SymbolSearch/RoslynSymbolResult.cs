@@ -70,21 +70,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             {
                 result.DefinitionIcon = result.Definition.Tags.GetFirstGlyph().GetImageId();
             }
-            /*
-            result.ClassifiedDefinition = new ClassifiedTextElement(
-                definition.NameDisplayParts.Select(n =>
-                    new ClassifiedTextRun(n.Tag.ToClassificationTypeName(), n.ToVisibleDisplayString(includeLeftToRightMarker: true))));
-            result.ClassifiedContext = new ClassifiedTextElement(
-                definition.DisplayParts.Select(n =>
-                    new ClassifiedTextRun(n.Tag.ToClassificationTypeName(), n.ToVisibleDisplayString(includeLeftToRightMarker: true))));
-*/
-            var (projectId, projectName, sourceText, documentId) = await GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document)
-                .ConfigureAwait(false);
-            result.ProjectId = projectId.ToString();
-            result.ProjectName = projectName;
-            result.DocumentId = documentId.ToString();
 
-            var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, token).ConfigureAwait(false);
+            var (projectGuid, documentGuid, projectName, sourceText) = await FindUsagesUtilities.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, token)
+                .ConfigureAwait(false);
+            result.ProjectId = projectGuid.ToString();
+            result.ProjectName = projectName;
+            result.DocumentId = documentGuid.ToString();
+
+            var (excerptResult, lineText) = await FindUsagesUtilities.ExcerptAsync(sourceText, documentSpan, token).ConfigureAwait(false);
 
             var classifiedText = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
                 new ClassifiedTextRun(cspan.ClassificationType, sourceText.ToString(cspan.TextSpan))));
@@ -106,7 +99,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var docText = await result.Reference.SourceSpan.Document.GetTextAsync(token).ConfigureAwait(false);
                 result.ClassifiedContext = new ClassifiedTextElement(classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
                 result.HighlightSpan = AsSpan(classifiedSpansAndHighlightSpan.HighlightSpan);
-                // TODO: peeek at test1 and test2 above ^
 
                 if (result.Reference.AdditionalProperties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var containingTypeInfo))
                 {
@@ -124,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var locationWithText = new LSP.LocationWithText { Range = referenceLocation.Range, Uri = referenceLocation.Uri, Text = classifiedText };
             result.ClassifiedContext = 
             */
-            var mappedDocumentSpan = await TryMapAndGetFirstAsync(documentSpan, sourceText, token).ConfigureAwait(false);
+            var mappedDocumentSpan = await FindUsagesUtilities.TryMapAndGetFirstAsync(documentSpan, sourceText, token).ConfigureAwait(false);
             if (mappedDocumentSpan.HasValue)
             {
                 var location = mappedDocumentSpan.Value;
@@ -170,82 +162,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private static Span AsSpan(TextSpan sourceSpan)
         {
             return new Span(sourceSpan.Start, sourceSpan.Length);
-        }
-
-        // Taken from AbstractTableDataSourceFindUsagesContext
-        internal static async Task<(Guid projectId, string projectName, SourceText text, Guid documentId)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
-        {
-            // The FAR system needs to know the guid for the project that a def/reference is 
-            // from (to support features like filtering).  Normally that would mean we could
-            // only support this from a VisualStudioWorkspace.  However, we want till work 
-            // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
-            // when we have another type of workspace.  This means we will show results, but
-            // certain features (like filtering) may not work in that context.
-            var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
-
-            var projectName = document.Project.Name;
-            var projectGuid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
-            var documentGuid = vsWorkspace?.GetDocumentIdInCurrentContext(document.Id).Id ?? Guid.Empty;
-
-            // TODO: get cancellation token from the IStreamingSymbolSearchSink
-            var sourceText = await document.GetTextAsync(default).ConfigureAwait(false);
-            return (projectGuid, projectName, sourceText, documentGuid);
-        }
-
-        // Taken from AbstractDocumentSpanEntry
-        public static SourceText GetLineContainingPosition(SourceText text, int position)
-        {
-            var line = text.Lines.GetLineFromPosition(position);
-
-            return text.GetSubText(line.Span);
-        }
-
-        // Taken from AbstractDocumentSpanEntry
-        public static async Task<MappedSpanResult?> TryMapAndGetFirstAsync(DocumentSpan documentSpan, SourceText sourceText, CancellationToken cancellationToken)
-        {
-            var service = documentSpan.Document.Services.GetService<ISpanMappingService>();
-            if (service == null)
-            {
-                return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
-            }
-
-            var results = await service.MapSpansAsync(
-                documentSpan.Document, SpecializedCollections.SingletonEnumerable(documentSpan.SourceSpan), cancellationToken).ConfigureAwait(false);
-
-            if (results.IsDefaultOrEmpty)
-            {
-                return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
-            }
-
-            // if span mapping service filtered out the span, make sure
-            // to return null so that we remove the span from the result
-            return results.FirstOrNullable(r => !r.IsDefault);
-        }
-
-        // Taken from WithReferencesFindUsagesContext
-        private static async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan, CancellationToken token)
-        {
-            var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
-            if (excerptService != null)
-            {
-                var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, token).ConfigureAwait(false);
-                if (result != null)
-                {
-                    return (result.Value, GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
-                }
-            }
-
-            var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, token).ConfigureAwait(false);
-
-            // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
-            var excerptResult = new ExcerptResult(
-                sourceText,
-                classificationResult.HighlightSpan,
-                classificationResult.ClassifiedSpans,
-                documentSpan.Document,
-                documentSpan.SourceSpan);
-
-            return (excerptResult, GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
         }
     }
 }
