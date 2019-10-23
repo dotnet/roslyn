@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license 
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license
 
 using System;
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
                 ReportDiagnostic.Warn => DiagnosticSeverity.Warning,
                 ReportDiagnostic.Info => DiagnosticSeverity.Info,
                 ReportDiagnostic.Hidden => DiagnosticSeverity.Hidden,
-                ReportDiagnostic.Suppress => null,
+                ReportDiagnostic.Suppress => default(DiagnosticSeverity?),
                 ReportDiagnostic.Default => null,
                 _ => throw new NotImplementedException(),
             };
