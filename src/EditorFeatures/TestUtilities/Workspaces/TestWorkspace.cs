@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -69,6 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _backgroundParser.Start();
 
             _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
+
+            RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
         }
 
         protected internal override bool PartialSemanticsEnabled
