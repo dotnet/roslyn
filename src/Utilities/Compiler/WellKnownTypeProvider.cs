@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
@@ -46,7 +48,53 @@ namespace Analyzer.Utilities
         {
             namedTypeSymbol = _fullNameToTypeMap.GetOrAdd(
                 fullTypeName,
-                (string s) => Compilation.GetTypeByMetadataName(s));    // Caching null results in our cache is intended.
+                fullyQualifiedMetadataName =>
+                {
+                    // Caching null results in our cache is intended.
+
+#pragma warning disable RS0030 // Do not used banned APIs
+                    // Use of Compilation.GetTypeByMetadataName is allowed here (this is our wrapper for it which
+                    // includes fallback handling for cases where GetTypeByMetadataName returns null).
+                    var type = Compilation.GetTypeByMetadataName(fullyQualifiedMetadataName);
+#pragma warning restore RS0030 // Do not used banned APIs
+
+                    type ??= Compilation.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
+                    if (type is null)
+                    {
+                        foreach (var module in Compilation.Assembly.Modules)
+                        {
+                            foreach (var referencedAssembly in module.ReferencedAssemblySymbols)
+                            {
+                                var currentType = referencedAssembly.GetTypeByMetadataName(fullyQualifiedMetadataName);
+                                if (currentType is null)
+                                {
+                                    continue;
+                                }
+
+                                switch (currentType.GetResultantVisibility())
+                                {
+                                    case SymbolVisibility.Public:
+                                    case SymbolVisibility.Internal when referencedAssembly.GivesAccessTo(Compilation.Assembly):
+                                        break;
+
+                                    default:
+                                        continue;
+                                }
+
+                                if (type is object)
+                                {
+                                    // Multiple visible types with the same metadata name are present.
+                                    return null;
+                                }
+
+                                type = currentType;
+                            }
+                        }
+                    }
+
+                    return type;
+                });
+
             return namedTypeSymbol != null;
         }
 

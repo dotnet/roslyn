@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
             }
 
             // If this compilation contains the type, Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace, we're done.
-            var msbuildWorkspace = context.Compilation.GetTypeByMetadataName(MSBuildWorkspaceFullName);
+            var msbuildWorkspace = context.Compilation.GetOrCreateTypeByMetadataName(MSBuildWorkspaceFullName);
             if (msbuildWorkspace != null)
             {
                 return;

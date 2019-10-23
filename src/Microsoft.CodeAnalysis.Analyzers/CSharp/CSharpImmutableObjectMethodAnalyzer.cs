@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol solutionSymbol = compilationContext.Compilation.GetTypeByMetadataName(SolutionFullName);
-                INamedTypeSymbol projectSymbol = compilationContext.Compilation.GetTypeByMetadataName(ProjectFullName);
-                INamedTypeSymbol documentSymbol = compilationContext.Compilation.GetTypeByMetadataName(DocumentFullName);
-                INamedTypeSymbol syntaxNodeSymbol = compilationContext.Compilation.GetTypeByMetadataName(SyntaxNodeFullName);
-                INamedTypeSymbol compilationSymbol = compilationContext.Compilation.GetTypeByMetadataName(CompilationFullName);
+                INamedTypeSymbol solutionSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(SolutionFullName);
+                INamedTypeSymbol projectSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(ProjectFullName);
+                INamedTypeSymbol documentSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(DocumentFullName);
+                INamedTypeSymbol syntaxNodeSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(SyntaxNodeFullName);
+                INamedTypeSymbol compilationSymbol = compilationContext.Compilation.GetOrCreateTypeByMetadataName(CompilationFullName);
 
                 ImmutableArray<INamedTypeSymbol> immutableSymbols = ImmutableArray.Create(solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol);
                 //Only register our node action if we can find the symbols for our immutable types
