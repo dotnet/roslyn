@@ -1395,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     var followingStatements = ImmutableArray.Create(statements, startIndex + 1, statements.Length - startIndex - 1);
                     VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
                     return true;
-                case ILabeledOperation labelOperation when labelOperation.Operation is object:
+                case ILabeledOperation labelOperation { Operation: object }:
                     VisitLabel(labelOperation.Label);
                     return TryVisitPossibleUsingDeclaration(labelOperation.Operation, statements, startIndex);
                 default:
