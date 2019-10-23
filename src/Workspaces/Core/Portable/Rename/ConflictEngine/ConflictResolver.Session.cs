@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             continue;
                         }
 
-                        var info = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, CancellationToken.None).ConfigureAwait(false);
+                        var info = await SyntaxTreeIndex.GetIndexAsync(document, CancellationToken.None).ConfigureAwait(false);
                         if (info.ProbablyContainsEscapedIdentifier(_originalText))
                         {
                             _documentsIdsToBeCheckedForConflict.Add(document.Id);

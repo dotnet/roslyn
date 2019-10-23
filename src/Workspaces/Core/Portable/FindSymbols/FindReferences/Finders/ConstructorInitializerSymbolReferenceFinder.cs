@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var index = await SyntaxTreeIndex.GetIndexAsync(d, loadOnly: false, c).ConfigureAwait(false);
+                var index = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 if (index.ContainsBaseConstructorInitializer)
                 {
                     return true;

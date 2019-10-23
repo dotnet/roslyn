@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
             // any unicode escapes in it, then we do simple string matching to find the tokens.
-            var info = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken).ConfigureAwait(false);
+            var info = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (!info.ProbablyContainsIdentifier(identifier))
             {
                 return ImmutableArray<SyntaxToken>.Empty;

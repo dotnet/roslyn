@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //
             // Complex methods include:
             // - Method declared in the document which includes using alias directive
-            // - Generic method
+            // - Generic method where the target type is generic
             // - If the target type name is one of the following (i.e. name of the type for the first parameter) 
             //      1. Array type
             //      2. ValueTuple type

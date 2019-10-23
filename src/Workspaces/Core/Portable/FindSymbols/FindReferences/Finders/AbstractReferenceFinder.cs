@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeIndex.GetIndexAsync(d, loadOnly: false, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 foreach (var value in values)
                 {
                     if (!info.ProbablyContainsIdentifier(value))
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeIndex.GetIndexAsync(d, loadOnly: false, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsPredefinedType(predefinedType);
             }, cancellationToken);
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeIndex.GetIndexAsync(d, loadOnly: false, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsPredefinedOperator(op);
             }, cancellationToken);
         }
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeIndex.GetIndexAsync(d, loadOnly: false, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
                 return predicate(info);
             }, cancellationToken);
         }
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CollectMatchingReferences collectMatchingReferences,
             CancellationToken cancellationToken)
         {
-            var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken).ConfigureAwait(false);
+            var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (isRelevantDocument(syntaxTreeInfo))
             {
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (item.Properties.TryGetValue(SymbolKeyData, out var symbolId))
             {
-                return SymbolCompletionItem.DecodeSymbol(symbolId, compilation);
+                return SymbolKey.ResolveString(symbolId, compilation).GetAnySymbol();
             }
 
             var containingNamespace = GetContainingNamespace(item);

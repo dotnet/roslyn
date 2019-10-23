@@ -173,6 +173,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
+            => SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken);
+
         public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
             => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
 

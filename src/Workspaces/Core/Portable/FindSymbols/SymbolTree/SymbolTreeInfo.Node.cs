@@ -79,26 +79,45 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public readonly struct ParameterTypeInfo
+        private readonly struct ParameterTypeInfo
         {
-            public string Name { get; }
-            public bool IsComplexType { get; }
+            /// <summary>
+            /// This is the type name of the parameter when <see cref="IsComplexType"/> is true.
+            /// </summary>
+            public readonly string Name;
+
+            /// <summary>
+            /// Similar to <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>, we divide extension methods into simple 
+            /// and complex categories for filtering purpose. Whether a method is simple is determined based on if we 
+            /// can determine it's target type easily with a pure text matching. For complex methods, we will need to
+            /// rely on symbol to decide if it's feasible.
+            /// 
+            /// Simple types include:
+            /// - Primitive types
+            /// - Types which is not a generic method parameter
+            /// - By reference type of any types above
+            /// </summary>
+            public readonly bool IsComplexType;
 
             public ParameterTypeInfo(string name, bool isComplex)
             {
                 Name = name;
                 IsComplexType = isComplex;
             }
-
-            public override string ToString()
-                => $"{Name}, {IsComplexType}";
         }
 
         public readonly struct ExtensionMethodInfo
         {
-            public string FullyQualifiedContainerName { get; }
+            /// <summary>
+            /// Name of the extension method. 
+            /// This can be used to retrive corresponding symbols via <see cref="INamespaceOrTypeSymbol.GetMembers(string)"/>
+            /// </summary>
+            public readonly string Name;
 
-            public string Name { get; }
+            /// <summary>
+            /// Fully qualified name for the type that contains this extension method.
+            /// </summary>
+            public readonly string FullyQualifiedContainerName;
 
             public ExtensionMethodInfo(string fullyQualifiedContainerName, string name)
             {
@@ -117,10 +136,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ParameterTypeInfo GetPrimitiveType(PrimitiveTypeCode typeCode)
                 => new ParameterTypeInfo(typeCode.ToString(), isComplex: false);
 
-            public ParameterTypeInfo GetArrayType(ParameterTypeInfo elementType, ArrayShape shape) => ComplexInfo;
-
-            public ParameterTypeInfo GetSZArrayType(ParameterTypeInfo elementType) => ComplexInfo;
-
             public ParameterTypeInfo GetGenericInstantiation(ParameterTypeInfo genericType, ImmutableArray<ParameterTypeInfo> typeArguments)
                 => genericType.IsComplexType
                     ? ComplexInfo
@@ -128,18 +143,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public ParameterTypeInfo GetByReferenceType(ParameterTypeInfo elementType)
                 => elementType;
-
-            public ParameterTypeInfo GetFunctionPointerType(MethodSignature<ParameterTypeInfo> signature) => ComplexInfo;
-
-            public ParameterTypeInfo GetGenericMethodParameter(object genericContext, int index) => ComplexInfo;
-
-            public ParameterTypeInfo GetGenericTypeParameter(object genericContext, int index) => ComplexInfo;
-
-            public ParameterTypeInfo GetModifiedType(ParameterTypeInfo modifier, ParameterTypeInfo unmodifiedType, bool isRequired) => ComplexInfo;
-
-            public ParameterTypeInfo GetPinnedType(ParameterTypeInfo elementType) => ComplexInfo;
-
-            public ParameterTypeInfo GetPointerType(ParameterTypeInfo elementType) => ComplexInfo;
 
             public ParameterTypeInfo GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
             {
@@ -160,6 +163,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
                 return new SignatureDecoder<ParameterTypeInfo, object>(Instance, reader, genericContext).DecodeType(ref sigReader);
             }
+
+            public ParameterTypeInfo GetArrayType(ParameterTypeInfo elementType, ArrayShape shape) => ComplexInfo;
+
+            public ParameterTypeInfo GetSZArrayType(ParameterTypeInfo elementType) => ComplexInfo;
+
+            public ParameterTypeInfo GetFunctionPointerType(MethodSignature<ParameterTypeInfo> signature) => ComplexInfo;
+
+            public ParameterTypeInfo GetGenericMethodParameter(object genericContext, int index) => ComplexInfo;
+
+            public ParameterTypeInfo GetGenericTypeParameter(object genericContext, int index) => ComplexInfo;
+
+            public ParameterTypeInfo GetModifiedType(ParameterTypeInfo modifier, ParameterTypeInfo unmodifiedType, bool isRequired) => ComplexInfo;
+
+            public ParameterTypeInfo GetPinnedType(ParameterTypeInfo elementType) => ComplexInfo;
+
+            public ParameterTypeInfo GetPointerType(ParameterTypeInfo elementType) => ComplexInfo;
         }
     }
 }

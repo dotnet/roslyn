@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         {
             foreach (var document in project.Documents)
             {
-                var info = await document.GetSyntaxTreeIndexAsync(loadOnly: false, cancellationToken).ConfigureAwait(false);
+                var info = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
                 if (info.ContainsTupleExpressionOrTupleType &&
                     InfoProbablyContainsTupleFieldNames(info, tupleFieldNames))
                 {

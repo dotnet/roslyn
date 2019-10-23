@@ -783,7 +783,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public string Name { get; }
             public MetadataDefinitionKind Kind { get; }
 
+            /// <summary>
+            /// Only applies to member kind. Represents the type info of the first parameter.
+            /// </summary>
             public ParameterTypeInfo TargetTypeInfo { get; }
+
             public NamespaceDefinition Namespace { get; private set; }
             public TypeDefinition Type { get; private set; }
 

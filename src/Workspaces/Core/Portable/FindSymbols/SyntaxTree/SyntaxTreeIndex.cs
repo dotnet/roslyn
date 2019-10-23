@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        public static Task<SyntaxTreeIndex> GetIndexAsync(Document document, CancellationToken cancellationToken)
+            => GetIndexAsync(document, loadOnly: false, cancellationToken);
+
         public static async Task<SyntaxTreeIndex> GetIndexAsync(
             Document document,
             bool loadOnly,

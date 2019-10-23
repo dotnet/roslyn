@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -32,8 +33,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     if (symbol is ITypeSymbol receiverTypeSymbol)
                     {
+                        var syntaxFacts = document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                        var namespaceInScopeSet = new HashSet<string>(namespaceInScope, syntaxFacts.StringComparer);
+
                         var (items, counter) = await ExtensionMethodImportCompletionService.GetUnimportExtensionMethodsInCurrentProcessAsync(
-                            document, position, receiverTypeSymbol, namespaceInScope.ToImmutableHashSet(), isExpandedCompletion, cancellationToken).ConfigureAwait(false);
+                            document, position, receiverTypeSymbol, namespaceInScopeSet, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
                         return ((IList<SerializableImportCompletionItem>)items, counter);
                     }
 

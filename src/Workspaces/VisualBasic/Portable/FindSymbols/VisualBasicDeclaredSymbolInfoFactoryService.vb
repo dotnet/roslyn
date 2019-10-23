@@ -305,8 +305,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         Continue For
                     End If
 
-                    Dim name = attribute.Name.ToString()
-                    If name.Equals("Extension") Or name.Equals("ExtensionAttribute") Or name.EndsWith(".Extension") Or name.EndsWith(".ExtensionAttribute") Then
+                    Dim name = attribute.Name.GetRightmostName()?.ToString()
+                    If String.Equals(name, "Extension", StringComparison.OrdinalIgnoreCase) Or String.Equals(name, "ExtensionAttribute", StringComparison.OrdinalIgnoreCase) Then
                         Return True
                     End If
                 Next

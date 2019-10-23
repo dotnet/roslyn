@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _identifierInfo.WriteTo(writer);
             _contextInfo.WriteTo(writer);
             _declarationInfo.WriteTo(writer);
+            _extensionMethodInfo.WriteTo(writer);
         }
 
         private static SyntaxTreeIndex ReadFrom(

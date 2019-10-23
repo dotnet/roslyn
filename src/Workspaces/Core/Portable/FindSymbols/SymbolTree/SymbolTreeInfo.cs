@@ -51,19 +51,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private readonly OrderPreservingMultiDictionary<int, int> _inheritanceMap;
 
-        // Similar to `ExtensionMethodInfo` in SyntaxTreeInfo, we devide extension methods into simple and complex
-        // categories for filtering purpose. Whether a method is simple is determined based on if we can determine
-        // it's target type easily with a pure text matching. For complex methods, we will need to rely on symbol
-        // to decide if it's feasible.
-        // All primitive types, types in regular use form are considered simple.
-
         /// <summary>
-        /// Maps the name of target type name of simple methods to its <see cref="ExtensionMethodInfo" />.
+        /// Maps the name of target type name of simple extension methods to its <see cref="ExtensionMethodInfo" />.
+        /// <see cref="ParameterTypeInfo"/> for the definition of simple/complex methods.
         /// </summary>
         private readonly MultiDictionary<string, ExtensionMethodInfo>? _simpleTypeNameToExtensionMethodMap;
 
         /// <summary>
-        /// A list of <see cref="ExtensionMethodInfo" /> for complex methods.
+        /// A list of <see cref="ExtensionMethodInfo" /> for complex extension methods.
+        /// <see cref="ParameterTypeInfo"/> for the definition of simple/complex methods.
         /// </summary>
         private readonly ImmutableArray<ExtensionMethodInfo> _extensionMethodOfComplexType;
 

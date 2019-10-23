@@ -305,13 +305,6 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static string ConcatNamespace(string? containingNamespace, string name)
-        {
-            if (string.IsNullOrEmpty(containingNamespace))
-            {
-                return name;
-            }
-
-            return containingNamespace + "." + name;
-        }
+            => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
     }
 }
