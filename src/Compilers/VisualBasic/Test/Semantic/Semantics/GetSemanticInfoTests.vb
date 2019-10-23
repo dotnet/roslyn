@@ -93,6 +93,54 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub BindingOverloads()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+    <compilation name="BindingOverloads">
+        <file name="a.vb">
+Imports System.Linq.Expressions
+
+Namespace VBTest
+    Public Class SomeItem
+        Public A As String
+        Public B As Integer
+    End Class
+
+    Class SomeCollection(Of T)
+        Inherits List(Of T)
+        Public Overridable Function Include(path As String) As SomeCollection(Of T)
+            Return Nothing
+        End Function
+    End Class
+
+    Class Extensions
+        Public Shared Function Include(Of T, TProperty)(ByVal source As IList(Of T), path As Expression(Of Func(Of T, TProperty))) As IList(Of T)
+            Return Nothing
+        End Function
+
+        Public Shared Function Include(ByVal source As IList, path As String) As IList
+            Return Nothing
+        End Function
+
+        Public Shared Function Include(Of T)(ByVal source As IList(Of T), path As String) As IList(Of T)
+            Return Nothing
+        End Function
+    End Class
+
+    Class Program
+        Sub M(c As SomeCollection(Of SomeItem))
+            Dim a = From m In c.Include(Function(t) t.)'BIND:"c.Include(Function(t) t.)"
+        End Sub
+    End Class
+End Namespace
+    </file>
+    </compilation>)
+
+            Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of InvocationExpressionSyntax)(compilation, "a.vb")
+            Dim symbol = semanticInfo.Symbol
+            Assert.Equal("read", symbol.Name)
+        End Sub
+
+        <Fact>
         Public Sub ForEachControlVariableExpression()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
