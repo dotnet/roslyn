@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             // speculative semantic model
             if (await CanUseSpeculativeSemanticModelAsync(document, position))
             {
-                var buffer = testDocument.TextBuffer;
+                var buffer = testDocument.GetTextBuffer();
                 using (var edit = buffer.CreateEdit())
                 {
                     var currentSnapshot = buffer.CurrentSnapshot;

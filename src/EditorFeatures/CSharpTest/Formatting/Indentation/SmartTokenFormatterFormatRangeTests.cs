@@ -2885,22 +2885,24 @@ class Program{
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(620568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620568")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void SkippedTokens1()
+        public void SkippedTokens1(bool useTabs)
         {
             var code = @";$$*";
 
             var expected = @";*";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(530830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor()
+        public void AutoPropertyAccessor(bool useTabs)
         {
             var code = @"class C
 {
@@ -2912,13 +2914,14 @@ class Program{
     int Prop {          get;
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(530830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor2()
+        public void AutoPropertyAccessor2(bool useTabs)
         {
             var code = @"class C
 {
@@ -2930,13 +2933,14 @@ class Program{
     int Prop {          get;                set;
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(530830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530830")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor3()
+        public void AutoPropertyAccessor3(bool useTabs)
         {
             var code = @"class C
 {
@@ -2948,13 +2952,14 @@ class Program{
     int Prop { get; set; }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(784674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/784674")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor4()
+        public void AutoPropertyAccessor4(bool useTabs)
         {
             var code = @"class C
 {
@@ -2966,13 +2971,14 @@ class Program{
     int Prop { get; }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(924469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor5()
+        public void AutoPropertyAccessor5(bool useTabs)
         {
             var code = @"class C
 {
@@ -2983,13 +2989,14 @@ class Program{
 {
     int Prop { get; set; }
 }";
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(924469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor6()
+        public void AutoPropertyAccessor6(bool useTabs)
         {
             var code = @"class C
 {
@@ -3001,13 +3008,14 @@ class Program{
     int Prop { get; set; }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(924469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924469")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void AutoPropertyAccessor7()
+        public void AutoPropertyAccessor7(bool useTabs)
         {
             var code = @"class C
 {
@@ -3019,13 +3027,14 @@ class Program{
     int Prop     { get; set; }    
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void NestedUsingStatement()
+        public void NestedUsingStatement(bool useTabs)
         {
             var code = @"class C
 {
@@ -3045,13 +3054,14 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void NestedNotUsingStatement()
+        public void NestedNotUsingStatement(bool useTabs)
         {
             var code = @"class C
 {
@@ -3071,12 +3081,13 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void UsingStatementWithNestedFixedStatement()
+        public void UsingStatementWithNestedFixedStatement(bool useTabs)
         {
             var code = @"class C
 {
@@ -3100,12 +3111,13 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FixedStatementWithNestedUsingStatement()
+        public void FixedStatementWithNestedUsingStatement(bool useTabs)
         {
             var code = @"class C
 {
@@ -3125,12 +3137,13 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FixedStatementWithNestedFixedStatement()
+        public void FixedStatementWithNestedFixedStatement(bool useTabs)
         {
             var code = @"class C
 {
@@ -3154,12 +3167,13 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FixedStatementWithNestedNotFixedStatement()
+        public void FixedStatementWithNestedNotFixedStatement(bool useTabs)
         {
             var code = @"class C
 {
@@ -3183,12 +3197,13 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void NotFixedStatementWithNestedFixedStatement()
+        public void NotFixedStatementWithNestedFixedStatement(bool useTabs)
         {
             var code = @"class C
 {
@@ -3212,13 +3227,14 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForFirstStatementOfBlock()
+        public void FormattingRangeForFirstStatementOfBlock(bool useTabs)
         {
             var code = @"class C
 {
@@ -3235,13 +3251,14 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForFirstMemberofType()
+        public void FormattingRangeForFirstMemberofType(bool useTabs)
         {
             var code = @"class C
 {int s;$$
@@ -3258,13 +3275,14 @@ class Program{
     }
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForFirstMethodMemberofType()
+        public void FormattingRangeForFirstMethodMemberofType(bool useTabs)
         {
             var code = @"interface C
 {void s();$$
@@ -3275,13 +3293,14 @@ class Program{
     void s();
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForConstructor()
+        public void FormattingRangeForConstructor(bool useTabs)
         {
             var code = @"class C
 {public C()=>f=1;$$
@@ -3292,13 +3311,14 @@ class Program{
     public C() => f = 1;
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForDestructor()
+        public void FormattingRangeForDestructor(bool useTabs)
         {
             var code = @"class C
 {~C()=>f=1;$$
@@ -3309,13 +3329,14 @@ class Program{
     ~C() => f = 1;
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(17257, "https://github.com/dotnet/roslyn/issues/17257")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForOperator()
+        public void FormattingRangeForOperator(bool useTabs)
         {
             var code = @"class C
 {public static C operator +(C left, C right)=>field=1;$$
@@ -3328,13 +3349,14 @@ class Program{
     static int field;
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
-        [WpfFact]
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(954386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954386")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public void FormattingRangeForFirstMemberOfNamespace()
+        public void FormattingRangeForFirstMemberOfNamespace(bool useTabs)
         {
             var code = @"namespace C
 {delegate void s();$$
@@ -3345,13 +3367,14 @@ class Program{
     delegate void s();
 }";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
-        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDirectiveTriviaAlwaysToColumnZero()
+        public void FormatDirectiveTriviaAlwaysToColumnZero(bool useTabs)
         {
             var code = @"class Program
 {
@@ -3373,13 +3396,14 @@ class Program{
 }
 ";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
-        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDirectiveTriviaAlwaysToColumnZeroWithCode()
+        public void FormatDirectiveTriviaAlwaysToColumnZeroWithCode(bool useTabs)
         {
             var code = @"class Program
 {
@@ -3403,13 +3427,14 @@ class Program{
 }
 ";
 
-            AutoFormatToken(code, expected);
+            AutoFormatToken(code, expected, useTabs);
         }
 
+        [WpfTheory]
+        [CombinatorialData]
         [WorkItem(981821, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981821")]
-        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDirectiveTriviaAlwaysToColumnZeroWithBrokenElseDirective()
+        public void FormatDirectiveTriviaAlwaysToColumnZeroWithBrokenElseDirective(bool useTabs)
         {
             var code = @"class Program
 {
@@ -3431,17 +3456,17 @@ class Program{
 }
 ";
 
-            AutoFormatToken(code, expected);
-        }
-
-        internal static void AutoFormatToken(string markup, string expected)
-        {
-            AutoFormatToken(markup, expected, useTabs: false);
-            AutoFormatToken(markup.Replace("    ", "\t"), expected.Replace("    ", "\t"), useTabs: true);
+            AutoFormatToken(code, expected, useTabs);
         }
 
         internal static void AutoFormatToken(string markup, string expected, bool useTabs)
         {
+            if (useTabs)
+            {
+                markup = markup.Replace("    ", "\t");
+                expected = expected.Replace("    ", "\t");
+            }
+
             using var workspace = TestWorkspace.CreateCSharp(markup);
 
             workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
@@ -3450,9 +3475,9 @@ class Program{
 
             var commandHandler = workspace.GetService<FormatCommandHandler>();
             var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
-            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
+            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.GetTextBuffer(), typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 
-            var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
+            var newSnapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
 
             Assert.Equal(expected, newSnapshot.GetText());
         }

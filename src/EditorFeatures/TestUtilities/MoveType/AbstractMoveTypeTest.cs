@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                     Assert.True(expectedDocumentName != null, $"{nameof(expectedDocumentName)} should be present if {nameof(expectedCodeAction)} is true.");
 
                     var oldDocumentId = workspace.Documents[0].Id;
-                    var expectedText = workspace.Documents[0].TextBuffer.CurrentSnapshot.GetText();
+                    var expectedText = workspace.Documents[0].GetTextBuffer().CurrentSnapshot.GetText();
                     var spans = workspace.Documents[0].SelectedSpans;
 
                     var codeActionTitle = string.Format(RenameFileCodeActionTitle, expectedDocumentName);
