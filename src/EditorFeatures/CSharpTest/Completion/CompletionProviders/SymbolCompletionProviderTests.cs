@@ -7228,7 +7228,36 @@ namespace N
         public Task<Stream> ReadAsStreamAsync() => null;
     }
 }";
+            // Nothing should be found: no awaiter for request.
+            await VerifyItemIsAbsentAsync(markup, "Result");
+            await VerifyItemIsAbsentAsync(markup, "ReadAsStreamAsync");
+        }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AwaitableDotsLikeRangeExpressionWithTaskAndParentheses()
+        {
+            var markup = @"
+using System.IO;
+using System.Threading.Tasks;
+
+namespace N
+{
+    class C
+    {
+        async Task M()
+        {
+            var request = new Task<Request>();
+            var m = (await request).$$.ReadAsStreamAsync();
+        }
+    }
+
+    class Request
+    {
+        public Task<Stream> ReadAsStreamAsync() => null;
+    }
+}";
+
+            await VerifyItemIsAbsentAsync(markup, "Result");
             await VerifyItemExistsAsync(markup, "ReadAsStreamAsync");
         }
 

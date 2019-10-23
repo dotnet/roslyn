@@ -323,11 +323,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         private ImmutableArray<ISymbol> GetSymbolsOffOfExpression(ExpressionSyntax originalExpression)
         {
-            var expression = originalExpression.WalkDownParentheses();
-            if (expression is AwaitExpressionSyntax awaitExpression)
-            {
-                expression = awaitExpression.Expression.WalkDownParentheses();
-            }
+            var expression = originalExpression is AwaitExpressionSyntax awaitExpression
+                ? awaitExpression.Expression.WalkDownParentheses()
+                : originalExpression.WalkDownParentheses();
 
             var leftHandBinding = _context.SemanticModel.GetSymbolInfo(expression, _cancellationToken);
             var container = _context.SemanticModel.GetTypeInfo(expression, _cancellationToken).Type;
