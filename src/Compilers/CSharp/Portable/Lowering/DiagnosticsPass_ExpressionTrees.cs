@@ -431,10 +431,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
                     }
-                    if (p.IsDiscard)
-                    {
-                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainLambdaDiscardParameters, p.Locations[0]);
-                    }
                 }
 
                 switch (node.Syntax.Kind())

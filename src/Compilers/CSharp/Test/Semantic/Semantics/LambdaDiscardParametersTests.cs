@@ -204,28 +204,6 @@ public class C
         }
 
         [Fact]
-        public void DiscardParameters_ExpressionTreeNotAllowed()
-        {
-            var c = CreateCompilation(@"
-using System;
-using System.Linq.Expressions;
-class C
-{
-    void M()
-    {
-        Expression<Func<int, int, string>> e = (_, _) => null;
-    }
-}");
-            c.VerifyDiagnostics(
-                // (8,49): error CS8752: Expression tree cannot contain lambda discard parameters.
-                //         Expression<Func<int, int, string>> e = (_, _) => null;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainLambdaDiscardParameters, "_").WithLocation(8, 49),
-                // (8,52): error CS8752: Expression tree cannot contain lambda discard parameters.
-                //         Expression<Func<int, int, string>> e = (_, _) => null;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainLambdaDiscardParameters, "_").WithLocation(8, 52));
-        }
-
-        [Fact]
         public void DiscardParameters_WithTypes()
         {
             var comp = CreateCompilation(@"
@@ -316,6 +294,90 @@ public class C
 
             var underscore = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(p => p.ToString() == "_").Single();
             Assert.Null(model.GetSymbolInfo(underscore).Symbol);
+        }
+
+        [Fact]
+        public void DiscardParameters_NotInScope_BindToOutsideLocal()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    static void M()
+    {
+        int _ = 0;
+        System.Func<string, string, int> f = (_, _) => _++;
+        System.Func<long, string, long> f2 = (_, a) => _++;
+    }
+}");
+            // Note that naming one of the parameters seems irrelevant but results in a binding change
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var underscores = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(p => p.ToString() == "_").ToArray();
+            Assert.Equal(2, underscores.Length);
+
+            var localSymbol = model.GetSymbolInfo(underscores[0]).Symbol;
+            Assert.Equal("System.Int32 _", localSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, localSymbol.Kind);
+
+            var parameterSymbol = model.GetSymbolInfo(underscores[1]).Symbol;
+            Assert.Equal("System.Int64 _", parameterSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Parameter, parameterSymbol.Kind);
+        }
+
+        [Fact]
+        public void DiscardParameters_NotInScope_DeclareLocalNamedUnderscoreInside()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    static void M()
+    {
+        System.Func<string, string, long> f = (_, _) => { long _ = 0; return _++; };
+        System.Func<string, string, long> f2 = (_, a) => { long _ = 0; return _++; };
+    }
+}");
+            // Note that naming one of the parameters seems irrelevant but results in a binding change
+            comp.VerifyDiagnostics(
+                // (7,65): error CS0136: A local or parameter named '_' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         System.Func<string, string, long> f2 = (_, a) => { long _ = 0; return _++; };
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "_").WithArguments("_").WithLocation(7, 65)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var underscores = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(p => p.ToString() == "_").ToArray();
+            Assert.Equal(2, underscores.Length);
+
+            var localSymbol = model.GetSymbolInfo(underscores[0]).Symbol;
+            Assert.Equal("System.Int64 _", localSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, localSymbol.Kind);
+
+            var parameterSymbol = model.GetSymbolInfo(underscores[1]).Symbol;
+            Assert.Equal("System.Int64 _", parameterSymbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, parameterSymbol.Kind);
+        }
+
+        [Fact]
+        public void DiscardParameters_NotInScope_Nameof()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    static void M()
+    {
+        System.Func<string, string, string> f = (_, _) => nameof(_); // 1
+        System.Func<long, string, string> f2 = (_, a) => nameof(_);
+        System.Func<long, string> f3 = (_) => nameof(_);
+    }
+}");
+            // Note that naming one of the parameters seems irrelevant but results in a binding change
+            comp.VerifyDiagnostics(
+                // (6,66): error CS0103: The name '_' does not exist in the current context
+                //         System.Func<string, string, string> f = (_, _) => nameof(_); // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(6, 66)
+                );
         }
 
         [Fact]

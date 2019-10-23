@@ -157,11 +157,6 @@
         <target state="translated">Impossible d'utiliser l'expression donnée dans une instruction fixed</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeCantContainLambdaDiscardParameters">
-        <source>Expression tree cannot contain lambda discard parameters.</source>
-        <target state="new">Expression tree cannot contain lambda discard parameters.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
         <source>An expression tree may not contain a null coalescing assignment</source>
         <target state="translated">Une arborescence de l'expression ne peut pas contenir d'assignation de fusion ayant une valeur null</target>

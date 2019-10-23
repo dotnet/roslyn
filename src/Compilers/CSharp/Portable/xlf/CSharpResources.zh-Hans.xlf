@@ -157,11 +157,6 @@
         <target state="translated">给定表达式不能用于 fixed 语句中</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeCantContainLambdaDiscardParameters">
-        <source>Expression tree cannot contain lambda discard parameters.</source>
-        <target state="new">Expression tree cannot contain lambda discard parameters.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeCantContainNullCoalescingAssignment">
         <source>An expression tree may not contain a null coalescing assignment</source>
         <target state="translated">表达式树可能不包含空的合并赋值</target>
