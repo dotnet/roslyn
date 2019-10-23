@@ -1240,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   - For deriving argument expression for IArgument operation, 'localRewriter' must be null, and 'compilation', 'diagnostics' 
         ///     must be passed in, where 'callerMemberName' must not be null if 'parameter.IsCallerMemberName' is 'true'.
         /// </summary>
-        private static BoundExpression GetDefaultParameterValue(
+        internal static BoundExpression GetDefaultParameterValue(
             SyntaxNode syntax,
             ParameterSymbol parameter,
             ThreeState enableCallerInfo,

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<DocumentDifferenceResult> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             // in remote workspace, we don't trust any version based on VersionStamp. we only trust content based information such as
-            // checksum or tree comparision and etc.
+            // checksum or tree comparison and etc.
 
             // first check checksum
             var oldTextChecksum = (await oldDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;

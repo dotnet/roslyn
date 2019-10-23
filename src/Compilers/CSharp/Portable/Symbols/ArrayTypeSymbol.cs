@@ -404,10 +404,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithElementType(transform(ElementTypeWithAnnotations));
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            TypeWithAnnotations elementType = ElementTypeWithAnnotations.MergeNullability(((ArrayTypeSymbol)other).ElementTypeWithAnnotations, variance);
+            TypeWithAnnotations elementType = ElementTypeWithAnnotations.MergeEquivalentTypes(((ArrayTypeSymbol)other).ElementTypeWithAnnotations, variance);
             return WithElementType(elementType);
         }
 

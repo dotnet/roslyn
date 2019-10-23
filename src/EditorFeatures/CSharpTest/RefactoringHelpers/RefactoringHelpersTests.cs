@@ -513,6 +513,80 @@ class C
 
         #endregion
 
+        #region IsUnderselected
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselectionOnSemicolon()
+        {
+            var testText = @"
+class Program
+{
+    static void Main()
+    {
+        {|result:Main()|}[|;|]
+    }
+}";
+            await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselectionBug1()
+        {
+            var testText = @"
+class Program
+{
+    public static void Method()
+    {
+        //[|>
+        var str = {|result:"" <|] aaa""|};
+    }
+}";
+            await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselectionBug2()
+        {
+            var testText = @"
+class C {
+    public void M()
+    {
+        Console.WriteLine(""Hello world"");[|
+        {|result:Console.WriteLine(new |]C())|};
+        }
+    }";
+            await TestNotUnderselectedAsync<ExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselection()
+        {
+            var testText = @"
+class C {
+    public void M()
+    {
+        bool a = {|result:[|true || false || true|]|};
+    }";
+            await TestNotUnderselectedAsync<BinaryExpressionSyntax>(testText);
+        }
+
+        [Fact]
+        [WorkItem(38708, "https://github.com/dotnet/roslyn/issues/38708")]
+        public async Task TestUnderselection2()
+        {
+            var testText = @"
+class C {
+    public void M()
+    {
+        bool a = true || [|false || true|] || true;
+    }";
+            await TestUnderselectedAsync<BinaryExpressionSyntax>(testText);
+        }
+        #endregion
+
         #region Attributes
         [Fact]
         [WorkItem(37584, "https://github.com/dotnet/roslyn/issues/37584")]
