@@ -9498,5 +9498,35 @@ enum TestEnum
 }", changedOptionSet: changingOptions);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(39433, "https://github.com/dotnet/roslyn/issues/39433")]
+        public async Task LambdaInsideTupleStaysOnSameLine()
+        {
+            await AssertFormatAsync(
+                @"
+class A
+{
+    void method M()
+    {
+        var plan = new List<(int count, Action<int> action)>();
+        plan.Add((2, i =>
+        {
+            Console.WriteLine($""Action(execution { i})"");
+        }));
+    }
+}",
+                @"
+class A
+{
+    void method M()
+    {
+        var plan = new List<(int count, Action<int> action)>();
+        plan.Add((2, i =>
+        {
+            Console.WriteLine($""Action(execution { i})"");
+        }));
+    }
+}");
+        }
     }
 }
