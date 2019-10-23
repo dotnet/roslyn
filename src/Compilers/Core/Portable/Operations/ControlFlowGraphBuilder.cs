@@ -1368,8 +1368,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             for (int i = 0; i < statements.Length; i++)
             {
-                VisitPossibleUsingDeclaration(statements[i], statements, i, out var visitedUsingDeclaration);
-                if (visitedUsingDeclaration)
+                if (TryVisitPossibleUsingDeclaration(statements[i], statements, i))
                 {
                     break;
                 }
@@ -1382,39 +1381,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <param name="operation">The statement to visit</param>
         /// <param name="statements">All statements in the block containing this node</param>
         /// <param name="startIndex">The current statement being visited in <paramref name="statements"/></param>
-        /// <param name="visitedUsingDeclaration">Set to true if this visited a using <see cref="IVariableDeclarationGroupOperation"/> operation</param>
+        /// <returns>True if this visited a using <see cref="IVariableDeclarationGroupOperation"/> operation</returns>
         /// <remarks>
         /// The operation being visited is not necessarily equal to statements[startIndex]. 
         /// When traversing down a set of labels, we set operation to the label.Operation and recurse, but statements[startIndex] still refers to the original parent label 
         /// as we haven't actually moved down the original statement list
         /// </remarks>
-        private void VisitPossibleUsingDeclaration(IOperation operation, ImmutableArray<IOperation> statements, int startIndex, out bool visitedUsingDeclaration)
+        private bool TryVisitPossibleUsingDeclaration(IOperation operation, ImmutableArray<IOperation> statements, int startIndex)
         {
-            switch (operation.Kind)
+            switch (operation)
             {
-                case OperationKind.VariableDeclarationGroup:
-                    var declarationGroup = (IVariableDeclarationGroupOperation)operation;
-                    if (declarationGroup.DeclarationKind != VariableDeclarationKind.Using && declarationGroup.DeclarationKind != VariableDeclarationKind.AsynchronousUsing)
-                    {
-                        goto default;
-                    }
+                case IVariableDeclarationGroupOperation declarationGroup when declarationGroup.DeclarationKind == VariableDeclarationKind.Using || declarationGroup.DeclarationKind == VariableDeclarationKind.AsynchronousUsing:
                     var followingStatements = ImmutableArray.Create(statements, startIndex + 1, statements.Length - startIndex - 1);
                     VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
-                    visitedUsingDeclaration = true;
-                    break;
-                case OperationKind.Labeled:
-                    var labelOperation = (ILabeledOperation)operation;
-                    if (labelOperation.Operation is null)
-                    {
-                        goto default;
-                    }
+                    return true;
+                case ILabeledOperation labelOperation when labelOperation.Operation is object:
                     VisitLabel(labelOperation.Label);
-                    VisitPossibleUsingDeclaration(labelOperation.Operation, statements, startIndex, out visitedUsingDeclaration);
-                    break;
+                    return TryVisitPossibleUsingDeclaration(labelOperation.Operation, statements, startIndex);
                 default:
                     VisitStatement(operation);
-                    visitedUsingDeclaration = false;
-                    break;
+                    return false;
             }
         }
 
