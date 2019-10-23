@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
             => _implementation = implementation;
 
         public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-            => _implementation.AnalyzeDocumentAsync(document, bodyOpt, new UnitTestingInvovationReasonsWrapper(reasons), cancellationToken);
+            => _implementation.AnalyzeDocumentAsync(document, bodyOpt, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
 
         public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-            => _implementation.AnalyzeProjectAsync(project, semanticsChanged, new UnitTestingInvovationReasonsWrapper(reasons), cancellationToken);
+            => _implementation.AnalyzeProjectAsync(project, semanticsChanged, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
 
         public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
-            => _implementation.AnalyzeSyntaxAsync(document, new UnitTestingInvovationReasonsWrapper(reasons), cancellationToken);
+            => _implementation.AnalyzeSyntaxAsync(document, new UnitTestingInvocationReasonsWrapper(reasons), cancellationToken);
 
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             => _implementation.DocumentCloseAsync(document, cancellationToken);
