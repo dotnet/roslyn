@@ -87,7 +87,11 @@ namespace Microsoft.CodeAnalysis.Completion
             var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans);
             var match = patternMatcher.GetFirstMatch(completionItemText);
 
-            if (culture.Equals(EnUSCultureInfo))
+            // We still have making checks for language having different to English capitalization,
+            // for example, for Turkish with dotted and dotless i capitalization totally diferent from English.
+            // Now we escaping from the second check for English languages.
+            // Maybe we can escape as well for more similar languages in case if we meet performance issues.
+            if (culture.ThreeLetterWindowsLanguageName.Equals(EnUSCultureInfo.ThreeLetterWindowsLanguageName))
             {
                 return match;
             }

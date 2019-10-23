@@ -3066,28 +3066,6 @@ class C
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestStateFactory.CreateCSharpTestState(
                                <Document><![CDATA[
-        class İFADE {}
-        class ifTest {}
-        class C
-        {
-            void goo(int x)
-            {
-              İFADE ifade = null;
-                $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
-                    state.SendTypeChars("if")
-                    Await state.WaitForAsynchronousOperationsAsync()
-                    Await state.AssertSelectedCompletionItem("if")
-                End Using
-            End Using
-
-        End Function
-
-        <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestMatchWithTurkishIWorkaround6() As Task
-            Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
-                Using state = TestStateFactory.CreateCSharpTestState(
-                               <Document><![CDATA[
         class TARİFE { }
         class C
         {
@@ -3104,7 +3082,7 @@ class C
 
         <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestMatchWithTurkishIWorkaround7() As Task
+        Public Async Function TestMatchWithTurkishIWorkaround6() As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestStateFactory.CreateCSharpTestState(
                                <Document><![CDATA[
@@ -3125,7 +3103,7 @@ class C
 
         <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestMatchWithTurkishIWorkaround8() As Task
+        Public Async Function TestMatchWithTurkishIWorkaround7() As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestStateFactory.CreateCSharpTestState(
                                <Document><![CDATA[
@@ -3146,7 +3124,7 @@ class C
 
         <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestMatchWithTurkishIWorkaround9() As Task
+        Public Async Function TestMatchWithTurkishIWorkaround8() As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestStateFactory.CreateCSharpTestState(
                                <Document><![CDATA[
@@ -3168,7 +3146,7 @@ class C
 
         <WorkItem(29938, "https://github.com/dotnet/roslyn/issues/29938")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestMatchWithTurkishIWorkaround10() As Task
+        Public Async Function TestMatchWithTurkishIWorkaround9() As Task
             Using New CultureContext(New CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestStateFactory.CreateCSharpTestState(
                                <Document><![CDATA[
