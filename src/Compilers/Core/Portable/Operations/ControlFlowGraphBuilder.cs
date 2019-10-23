@@ -1391,7 +1391,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             switch (operation)
             {
-                case IVariableDeclarationGroupOperation declarationGroup when declarationGroup.DeclarationKind == VariableDeclarationKind.Using || declarationGroup.DeclarationKind == VariableDeclarationKind.AsynchronousUsing:
+                case IVariableDeclarationGroupOperation declarationGroup { DeclarationKind: VariableDeclarationKind.Using }:
+                case IVariableDeclarationGroupOperation declarationGroup { DeclarationKind: VariableDeclarationKind.AsynchronousUsing }:
                     var followingStatements = ImmutableArray.Create(statements, startIndex + 1, statements.Length - startIndex - 1);
                     VisitUsingVariableDeclarationOperation(declarationGroup, followingStatements);
                     return true;
