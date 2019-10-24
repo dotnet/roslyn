@@ -350,6 +350,9 @@ dotnet_diagnostic.IDE0068.severity = %value%
 # IDE0069
 dotnet_diagnostic.IDE0069.severity = %value%
 
+# IDE0070
+dotnet_diagnostic.IDE0070.severity = %value%
+
 # IDE1005
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -477,6 +480,9 @@ dotnet_diagnostic.IDE0068.severity = %value%
 
 # IDE0069
 dotnet_diagnostic.IDE0069.severity = %value%
+
+# IDE0070
+dotnet_diagnostic.IDE0070.severity = %value%
 
 # IDE1006
 dotnet_diagnostic.IDE1006.severity = %value%
@@ -820,6 +826,9 @@ No editorconfig based code style option
 # IDE0069
 No editorconfig based code style option
 
+# IDE0070
+No editorconfig based code style option
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true:suggestion
 
@@ -976,6 +985,9 @@ No editorconfig based code style option
 No editorconfig based code style option
 
 # IDE0069
+No editorconfig based code style option
+
+# IDE0070
 No editorconfig based code style option
 
 # IDE1006

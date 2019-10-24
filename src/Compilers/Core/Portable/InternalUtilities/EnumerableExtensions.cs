@@ -129,7 +129,7 @@ namespace Roslyn.Utilities
             return source as ISet<T> ?? new HashSet<T>(source);
         }
 
-        public static T? FirstOrNullable<T>(this IEnumerable<T> source)
+        public static T? FirstOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
             if (source == null)
@@ -140,7 +140,7 @@ namespace Roslyn.Utilities
             return source.Cast<T?>().FirstOrDefault();
         }
 
-        public static T? FirstOrNullable<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        public static T? FirstOrNull<T>(this IEnumerable<T> source, Func<T, bool> predicate)
             where T : struct
         {
             if (source == null)
@@ -151,7 +151,7 @@ namespace Roslyn.Utilities
             return source.Cast<T?>().FirstOrDefault(v => predicate(v!.Value));
         }
 
-        public static T? LastOrNullable<T>(this IEnumerable<T> source)
+        public static T? LastOrNull<T>(this IEnumerable<T> source)
             where T : struct
         {
             if (source == null)
@@ -555,6 +555,26 @@ namespace System.Linq
             }
 
             return true;
+        }
+
+        [return: MaybeNull]
+        public static T AggregateOrDefault<T>(this IEnumerable<T> source, Func<T, T, T> func)
+        {
+            using (var e = source.GetEnumerator())
+            {
+                if (!e.MoveNext())
+                {
+                    return default!;
+                }
+
+                var result = e.Current;
+                while (e.MoveNext())
+                {
+                    result = func(result, e.Current);
+                }
+
+                return result;
+            }
         }
     }
 }
