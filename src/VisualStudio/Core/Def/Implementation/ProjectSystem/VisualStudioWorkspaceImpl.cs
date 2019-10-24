@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
 
         private readonly Lazy<IProjectCodeModelFactory> _projectCodeModelFactory;
-        private readonly IEnumerable<IDocumentOptionsProviderFactory> _documentOptionsProviderFactories;
+        private readonly IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> _documentOptionsProviderFactories;
         private bool _documentOptionsProvidersInitialized = false;
         private readonly Dictionary<ProjectId, CompilationOutputs> _projectCompilationOutputs = new Dictionary<ProjectId, CompilationOutputs>();
         private readonly object _projectCompilationOutputsGuard = new object();
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
-        public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider, IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
+        public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
             _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
             _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
-            _documentOptionsProviderFactories = documentOptionsProviderFactories;
+            _documentOptionsProviderFactories = exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
@@ -1928,16 +1928,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _documentOptionsProvidersInitialized = true;
-
-            foreach (var providerFactory in _documentOptionsProviderFactories)
-            {
-                var optionsProvider = providerFactory.TryCreate(this);
-
-                if (optionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
-                }
-            }
+            RegisterDocumentOptionProviders(_documentOptionsProviderFactories);
         }
 
         internal void SetMaxLanguageVersion(ProjectId projectId, string maxLanguageVersion)

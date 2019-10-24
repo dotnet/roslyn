@@ -119,7 +119,7 @@ class C
             var textBuffer = doc.GetTextBuffer();
             commandHandler.ExecuteCommand(textView, textBuffer, Operation.Uncomment, TestCommandExecutionContext.Create());
 
-            Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expected, doc.GetTextBuffer().CurrentSnapshot.GetText());
         }
 
         private static void SetupSelection(IWpfTextView textView, IEnumerable<Span> spans)
