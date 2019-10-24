@@ -939,7 +939,7 @@ End Class
                 fileCodeModel.BeginBatch()
 
                 ' Make an outside edit not through the CodeModel APIs
-                Dim buffer = state.Workspace.Documents.Single().TextBuffer
+                Dim buffer = state.Workspace.Documents.Single().GetTextBuffer()
                 buffer.Replace(New Text.Span(0, 1), "c")
 
                 WpfTestRunner.RequireWpfFact($"Test requires {NameOf(EnvDTE80.FileCodeModel2)}.{NameOf(EnvDTE80.FileCodeModel2.EndBatch)}")

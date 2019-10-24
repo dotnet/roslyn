@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal ImmutableDictionary<Symbol, Symbol> GetRemappedSymbols()
         {
             EnsureNullabilityAnalysisPerformedIfNecessary();
-            Debug.Assert(_lazyRemappedSymbols is object || !Compilation.NullableSemanticAnalysisEnabled);
+            Debug.Assert(_lazyRemappedSymbols is object || this is AttributeSemanticModel || !Compilation.NullableSemanticAnalysisEnabled);
             return _lazyRemappedSymbols;
         }
 

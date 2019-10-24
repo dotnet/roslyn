@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 _workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
                 _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
                 Position = _currentDocument.CursorPosition.Value;
-                Code = _currentDocument.TextBuffer.CurrentSnapshot.GetText();
+                Code = _currentDocument.GetTextBuffer().CurrentSnapshot.GetText();
                 return _workspace;
             }
             else
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // clear the document
             if (cleanBeforeUpdate)
             {
-                UpdateText(hostDocument.TextBuffer, string.Empty);
+                UpdateText(hostDocument.GetTextBuffer(), string.Empty);
             }
 
             // and set the content
-            UpdateText(hostDocument.TextBuffer, text);
+            UpdateText(hostDocument.GetTextBuffer(), text);
 
             GetWorkspace().OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
 

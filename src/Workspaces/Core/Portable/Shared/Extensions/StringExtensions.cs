@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return column - initialColumn;
         }
 
-        public static int IndexOf(this string text, Func<char, bool> predicate)
+        public static int IndexOf(this string? text, Func<char, bool> predicate)
         {
             if (text == null)
             {
@@ -215,9 +217,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return line.Length;
         }
 
-        public static void AppendToAliasNameSet(this string alias, ImmutableHashSet<string>.Builder builder)
+        public static void AppendToAliasNameSet(this string? alias, ImmutableHashSet<string>.Builder builder)
         {
-            if (string.IsNullOrWhiteSpace(alias))
+            if (RoslynString.IsNullOrWhiteSpace(alias))
             {
                 return;
             }

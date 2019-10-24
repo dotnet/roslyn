@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
                 ' create new buffer with cloned content
-                Dim clonedBuffer = EditorFactory.CreateBuffer(buffer.ContentType.TypeName, workspace.ExportProvider, buffer.CurrentSnapshot.GetText())
+                Dim clonedBuffer = EditorFactory.CreateBuffer(workspace.ExportProvider, buffer.ContentType, buffer.CurrentSnapshot.GetText())
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim syntaxTree = Await document.GetSyntaxTreeAsync()

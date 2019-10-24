@@ -39,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     <span>@{|S2:|}</span>
 {|S3:|}
 <h2>Default</h2>
-                                                         ]]></text>.Value.Replace(vbLf, vbCrLf), {doc}, LanguageNames.CSharp)
+                                                         ]]></text>.Value.Replace(vbLf, vbCrLf), {doc})
 
                 Dim matchingSpan = projected.SelectedSpans.Single()
                 TestSpan(workspace, projected, projected.CursorPosition.Value, matchingSpan.End)

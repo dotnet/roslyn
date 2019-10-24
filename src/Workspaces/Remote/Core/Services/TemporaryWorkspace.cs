@@ -18,17 +18,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
 
-            var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory>();
+            var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
 
-            foreach (var factory in documentOptionsProviderFactories)
-            {
-                var documentOptionsProvider = factory.Value.TryCreate(this);
-
-                if (documentOptionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(documentOptionsProvider);
-                }
-            }
+            RegisterDocumentOptionProviders(documentOptionsProviderFactories);
         }
 
         public TemporaryWorkspace(Solution solution) : this()

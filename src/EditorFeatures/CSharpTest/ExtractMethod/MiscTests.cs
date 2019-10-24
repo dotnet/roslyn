@@ -131,7 +131,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 
             using var workspace = TestWorkspace.CreateCSharp(markupCode);
             var testDocument = workspace.Documents.Single();
-            var container = testDocument.GetOpenTextContainer();
 
             var view = testDocument.GetTextView();
             view.Selection.Select(new SnapshotSpan(

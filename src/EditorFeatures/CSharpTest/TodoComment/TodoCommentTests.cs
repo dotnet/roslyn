@@ -185,6 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
             var worker = (TodoCommentIncrementalAnalyzer)provider.CreateIncrementalAnalyzer(workspace);
 
             var document = workspace.Documents.First();
+            var initialTextSnapshot = document.GetTextBuffer().CurrentSnapshot;
             var documentId = document.Id;
             var reasons = new InvocationReasons(PredefinedInvocationReasons.DocumentAdded);
             await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), InvocationReasons.Empty, CancellationToken.None);
@@ -199,8 +200,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
                 var todo = todoLists[i];
                 var span = expectedLists[i];
 
-                var line = document.InitialTextSnapshot.GetLineFromPosition(span.Start);
-                var text = document.InitialTextSnapshot.GetText(span.ToSpan());
+                var line = initialTextSnapshot.GetLineFromPosition(span.Start);
+                var text = initialTextSnapshot.GetText(span.ToSpan());
 
                 Assert.Equal(todo.MappedLine, line.LineNumber);
                 Assert.Equal(todo.MappedColumn, span.Start - line.Start);
