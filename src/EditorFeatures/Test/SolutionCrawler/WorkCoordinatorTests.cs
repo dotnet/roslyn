@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
             var registrationService = new SolutionCrawlerRegistrationService(
-SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
-AsynchronousOperationListenerProvider.NullProvider);
+                SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
+                AsynchronousOperationListenerProvider.NullProvider);
 
             // register and unregister workspace to the service
             registrationService.Register(workspace);
@@ -962,6 +962,8 @@ End Class";
             using var workspace = TestWorkspace.Create(
                 SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code, exportProvider: EditorServicesUtil.ExportProvider);
             SetOptions(workspace);
+            var testDocument = workspace.Documents.First();
+            var textBuffer = testDocument.GetTextBuffer();
 
             var analyzer = new Analyzer();
             var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
@@ -969,10 +971,7 @@ End Class";
 
             service.Register(workspace);
 
-            var testDocument = workspace.Documents.First();
-
             var insertPosition = testDocument.CursorPosition;
-            var textBuffer = testDocument.GetTextBuffer();
 
             using (var edit = textBuffer.CreateEdit())
             {
