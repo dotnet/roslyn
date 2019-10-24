@@ -37,8 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var roslynDocument = snapshot.GetOpenDocumentInCurrentContextWithChanges();
 
             var solutionPath = roslynDocument.Project.Solution.FilePath;
-            var rootNodeName = string.IsNullOrWhiteSpace(solutionPath)
-                ? $"Solution {Path.GetFileNameWithoutExtension(solutionPath)}"
+            var rootNodeName = !string.IsNullOrWhiteSpace(solutionPath)
+                ? $"'{Path.GetFileNameWithoutExtension(solutionPath)}' Solution"
                 : $"Current Solution";
 
             var symbolSearchContext = new SymbolSearchContext(this, sink, rootNodeName);
