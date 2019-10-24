@@ -44,6 +44,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     }
                 }
 
+                if (entry.TryGetValue(StreamingFindUsagesPresenter.SelfKeyName, out var item) && item is ISupportsNavigation itemSupportsNavigation)
+                {
+                    if (itemSupportsNavigation.TryNavigateTo(e.IsPreview))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                }
+
                 base.PreprocessNavigate(entry, e);
             }
         }

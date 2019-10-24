@@ -37,6 +37,11 @@
         <target state="translated">DateTimeKind 必须是 Utc</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="new">Document does not support syntax trees</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="translated">表达式级首选项</target>

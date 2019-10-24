@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public abstract LocalDefinition GetPreviousLocal(
             Cci.ITypeReference type,
             ILocalSymbolInternal symbol,
-            string nameOpt,
+            string? nameOpt,
             SynthesizedLocalKind kind,
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,

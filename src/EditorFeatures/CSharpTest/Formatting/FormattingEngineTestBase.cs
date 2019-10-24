@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
             // create new buffer with cloned content
             var clonedBuffer = EditorFactory.CreateBuffer(
-                buffer.ContentType.TypeName,
                 workspace.ExportProvider,
+                buffer.ContentType,
                 buffer.CurrentSnapshot.GetText());
 
             var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();

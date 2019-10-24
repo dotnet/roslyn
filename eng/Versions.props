@@ -6,9 +6,9 @@
   -->
   <PropertyGroup>
     <MajorVersion>3</MajorVersion>
-    <MinorVersion>4</MinorVersion>
+    <MinorVersion>5</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>beta3</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>beta1</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <SemanticVersioningV1>true</SemanticVersioningV1>
     <!-- 
@@ -164,7 +164,6 @@
     <MonoOptionsVersion>4.4.0</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
     <NerdbankFullDuplexStreamVersion>1.0.1</NerdbankFullDuplexStreamVersion>
-    <NewtonsoftJsonVersion>12.0.1</NewtonsoftJsonVersion>
     <NuGetPackagingVersion>4.9.2</NuGetPackagingVersion>
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
@@ -178,9 +177,7 @@
     <RoslynOptProfRunSettingsGeneratorVersion>1.0.0-beta3.19057.1</RoslynOptProfRunSettingsGeneratorVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
-    <StreamJsonRpcVersion>2.1.55</StreamJsonRpcVersion>
     <SystemBuffersVersion>4.5.0</SystemBuffersVersion>
-    <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemCommandLineExperimentalVersion>0.1.0-alpha-63729-01</SystemCommandLineExperimentalVersion>
     <SystemCommandLineRenderingVersion>0.1.0-alpha-63729-01</SystemCommandLineRenderingVersion>
     <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
@@ -188,7 +185,6 @@
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.3.0</SystemIOPipesAccessControlVersion>
     <SystemMemoryVersion>4.5.3</SystemMemoryVersion>
-    <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>4.5.2</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemRuntimeLoaderVersion>4.3.0</SystemRuntimeLoaderVersion>
     <SystemTextEncodingCodePagesVersion>4.5.1</SystemTextEncodingCodePagesVersion>
@@ -229,6 +225,16 @@
     <runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>
     <runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>
+    
+    <!--
+      NOTE: The following dependencies have been identified as particularly problematic to update.
+      If you bump their versions, you must push your changes to a dev branch in dotnet/roslyn and
+      create a test insertion in Visual Studio to validate.
+    -->
+    <NewtonsoftJsonVersion>12.0.1</NewtonsoftJsonVersion>
+    <StreamJsonRpcVersion>2.1.55</StreamJsonRpcVersion>
+    <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
+    <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
   </PropertyGroup>
   <!-- 
     The following packages are considered implementation details and will not be included 

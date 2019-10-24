@@ -126,10 +126,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return false;
         }
 
+        internal static bool TryGetInitialTriggerLocation(VSCompletionItem item, out SnapshotPoint initialTriggerLocation)
+        {
+            if (item.Properties.TryGetProperty(CompletionSource.TriggerLocation, out initialTriggerLocation))
+            {
+                return true;
+            }
+
+            initialTriggerLocation = default;
+            return false;
+        }
+
         // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
+        // We check both the display text and the display text prefix to account for IntelliCode item providers
+        // that may be using the prefix to include the ★.
         internal static bool IsPreferredItem(this RoslynCompletionItem completionItem)
-            => completionItem.DisplayText.StartsWith("★");
+            => completionItem.DisplayText.StartsWith("★") || completionItem.DisplayTextPrefix.StartsWith("★");
 
         // This is a temporarily method to support preference of IntelliCode items comparing to non-IntelliCode items.
         // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.

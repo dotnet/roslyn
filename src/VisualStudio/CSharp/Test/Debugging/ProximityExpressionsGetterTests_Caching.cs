@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             using var workspace = TestWorkspace.CreateCSharp(markup);
             var testDocument = workspace.Documents.Single();
             var spans = testDocument.AnnotatedSpans;
-            var snapshot = testDocument.TextBuffer.CurrentSnapshot;
+            var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;
             var languageDebugInfo = new CachedProximityExpressionsGetter(new CSharpProximityExpressionsService());
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 

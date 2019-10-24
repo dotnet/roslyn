@@ -39,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Host
             // Producing a [MaybeNull]T value results in a warning like default(T).
             // We are investigating a more complex design for nullable analysis to solve this. See:
             // https://github.com/dotnet/roslyn/issues/38638
-            var service = GetService<TLanguageService>()!;
+#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TLanguageService' is a non-nullable reference type.
+            var service = GetService<TLanguageService>();
+#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TLanguageService' is a non-nullable reference type.
             if (service == null)
             {
                 throw new InvalidOperationException(string.Format(WorkspacesResources.Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace, typeof(TLanguageService)));

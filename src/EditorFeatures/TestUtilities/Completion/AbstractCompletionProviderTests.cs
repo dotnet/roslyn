@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             var workspace = WorkspaceFixture.GetWorkspace();
             SetWorkspaceOptions(workspace);
-            var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
+            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
 
             var service = GetCompletionService(workspace);
             var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var newDoc = document.WithText(newText);
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
-            var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
+            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
 
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition != null ? commit.NewPosition.Value : textView.Caret.Position.BufferPosition.Position;
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
+            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
 
             var service = GetCompletionService(workspace);
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 var position = testWorkspace.Documents.First().CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
-                var textContainer = testWorkspace.Documents.First().TextBuffer.AsTextContainer();
+                var textContainer = testWorkspace.Documents.First().GetTextBuffer().AsTextContainer();
                 var currentContextDocumentId = testWorkspace.GetDocumentIdInCurrentContext(textContainer);
                 var document = solution.GetDocument(currentContextDocumentId);
 
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 var document = workspace.Documents.Single();
                 var position = document.CursorPosition.Value;
-                var text = document.TextBuffer.CurrentSnapshot.AsText();
+                var text = document.GetTextBuffer().CurrentSnapshot.AsText();
                 var options = workspace.Options.WithChangedOption(
                     CompletionOptions.TriggerOnTypingLetters, document.Project.Language, triggerOnLetter);
                 var trigger = RoslynCompletion.CompletionTrigger.CreateInsertionTrigger(text[position]);

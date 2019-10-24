@@ -692,6 +692,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Document does not support syntax trees.
+        /// </summary>
+        internal static string Document_does_not_support_syntax_trees {
+            get {
+                return ResourceManager.GetString("Document_does_not_support_syntax_trees", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Documentation comment id must start with E, F, M, N, P or T.
         /// </summary>
         internal static string Documentation_comment_id_must_start_with_E_F_M_N_P_or_T {
@@ -1972,7 +1981,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to hexidecimal escape.
+        ///   Looks up a localized string similar to hexadecimal escape.
         /// </summary>
         internal static string Regex_hexadecimal_escape_short {
             get {

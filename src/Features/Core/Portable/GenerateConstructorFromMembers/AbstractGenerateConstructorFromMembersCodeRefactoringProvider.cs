@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,27 +30,25 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
     /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
     /// in a derived type that delegate to a base type. Both of those are handled by other services.
     /// </summary>
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
-    [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
-    internal partial class GenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
         private const string AddNullChecksId = nameof(AddNullChecksId);
 
         private readonly IPickMembersService _pickMembersService_forTesting;
 
-        [ImportingConstructor]
-        public GenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
+        protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
         }
 
         /// <summary>
         /// For testing purposes only.
         /// </summary>
-        internal GenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
+        protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService_forTesting)
         {
             _pickMembersService_forTesting = pickMembersService_forTesting;
         }
+
+        protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis
 {
     public abstract class SymbolVisitor
     {
-        public virtual void Visit(ISymbol symbol)
+        public virtual void Visit(ISymbol? symbol)
         {
             symbol?.Accept(this);
         }

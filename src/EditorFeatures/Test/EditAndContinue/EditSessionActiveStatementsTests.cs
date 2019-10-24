@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 var exportProvider = exportProviderFactory.CreateExportProvider();
 
-                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider);
+                Workspace = TestWorkspace.CreateCSharp(ActiveStatementsDescription.ClearTags(markedSource), exportProvider: exportProvider, openDocuments: true);
 
                 if (adjustSolution != null)
                 {

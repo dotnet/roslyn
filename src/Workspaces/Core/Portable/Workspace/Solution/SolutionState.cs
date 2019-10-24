@@ -1943,7 +1943,7 @@ namespace Microsoft.CodeAnalysis
         public Task<bool> HasSuccessfullyLoadedAsync(ProjectState project, CancellationToken cancellationToken)
         {
             // return HasAllInformation when compilation is not supported. 
-            // regardless whether project support compilation or not, if projectInfo is not complete, we can't gurantee its reference completeness
+            // regardless whether project support compilation or not, if projectInfo is not complete, we can't guarantee its reference completeness
             return project.SupportsCompilation
                 ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
                 : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;

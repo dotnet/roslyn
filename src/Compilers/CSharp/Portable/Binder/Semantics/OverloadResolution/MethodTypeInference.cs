@@ -1989,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (dictionary.TryGetValue(@interface, out var found))
                 {
-                    var merged = (NamedTypeSymbol)found.MergeNullability(@interface, variance);
+                    var merged = (NamedTypeSymbol)found.MergeEquivalentTypes(@interface, variance);
                     dictionary[@interface] = merged;
                 }
                 else
@@ -2498,80 +2498,6 @@ OuterBreak:
             return best;
         }
 
-        internal static TypeWithAnnotations Merge(TypeWithAnnotations first, TypeWithAnnotations second, VarianceKind variance, ConversionsBase conversions)
-        {
-            var merged = MergeTupleNames(MergeDynamic(first, second, conversions.CorLibrary), second);
-            if (!conversions.IncludeNullability)
-            {
-                // https://github.com/dotnet/roslyn/issues/30534: Should preserve
-                // distinct "not computed" state from initial binding.
-                return merged.SetUnknownNullabilityForReferenceTypes();
-            }
-
-            return merged.MergeNullability(second, variance);
-        }
-
-        /// <summary>
-        /// Returns first or a modified version of first with merged dynamic flags from both types.
-        /// </summary>
-        internal static TypeWithAnnotations MergeDynamic(TypeWithAnnotations firstWithAnnotations, TypeWithAnnotations secondWithAnnotations, AssemblySymbol corLibrary)
-        {
-            var first = firstWithAnnotations.Type;
-            var second = secondWithAnnotations.Type;
-
-            // SPEC: 4.7 The Dynamic Type
-            //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreDynamic))
-            {
-                return firstWithAnnotations;
-            }
-            ImmutableArray<bool> flags1 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(first, RefKind.None);
-            ImmutableArray<bool> flags2 = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(second, RefKind.None);
-            ImmutableArray<bool> mergedFlags = flags1.ZipAsArray(flags2, (f1, f2) => f1 | f2);
-
-            var result = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(first, corLibrary, RefKind.None, mergedFlags);
-            return TypeWithAnnotations.Create(result); // https://github.com/dotnet/roslyn/issues/27961 Handle nullability.
-        }
-
-        /// <summary>
-        /// Returns first or a modified version of first with common tuple names from both types.
-        /// </summary>
-        internal static TypeWithAnnotations MergeTupleNames(TypeWithAnnotations firstWithAnnotations, TypeWithAnnotations secondWithAnnotations)
-        {
-            var first = firstWithAnnotations.Type;
-            var second = secondWithAnnotations.Type;
-
-            if (first.Equals(second, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreTupleNames) ||
-                !first.ContainsTupleNames())
-            {
-                return firstWithAnnotations;
-            }
-
-            Debug.Assert(first.ContainsTuple());
-
-            ImmutableArray<string> names1 = CSharpCompilation.TupleNamesEncoder.Encode(first);
-            ImmutableArray<string> names2 = CSharpCompilation.TupleNamesEncoder.Encode(second);
-
-            ImmutableArray<string> mergedNames;
-            if (names1.IsDefault || names2.IsDefault)
-            {
-                mergedNames = default;
-            }
-            else
-            {
-                Debug.Assert(names1.Length == names2.Length);
-                mergedNames = names1.ZipAsArray(names2, (n1, n2) => string.CompareOrdinal(n1, n2) == 0 ? n1 : null);
-
-                if (mergedNames.All(n => n == null))
-                {
-                    mergedNames = default;
-                }
-            }
-
-            var result = TupleTypeDecoder.DecodeTupleTypesIfApplicable(first, mergedNames);
-            return TypeWithAnnotations.Create(result); // https://github.com/dotnet/roslyn/issues/27961 Handle nullability.
-        }
-
         private static bool ImplicitConversionExists(TypeWithAnnotations sourceWithAnnotations, TypeWithAnnotations destinationWithAnnotations, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConversionsBase conversions)
         {
             var source = sourceWithAnnotations.Type;
@@ -2948,7 +2874,7 @@ OuterBreak:
                 // IOut<object?>, then merge that result with upper bound IOut<object!> (using VarianceKind.In)
                 // to produce IOut<object?>. But then conversion of argument IIn<IOut<object!>> to parameter
                 // IIn<IOut<object?>> will generate a warning at that point.)
-                TypeWithAnnotations merged = Merge(latest, newCandidate, variance, conversions);
+                TypeWithAnnotations merged = latest.MergeEquivalentTypes(newCandidate, variance);
                 candidates[oldCandidate] = merged;
             }
         }

@@ -351,6 +351,34 @@ Class Customer2
 End Class
 "
 
+        Private Shared ReadOnly s_preferSystemHashCode As String = $"
+Imports System
+
+Class Customer1
+    Dim a, b, c As Integer
+//[
+    ' {ServicesVSResources.Prefer_colon}
+    // {ServicesVSResources.Requires_System_HashCode_be_present_in_project}
+    Public Overrides Function GetHashCodeAsInteger()
+        Return System.HashCode.Combine(a, b, c)
+    End Function
+//]
+End Class
+Class Customer2
+    Dim a, b, c As Integer
+//[
+    ' {ServicesVSResources.Over_colon}
+    Public Overrides Function GetHashCodeAsInteger()
+        Dim hashCode = 339610899
+        hashCode = hashCode * -1521134295 + a.GetHashCode()
+        hashCode = hashCode * -1521134295 + b.GetHashCode()
+        hashCode = hashCode * -1521134295 + c.GetHashCode()
+        return hashCode
+    End Function
+//]
+End Class
+"
+
         Private Shared ReadOnly s_preferIsNothingCheckOverReferenceEquals As String = $"
 Imports System
 
@@ -657,6 +685,7 @@ End Class
 
             ' Code block
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, Me, optionStore, codeBlockPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferSystemHashCode, ServicesVSResources.Prefer_System_HashCode_in_GetHashCode, s_preferSystemHashCode, s_preferSystemHashCode, Me, optionStore, codeBlockPreferencesGroupTitle))
 
             ' expression preferences
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, Me, optionStore, expressionPreferencesGroupTitle))

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -140,11 +142,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ConstantValue firstConstant = first.Key;
             ConstantValue secondConstant = second.Key;
 
-            Debug.Assert(firstConstant != null);
+            RoslynDebug.Assert(firstConstant != null);
             Debug.Assert(SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(firstConstant)
                 && !firstConstant.IsString);
 
-            Debug.Assert(secondConstant != null);
+            RoslynDebug.Assert(secondConstant != null);
             Debug.Assert(SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(secondConstant)
                 && !secondConstant.IsString);
 
@@ -413,9 +415,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private void EmitCondBranchForSwitch(ILOpCode branchCode, ConstantValue constant, object targetLabel)
         {
             Debug.Assert(branchCode.IsBranch());
-            Debug.Assert(constant != null &&
+            RoslynDebug.Assert(constant != null &&
                 SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(constant));
-            Debug.Assert(targetLabel != null);
+            RoslynDebug.Assert(targetLabel != null);
 
             // ldloc key
             // ldc constant
@@ -428,9 +430,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitEqBranchForSwitch(ConstantValue constant, object targetLabel)
         {
-            Debug.Assert(constant != null &&
+            RoslynDebug.Assert(constant != null &&
                 SwitchConstantValueHelper.IsValidSwitchCaseLabelConstant(constant));
-            Debug.Assert(targetLabel != null);
+            RoslynDebug.Assert(targetLabel != null);
 
             _builder.EmitLoad(_key);
 
