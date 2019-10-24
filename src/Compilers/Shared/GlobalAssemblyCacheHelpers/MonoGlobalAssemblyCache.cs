@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var name = new AssemblyName(path);
+                var name = CreateAssemblyNameFromFile(path);
                 if (version != null && name.Version != version)
                 {
                     continue;
@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis
 
             return corlibPaths;
         }
+
+        private static AssemblyName CreateAssemblyNameFromFile(string path)
+            => AssemblyName.GetAssemblyName(path);
 
         private static IEnumerable<string> GetGacAssemblyPaths(string gacPath, string name, Version version, string publicKeyToken)
         {
@@ -128,7 +131,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
                     }
 
-                    var gacAssemblyName = new AssemblyName(assemblyPath);
+                    var gacAssemblyName = CreateAssemblyNameFromFile(assemblyPath);
 
                     if (gacAssemblyName.ProcessorArchitecture != ProcessorArchitecture.None &&
                         architectureFilter != default(ImmutableArray<ProcessorArchitecture>) &&
@@ -203,7 +206,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var gacAssemblyName = new AssemblyName(assemblyPath);
+                var gacAssemblyName = CreateAssemblyNameFromFile(assemblyPath);
 
                 isBestMatch = cultureName == null || gacAssemblyName.CultureName == cultureName;
                 bool isBetterMatch = location == null || isBestMatch;
