@@ -1483,7 +1483,7 @@ class Program
             {
                 var localSymbol = x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 2);
-                VerifySymbolInfoForUsingStatements(compilation,x.Type, 2);
+                VerifySymbolInfoForUsingStatements(compilation, x.Type, 2);
             }
         }
 

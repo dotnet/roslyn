@@ -900,7 +900,7 @@ internal class Derived : Outer
             Assert.False(compilation1.IsSymbolAccessibleWithin(Outer_Protected, sourceAssem));
             Assert.True(compilation1.IsSymbolAccessibleWithin(Outer_Protected, Outer_Inner));
 
-           Compilation c2 = CreateCompilation(@"
+            Compilation c2 = CreateCompilation(@"
 internal class InOtherCompilation
 {
 }
