@@ -4,10 +4,13 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+using Microsoft.VisualStudio.LanguageServices.CSharp.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -166,6 +169,60 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             outputs = (CompilationOutputFilesWithImplicitPdbPath)environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id);
             Assert.Equal(@"C:\a\3.dll", outputs.AssemblyFilePath);
+        }
+
+        [WpfTheory]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [InlineData(LanguageVersion.LatestMajor)]
+        [InlineData(LanguageVersion.Preview)]
+        [InlineData(null)]
+        public void SetProperty_MaxSupportedLangVersion(LanguageVersion? maxSupportedLangVersion)
+        {
+            const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
+
+            var catalog = TestEnvironment.s_exportCatalog.Value
+                .WithParts(
+                    typeof(CSharpParseOptionsChangingService));
+
+            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
+            using var environment = new TestEnvironment(exportProviderFactory: factory);
+
+            var hierarchy = environment.CreateHierarchy("CSharpProject", "Bin", projectRefPath: null, projectCapabilities: "CSharp");
+
+            if (!(hierarchy is IVsBuildPropertyStorage storage))
+            {
+                Assert.True(false);
+                return;
+            }
+
+            if (maxSupportedLangVersion.HasValue)
+            {
+                Assert.True(ErrorHandler.Succeeded(
+                    storage.SetPropertyValue(
+                        "MaxSupportedLangVersion", null, (uint)_PersistStorageType.PST_PROJECT_FILE, maxSupportedLangVersion.Value.ToDisplayString())));
+            }
+
+            _ = CSharpHelpers.CreateCSharpProject(environment, "Test", hierarchy);
+
+            var project = environment.Workspace.CurrentSolution.Projects.Single();
+
+            var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
+
+            var canApply = environment.Workspace.CanApplyParseOptionChange(
+                oldParseOptions,
+                oldParseOptions.WithLanguageVersion(attemptedVersion),
+                project);
+
+            if (maxSupportedLangVersion.HasValue)
+            {
+                Assert.Equal(attemptedVersion <= maxSupportedLangVersion.Value, canApply);
+            }
+            else
+            {
+                Assert.True(canApply);
+            }
         }
     }
 }

@@ -40,7 +40,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [InlineData(LanguageVersion.Latest)]
         [InlineData(LanguageVersion.LatestMajor)]
         [InlineData(LanguageVersion.Preview)]
-        public void SetProperty_MaxSupportedLangVersion_CPS(LanguageVersion maxSupportedLangVersion)
+        public void SetProperty_MaxSupportedLangVersion_CPS(LanguageVersion? maxSupportedLangVersion)
         {
             var catalog = TestEnvironment.s_exportCatalog.Value
                 .WithParts(
@@ -56,14 +56,24 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 var project = environment.Workspace.CurrentSolution.Projects.Single();
                 var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
 
-                cpsProject.SetProperty(AdditionalPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion.ToDisplayString());
+                if (maxSupportedLangVersion.HasValue)
+                {
+                    cpsProject.SetProperty(AdditionalPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion.Value.ToDisplayString());
+                }
 
                 var canApply = environment.Workspace.CanApplyParseOptionChange(
                     oldParseOptions,
                     oldParseOptions.WithLanguageVersion(attemptedVersion),
                     project);
 
-                Assert.Equal(attemptedVersion <= maxSupportedLangVersion, canApply);
+                if (maxSupportedLangVersion.HasValue)
+                {
+                    Assert.Equal(attemptedVersion <= maxSupportedLangVersion.Value, canApply);
+                }
+                else
+                {
+                    Assert.True(canApply);
+                }
             }
         }
     }
